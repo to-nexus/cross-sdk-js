@@ -1,8 +1,14 @@
-import { hashMessage } from "@ethersproject/hash";
+import { keccak_256 } from "@noble/hashes/sha3";
 import { recoverAddress } from "@ethersproject/transactions";
 import { AuthTypes } from "@walletconnect/types";
 import { parseChainId } from "./caip";
 const DEFAULT_RPC_URL = "https://rpc.walletconnect.org/v1";
+
+export function hashEthereumMessage(message: string) {
+  const prefix = `\x19Ethereum Signed Message:\n${message.length}`;
+  const prefixedMessage = new TextEncoder().encode(prefix + message);
+  return "0x" + Buffer.from(keccak_256(prefixedMessage)).toString("hex");
+}
 
 export async function verifySignature(
   address: string,
@@ -38,7 +44,7 @@ export function isValidEip191Signature(
   message: string,
   signature: string,
 ): boolean {
-  const recoveredAddress = recoverAddress(hashMessage(message), signature);
+  const recoveredAddress = recoverAddress(hashEthereumMessage(message), signature);
   return recoveredAddress.toLowerCase() === address.toLowerCase();
 }
 
@@ -61,7 +67,7 @@ export async function isValidEip1271Signature(
     const dynamicTypeOffset = "0000000000000000000000000000000000000000000000000000000000000040";
     const dynamicTypeLength = "0000000000000000000000000000000000000000000000000000000000000041";
     const nonPrefixedSignature = signature.substring(2);
-    const nonPrefixedHashedMessage = hashMessage(reconstructedMessage).substring(2);
+    const nonPrefixedHashedMessage = hashEthereumMessage(reconstructedMessage).substring(2);
 
     const data =
       eip1271MagicValue +

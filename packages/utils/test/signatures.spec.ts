@@ -30,7 +30,7 @@ Expiration Time: 2022-10-11T23:03:35.700Z`;
         chainId,
         projectId,
       );
-      expect(isValid).toBe(true);
+      expect(isValid).to.be.true;
     });
     it("fails for a bad signature", async () => {
       const cacaoSignature: AuthTypes.CacaoSignature = {
