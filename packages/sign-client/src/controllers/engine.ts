@@ -182,10 +182,12 @@ export class Engine extends IEngine {
     let topic = pairingTopic;
     let uri: string | undefined;
     let active = false;
-
     try {
       if (topic) {
         const pairing = this.client.core.pairing.pairings.get(topic);
+        this.client.logger.warn(
+          "connect() with existing pairing topic is deprecated and will be removed in the next major release.",
+        );
         active = pairing.active;
       }
     } catch (error) {
@@ -681,6 +683,9 @@ export class Engine extends IEngine {
         done(),
       ]);
     } else if (this.client.core.pairing.pairings.keys.includes(topic)) {
+      this.client.logger.warn(
+        "ping() on pairing topic is deprecated and will be removed in the next major release.",
+      );
       await this.client.core.pairing.ping({ topic });
     }
   };

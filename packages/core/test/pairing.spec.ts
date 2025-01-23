@@ -2,7 +2,8 @@ import { expect, describe, it, beforeEach, afterEach } from "vitest";
 import { ICore } from "@walletconnect/types";
 import { Core, CORE_PROTOCOL, CORE_VERSION, PAIRING_EVENTS, SUBSCRIBER_EVENTS } from "../src";
 import { TEST_CORE_OPTIONS, disconnectSocket, waitForEvent } from "./shared";
-import { generateRandomBytes32, parseUri, toBase64 } from "@walletconnect/utils";
+import { calcExpiry, generateRandomBytes32, parseUri, toBase64 } from "@walletconnect/utils";
+import { FIVE_MINUTES } from "@walletconnect/time";
 
 const createCoreClients: () => Promise<{ coreA: ICore; coreB: ICore }> = async () => {
   const coreA = new Core(TEST_CORE_OPTIONS);
@@ -121,8 +122,12 @@ describe("Pairing", () => {
       const inactivePairing = coreA.pairing.pairings.get(topic);
       expect(inactivePairing.active).toBe(false);
       await coreA.pairing.activate({ topic });
-      expect(coreA.pairing.pairings.get(topic).active).toBe(true);
-      expect(coreA.pairing.pairings.get(topic).expiry > inactivePairing.expiry).toBe(true);
+      const activePairing = coreA.pairing.pairings.get(topic);
+      expect(activePairing.active).toBe(true);
+      // inactive pairing should have an expiry of 5 minutes
+      expect(inactivePairing.expiry).to.be.approximately(calcExpiry(FIVE_MINUTES), 5);
+      // active pairing should still have an expiry of 5 minutes
+      expect(activePairing.expiry).to.be.approximately(calcExpiry(FIVE_MINUTES), 5);
     });
   });
 

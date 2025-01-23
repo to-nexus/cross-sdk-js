@@ -10,7 +10,6 @@ import { getDocument, getLocation, getNavigator } from "@walletconnect/window-ge
 import { getWindowMetadata } from "@walletconnect/window-metadata";
 import { ErrorResponse } from "@walletconnect/jsonrpc-utils";
 import { IKeyValueStorage } from "@walletconnect/keyvaluestorage";
-import * as qs from "query-string";
 
 // -- constants -----------------------------------------//
 export const REACT_NATIVE_PRODUCT = "ReactNative";
@@ -94,14 +93,22 @@ export function getAppId(): string | undefined {
 
 // -- query -----------------------------------------------//
 
-export function appendToQueryString(queryString: string, newQueryParams: any): string {
-  let queryParams = qs.parse(queryString);
+export function appendToQueryString(
+  queryString: string,
+  newQueryParams: Record<string, any>,
+): string {
+  const urlSearchParams = new URLSearchParams(queryString);
 
-  queryParams = { ...queryParams, ...newQueryParams };
+  for (const key of Object.keys(newQueryParams).sort()) {
+    if (newQueryParams.hasOwnProperty(key)) {
+      const value = newQueryParams[key];
+      if (value !== undefined) {
+        urlSearchParams.set(key, value);
+      }
+    }
+  }
 
-  queryString = qs.stringify(queryParams);
-
-  return queryString;
+  return urlSearchParams.toString();
 }
 
 // -- metadata ----------------------------------------------//
@@ -406,11 +413,7 @@ export async function handleDeeplinkRedirect({
         return;
       }
 
-      if (link.startsWith("https://") || link.startsWith("http://")) {
-        window.open(link, "_blank", "noreferrer noopener");
-      } else {
-        window.open(link, isTelegram() ? "_blank" : "_self", "noreferrer noopener");
-      }
+      openDeeplink(link);
     } else if (env === ENV_MAP.reactNative) {
       // global.Linking is set by react-native-compat
       if (typeof (global as any)?.Linking !== "undefined") {
@@ -435,6 +438,17 @@ export function formatDeeplinkUrl(deeplink: string, requestId: number, sessionTo
     link = `${link}/wc?${payload}`;
   }
   return link;
+}
+
+export function openDeeplink(url: string) {
+  let target = "_self";
+  if (isIframe()) {
+    target = "_top";
+  } else if (isTelegram() || url.startsWith("https://") || url.startsWith("http://")) {
+    target = "_blank";
+  }
+
+  window.open(url, target, "noreferrer noopener");
 }
 
 export async function getDeepLink(storage: IKeyValueStorage, key: string) {
@@ -492,6 +506,14 @@ export function isTelegram() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       Boolean((window as any).TelegramWebviewProxyProto))
   );
+}
+
+export function isIframe() {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return false;
+  }
 }
 
 export function toBase64(input: string, removePadding = false): string {
