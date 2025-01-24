@@ -49,9 +49,6 @@
     "events": "3.3.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudwatch": "3.450.0",
-    "@walletconnect/jsonrpc-provider": "1.0.14",
-    "@walletconnect/jsonrpc-ws-connection": "1.0.14",
-    "@walletconnect/relay-api": "1.0.11"
+    "@aws-sdk/client-cloudwatch": "3.450.0"
   }
 }
