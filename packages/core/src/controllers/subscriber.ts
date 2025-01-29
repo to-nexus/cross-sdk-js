@@ -53,14 +53,13 @@ export class Subscriber extends ISubscriber {
     super(relayer, logger);
     this.relayer = relayer;
     this.logger = generateChildLogger(logger, this.name);
-    this.clientId = ""; // assigned in init
+    this.clientId = ""; // assigned when used via this.getClientId()
   }
 
   public init: ISubscriber["init"] = async () => {
     if (!this.initialized) {
       this.logger.trace(`Initialized`);
       this.registerEventListeners();
-      this.clientId = await this.relayer.core.crypto.getClientId();
       await this.restore();
     }
     this.initialized = true;
@@ -240,7 +239,7 @@ export class Subscriber extends ISubscriber {
     this.logger.trace({ type: "payload", direction: "outgoing", request });
     const shouldThrow = opts?.internal?.throwOnFailedPublish;
     try {
-      const subId = this.getSubscriptionId(topic);
+      const subId = await this.getSubscriptionId(topic);
       // in link mode, allow the app to update its network state (i.e. active airplane mode) with small delay before attempting to subscribe
       if (opts?.transportType === TRANSPORT_TYPES.link_mode) {
         setTimeout(() => {
@@ -495,7 +494,11 @@ export class Subscriber extends ISubscriber {
 
     await this.rpcBatchSubscribe(subscriptions);
     this.onBatchSubscribe(
-      subscriptions.map((s) => ({ ...s, id: this.getSubscriptionId(s.topic) })),
+      await Promise.all(
+        subscriptions.map(async (s) => {
+          return { ...s, id: await this.getSubscriptionId(s.topic) };
+        }),
+      ),
     );
   }
 
@@ -562,7 +565,14 @@ export class Subscriber extends ISubscriber {
     }
   }
 
-  private getSubscriptionId(topic: string) {
-    return hashMessage(topic + this.clientId);
+  private async getClientId() {
+    if (!this.clientId) {
+      this.clientId = await this.relayer.core.crypto.getClientId();
+    }
+    return this.clientId;
+  }
+
+  private async getSubscriptionId(topic: string) {
+    return hashMessage(topic + (await this.getClientId()));
   }
 }
