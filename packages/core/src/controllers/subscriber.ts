@@ -53,7 +53,7 @@ export class Subscriber extends ISubscriber {
     super(relayer, logger);
     this.relayer = relayer;
     this.logger = generateChildLogger(logger, this.name);
-    this.clientId = ""; // assigned when used via this.getClientId()
+    this.clientId = ""; // assigned when calling this.getClientId()
   }
 
   public init: ISubscriber["init"] = async () => {
