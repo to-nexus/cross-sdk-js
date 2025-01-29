@@ -20,5 +20,5 @@
       "schedule": ["at any time"]
     }
   ],
-  "ignorePaths": ["**/android/**", "**/ios/**", "packages/web3modal/**"]
+  "ignorePaths": ["**/android/**", "**/ios/**", "packages/web3wallet/**"]
 }
