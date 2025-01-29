@@ -103,6 +103,8 @@ describe("Subscriber", () => {
 
   describe("init", () => {
     it("registers event listeners", async () => {
+      expect(subscriber.clientId).to.equal("");
+
       const topic = generateRandomBytes32();
       const emitSpy = Sinon.spy();
       subscriber.events.emit = emitSpy;
@@ -114,6 +116,8 @@ describe("Subscriber", () => {
       relayer.provider.events.emit(RELAYER_PROVIDER_EVENTS.disconnect);
       expect(subscriber.subscriptions.size).to.equal(0);
       expect(subscriber.topics.length).to.equal(0);
+
+      expect(subscriber.clientId).to.not.equal("");
     });
   });
 
