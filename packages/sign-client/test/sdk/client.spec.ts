@@ -493,6 +493,91 @@ describe("Sign Client Integration", () => {
           await throttle(1_000);
           await deleteClients(clients);
         });
+
+        it("can set tvf params", async () => {
+          const {
+            clients,
+            sessionA: { topic },
+          } = await initTwoPairedClients({}, {}, { logger: "error" });
+
+          let rejection: JsonRpcError;
+
+          await Promise.all([
+            new Promise<void>((resolve) => {
+              clients.B.on("session_request", async (args) => {
+                const pendingRequests = clients.B.pendingRequest.getAll();
+                const { id, topic, params } = pendingRequests[0];
+                expect(params).toEqual(args.params);
+                expect(topic).toEqual(args.topic);
+                expect(id).toEqual(args.id);
+                rejection = formatJsonRpcError(id, getSdkError("USER_REJECTED_METHODS").message);
+                const result = formatJsonRpcResult(id, "0x");
+                let checkedWalletPublish = false;
+                clients.B.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                  checkedWalletPublish = true;
+                  const tvf = publishPayload.tvf;
+                  expect(tvf).to.exist;
+                  expect(tvf?.chainId).to.eq(params.chainId);
+                  expect(tvf?.rpcMethods).to.eql([params.request.method]);
+                  expect(tvf?.txHashes).to.eql([result.result]);
+                  expect(tvf?.contractAddresses).to.eql([params.request.params[0].to]);
+                });
+
+                await clients.B.respond({
+                  topic,
+                  response: result,
+                });
+                expect(checkedWalletPublish).to.be.true;
+                resolve();
+              });
+            }),
+            new Promise<void>(async (resolve) => {
+              const requestParams = {
+                method: "eth_sendTransaction",
+                params: [
+                  {
+                    data: "0xa9059cbb00000000000000000000000013a2ff792037aa2cd77fe1f4b522921ac59a9c5200000000000000000000000000000000000000000000000000000000003d0900",
+                    from: "0x13A2Ff792037AA2cd77fE1f4B522921ac59a9C52",
+                    to: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                  },
+                ],
+              };
+              let checkedDappPublish = false;
+
+              clients.A.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                checkedDappPublish = true;
+                console.log("publishPayload", publishPayload);
+                const tvf = publishPayload.tvf;
+                expect(tvf).to.exist;
+                expect(tvf?.chainId).to.eq(TEST_REQUEST_PARAMS.chainId);
+                expect(tvf?.rpcMethods).to.eql([requestParams.method]);
+                expect(tvf?.txHashes).to.be.undefined;
+                expect(tvf?.contractAddresses).to.eql([requestParams.params[0].to]);
+              });
+
+              await clients.A.request({
+                topic,
+                ...TEST_REQUEST_PARAMS,
+                request: {
+                  ...TEST_REQUEST_PARAMS.request,
+                  method: "eth_sendTransaction",
+                  params: [
+                    {
+                      data: "0xa9059cbb00000000000000000000000013a2ff792037aa2cd77fe1f4b522921ac59a9c5200000000000000000000000000000000000000000000000000000000003d0900",
+                      from: "0x13A2Ff792037AA2cd77fE1f4B522921ac59a9C52",
+                      to: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    },
+                  ],
+                },
+              });
+              expect(checkedDappPublish).to.be.true;
+              resolve();
+            }),
+          ]);
+          await throttle(1_000);
+          await deleteClients(clients);
+        });
+
         it("should process requests queue", async () => {
           const {
             clients,
