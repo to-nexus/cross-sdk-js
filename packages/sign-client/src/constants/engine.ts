@@ -144,3 +144,8 @@ export const ENGINE_QUEUE_STATES: { idle: "IDLE"; active: "ACTIVE" } = {
   idle: "IDLE",
   active: "ACTIVE",
 };
+
+export const TVF_METHODS = {
+  eip155: ["eth_sendTransaction", "eth_sendRawTransaction", "wallet_sendCalls"],
+  solana: ["solana_signTransaction", "solana_signAndSendTransaction", "solana_signAllTransactions"],
+};

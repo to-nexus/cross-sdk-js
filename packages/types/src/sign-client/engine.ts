@@ -186,6 +186,7 @@ export interface EnginePrivate {
     clientRpcId?: number;
     throwOnFailedPublish?: boolean;
     appLink?: string;
+    tvf?: RelayerTypes.ITVF;
   }): Promise<number>;
 
   sendResult<M extends JsonRpcTypes.WcMethod>(args: {
