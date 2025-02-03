@@ -68,7 +68,7 @@ export declare namespace RelayerTypes {
   }
 
   export interface ITVF {
-    correlationId?: string;
+    correlationId?: number;
     rpcMethods?: string[];
     chainId?: string;
     txHashes?: string[];

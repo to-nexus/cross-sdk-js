@@ -2996,7 +2996,7 @@ export class Engine extends IEngine {
   ) => {
     try {
       const tvf: RelayerTypes.ITVF = {
-        correlationId: id.toString(),
+        correlationId: id,
         rpcMethods: [params.request.method],
         chainId: params.chainId,
         ...(this.isValidContractData(params.request.params) && {
