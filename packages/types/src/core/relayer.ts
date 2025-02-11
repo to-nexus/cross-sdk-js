@@ -20,8 +20,8 @@ export declare namespace RelayerTypes {
     id?: number;
     internal?: {
       throwOnFailedPublish?: boolean;
-      tvf?: ITVF;
     };
+    tvf?: ITVF;
     attestation?: string;
   }
 

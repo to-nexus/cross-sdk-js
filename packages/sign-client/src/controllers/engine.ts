@@ -597,7 +597,6 @@ export class Engine extends IEngine {
       chainId,
     };
     const shouldSetTVF = this.shouldSetTVF(protocolMethod, protocolRequestParams);
-    console.log("shouldSetTVF", shouldSetTVF, protocolMethod, chainId, request.method);
 
     return await Promise.all([
       new Promise<void>(async (resolve) => {
@@ -1494,9 +1493,9 @@ export class Engine extends IEngine {
       if (expiry) opts.ttl = expiry;
       if (relayRpcId) opts.id = relayRpcId;
 
-      opts.internal = {
-        ...opts.internal,
-        tvf,
+      opts.tvf = {
+        ...tvf,
+        correlationId: payload.id,
       };
 
       if (throwOnFailedPublish) {
@@ -1540,11 +1539,7 @@ export class Engine extends IEngine {
       const request = record.request;
       try {
         if (this.shouldSetTVF(request.method as JsonRpcTypes.WcMethod, request.params)) {
-          tvf = this.getTVFParams(
-            id,
-            request.params,
-            isValidArray(result) ? result : ([result] as any),
-          );
+          tvf = this.getTVFParams(id, request.params, result);
         }
       } catch (error) {
         this.client.logger.warn(`sendResult() -> getTVFParams() failed`, error);
@@ -1559,10 +1554,12 @@ export class Engine extends IEngine {
       await (global as any).Linking.openURL(redirectURL, this.client.name);
     } else {
       const opts = ENGINE_RPC_OPTS[record.request.method].res;
-      opts.internal = {
-        ...opts.internal,
-        tvf,
+
+      opts.tvf = {
+        ...tvf,
+        correlationId: id,
       };
+
       if (throwOnFailedPublish) {
         opts.internal = {
           ...opts.internal,
@@ -2981,23 +2978,21 @@ export class Engine extends IEngine {
   ) => {
     if (!params) return false;
     if (protocolMethod !== "wc_sessionRequest") return false;
-    const { request, chainId } = params;
-    const namespace = parseChainId(chainId).namespace;
-    if (!(namespace in TVF_METHODS)) return false;
-    const tvfMethods = TVF_METHODS[namespace as keyof typeof TVF_METHODS];
-    if (!tvfMethods) return false;
-    return tvfMethods.includes(request.method);
+    const { request } = params;
+    return Object.keys(TVF_METHODS).includes(request.method);
   };
 
   private getTVFParams = (
     id: number,
     params: JsonRpcTypes.RequestParams["wc_sessionRequest"],
-    txHashes?: string[],
+    result?: any,
   ) => {
     try {
+      const requestMethod = params.request.method;
+      const txHashes = this.extractTxHashesFromResult(requestMethod, result);
       const tvf: RelayerTypes.ITVF = {
         correlationId: id,
-        rpcMethods: [params.request.method],
+        rpcMethods: [requestMethod],
         chainId: params.chainId,
         ...(this.isValidContractData(params.request.params) && {
           // initially only get contractAddresses from EVM txs
@@ -3025,5 +3020,30 @@ export class Engine extends IEngine {
       return hexPart.length % 2 === 0;
     } catch (e) {}
     return false;
+  };
+
+  private extractTxHashesFromResult = (method: string, result: any): string[] => {
+    try {
+      const methodConfig = TVF_METHODS[method as keyof typeof TVF_METHODS];
+      // result = 0x...
+      if (typeof result === "string") {
+        return [result];
+      }
+
+      // result = { key: [0x...] } or { key: 0x... }
+      const hashes = result[methodConfig.key];
+
+      // result = { key: [0x...] }
+      if (isValidArray(hashes)) {
+        return hashes;
+
+        // result = { key: 0x... }
+      } else if (typeof hashes === "string") {
+        return [hashes];
+      }
+    } catch (e) {
+      this.client.logger.warn("Error extracting tx hashes from result", e);
+    }
+    return [];
   };
 }

@@ -58,7 +58,7 @@ export class Publisher extends IPublisher {
         tag,
         id,
         attestation: opts?.attestation,
-        ...opts?.internal?.tvf,
+        tvf: opts?.tvf,
       },
     };
     const failedPublishMessage = `Failed to publish payload, please try again. id:${id} tag:${tag}`;
@@ -88,7 +88,7 @@ export class Publisher extends IPublisher {
               tag,
               id,
               attestation: opts?.attestation,
-              tvf: opts?.internal?.tvf,
+              tvf: opts?.tvf,
             })
               .then(resolve)
               .catch((e) => {
@@ -201,6 +201,7 @@ export class Publisher extends IPublisher {
         `Publisher: queue->publishing: ${params.opts.id}, tag: ${params.opts.tag}, attempt: ${attempt}`,
       );
       await this.rpcPublish({
+        ...params,
         topic,
         message,
         ttl: opts.ttl,
@@ -208,6 +209,7 @@ export class Publisher extends IPublisher {
         tag: opts.tag,
         id: opts.id,
         attestation,
+        tvf: opts.tvf,
       });
       this.logger.warn({}, `Publisher: queue->published: ${params.opts.id}`);
     });
