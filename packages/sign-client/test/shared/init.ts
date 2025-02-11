@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { PairingTypes, SessionTypes, SignClientTypes } from "@walletconnect/types";
 import { createExpiringPromise } from "@walletconnect/utils";
-import { testConnectMethod } from ".";
+import { testConnectMethod, TestConnectParams } from ".";
 import SignClient from "../../src";
 import { deleteClients, throttle } from "./helpers";
 import {
@@ -43,6 +43,7 @@ export async function initTwoPairedClients(
   clientOptsA: SignClientTypes.Options = {},
   clientOptsB: SignClientTypes.Options = {},
   sharedClientOpts: SignClientTypes.Options = {},
+  connectParams?: TestConnectParams,
 ) {
   let clients: Clients;
   let pairingA;
@@ -59,7 +60,7 @@ export async function initTwoPairedClients(
       )) as Clients;
       const settled: any = await createExpiringPromise(
         new Promise((resolve, reject) => {
-          testConnectMethod(clients).then(resolve).catch(reject);
+          testConnectMethod(clients, connectParams).then(resolve).catch(reject);
         }),
         TESTS_CONNECT_TIMEOUT * 2,
         "testConnectMethod(clients)",

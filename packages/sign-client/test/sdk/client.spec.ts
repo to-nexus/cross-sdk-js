@@ -493,6 +493,373 @@ describe("Sign Client Integration", () => {
           await throttle(1_000);
           await deleteClients(clients);
         });
+
+        it("can set tvf params", async () => {
+          const {
+            clients,
+            sessionA: { topic },
+          } = await initTwoPairedClients(
+            {},
+            {},
+            { logger: "error" },
+            {
+              requiredNamespaces: {
+                solana: {
+                  methods: [
+                    "solana_signTransaction",
+                    "solana_signAllTransactions",
+                    "solana_signAndSendTransaction",
+                  ],
+                  events: [],
+                  chains: ["solana:devnet"],
+                },
+                eip155: {
+                  methods: ["eth_sendTransaction"],
+                  events: [],
+                  chains: ["eip155:1"],
+                },
+              },
+              namespaces: {
+                solana: {
+                  chains: ["solana:devnet"],
+                  methods: [
+                    "solana_signTransaction",
+                    "solana_signAllTransactions",
+                    "solana_signAndSendTransaction",
+                  ],
+                  events: [],
+                  accounts: ["solana:devnet:0x"],
+                },
+                eip155: {
+                  methods: ["eth_sendTransaction"],
+                  events: [],
+                  accounts: ["eip155:1:0x"],
+                },
+              },
+            },
+          );
+
+          // eip155 eth_sendTransaction example
+          await Promise.all([
+            new Promise<void>((resolve) => {
+              clients.B.once("session_request", async (args) => {
+                const pendingRequests = clients.B.pendingRequest.getAll();
+                const { id, topic, params } = pendingRequests[0];
+                expect(params).toEqual(args.params);
+                expect(topic).toEqual(args.topic);
+                expect(id).toEqual(args.id);
+
+                const result = formatJsonRpcResult(id, "0x");
+                let checkedWalletPublish = false;
+
+                clients.B.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                  checkedWalletPublish = true;
+                  const tvf = publishPayload.tvf;
+                  expect(tvf).to.exist;
+                  expect(tvf?.chainId).to.eq(params.chainId);
+                  expect(tvf?.rpcMethods).to.eql([params.request.method]);
+                  expect(tvf?.txHashes).to.eql([result.result]);
+                  expect(tvf?.contractAddresses).to.eql([params.request.params[0].to]);
+
+                  if (!tvf) {
+                    return console.error("tvf is undefined");
+                  }
+                  if (!tvf.chainId || !tvf.rpcMethods || !tvf.txHashes) {
+                    return console.error("tvf is missing required fields");
+                  }
+                  if (tvf.txHashes[0] !== result.result) {
+                    return console.error(
+                      "txHashes do not match: signature - eth_sendTransaction",
+                      tvf.txHashes[0],
+                      result.result,
+                      id,
+                    );
+                  }
+
+                  checkedWalletPublish = true;
+                });
+                await clients.B.respond({
+                  topic,
+                  response: result,
+                });
+                expect(checkedWalletPublish).to.be.true;
+                resolve();
+              });
+            }),
+            new Promise<void>(async (resolve) => {
+              const requestParams = {
+                method: "eth_sendTransaction",
+                params: [
+                  {
+                    data: "0xa9059cbb00000000000000000000000013a2ff792037aa2cd77fe1f4b522921ac59a9c5200000000000000000000000000000000000000000000000000000000003d0900",
+                    from: "0x13A2Ff792037AA2cd77fE1f4B522921ac59a9C52",
+                    to: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                  },
+                ],
+              };
+              let checkedDappPublish = false;
+
+              clients.A.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                checkedDappPublish = true;
+                const tvf = publishPayload.tvf;
+                expect(tvf).to.exist;
+                expect(tvf?.chainId).to.eq(TEST_REQUEST_PARAMS.chainId);
+                expect(tvf?.rpcMethods).to.eql([requestParams.method]);
+                expect(tvf?.txHashes).to.be.undefined;
+                expect(tvf?.contractAddresses).to.eql([requestParams.params[0].to]);
+              });
+
+              await clients.A.request({
+                topic,
+                ...TEST_REQUEST_PARAMS,
+                request: {
+                  ...TEST_REQUEST_PARAMS.request,
+                  ...requestParams,
+                },
+              });
+              expect(checkedDappPublish).to.be.true;
+              resolve();
+            }),
+          ]);
+          // solana solana_signAndSendTransaction example
+          await Promise.all([
+            new Promise<void>((resolve) => {
+              clients.B.once("session_request", async (args) => {
+                const pendingRequests = clients.B.pendingRequest.getAll();
+                const { id, topic, params } = pendingRequests[0];
+                expect(params).toEqual(args.params);
+                expect(topic).toEqual(args.topic);
+                expect(id).toEqual(args.id);
+
+                const result = formatJsonRpcResult(id, { signature: "0xSignature" });
+                let checkedWalletPublish = false;
+
+                clients.B.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                  const tvf = publishPayload.tvf;
+                  console.log("tvf", tvf);
+                  if (!tvf) {
+                    return console.error("tvf is undefined");
+                  }
+                  if (!tvf.chainId || !tvf.rpcMethods || !tvf.txHashes) {
+                    return console.error("tvf is missing required fields");
+                  }
+                  if (tvf.txHashes[0] !== result.result.signature) {
+                    return console.error(
+                      "txHashes do not match: signature - solana_signAndSendTransaction",
+                      tvf.txHashes[0],
+                      result.result.signature,
+                      id,
+                    );
+                  }
+                  checkedWalletPublish = true;
+                });
+                await clients.B.respond({
+                  topic,
+                  response: result,
+                });
+
+                expect(checkedWalletPublish).to.be.true;
+                resolve();
+              });
+            }),
+            new Promise<void>(async (resolve) => {
+              const requestParams = {
+                method: "solana_signAndSendTransaction",
+                params: [
+                  {
+                    data: "0xa9059cbb00000000000000000000000013a2ff792037aa2cd77fe1f4b522921ac59a9c5200000000000000000000000000000000000000000000000000000000003d0900",
+                    from: "0x13A2Ff792037AA2cd77fE1f4B522921ac59a9C52",
+                    to: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                  },
+                ],
+              };
+              let checkedDappPublish = false;
+
+              clients.A.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                checkedDappPublish = true;
+                const tvf = publishPayload.tvf;
+                expect(tvf).to.exist;
+                expect(tvf?.chainId).to.eq(TEST_REQUEST_PARAMS.chainId);
+                expect(tvf?.rpcMethods).to.eql([requestParams.method]);
+                expect(tvf?.txHashes).to.be.undefined;
+                expect(tvf?.contractAddresses).to.eql([requestParams.params[0].to]);
+              });
+
+              await clients.A.request({
+                topic,
+                ...TEST_REQUEST_PARAMS,
+                request: {
+                  ...TEST_REQUEST_PARAMS.request,
+                  ...requestParams,
+                },
+                chainId: "solana:devnet",
+              });
+              expect(checkedDappPublish).to.be.true;
+              resolve();
+            }),
+          ]);
+
+          // solana solana_signTransaction example
+          await Promise.all([
+            new Promise<void>((resolve) => {
+              clients.B.once("session_request", async (args) => {
+                const pendingRequests = clients.B.pendingRequest.getAll();
+                const { id, topic, params } = pendingRequests[0];
+                expect(params).toEqual(args.params);
+                expect(topic).toEqual(args.topic);
+                expect(id).toEqual(args.id);
+
+                const result = formatJsonRpcResult(id, { signature: "0xSignature" });
+                let checkedWalletPublish = false;
+
+                clients.B.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                  const tvf = publishPayload.tvf;
+                  if (!tvf) {
+                    return console.error("tvf is undefined");
+                  }
+                  if (!tvf.chainId || !tvf.rpcMethods || !tvf.txHashes) {
+                    return console.error("tvf is missing required fields");
+                  }
+                  if (tvf.txHashes[0] !== result.result.signature) {
+                    return console.error(
+                      "txHashes do not match: signature",
+                      tvf.txHashes[0],
+                      result.result.signature,
+                    );
+                  }
+
+                  checkedWalletPublish = true;
+                });
+
+                await clients.B.respond({
+                  topic,
+                  response: result,
+                });
+
+                expect(checkedWalletPublish).to.be.true;
+                resolve();
+              });
+            }),
+            new Promise<void>(async (resolve) => {
+              const requestParams = {
+                method: "solana_signTransaction",
+                params: [
+                  {
+                    data: "0xa9059cbb00000000000000000000000013a2ff792037aa2cd77fe1f4b522921ac59a9c5200000000000000000000000000000000000000000000000000000000003d0900",
+                    from: "0x13A2Ff792037AA2cd77fE1f4B522921ac59a9C52",
+                    to: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                  },
+                ],
+              };
+              let checkedDappPublish = false;
+
+              clients.A.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                checkedDappPublish = true;
+                const tvf = publishPayload.tvf;
+                expect(tvf).to.exist;
+                expect(tvf?.chainId).to.eq(TEST_REQUEST_PARAMS.chainId);
+                expect(tvf?.rpcMethods).to.eql([requestParams.method]);
+                expect(tvf?.txHashes).to.be.undefined;
+                expect(tvf?.contractAddresses).to.eql([requestParams.params[0].to]);
+              });
+
+              await clients.A.request({
+                topic,
+                ...TEST_REQUEST_PARAMS,
+                request: {
+                  ...TEST_REQUEST_PARAMS.request,
+                  ...requestParams,
+                },
+                chainId: "solana:devnet",
+              });
+              expect(checkedDappPublish).to.be.true;
+              resolve();
+            }),
+          ]);
+
+          // solana solana_signAllTransactions example
+          await Promise.all([
+            new Promise<void>((resolve) => {
+              clients.B.once("session_request", async (args) => {
+                const pendingRequests = clients.B.pendingRequest.getAll();
+                const { id, topic, params } = pendingRequests[0];
+                expect(params).toEqual(args.params);
+                expect(topic).toEqual(args.topic);
+                expect(id).toEqual(args.id);
+
+                const result = formatJsonRpcResult(id, {
+                  transactions: ["0xtx1", "0xtx2", "0xtx3"],
+                });
+                let checkedWalletPublish = false;
+                clients.B.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                  const tvf = publishPayload.tvf;
+                  if (!tvf) {
+                    return console.error("tvf is undefined");
+                  }
+                  if (!tvf.chainId || !tvf.rpcMethods || !tvf.txHashes) {
+                    return console.error("tvf is missing required fields");
+                  }
+                  if (tvf.txHashes.join(",") !== result.result.transactions.join(",")) {
+                    return console.error(
+                      "txHashes do not match: transactions",
+                      tvf.txHashes,
+                      result.result.transactions,
+                    );
+                  }
+
+                  checkedWalletPublish = true;
+                });
+
+                await clients.B.respond({
+                  topic,
+                  response: result,
+                });
+
+                expect(checkedWalletPublish).to.be.true;
+                resolve();
+              });
+            }),
+            new Promise<void>(async (resolve) => {
+              const requestParams = {
+                method: "solana_signAllTransactions",
+                params: [
+                  {
+                    data: "0xa9059cbb00000000000000000000000013a2ff792037aa2cd77fe1f4b522921ac59a9c5200000000000000000000000000000000000000000000000000000000003d0900",
+                    from: "0x13A2Ff792037AA2cd77fE1f4B522921ac59a9C52",
+                    to: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                  },
+                ],
+              };
+              let checkedDappPublish = false;
+
+              clients.A.core.relayer.once(RELAYER_EVENTS.publish, (publishPayload: any) => {
+                checkedDappPublish = true;
+                const tvf = publishPayload.tvf;
+                expect(tvf).to.exist;
+                expect(tvf?.chainId).to.eq(TEST_REQUEST_PARAMS.chainId);
+                expect(tvf?.rpcMethods).to.eql([requestParams.method]);
+                expect(tvf?.txHashes).to.be.undefined;
+                expect(tvf?.contractAddresses).to.eql([requestParams.params[0].to]);
+              });
+
+              await clients.A.request({
+                topic,
+                ...TEST_REQUEST_PARAMS,
+                request: {
+                  ...TEST_REQUEST_PARAMS.request,
+                  ...requestParams,
+                },
+                chainId: "solana:devnet",
+              });
+              expect(checkedDappPublish).to.be.true;
+              resolve();
+            }),
+          ]);
+
+          await throttle(1_000);
+          await deleteClients(clients);
+        });
+
         it("should process requests queue", async () => {
           const {
             clients,

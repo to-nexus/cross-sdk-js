@@ -21,6 +21,7 @@ export declare namespace RelayerTypes {
     internal?: {
       throwOnFailedPublish?: boolean;
     };
+    tvf?: ITVF;
     attestation?: string;
   }
 
@@ -64,6 +65,14 @@ export declare namespace RelayerTypes {
     useOnCloseEvent?: boolean;
     bundleId?: string;
     packageName?: string;
+  }
+
+  export interface ITVF {
+    correlationId?: number;
+    rpcMethods?: string[];
+    chainId?: string;
+    txHashes?: string[];
+    contractAddresses?: string[];
   }
 }
 

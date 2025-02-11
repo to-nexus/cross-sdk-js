@@ -97,6 +97,7 @@ import {
   getSearchParamFromURL,
   isReactNative,
   isTestRun,
+  isValidArray,
 } from "@walletconnect/utils";
 import EventEmmiter from "events";
 import {
@@ -109,6 +110,7 @@ import {
   WALLETCONNECT_DEEPLINK_CHOICE,
   ENGINE_QUEUE_STATES,
   AUTH_PUBLIC_KEY_NAME,
+  TVF_METHODS,
 } from "../constants";
 
 export class Engine extends IEngine {
@@ -557,14 +559,14 @@ export class Engine extends IEngine {
         else resolve(result);
       },
     );
-
+    const protocolMethod = "wc_sessionRequest";
     const appLink = this.getAppLinkIfEnabled(session.peer.metadata, session.transportType);
     if (appLink) {
       await this.sendRequest({
         clientRpcId,
         relayRpcId,
         topic,
-        method: "wc_sessionRequest",
+        method: protocolMethod,
         params: {
           request: {
             ...request,
@@ -587,22 +589,28 @@ export class Engine extends IEngine {
       return result;
     }
 
+    const protocolRequestParams: JsonRpcTypes.RequestParams["wc_sessionRequest"] = {
+      request: {
+        ...request,
+        expiryTimestamp: calcExpiry(expiry),
+      },
+      chainId,
+    };
+    const shouldSetTVF = this.shouldSetTVF(protocolMethod, protocolRequestParams);
+
     return await Promise.all([
       new Promise<void>(async (resolve) => {
         await this.sendRequest({
           clientRpcId,
           relayRpcId,
           topic,
-          method: "wc_sessionRequest",
-          params: {
-            request: {
-              ...request,
-              expiryTimestamp: calcExpiry(expiry),
-            },
-            chainId,
-          },
+          method: protocolMethod,
+          params: protocolRequestParams,
           expiry,
           throwOnFailedPublish: true,
+          ...(shouldSetTVF && {
+            tvf: this.getTVFParams(clientRpcId, protocolRequestParams),
+          }),
         }).catch((error) => reject(error));
         this.client.events.emit("session_request_sent", {
           topic,
@@ -1449,6 +1457,7 @@ export class Engine extends IEngine {
       clientRpcId,
       throwOnFailedPublish,
       appLink,
+      tvf,
     } = args;
     const payload = formatJsonRpcRequest(method, params, clientRpcId);
 
@@ -1483,6 +1492,12 @@ export class Engine extends IEngine {
       const opts = ENGINE_RPC_OPTS[method].req;
       if (expiry) opts.ttl = expiry;
       if (relayRpcId) opts.id = relayRpcId;
+
+      opts.tvf = {
+        ...tvf,
+        correlationId: payload.id,
+      };
+
       if (throwOnFailedPublish) {
         opts.internal = {
           ...opts.internal,
@@ -1518,8 +1533,17 @@ export class Engine extends IEngine {
       throw error;
     }
     let record;
+    let tvf;
     try {
       record = await this.client.core.history.get(topic, id);
+      const request = record.request;
+      try {
+        if (this.shouldSetTVF(request.method as JsonRpcTypes.WcMethod, request.params)) {
+          tvf = this.getTVFParams(id, request.params, result);
+        }
+      } catch (error) {
+        this.client.logger.warn(`sendResult() -> getTVFParams() failed`, error);
+      }
     } catch (error) {
       this.client.logger.error(`sendResult() -> history.get(${topic}, ${id}) failed`);
       throw error;
@@ -1530,6 +1554,12 @@ export class Engine extends IEngine {
       await (global as any).Linking.openURL(redirectURL, this.client.name);
     } else {
       const opts = ENGINE_RPC_OPTS[record.request.method].res;
+
+      opts.tvf = {
+        ...tvf,
+        correlationId: id,
+      };
+
       if (throwOnFailedPublish) {
         opts.internal = {
           ...opts.internal,
@@ -2940,5 +2970,80 @@ export class Engine extends IEngine {
         }
       }
     }
+  };
+
+  private shouldSetTVF = (
+    protocolMethod: JsonRpcTypes.WcMethod,
+    params: JsonRpcTypes.RequestParams["wc_sessionRequest"],
+  ) => {
+    if (!params) return false;
+    if (protocolMethod !== "wc_sessionRequest") return false;
+    const { request } = params;
+    return Object.keys(TVF_METHODS).includes(request.method);
+  };
+
+  private getTVFParams = (
+    id: number,
+    params: JsonRpcTypes.RequestParams["wc_sessionRequest"],
+    result?: any,
+  ) => {
+    try {
+      const requestMethod = params.request.method;
+      const txHashes = this.extractTxHashesFromResult(requestMethod, result);
+      const tvf: RelayerTypes.ITVF = {
+        correlationId: id,
+        rpcMethods: [requestMethod],
+        chainId: params.chainId,
+        ...(this.isValidContractData(params.request.params) && {
+          // initially only get contractAddresses from EVM txs
+          contractAddresses: [params.request.params?.[0]?.to],
+        }),
+        txHashes,
+      };
+      return tvf;
+    } catch (e) {
+      this.client.logger.warn("Error getting TVF params", e);
+    }
+    return {};
+  };
+
+  private isValidContractData = (params: any) => {
+    if (!params) return false;
+    try {
+      const data = params?.data || params?.[0]?.data;
+
+      if (!data.startsWith("0x")) return false;
+
+      const hexPart = data.slice(2);
+      if (!/^[0-9a-fA-F]*$/.test(hexPart)) return false;
+
+      return hexPart.length % 2 === 0;
+    } catch (e) {}
+    return false;
+  };
+
+  private extractTxHashesFromResult = (method: string, result: any): string[] => {
+    try {
+      const methodConfig = TVF_METHODS[method as keyof typeof TVF_METHODS];
+      // result = 0x...
+      if (typeof result === "string") {
+        return [result];
+      }
+
+      // result = { key: [0x...] } or { key: 0x... }
+      const hashes = result[methodConfig.key];
+
+      // result = { key: [0x...] }
+      if (isValidArray(hashes)) {
+        return hashes;
+
+        // result = { key: 0x... }
+      } else if (typeof hashes === "string") {
+        return [hashes];
+      }
+    } catch (e) {
+      this.client.logger.warn("Error extracting tx hashes from result", e);
+    }
+    return [];
   };
 }

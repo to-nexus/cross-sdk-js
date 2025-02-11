@@ -144,3 +144,25 @@ export const ENGINE_QUEUE_STATES: { idle: "IDLE"; active: "ACTIVE" } = {
   idle: "IDLE",
   active: "ACTIVE",
 };
+
+export const TVF_METHODS = {
+  eth_sendTransaction: {
+    key: "",
+  },
+  eth_sendRawTransaction: {
+    key: "",
+  },
+  wallet_sendCalls: {
+    key: "",
+  },
+
+  solana_signTransaction: {
+    key: "signature",
+  },
+  solana_signAllTransactions: {
+    key: "transactions",
+  },
+  solana_signAndSendTransaction: {
+    key: "signature",
+  },
+};

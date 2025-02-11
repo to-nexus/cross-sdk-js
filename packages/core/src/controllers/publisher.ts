@@ -2,7 +2,7 @@ import { HEARTBEAT_EVENTS } from "@walletconnect/heartbeat";
 import { JsonRpcPayload, RequestArguments } from "@walletconnect/jsonrpc-types";
 import { generateChildLogger, getLoggerContext, Logger } from "@walletconnect/logger";
 import { RelayJsonRpc } from "@walletconnect/relay-api";
-import { IPublisher, IRelayer, PublisherTypes } from "@walletconnect/types";
+import { IPublisher, IRelayer, PublisherTypes, RelayerTypes } from "@walletconnect/types";
 import {
   getRelayProtocolApi,
   getRelayProtocolName,
@@ -58,6 +58,7 @@ export class Publisher extends IPublisher {
         tag,
         id,
         attestation: opts?.attestation,
+        tvf: opts?.tvf,
       },
     };
     const failedPublishMessage = `Failed to publish payload, please try again. id:${id} tag:${tag}`;
@@ -87,6 +88,7 @@ export class Publisher extends IPublisher {
               tag,
               id,
               attestation: opts?.attestation,
+              tvf: opts?.tvf,
             })
               .then(resolve)
               .catch((e) => {
@@ -149,8 +151,18 @@ export class Publisher extends IPublisher {
     tag?: number;
     id?: number;
     attestation?: string;
+    tvf?: RelayerTypes.ITVF;
   }) {
-    const { topic, message, ttl = PUBLISHER_DEFAULT_TTL, prompt, tag, id, attestation } = params;
+    const {
+      topic,
+      message,
+      ttl = PUBLISHER_DEFAULT_TTL,
+      prompt,
+      tag,
+      id,
+      attestation,
+      tvf,
+    } = params;
     const api = getRelayProtocolApi(getRelayProtocolName().protocol);
     const request: RequestArguments<RelayJsonRpc.PublishParams> = {
       method: api.publish,
@@ -161,6 +173,7 @@ export class Publisher extends IPublisher {
         prompt,
         tag,
         attestation,
+        ...tvf,
       },
       id,
     };
@@ -188,6 +201,7 @@ export class Publisher extends IPublisher {
         `Publisher: queue->publishing: ${params.opts.id}, tag: ${params.opts.tag}, attempt: ${attempt}`,
       );
       await this.rpcPublish({
+        ...params,
         topic,
         message,
         ttl: opts.ttl,
@@ -195,6 +209,7 @@ export class Publisher extends IPublisher {
         tag: opts.tag,
         id: opts.id,
         attestation,
+        tvf: opts.tvf,
       });
       this.logger.warn({}, `Publisher: queue->published: ${params.opts.id}`);
     });
