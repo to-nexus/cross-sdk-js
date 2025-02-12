@@ -21,6 +21,8 @@ const provider = await EthereumProvider.init({
   events, // OPTIONAL ethereum events
   rpcMap, // OPTIONAL rpc urls for each chain
   metadata, // OPTIONAL metadata of your app
+  storage, // OPTIONAL custom storage implementation
+  storageOptions, // OPTIONAL storage config options
   qrModalOptions, // OPTIONAL - `undefined` by default
 });
 ```

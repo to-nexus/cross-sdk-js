@@ -578,6 +578,7 @@ export class EthereumProvider implements IEthereumProvider {
       metadata: this.rpc.metadata,
       disableProviderPing: opts.disableProviderPing,
       relayUrl: opts.relayUrl,
+      storage: opts.storage,
       storageOptions: opts.storageOptions,
       customStoragePrefix: opts.customStoragePrefix,
       telemetryEnabled: opts.telemetryEnabled,
