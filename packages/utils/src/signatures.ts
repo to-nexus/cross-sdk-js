@@ -1,5 +1,5 @@
 import { keccak_256 } from "@noble/hashes/sha3";
-import { recoverAddress } from "@ethersproject/transactions";
+import { recoverAddress } from "viem";
 import { AuthTypes } from "@walletconnect/types";
 import { parseChainId } from "./caip";
 const DEFAULT_RPC_URL = "https://rpc.walletconnect.org/v1";
@@ -21,7 +21,7 @@ export async function verifySignature(
   // Determine if this signature is from an EOA or a contract.
   switch (cacaoSignature.t) {
     case "eip191":
-      return isValidEip191Signature(address, reconstructedMessage, cacaoSignature.s);
+      return await isValidEip191Signature(address, reconstructedMessage, cacaoSignature.s);
     case "eip1271":
       return await isValidEip1271Signature(
         address,
@@ -39,12 +39,16 @@ export async function verifySignature(
   }
 }
 
-export function isValidEip191Signature(
+export async function isValidEip191Signature(
   address: string,
   message: string,
   signature: string,
-): boolean {
-  const recoveredAddress = recoverAddress(hashEthereumMessage(message), signature);
+): Promise<boolean> {
+  const recoveredAddress = await recoverAddress({
+    hash: hashEthereumMessage(message) as `0x${string}`,
+    signature: signature as `0x${string}`,
+  });
+  console.log("recoveredAddress: ", recoveredAddress);
   return recoveredAddress.toLowerCase() === address.toLowerCase();
 }
 
