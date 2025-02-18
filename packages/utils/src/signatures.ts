@@ -48,7 +48,6 @@ export async function isValidEip191Signature(
     hash: hashEthereumMessage(message) as `0x${string}`,
     signature: signature as `0x${string}`,
   });
-  console.log("recoveredAddress: ", recoveredAddress);
   return recoveredAddress.toLowerCase() === address.toLowerCase();
 }
 
