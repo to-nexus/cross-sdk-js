@@ -95,7 +95,7 @@ export class Relayer extends IRelayer {
   private heartBeatTimeout = toMiliseconds(THIRTY_SECONDS + FIVE_SECONDS);
   private reconnectTimeout: NodeJS.Timeout | undefined;
   private connectPromise: Promise<void> | undefined;
-  private reconnectInProgress: boolean = false;
+  private reconnectInProgress = false;
   private requestsInFlight: string[] = [];
   private connectTimeout = toMiliseconds(ONE_SECOND * 15);
   constructor(opts: RelayerOptions) {

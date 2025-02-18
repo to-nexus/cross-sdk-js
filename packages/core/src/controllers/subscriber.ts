@@ -570,7 +570,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async restartToComplete(subscription: SubscriberTypes.Active) {
-    console.log("restartToComplete", this.relayer.connected || this.relayer.connecting);
     if (!this.relayer.connected && !this.relayer.connecting) {
       this.cached.push(subscription);
       await this.relayer.transportOpen();
