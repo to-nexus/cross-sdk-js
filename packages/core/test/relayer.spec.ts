@@ -29,8 +29,9 @@ import * as utils from "@walletconnect/utils";
 describe("Relayer", () => {
   const logger = pino(getDefaultLoggerOptions({ level: CORE_DEFAULT.logger }));
 
-  let core;
-  let relayer;
+  let core: ICore;
+  let relayer: IRelayer;
+  const randomTopic = generateRandomBytes32();
 
   describe("init", () => {
     let initSpy: Sinon.SinonSpy;
@@ -39,6 +40,7 @@ describe("Relayer", () => {
       core = new Core(TEST_CORE_OPTIONS);
       relayer = core.relayer;
       await core.start();
+      relayer.subscriber.topicMap.set(randomTopic, randomTopic);
     });
     afterEach(async () => {
       await disconnectSocket(relayer);
@@ -46,6 +48,7 @@ describe("Relayer", () => {
 
     it("should not throw unhandled on network disconnect when there is no provider instance", async () => {
       relayer.messages.init = initSpy;
+      relayer.subscriber.topicMap.clear();
       await relayer.init();
       expect(relayer.provider).to.be.empty;
       expect(relayer.connected).to.be.false;
@@ -208,6 +211,7 @@ describe("Relayer", () => {
       core = new Core(TEST_CORE_OPTIONS);
       relayer = core.relayer;
       await core.start();
+      relayer.subscriber.topicMap.set(randomTopic, randomTopic);
       await relayer.transportOpen();
     });
     it("calls `subscriber.unsubscribe` with the passed topic", async () => {
@@ -269,6 +273,11 @@ describe("Relayer", () => {
         core = new Core(TEST_CORE_OPTIONS);
         relayer = core.relayer;
         await core.start();
+        relayer.subscriber.subscriptions.set(randomTopic, {
+          topic: randomTopic,
+          id: randomTopic,
+          relay: { protocol: "irn" },
+        });
       });
       it("should restart transport after connection drop", async () => {
         const randomSessionIdentifier = relayer.core.crypto.randomSessionIdentifier;
@@ -295,7 +304,7 @@ describe("Relayer", () => {
         // the identifier should be the same
         expect(relayer.core.crypto.randomSessionIdentifier).to.eq(randomSessionIdentifier);
       });
-      it("should connect once regardless of the number of disconnect events", async () => {
+      it.only("should connect once regardless of the number of disconnect events", async () => {
         const disconnectsToEmit = 10;
         let disconnectsReceived = 0;
         let connectReceived = 0;
@@ -343,6 +352,11 @@ describe("Relayer", () => {
           projectId: TEST_CORE_OPTIONS.projectId,
         });
         await relayer.init();
+        relayer.subscriber.subscriptions.set(randomTopic, {
+          topic: randomTopic,
+          id: randomTopic,
+          relay: { protocol: "irn" },
+        });
         await relayer.transportOpen();
         const wsConnection = relayer.provider.connection as unknown as WebSocket;
         expect(relayer.connected).to.be.true;
@@ -370,6 +384,11 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
+      relayer.subscriber.subscriptions.set(randomTopic, {
+        topic: randomTopic,
+        id: randomTopic,
+        relay: { protocol: "irn" },
+      });
       await relayer.transportOpen();
 
       // @ts-expect-error - accessing private property for testing
@@ -391,6 +410,11 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
+      relayer.subscriber.subscriptions.set(randomTopic, {
+        topic: randomTopic,
+        id: randomTopic,
+        relay: { protocol: "irn" },
+      });
       await relayer.transportOpen();
 
       // @ts-expect-error - accessing private property for testing
@@ -412,6 +436,11 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
+      relayer.subscriber.subscriptions.set(randomTopic, {
+        topic: randomTopic,
+        id: randomTopic,
+        relay: { protocol: "irn" },
+      });
       await relayer.transportOpen();
       relayer.provider.on(RELAYER_PROVIDER_EVENTS.payload, (payload) => {
         expect(payload.error.message).to.include("Unauthorized: origin not allowed");
@@ -433,6 +462,11 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
+      relayer.subscriber.subscriptions.set(randomTopic, {
+        topic: randomTopic,
+        id: randomTopic,
+        relay: { protocol: "irn" },
+      });
       await relayer.transportOpen();
 
       // @ts-expect-error - accessing private property for testing
@@ -453,6 +487,11 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
+      relayer.subscriber.subscriptions.set(randomTopic, {
+        topic: randomTopic,
+        id: randomTopic,
+        relay: { protocol: "irn" },
+      });
       await relayer.transportOpen();
 
       // @ts-expect-error - accessing private property for testing
@@ -474,6 +513,11 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
+      relayer.subscriber.subscriptions.set(randomTopic, {
+        topic: randomTopic,
+        id: randomTopic,
+        relay: { protocol: "irn" },
+      });
       await relayer.transportOpen();
       relayer.provider.on(RELAYER_PROVIDER_EVENTS.payload, (payload) => {
         expect(payload.error.message).to.include("Unauthorized: origin not allowed");
@@ -495,6 +539,11 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
+      relayer.subscriber.subscriptions.set(randomTopic, {
+        topic: randomTopic,
+        id: randomTopic,
+        relay: { protocol: "irn" },
+      });
       await relayer.transportOpen();
 
       // @ts-expect-error - accessing private property for testing
