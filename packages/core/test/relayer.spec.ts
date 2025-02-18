@@ -304,7 +304,7 @@ describe("Relayer", () => {
         // the identifier should be the same
         expect(relayer.core.crypto.randomSessionIdentifier).to.eq(randomSessionIdentifier);
       });
-      it.only("should connect once regardless of the number of disconnect events", async () => {
+      it("should connect once regardless of the number of disconnect events", async () => {
         const disconnectsToEmit = 10;
         let disconnectsReceived = 0;
         let connectReceived = 0;
