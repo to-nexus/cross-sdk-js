@@ -384,6 +384,7 @@ export class Relayer extends IRelayer {
             })
             .finally(() => {
               this.provider.off(RELAYER_PROVIDER_EVENTS.disconnect, onDisconnect);
+              clearTimeout(this.reconnectTimeout);
             });
           await new Promise(async (resolve, reject) => {
             const onDisconnect = () => {
