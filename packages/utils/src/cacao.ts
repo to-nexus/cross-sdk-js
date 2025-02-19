@@ -255,13 +255,11 @@ export function addResourceToRecap(recap: RecapType, resource: string, actions: 
     ...actions,
   };
   const keys = Object.keys(recap.att)?.sort((a, b) => a.localeCompare(b));
-  const sorted = keys.reduce(
-    (obj, key) => {
-      obj.att[key] = recap.att[key];
-      return obj;
-    },
-    { att: {} },
-  );
+  const baseRecap: RecapType = { att: {} };
+  const sorted = keys.reduce((obj, key) => {
+    obj.att[key] = recap.att[key];
+    return obj;
+  }, baseRecap);
   return sorted;
 }
 
@@ -311,7 +309,7 @@ export function mergeRecaps(recap1: RecapType, recap2: RecapType) {
   const keys = Object.keys(recap1.att)
     .concat(Object.keys(recap2.att))
     .sort((a, b) => a.localeCompare(b));
-  const mergedRecap = { att: {} };
+  const mergedRecap: RecapType = { att: {} };
   keys.forEach((key) => {
     const actions = Object.keys(recap1.att?.[key] || {})
       .concat(Object.keys(recap2.att?.[key] || {}))
@@ -343,7 +341,7 @@ export function formatStatementFromRecap(statement = "", recap: RecapType) {
     });
     //
     actions.sort((a, b) => a.action.localeCompare(b.action));
-    const uniqueAbilities = {};
+    const uniqueAbilities: Record<string, string[]> = {};
     actions.forEach((action: any) => {
       if (!uniqueAbilities[action.ability]) {
         uniqueAbilities[action.ability] = [];

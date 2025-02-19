@@ -1553,7 +1553,8 @@ export class Engine extends IEngine {
       const redirectURL = getLinkModeURL(appLink, topic, message);
       await (global as any).Linking.openURL(redirectURL, this.client.name);
     } else {
-      const opts = ENGINE_RPC_OPTS[record.request.method].res;
+      const method = record.request.method as JsonRpcTypes.WcMethod;
+      const opts = ENGINE_RPC_OPTS[method].res;
 
       opts.tvf = {
         ...tvf,
@@ -1604,7 +1605,8 @@ export class Engine extends IEngine {
       const redirectURL = getLinkModeURL(appLink, topic, message);
       await (global as any).Linking.openURL(redirectURL, this.client.name);
     } else {
-      const opts = rpcOpts || ENGINE_RPC_OPTS[record.request.method].res;
+      const method = record.request.method as JsonRpcTypes.WcMethod;
+      const opts = rpcOpts || ENGINE_RPC_OPTS[method].res;
       // await is intentionally omitted to speed up performance
       this.client.core.relayer.publish(topic, message, opts);
     }
