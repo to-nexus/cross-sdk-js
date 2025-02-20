@@ -39,7 +39,7 @@ Include any additional information, concerns, or considerations related to the r
 ## Definition of Done
 
 - [ ] The release has been tested using a canary version.
-- [ ] The release has been reviewed and approved by the Web3Modal team (if relevant).
+- [ ] The release has been reviewed and approved by the Appkit team (if relevant).
 - [ ] The release has been reviewed and approved by the React Native team (if relevant).
 - [ ] All necessary documentation, including API changes or new features, has been updated.
 - [ ] Any dependent changes have been merged and published in downstream modules.
