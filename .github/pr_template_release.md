@@ -8,7 +8,7 @@
 
 - [ ] **Web3Modal Team QA**
 
-  - [ ] The Web3Modal team has tested the release for compatibility and functionality.
+  - [ ] The AppKit team has tested the release for compatibility and functionality.
   - [ ] The release is backwards compatible with Web3Modal.
   - [ ] Any reported issues or bugs have been addressed or documented.
 
