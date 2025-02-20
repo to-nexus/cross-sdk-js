@@ -6,7 +6,7 @@
   - [ ] The canary version has been verified to work as expected.
   - [ ] All major features and changes have been tested and validated.
 
-- [ ] **Web3Modal Team QA**
+- [ ] **Appkit Team QA**
 
   - [ ] The AppKit team has tested the release for compatibility and functionality.
   - [ ] The release is backwards compatible with Web3Modal.
