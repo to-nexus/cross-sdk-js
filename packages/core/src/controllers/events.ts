@@ -187,7 +187,7 @@ export class EventClient extends IEventClient {
 
     if (this.events.size === 0) return;
 
-    const eventsToSend = [];
+    const eventsToSend: EventClientTypes.Event[] = [];
     // exclude events without type as they can be considered `in progress`
     for (const [_, event] of this.events) {
       if (event.props.type) {
