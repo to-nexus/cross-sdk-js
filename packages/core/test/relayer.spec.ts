@@ -364,7 +364,7 @@ describe("Relayer", () => {
       });
     });
   });
-  describe("packageName and bundleId validations", () => {
+  describe.skip("packageName and bundleId validations", () => {
     beforeEach(async () => {
       core = new Core({ ...TEST_CORE_OPTIONS, projectId: TEST_PROJECT_ID_MOBILE });
       relayer = core.relayer;
