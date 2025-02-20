@@ -358,9 +358,11 @@ export class Relayer extends IRelayer {
     this.connectionAttemptInProgress = true;
     this.transportExplicitlyClosed = false;
     let attempt = 1;
-
     while (attempt < 6) {
       try {
+        if (this.transportExplicitlyClosed) {
+          break;
+        }
         this.logger.debug({}, `Connecting to ${this.relayUrl}, attempt: ${attempt}...`);
         // Always create new socket instance when trying to connect because if the socket was dropped due to `socket hang up` exception
         // It wont be able to reconnect
@@ -568,7 +570,7 @@ export class Relayer extends IRelayer {
   };
 
   private onProviderErrorHandler = (error: Error) => {
-    this.logger.fatal(error, `Fatal socket error: ${(error as Error)?.message}`);
+    this.logger.fatal(`Fatal socket error: ${error.message}`);
     this.events.emit(RELAYER_EVENTS.error, error);
     // close the transport when a fatal error is received as there's no way to recover from it
     // usual cases are missing/invalid projectId, expired jwt token, invalid origin etc

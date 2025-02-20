@@ -364,7 +364,7 @@ describe("Relayer", () => {
       });
     });
   });
-  describe.skip("packageName and bundleId validations", () => {
+  describe("packageName and bundleId validations", () => {
     beforeEach(async () => {
       core = new Core({ ...TEST_CORE_OPTIONS, projectId: TEST_PROJECT_ID_MOBILE });
       relayer = core.relayer;
@@ -384,12 +384,7 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
-      relayer.subscriber.subscriptions.set(randomTopic, {
-        topic: randomTopic,
-        id: randomTopic,
-        relay: { protocol: "irn" },
-      });
-      await relayer.transportOpen();
+      await relayer.subscribe(randomTopic);
 
       // @ts-expect-error - accessing private property for testing
       const wsUrl = relayer.provider.connection.url;
@@ -410,12 +405,7 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
-      relayer.subscriber.subscriptions.set(randomTopic, {
-        topic: randomTopic,
-        id: randomTopic,
-        relay: { protocol: "irn" },
-      });
-      await relayer.transportOpen();
+      await relayer.subscribe(randomTopic);
 
       // @ts-expect-error - accessing private property for testing
       const wsUrl = relayer.provider.connection.url;
@@ -436,17 +426,21 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
+
       relayer.subscriber.subscriptions.set(randomTopic, {
         topic: randomTopic,
         id: randomTopic,
         relay: { protocol: "irn" },
       });
-      await relayer.transportOpen();
-      relayer.provider.on(RELAYER_PROVIDER_EVENTS.payload, (payload) => {
-        expect(payload.error.message).to.include("Unauthorized: origin not allowed");
-      });
 
+      let errorReceived = false;
+      relayer.on(RELAYER_EVENTS.error, (payload) => {
+        expect(payload.message).to.include("Unauthorized: origin not allowed");
+        errorReceived = true;
+      });
+      await relayer.transportOpen().catch((e) => {});
       await throttle(1000);
+      expect(errorReceived).to.be.true;
     });
 
     it("[iOS] bundleId included in Cloud Settings - should connect", async () => {
@@ -462,12 +456,7 @@ describe("Relayer", () => {
       });
 
       await relayer.init();
-      relayer.subscriber.subscriptions.set(randomTopic, {
-        topic: randomTopic,
-        id: randomTopic,
-        relay: { protocol: "irn" },
-      });
-      await relayer.transportOpen();
+      await relayer.subscribe(randomTopic);
 
       // @ts-expect-error - accessing private property for testing
       const wsUrl = relayer.provider.connection.url;
@@ -518,12 +507,17 @@ describe("Relayer", () => {
         id: randomTopic,
         relay: { protocol: "irn" },
       });
-      await relayer.transportOpen();
-      relayer.provider.on(RELAYER_PROVIDER_EVENTS.payload, (payload) => {
-        expect(payload.error.message).to.include("Unauthorized: origin not allowed");
+
+      let errorReceived = false;
+      relayer.on(RELAYER_EVENTS.error, (payload) => {
+        expect(payload.message).to.include("Unauthorized: origin not allowed");
+        errorReceived = true;
       });
 
+      await relayer.transportOpen().catch((e) => {});
+
       await throttle(1000);
+      expect(errorReceived).to.be.true;
     });
 
     it("[Web] packageName and bundleId not set - should connect", async () => {
