@@ -9,7 +9,7 @@
 - [ ] **Appkit Team QA**
 
   - [ ] The AppKit team has tested the release for compatibility and functionality.
-  - [ ] The release is backwards compatible with Web3Modal.
+  - [ ] The release is backwards compatible with Appkit.
   - [ ] Any reported issues or bugs have been addressed or documented.
 
 - [ ] **React Native Team QA**
