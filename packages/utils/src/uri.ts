@@ -63,9 +63,10 @@ export function formatRelayParams(relay: RelayerTypes.ProtocolOptions, delimiter
   const prefix = "relay";
   const params: any = {};
   Object.keys(relay).forEach((key) => {
-    const k = prefix + delimiter + key;
-    if (relay[key]) {
-      params[k] = relay[key];
+    const typedKey = key as keyof typeof relay;
+    const k = prefix + delimiter + typedKey;
+    if (relay[typedKey]) {
+      params[k] = relay[typedKey];
     }
   });
   return params;

@@ -54,7 +54,7 @@ export function getRequiredNamespacesFromNamespaces(
   const validNamespacesError = isValidNamespaces(namespaces, caller);
   if (validNamespacesError) throw new Error(validNamespacesError.message);
 
-  const required = {};
+  const required: ProposalTypes.RequiredNamespaces = {};
   for (const [namespace, values] of Object.entries(namespaces)) {
     required[namespace] = {
       methods: values.methods,
@@ -91,7 +91,7 @@ export function buildApprovedNamespaces(
   const normalizedOptional = normalizeNamespaces(optionalNamespaces);
 
   // build approved namespaces
-  const namespaces = {};
+  const namespaces: SessionTypes.Namespaces = {};
   Object.keys(supportedNamespaces).forEach((namespace) => {
     const supportedChains = supportedNamespaces[namespace].chains;
     const supportedMethods = supportedNamespaces[namespace].methods;
@@ -116,7 +116,7 @@ export function buildApprovedNamespaces(
   const err = isConformingNamespaces(requiredNamespaces, namespaces, "approve()");
   if (err) throw new Error(err.message);
 
-  const approvedNamespaces = {};
+  const approvedNamespaces: SessionTypes.Namespaces = {};
 
   // if both required & optional namespaces are empty, return all supported namespaces by the wallet
   if (!Object.keys(requiredNamespaces).length && !Object.keys(optionalNamespaces).length)
@@ -230,7 +230,7 @@ export function normalizeNamespaces(
 }
 
 export function getNamespacesFromAccounts(accounts: string[]) {
-  const namespaces = {};
+  const namespaces: SessionTypes.Namespaces = {};
   accounts?.forEach((account) => {
     const [namespace, chainId] = account.split(":");
     if (!namespaces[namespace]) {
@@ -238,10 +238,11 @@ export function getNamespacesFromAccounts(accounts: string[]) {
         accounts: [],
         chains: [],
         events: [],
+        methods: [],
       };
     }
     namespaces[namespace].accounts.push(account);
-    namespaces[namespace].chains.push(`${namespace}:${chainId}`);
+    namespaces[namespace].chains?.push(`${namespace}:${chainId}`);
   });
 
   return namespaces;

@@ -447,7 +447,7 @@ export function isConformingNamespaces(
 }
 
 function parseNamespaces(namespaces: ProposalTypes.RequiredNamespaces) {
-  const parsed = {};
+  const parsed: ProposalTypes.RequiredNamespaces = {};
   Object.keys(namespaces).forEach((key) => {
     // e.g. `eip155:1`
     const isInlineChainDefinition = key.includes(":");
@@ -477,7 +477,7 @@ function filterDuplicateNamespaces(namespaces: string[]) {
 }
 
 function parseApprovedNamespaces(namespaces: SessionTypes.Namespaces) {
-  const parsed = {};
+  const parsed: SessionTypes.Namespaces = {};
   Object.keys(namespaces).forEach((key) => {
     const isInlineChainDefinition = key.includes(":");
     if (isInlineChainDefinition) {

@@ -1,4 +1,4 @@
-const memoryStore = {};
+const memoryStore: Record<string, any> = {};
 
 export abstract class MemoryStore {
   static get<T = unknown>(key: string) {
