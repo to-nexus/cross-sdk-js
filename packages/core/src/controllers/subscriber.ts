@@ -91,6 +91,15 @@ export class Subscriber extends ISubscriber {
     return this.topicMap.topics;
   }
 
+  get hasAnyTopics() {
+    return (
+      this.topicMap.topics.length > 0 ||
+      this.pending.size > 0 ||
+      this.cached.length > 0 ||
+      this.subscriptions.size > 0
+    );
+  }
+
   public subscribe: ISubscriber["subscribe"] = async (topic, opts) => {
     this.isInitialized();
     this.logger.debug(`Subscribing Topic`);
@@ -114,7 +123,6 @@ export class Subscriber extends ISubscriber {
   };
 
   public unsubscribe: ISubscriber["unsubscribe"] = async (topic, opts) => {
-    await this.restartToComplete();
     this.isInitialized();
     if (typeof opts?.id !== "undefined") {
       await this.unsubscribeById(topic, opts.id, opts);
@@ -206,8 +214,10 @@ export class Subscriber extends ISubscriber {
   private async unsubscribeById(topic: string, id: string, opts?: RelayerTypes.UnsubscribeOptions) {
     this.logger.debug(`Unsubscribing Topic`);
     this.logger.trace({ type: "method", method: "unsubscribe", params: { topic, id, opts } });
+
     try {
       const relay = getRelayProtocolName(opts);
+      await this.restartToComplete({ topic, id, relay });
       await this.rpcUnsubscribe(topic, id, relay);
       const reason = getSdkError("USER_DISCONNECTED", `${this.name}, ${topic}`);
       await this.onUnsubscribe(topic, id, reason);
@@ -225,8 +235,8 @@ export class Subscriber extends ISubscriber {
     relay: RelayerTypes.ProtocolOptions,
     opts?: RelayerTypes.SubscribeOptions,
   ) {
-    if (opts?.transportType === TRANSPORT_TYPES.relay) {
-      await this.restartToComplete();
+    if (!opts || opts?.transportType === TRANSPORT_TYPES.relay) {
+      await this.restartToComplete({ topic, id: topic, relay });
     }
     const api = getRelayProtocolApi(relay.protocol);
     const request: RequestArguments<RelayJsonRpc.SubscribeParams> = {
@@ -559,8 +569,9 @@ export class Subscriber extends ISubscriber {
     }
   }
 
-  private async restartToComplete() {
+  private async restartToComplete(subscription: SubscriberTypes.Active) {
     if (!this.relayer.connected && !this.relayer.connecting) {
+      this.cached.push(subscription);
       await this.relayer.transportOpen();
     }
   }

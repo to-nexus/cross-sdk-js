@@ -95,6 +95,7 @@ export class Relayer extends IRelayer {
   private heartBeatTimeout = toMiliseconds(THIRTY_SECONDS + FIVE_SECONDS);
   private reconnectTimeout: NodeJS.Timeout | undefined;
   private connectPromise: Promise<void> | undefined;
+  private reconnectInProgress = false;
   private requestsInFlight: string[] = [];
   private connectTimeout = toMiliseconds(ONE_SECOND * 15);
   constructor(opts: RelayerOptions) {
@@ -126,8 +127,7 @@ export class Relayer extends IRelayer {
     this.registerEventListeners();
     await Promise.all([this.messages.init(), this.subscriber.init()]);
     this.initialized = true;
-    // @ts-expect-error - .cached is private
-    if (this.subscriber.cached.length > 0) {
+    if (this.subscriber.hasAnyTopics) {
       try {
         await this.transportOpen();
       } catch (e) {
@@ -142,12 +142,16 @@ export class Relayer extends IRelayer {
 
   get connected() {
     // @ts-expect-error
-    return this.provider?.connection?.socket?.readyState === 1 ?? false;
+    return this.provider?.connection?.socket?.readyState === 1 || false;
   }
 
   get connecting() {
-    // @ts-expect-error
-    return this.provider?.connection?.socket?.readyState === 0 ?? false;
+    return (
+      // @ts-expect-error
+      this.provider?.connection?.socket?.readyState === 0 ||
+      this.connectPromise !== undefined ||
+      false
+    );
   }
 
   public async publish(topic: string, message: string, opts?: RelayerTypes.PublishOptions) {
@@ -268,6 +272,13 @@ export class Relayer extends IRelayer {
   }
 
   async transportOpen(relayUrl?: string) {
+    if (!this.subscriber.hasAnyTopics) {
+      this.logger.warn(
+        "Starting WS connection skipped because the client has no topics to work with.",
+      );
+      return;
+    }
+
     if (this.connectPromise) {
       this.logger.debug({}, `Waiting for existing connection attempt to resolve...`);
       await this.connectPromise;
@@ -347,9 +358,11 @@ export class Relayer extends IRelayer {
     this.connectionAttemptInProgress = true;
     this.transportExplicitlyClosed = false;
     let attempt = 1;
-
     while (attempt < 6) {
       try {
+        if (this.transportExplicitlyClosed) {
+          break;
+        }
         this.logger.debug({}, `Connecting to ${this.relayUrl}, attempt: ${attempt}...`);
         // Always create new socket instance when trying to connect because if the socket was dropped due to `socket hang up` exception
         // It wont be able to reconnect
@@ -374,7 +387,6 @@ export class Relayer extends IRelayer {
             .finally(() => {
               this.provider.off(RELAYER_PROVIDER_EVENTS.disconnect, onDisconnect);
               clearTimeout(this.reconnectTimeout);
-              this.reconnectTimeout = undefined;
             });
           await new Promise(async (resolve, reject) => {
             const onDisconnect = () => {
@@ -558,7 +570,7 @@ export class Relayer extends IRelayer {
   };
 
   private onProviderErrorHandler = (error: Error) => {
-    this.logger.fatal(error, `Fatal socket error: ${(error as Error)?.message}`);
+    this.logger.fatal(`Fatal socket error: ${error.message}`);
     this.events.emit(RELAYER_EVENTS.error, error);
     // close the transport when a fatal error is received as there's no way to recover from it
     // usual cases are missing/invalid projectId, expired jwt token, invalid origin etc
@@ -602,18 +614,23 @@ export class Relayer extends IRelayer {
   }
 
   private async onProviderDisconnect() {
-    await this.subscriber.stop();
     clearTimeout(this.pingTimeout);
     this.events.emit(RELAYER_EVENTS.disconnect);
     this.connectionAttemptInProgress = false;
+    if (this.reconnectInProgress) return;
+
+    this.reconnectInProgress = true;
+    await this.subscriber.stop();
+
+    if (!this.subscriber.hasAnyTopics) return;
     if (this.transportExplicitlyClosed) return;
-    if (this.reconnectTimeout) return;
-    if (this.connectPromise) return;
+
     this.reconnectTimeout = setTimeout(async () => {
-      clearTimeout(this.reconnectTimeout);
       await this.transportOpen().catch((error) =>
         this.logger.error(error, (error as Error)?.message),
       );
+      this.reconnectTimeout = undefined;
+      this.reconnectInProgress = false;
     }, toMiliseconds(RELAYER_RECONNECT_TIMEOUT));
   }
 
@@ -627,6 +644,6 @@ export class Relayer extends IRelayer {
   private async toEstablishConnection() {
     await this.confirmOnlineStateOrThrow();
     if (this.connected) return;
-    await this.transportOpen();
+    await this.connect();
   }
 }

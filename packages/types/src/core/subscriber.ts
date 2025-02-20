@@ -55,6 +55,8 @@ export abstract class ISubscriber extends IEvents {
 
   public abstract readonly topics: string[];
 
+  public abstract readonly hasAnyTopics: boolean;
+
   public abstract name: string;
 
   public abstract readonly context: string;
