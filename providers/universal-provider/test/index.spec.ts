@@ -1,4 +1,4 @@
-import { expect, describe, it, beforeAll, afterAll } from "vitest";
+import { expect, describe, it, beforeAll, afterAll, vi } from "vitest";
 import Web3 from "web3";
 import { BigNumber, providers, utils } from "ethers";
 import { TestNetwork } from "ethereum-test-network";
@@ -31,7 +31,6 @@ import {
 import { getChainId, getGlobal, getRpcUrl, setGlobal } from "../src/utils";
 import { BUNDLER_URL, RPC_URL } from "../src/constants";
 import { formatJsonRpcResult } from "@walletconnect/jsonrpc-utils";
-import { parseChainId } from "@walletconnect/utils";
 
 const getDbName = (_prefix: string) => {
   return `./test/tmp/${_prefix}.db`;
@@ -1261,6 +1260,30 @@ describe("UniversalProvider", function () {
           expectedChainId,
         });
       });
+      it("should reject connect on proposal expiry", async () => {
+        const dapp = await UniversalProvider.init({
+          ...TEST_PROVIDER_OPTS,
+          name: "dapp",
+        });
+
+        await Promise.all([
+          new Promise<void>(async (resolve) => {
+            await dapp.connect({}).catch((error) => {
+              expect(error.message).to.eql("Proposal expired");
+              expect(dapp.client.events.listenerCount("proposal_expire")).to.eql(0);
+              resolve();
+            });
+          }),
+          new Promise<void>(async (resolve) => {
+            await throttle(2_000);
+            expect(dapp.client.events.listenerCount("proposal_expire")).to.eql(1);
+            const proposals = dapp.client.proposal.getAll();
+            // force expiry of the proposal so the test doesn't wait for the default expiry time
+            dapp.client.core.expirer.set(proposals[0].id, 0);
+            resolve();
+          }),
+        ]);
+      });
       it("should cache `wallet_getCapabilities` request", async () => {
         const dapp = await UniversalProvider.init({
           ...TEST_PROVIDER_OPTS,
@@ -1506,3 +1529,6 @@ const validateProvider = async (params: ValidateProviderParams) => {
     }
   }
 };
+function toMiliseconds(arg0: any): number {
+  throw new Error("Function not implemented.");
+}
