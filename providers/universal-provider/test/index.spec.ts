@@ -1529,6 +1529,3 @@ const validateProvider = async (params: ValidateProviderParams) => {
     }
   }
 };
-function toMiliseconds(arg0: any): number {
-  throw new Error("Function not implemented.");
-}
