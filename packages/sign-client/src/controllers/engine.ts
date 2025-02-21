@@ -223,14 +223,27 @@ export class Engine extends IEngine {
       pairingTopic: topic,
       ...(sessionProperties && { sessionProperties }),
     };
+
+    const proposalId = payloadId();
+
     const {
       reject,
       resolve,
       done: approval,
     } = createDelayedPromise<SessionTypes.Struct>(expiry, PROPOSAL_EXPIRY_MESSAGE);
+
+    const proposalExpireHandler = ({ id }: { id: number }) => {
+      if (id === proposalId) {
+        this.client.events.off("proposal_expire", proposalExpireHandler);
+        reject({ message: PROPOSAL_EXPIRY_MESSAGE, code: 0 });
+      }
+    };
+
+    this.client.events.on("proposal_expire", proposalExpireHandler);
     this.events.once<"session_connect">(
       engineEvent("session_connect"),
       async ({ error, session }) => {
+        this.client.events.off("proposal_expire", proposalExpireHandler);
         if (error) reject(error);
         else if (session) {
           session.self.publicKey = publicKey;
@@ -254,13 +267,14 @@ export class Engine extends IEngine {
         }
       },
     );
-    const id = await this.sendRequest({
+    await this.sendRequest({
       topic,
       method: "wc_sessionPropose",
       params: proposal,
       throwOnFailedPublish: true,
+      clientRpcId: proposalId,
     });
-    await this.setProposal(id, { id, ...proposal });
+    await this.setProposal(proposalId, { id: proposalId, ...proposal });
     return { uri, approval };
   };
 
