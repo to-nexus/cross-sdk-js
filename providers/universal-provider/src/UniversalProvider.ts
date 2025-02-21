@@ -244,7 +244,7 @@ export class UniversalProvider implements IUniversalProvider {
   }
 
   public abortPairingAttempt() {
-    this.logger.warn("abortPairingAttempt is deprecated.");
+    this.logger.warn("abortPairingAttempt is deprecated. This is now a no-op.");
   }
 
   // ---------- Private ----------------------------------------------- //
