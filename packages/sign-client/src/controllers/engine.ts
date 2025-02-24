@@ -147,6 +147,15 @@ export class Engine extends IEngine {
 
   private recentlyDeletedLimit = 200;
   private relayMessageCache: RelayerTypes.MessageEvent[] = [];
+  private pendingSessions: Map<
+    number,
+    {
+      sessionTopic: string;
+      pairingTopic: string;
+      proposalId: number;
+      publicKey: string;
+    }
+  > = new Map();
 
   constructor(client: IEngine["client"]) {
     super(client);
@@ -223,44 +232,44 @@ export class Engine extends IEngine {
       pairingTopic: topic,
       ...(sessionProperties && { sessionProperties }),
     };
+
+    const proposalId = payloadId();
+    const sessionConnectTarget = engineEvent("session_connect", proposalId);
+
     const {
       reject,
       resolve,
       done: approval,
     } = createDelayedPromise<SessionTypes.Struct>(expiry, PROPOSAL_EXPIRY_MESSAGE);
-    this.events.once<"session_connect">(
-      engineEvent("session_connect"),
-      async ({ error, session }) => {
-        if (error) reject(error);
-        else if (session) {
-          session.self.publicKey = publicKey;
-          const completeSession = {
-            ...session,
-            pairingTopic: proposal.pairingTopic,
-            requiredNamespaces: proposal.requiredNamespaces,
-            optionalNamespaces: proposal.optionalNamespaces,
-            transportType: TRANSPORT_TYPES.relay,
-          };
-          await this.client.session.set(session.topic, completeSession);
-          await this.setExpiry(session.topic, session.expiry);
-          if (topic) {
-            await this.client.core.pairing.updateMetadata({
-              topic,
-              metadata: session.peer.metadata,
-            });
-          }
-          this.cleanupDuplicatePairings(completeSession);
-          resolve(completeSession);
-        }
-      },
-    );
-    const id = await this.sendRequest({
+
+    const proposalExpireHandler = ({ id }: { id: number }) => {
+      if (id === proposalId) {
+        this.client.events.off("proposal_expire", proposalExpireHandler);
+        this.pendingSessions.delete(proposalId);
+        // emit the event to trigger reject, this approach automatically cleans up the .once listener below
+        this.events.emit(sessionConnectTarget, {
+          error: { message: PROPOSAL_EXPIRY_MESSAGE, code: 0 },
+        });
+      }
+    };
+
+    this.client.events.on("proposal_expire", proposalExpireHandler);
+    this.events.once<"session_connect">(sessionConnectTarget, ({ error, session }) => {
+      this.client.events.off("proposal_expire", proposalExpireHandler);
+      if (error) reject(error);
+      else if (session) {
+        resolve(session);
+      }
+    });
+
+    await this.sendRequest({
       topic,
       method: "wc_sessionPropose",
       params: proposal,
       throwOnFailedPublish: true,
     });
-    await this.setProposal(id, { id, ...proposal });
+
+    await this.setProposal(proposalId, { id: proposalId, ...proposal });
     return { uri, approval };
   };
 
@@ -1884,11 +1893,13 @@ export class Engine extends IEngine {
         selfPublicKey,
         peerPublicKey,
       );
-      this.client.logger.trace({
-        type: "method",
-        method: "onSessionProposeResponse",
+      this.pendingSessions.set(id, {
         sessionTopic,
+        pairingTopic: topic,
+        proposalId: id,
+        publicKey: selfPublicKey,
       });
+
       const subscriptionId = await this.client.core.relayer.subscribe(sessionTopic, {
         transportType,
       });
@@ -1900,12 +1911,12 @@ export class Engine extends IEngine {
       await this.client.core.pairing.activate({ topic });
     } else if (isJsonRpcError(payload)) {
       await this.client.proposal.delete(id, getSdkError("USER_DISCONNECTED"));
-      const target = engineEvent("session_connect");
+      const target = engineEvent("session_connect", id);
       const listeners = this.events.listenerCount(target);
       if (listeners === 0) {
         throw new Error(`emitting ${target} without any listeners, 954`);
       }
-      this.events.emit(engineEvent("session_connect"), { error: payload.error });
+      this.events.emit(target, { error: payload.error });
     }
   };
 
@@ -1918,18 +1929,28 @@ export class Engine extends IEngine {
       this.isValidSessionSettleRequest(params);
       const { relay, controller, expiry, namespaces, sessionProperties, sessionConfig } =
         payload.params;
-      const session = {
+      const pendingSession = [...this.pendingSessions.values()].find(
+        (s) => s.sessionTopic === topic,
+      );
+
+      if (!pendingSession) {
+        return this.client.logger.error(`Pending session not found for topic ${topic}`);
+      }
+
+      const proposal = this.client.proposal.get(pendingSession.proposalId);
+
+      const session: SessionTypes.Struct = {
         topic,
         relay,
         expiry,
         namespaces,
         acknowledged: true,
-        pairingTopic: "", // pairingTopic will be set in the `session_connect` handler
-        requiredNamespaces: {},
-        optionalNamespaces: {},
+        pairingTopic: pendingSession.pairingTopic,
+        requiredNamespaces: proposal.requiredNamespaces,
+        optionalNamespaces: proposal.optionalNamespaces,
         controller: controller.publicKey,
         self: {
-          publicKey: "",
+          publicKey: pendingSession.publicKey,
           metadata: this.client.metadata,
         },
         peer: {
@@ -1940,12 +1961,19 @@ export class Engine extends IEngine {
         ...(sessionConfig && { sessionConfig }),
         transportType: TRANSPORT_TYPES.relay,
       };
-      const target = engineEvent("session_connect");
-      const listeners = this.events.listenerCount(target);
-      if (listeners === 0) {
-        throw new Error(`emitting ${target} without any listeners 997`);
-      }
-      this.events.emit(engineEvent("session_connect"), { session });
+
+      await this.client.session.set(session.topic, session);
+      await this.setExpiry(session.topic, session.expiry);
+
+      await this.client.core.pairing.updateMetadata({
+        topic: pendingSession.pairingTopic,
+        metadata: session.peer.metadata,
+      });
+      console.log("session settled", session.topic);
+      this.client.events.emit("session_connect", { session });
+      this.events.emit(engineEvent("session_connect", pendingSession.proposalId), { session });
+      this.pendingSessions.delete(pendingSession.proposalId);
+      this.cleanupDuplicatePairings(session);
       await this.sendResult<"wc_sessionSettle">({
         id: payload.id,
         topic,
