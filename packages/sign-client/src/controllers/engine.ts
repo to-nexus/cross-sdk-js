@@ -231,10 +231,9 @@ export class Engine extends IEngine {
       expiryTimestamp,
       pairingTopic: topic,
       ...(sessionProperties && { sessionProperties }),
+      id: payloadId(),
     };
-
-    const proposalId = payloadId();
-    const sessionConnectTarget = engineEvent("session_connect", proposalId);
+    const sessionConnectTarget = engineEvent("session_connect", proposal.id);
 
     const {
       reject,
@@ -243,9 +242,9 @@ export class Engine extends IEngine {
     } = createDelayedPromise<SessionTypes.Struct>(expiry, PROPOSAL_EXPIRY_MESSAGE);
 
     const proposalExpireHandler = ({ id }: { id: number }) => {
-      if (id === proposalId) {
+      if (id === proposal.id) {
         this.client.events.off("proposal_expire", proposalExpireHandler);
-        this.pendingSessions.delete(proposalId);
+        this.pendingSessions.delete(proposal.id);
         // emit the event to trigger reject, this approach automatically cleans up the .once listener below
         this.events.emit(sessionConnectTarget, {
           error: { message: PROPOSAL_EXPIRY_MESSAGE, code: 0 },
@@ -267,9 +266,10 @@ export class Engine extends IEngine {
       method: "wc_sessionPropose",
       params: proposal,
       throwOnFailedPublish: true,
+      clientRpcId: proposal.id,
     });
 
-    await this.setProposal(proposalId, { id: proposalId, ...proposal });
+    await this.setProposal(proposal.id, proposal);
     return { uri, approval };
   };
 
