@@ -872,29 +872,23 @@ export class Engine extends IEngine {
         metadata: this.client.metadata,
       },
       expiryTimestamp: calcExpiry(ENGINE_RPC_OPTS.wc_sessionPropose.req.ttl),
+      id: payloadId(),
     };
 
     const { done, resolve, reject } = createDelayedPromise(authRequestExpiry, "Request expired");
 
+    const authenticateId = payloadId();
+    const sessionConnectEventTarget = engineEvent("session_connect", proposal.id);
+    const authenticateEventTarget = engineEvent("session_request", authenticateId);
+
     // handle fallback session proposal response
     const onSessionConnect = async ({ error, session }: any) => {
       // cleanup listener for authenticate response
-      this.events.off(engineEvent("session_request", id), onAuthenticate);
+      this.events.off(authenticateEventTarget, onAuthenticate);
       if (error) reject(error);
       else if (session) {
-        session.self.publicKey = publicKey;
-        await this.client.session.set(session.topic, session);
-        await this.setExpiry(session.topic, session.expiry);
-        if (pairingTopic) {
-          await this.client.core.pairing.updateMetadata({
-            topic: pairingTopic,
-            metadata: session.peer.metadata,
-          });
-        }
-        const sessionObject = this.client.session.get(session.topic);
-        await this.deleteProposal(fallbackId);
         resolve({
-          session: sessionObject,
+          session,
         });
       }
     };
@@ -902,7 +896,7 @@ export class Engine extends IEngine {
     const onAuthenticate = async (payload: any) => {
       // delete this auth request on response
       // we're using payload from the wallet to establish the session so we don't need to keep this around
-      await this.deletePendingAuthRequest(id, { message: "fulfilled", code: 0 });
+      await this.deletePendingAuthRequest(authenticateId, { message: "fulfilled", code: 0 });
       if (payload.error) {
         // wallets that do not support wc_sessionAuthenticate will return an error
         // we should not reject the promise in this case as the fallback session proposal will be used
@@ -910,13 +904,13 @@ export class Engine extends IEngine {
         if (payload.error.code === error.code) return;
 
         // cleanup listener for fallback response
-        this.events.off(engineEvent("session_connect"), onSessionConnect);
+        this.events.off(sessionConnectEventTarget, onSessionConnect);
         return reject(payload.error.message);
       }
       // delete fallback proposal on successful authenticate as the proposal will not be responded to
-      await this.deleteProposal(fallbackId);
+      await this.deleteProposal(proposal.id);
       // cleanup listener for fallback response
-      this.events.off(engineEvent("session_connect"), onSessionConnect);
+      this.events.off(sessionConnectEventTarget, onSessionConnect);
 
       const {
         cacaos,
@@ -1014,17 +1008,14 @@ export class Engine extends IEngine {
       });
     };
 
-    // set the ids for both requests
-    const id = payloadId();
-    const fallbackId = payloadId();
     // subscribe to response events
-    this.events.once<"session_connect">(engineEvent("session_connect"), onSessionConnect);
-    this.events.once(engineEvent("session_request", id), onAuthenticate);
+    this.events.once<"session_connect">(sessionConnectEventTarget, onSessionConnect);
+    this.events.once(authenticateEventTarget, onAuthenticate);
 
     let linkModeURL;
     try {
       if (isLinkMode) {
-        const payload = formatJsonRpcRequest("wc_sessionAuthenticate", request, id);
+        const payload = formatJsonRpcRequest("wc_sessionAuthenticate", request, authenticateId);
         this.client.core.history.set(pairingTopic, payload);
         const message = await this.client.core.crypto.encode("", payload, {
           type: TYPE_2,
@@ -1040,7 +1031,7 @@ export class Engine extends IEngine {
             params: request,
             expiry: params.expiry,
             throwOnFailedPublish: true,
-            clientRpcId: id,
+            clientRpcId: authenticateId,
           }),
           this.sendRequest({
             topic: pairingTopic,
@@ -1048,19 +1039,19 @@ export class Engine extends IEngine {
             params: proposal,
             expiry: ENGINE_RPC_OPTS.wc_sessionPropose.req.ttl,
             throwOnFailedPublish: true,
-            clientRpcId: fallbackId,
+            clientRpcId: proposal.id,
           }),
         ]);
       }
     } catch (error) {
       // cleanup listeners on failed publish
-      this.events.off(engineEvent("session_connect"), onSessionConnect);
-      this.events.off(engineEvent("session_request", id), onAuthenticate);
+      this.events.off(sessionConnectEventTarget, onSessionConnect);
+      this.events.off(authenticateEventTarget, onAuthenticate);
       throw error;
     }
 
-    await this.setProposal(fallbackId, { id: fallbackId, ...proposal });
-    await this.setAuthRequest(id, {
+    await this.setProposal(proposal.id, proposal);
+    await this.setAuthRequest(authenticateId, {
       request: {
         ...request,
         verifyContext: {} as any,
@@ -1969,11 +1960,14 @@ export class Engine extends IEngine {
         topic: pendingSession.pairingTopic,
         metadata: session.peer.metadata,
       });
-      console.log("session settled", session.topic);
+
       this.client.events.emit("session_connect", { session });
       this.events.emit(engineEvent("session_connect", pendingSession.proposalId), { session });
+
       this.pendingSessions.delete(pendingSession.proposalId);
+      this.deleteProposal(pendingSession.proposalId, false);
       this.cleanupDuplicatePairings(session);
+
       await this.sendResult<"wc_sessionSettle">({
         id: payload.id,
         topic,
