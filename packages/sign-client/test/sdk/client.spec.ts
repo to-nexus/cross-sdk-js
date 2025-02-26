@@ -94,6 +94,53 @@ describe("Sign Client Integration", () => {
       expect(clients.B.metadata.redirect?.universal).to.exist;
       await deleteClients(clients);
     });
+    it("should connect with out of order URIs", async () => {
+      const clients = await initTwoClients();
+      // load three proposals
+      const { uri: uriOne, approval: approvalOne } = await clients.A.connect(TEST_CONNECT_PARAMS);
+      const { uri: uriTwo, approval: approvalTwo } = await clients.A.connect(TEST_CONNECT_PARAMS);
+      const { uri: uriThree, approval: approvalThree } = await clients.A.connect(
+        TEST_CONNECT_PARAMS,
+      );
+
+      if (!uriOne || !uriTwo || !uriThree) throw new Error("URI is undefined");
+
+      const wallet = clients.B;
+
+      const onSessionPropose = async (params) => {
+        await wallet.approve({ id: params.id, namespaces: TEST_NAMESPACES });
+      };
+      wallet.on("session_proposal", onSessionPropose);
+
+      // approve the oldest
+      const sessionOne = await Promise.all([approvalOne(), wallet.pair({ uri: uriOne })]).then(
+        (result) => result[0],
+      );
+      // approve the newest
+      const sessionThree = await Promise.all([
+        approvalThree(),
+        wallet.pair({ uri: uriThree }),
+      ]).then((result) => result[0]);
+      // approve the middle
+      const sessionTwo = await Promise.all([approvalTwo(), wallet.pair({ uri: uriTwo })]).then(
+        (result) => result[0],
+      );
+
+      wallet.off("session_proposal", onSessionPropose);
+
+      expect(sessionOne).to.exist;
+      expect(sessionTwo).to.exist;
+      expect(sessionThree).to.exist;
+      expect(sessionOne.topic).to.not.eq(sessionTwo.topic);
+      expect(sessionOne.topic).to.not.eq(sessionThree.topic);
+      expect(sessionTwo.topic).to.not.eq(sessionThree.topic);
+      expect(wallet.session.getAll().length).to.eq([sessionOne, sessionTwo, sessionThree].length);
+      expect(wallet.session.get(sessionOne.topic)).to.exist;
+      expect(wallet.session.get(sessionTwo.topic)).to.exist;
+      expect(wallet.session.get(sessionThree.topic)).to.exist;
+
+      await deleteClients(clients);
+    });
     it("connect (with old pairing)", async () => {
       const {
         clients,
