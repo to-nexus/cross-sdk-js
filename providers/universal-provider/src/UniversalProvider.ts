@@ -1,4 +1,4 @@
-import SignClient, { PROPOSAL_EXPIRY_MESSAGE } from "@walletconnect/sign-client";
+import SignClient from "@walletconnect/sign-client";
 import { SessionTypes } from "@walletconnect/types";
 import { JsonRpcResult } from "@walletconnect/jsonrpc-types";
 import { getSdkError, isValidArray, parseNamespaceKey } from "@walletconnect/utils";
@@ -53,8 +53,6 @@ export class UniversalProvider implements IUniversalProvider {
   public logger: Logger;
   public uri: string | undefined;
 
-  private shouldAbortPairingAttempt = false;
-  private maxPairingAttempts = 10;
   private disableProviderPing = false;
 
   static async init(opts: UniversalProviderOpts) {
@@ -187,44 +185,25 @@ export class UniversalProvider implements IUniversalProvider {
   }
 
   public async pair(pairingTopic: string | undefined): Promise<SessionTypes.Struct> {
-    this.shouldAbortPairingAttempt = false;
-    let pairingAttempts = 0;
-    do {
-      if (this.shouldAbortPairingAttempt) {
-        throw new Error("Pairing aborted");
-      }
+    const { uri, approval } = await this.client.connect({
+      pairingTopic,
+      requiredNamespaces: this.namespaces,
+      optionalNamespaces: this.optionalNamespaces,
+      sessionProperties: this.sessionProperties,
+    });
 
-      if (pairingAttempts >= this.maxPairingAttempts) {
-        throw new Error("Max auto pairing attempts reached");
-      }
+    if (uri) {
+      this.uri = uri;
+      this.events.emit("display_uri", uri);
+    }
 
-      const { uri, approval } = await this.client.connect({
-        pairingTopic,
-        requiredNamespaces: this.namespaces,
-        optionalNamespaces: this.optionalNamespaces,
-        sessionProperties: this.sessionProperties,
-      });
+    const session = await approval();
+    this.session = session;
+    // assign namespaces from session if not already defined
+    const approved = populateNamespacesChains(session.namespaces) as NamespaceConfig;
+    this.namespaces = mergeRequiredOptionalNamespaces(this.namespaces, approved);
+    this.persist("namespaces", this.namespaces);
 
-      if (uri) {
-        this.uri = uri;
-        this.events.emit("display_uri", uri);
-      }
-
-      await approval()
-        .then((session) => {
-          this.session = session;
-          // assign namespaces from session if not already defined
-          const approved = populateNamespacesChains(session.namespaces) as NamespaceConfig;
-          this.namespaces = mergeRequiredOptionalNamespaces(this.namespaces, approved);
-          this.persist("namespaces", this.namespaces);
-        })
-        .catch((error) => {
-          if (error.message !== PROPOSAL_EXPIRY_MESSAGE) {
-            throw error;
-          }
-          pairingAttempts++;
-        });
-    } while (!this.session);
     this.onConnect();
     return this.session;
   }
@@ -265,7 +244,7 @@ export class UniversalProvider implements IUniversalProvider {
   }
 
   public abortPairingAttempt() {
-    this.shouldAbortPairingAttempt = true;
+    this.logger.warn("abortPairingAttempt is deprecated. This is now a no-op.");
   }
 
   // ---------- Private ----------------------------------------------- //
