@@ -170,11 +170,11 @@ describe("URI", () => {
       resources: ["https://example.com", encoded],
     };
 
-    const suppportedChains = ["eip155:2", "eip155:3"];
+    const supportedChains = ["eip155:2", "eip155:3"];
     const supportedMethods = ["personal_sign", "eth_signTypedData"];
     const updatedAuthPayload = populateAuthPayload({
       authPayload,
-      chains: suppportedChains,
+      chains: supportedChains,
       methods: supportedMethods,
     });
 
@@ -203,11 +203,11 @@ describe("URI", () => {
       ],
     };
 
-    const suppportedChains = ["eip155:2", "eip155:3"];
+    const supportedChains = ["eip155:2", "eip155:3"];
     const supportedMethods = ["personal_sign", "eth_signTypedData"];
     const updatedAuthPayload = populateAuthPayload({
       authPayload,
-      chains: suppportedChains,
+      chains: supportedChains,
       methods: supportedMethods,
     });
 
