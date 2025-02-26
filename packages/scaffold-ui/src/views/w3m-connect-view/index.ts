@@ -142,10 +142,12 @@ export class W3mConnectView extends LitElement {
             ${this.renderConnectMethod(tabIndex)}
           </wui-flex>
         </wui-flex>
-        ${this.guideTemplate(isDisabled)}
         <w3m-legal-footer></w3m-legal-footer>
       </wui-flex>
     `
+
+    // hide guideTemplate before <w3m-legal-footer />
+    // ${this.guideTemplate(isDisabled)}
   }
 
   // -- Private ------------------------------------------- //

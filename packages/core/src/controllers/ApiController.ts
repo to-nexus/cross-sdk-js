@@ -79,15 +79,17 @@ export const ApiController = {
   },
 
   async _fetchWalletImage(imageId: string) {
-    const imageUrl = `${api.baseUrl}/getWalletImage/${imageId}`
-    const blob = await api.getBlob({ path: imageUrl, params: ApiController._getSdkProperties() })
-    AssetController.setWalletImage(imageId, URL.createObjectURL(blob))
+    // const imageUrl = `${api.baseUrl}/getWalletImage/${imageId}`
+    // const blob = await api.getBlob({ path: imageUrl, params: ApiController._getSdkProperties() })
+    // AssetController.setWalletImage(imageId, URL.createObjectURL(blob))
+    AssetController.setWalletImage(imageId, "")
   },
 
   async _fetchNetworkImage(imageId: string) {
-    const imageUrl = `${api.baseUrl}/public/getAssetImage/${imageId}`
-    const blob = await api.getBlob({ path: imageUrl, params: ApiController._getSdkProperties() })
-    AssetController.setNetworkImage(imageId, URL.createObjectURL(blob))
+    // const imageUrl = `${api.baseUrl}/public/getAssetImage/${imageId}`
+    // const blob = await api.getBlob({ path: imageUrl, params: ApiController._getSdkProperties() })
+    // AssetController.setNetworkImage(imageId, URL.createObjectURL(blob))
+    AssetController.setNetworkImage(imageId, "")
   },
 
   async _fetchConnectorImage(imageId: string) {
@@ -109,166 +111,166 @@ export const ApiController = {
   },
 
   async prefetchNetworkImages() {
-    const requestedCaipNetworks = ChainController.getAllRequestedCaipNetworks()
+    // const requestedCaipNetworks = ChainController.getAllRequestedCaipNetworks()
 
-    const ids = requestedCaipNetworks
-      ?.map(({ assets }) => assets?.imageId)
-      .filter(Boolean)
-      .filter(imageId => !AssetUtil.getNetworkImageById(imageId))
+    // const ids = requestedCaipNetworks
+    //   ?.map(({ assets }) => assets?.imageId)
+    //   .filter(Boolean)
+    //   .filter(imageId => !AssetUtil.getNetworkImageById(imageId))
 
-    if (ids) {
-      await Promise.allSettled((ids as string[]).map(id => ApiController._fetchNetworkImage(id)))
-    }
+    // if (ids) {
+    //   await Promise.allSettled((ids as string[]).map(id => ApiController._fetchNetworkImage(id)))
+    // }
   },
 
   async fetchConnectorImages() {
-    const { connectors } = ConnectorController.state
-    const ids = connectors.map(({ imageId }) => imageId).filter(Boolean)
-    await Promise.allSettled((ids as string[]).map(id => ApiController._fetchConnectorImage(id)))
+    // const { connectors } = ConnectorController.state
+    // const ids = connectors.map(({ imageId }) => imageId).filter(Boolean)
+    // await Promise.allSettled((ids as string[]).map(id => ApiController._fetchConnectorImage(id)))
   },
 
   async fetchCurrencyImages(currencies: string[] = []) {
-    await Promise.allSettled(
-      currencies.map(currency => ApiController._fetchCurrencyImage(currency))
-    )
+    // await Promise.allSettled(
+    //   currencies.map(currency => ApiController._fetchCurrencyImage(currency))
+    // )
   },
 
   async fetchTokenImages(tokens: string[] = []) {
-    await Promise.allSettled(tokens.map(token => ApiController._fetchTokenImage(token)))
+    // await Promise.allSettled(tokens.map(token => ApiController._fetchTokenImage(token)))
   },
 
   async fetchFeaturedWallets() {
-    const { featuredWalletIds } = OptionsController.state
-    if (featuredWalletIds?.length) {
-      const { data } = await api.get<ApiGetWalletsResponse>({
-        path: '/getWallets',
-        params: {
-          ...ApiController._getSdkProperties(),
-          page: '1',
-          entries: featuredWalletIds?.length
-            ? String(featuredWalletIds.length)
-            : recommendedEntries,
-          include: featuredWalletIds?.join(',')
-        }
-      })
-      data.sort((a, b) => featuredWalletIds.indexOf(a.id) - featuredWalletIds.indexOf(b.id))
-      const images = data.map(d => d.image_id).filter(Boolean)
-      await Promise.allSettled((images as string[]).map(id => ApiController._fetchWalletImage(id)))
-      state.featured = data
-    }
+    // const { featuredWalletIds } = OptionsController.state
+    // if (featuredWalletIds?.length) {
+    //   const { data } = await api.get<ApiGetWalletsResponse>({
+    //     path: '/getWallets',
+    //     params: {
+    //       ...ApiController._getSdkProperties(),
+    //       page: '1',
+    //       entries: featuredWalletIds?.length
+    //         ? String(featuredWalletIds.length)
+    //         : recommendedEntries,
+    //       include: featuredWalletIds?.join(',')
+    //     }
+    //   })
+    //   data.sort((a, b) => featuredWalletIds.indexOf(a.id) - featuredWalletIds.indexOf(b.id))
+    //   const images = data.map(d => d.image_id).filter(Boolean)
+    //   await Promise.allSettled((images as string[]).map(id => ApiController._fetchWalletImage(id)))
+    //   state.featured = data
+    // }
   },
 
   async fetchRecommendedWallets() {
-    try {
-      const { includeWalletIds, excludeWalletIds, featuredWalletIds } = OptionsController.state
-      const exclude = [...(excludeWalletIds ?? []), ...(featuredWalletIds ?? [])].filter(Boolean)
-      const { data, count } = await api.get<ApiGetWalletsResponse>({
-        path: '/getWallets',
-        params: {
-          ...ApiController._getSdkProperties(),
-          page: '1',
-          chains: ChainController.state.activeCaipNetwork?.caipNetworkId,
-          entries: recommendedEntries,
-          include: includeWalletIds?.join(','),
-          exclude: exclude?.join(',')
-        }
-      })
-      const recent = StorageUtil.getRecentWallets()
-      const recommendedImages = data.map(d => d.image_id).filter(Boolean)
-      const recentImages = recent.map(r => r.image_id).filter(Boolean)
-      await Promise.allSettled(
-        ([...recommendedImages, ...recentImages] as string[]).map(id =>
-          ApiController._fetchWalletImage(id)
-        )
-      )
-      state.recommended = data
-      state.count = count ?? 0
-    } catch {
-      // Catch silently
-    }
+    // try {
+    //   const { includeWalletIds, excludeWalletIds, featuredWalletIds } = OptionsController.state
+    //   const exclude = [...(excludeWalletIds ?? []), ...(featuredWalletIds ?? [])].filter(Boolean)
+    //   const { data, count } = await api.get<ApiGetWalletsResponse>({
+    //     path: '/getWallets',
+    //     params: {
+    //       ...ApiController._getSdkProperties(),
+    //       page: '1',
+    //       chains: ChainController.state.activeCaipNetwork?.caipNetworkId,
+    //       entries: recommendedEntries,
+    //       include: includeWalletIds?.join(','),
+    //       exclude: exclude?.join(',')
+    //     }
+    //   })
+    //   const recent = StorageUtil.getRecentWallets()
+    //   const recommendedImages = data.map(d => d.image_id).filter(Boolean)
+    //   const recentImages = recent.map(r => r.image_id).filter(Boolean)
+    //   await Promise.allSettled(
+    //     ([...recommendedImages, ...recentImages] as string[]).map(id =>
+    //       ApiController._fetchWalletImage(id)
+    //     )
+    //   )
+    //   state.recommended = data
+    //   state.count = count ?? 0
+    // } catch {
+    //   // Catch silently
+    // }
   },
 
   async fetchWallets({ page }: Pick<ApiGetWalletsRequest, 'page'>) {
-    const { includeWalletIds, excludeWalletIds, featuredWalletIds } = OptionsController.state
+    // const { includeWalletIds, excludeWalletIds, featuredWalletIds } = OptionsController.state
 
-    const exclude = [
-      ...state.recommended.map(({ id }) => id),
-      ...(excludeWalletIds ?? []),
-      ...(featuredWalletIds ?? [])
-    ].filter(Boolean)
-    const { data, count } = await api.get<ApiGetWalletsResponse>({
-      path: '/getWallets',
-      params: {
-        ...ApiController._getSdkProperties(),
-        page: String(page),
-        entries,
-        chains: ChainController.state.activeCaipNetwork?.caipNetworkId,
-        include: includeWalletIds?.join(','),
-        exclude: exclude.join(',')
-      }
-    })
-    const images = data
-      .slice(0, imageCountToFetch)
-      .map(w => w.image_id)
-      .filter(Boolean)
-    await Promise.allSettled((images as string[]).map(id => ApiController._fetchWalletImage(id)))
+    // const exclude = [
+    //   ...state.recommended.map(({ id }) => id),
+    //   ...(excludeWalletIds ?? []),
+    //   ...(featuredWalletIds ?? [])
+    // ].filter(Boolean)
+    // const { data, count } = await api.get<ApiGetWalletsResponse>({
+    //   path: '/getWallets',
+    //   params: {
+    //     ...ApiController._getSdkProperties(),
+    //     page: String(page),
+    //     entries,
+    //     chains: ChainController.state.activeCaipNetwork?.caipNetworkId,
+    //     include: includeWalletIds?.join(','),
+    //     exclude: exclude.join(',')
+    //   }
+    // })
+    // const images = data
+    //   .slice(0, imageCountToFetch)
+    //   .map(w => w.image_id)
+    //   .filter(Boolean)
+    // await Promise.allSettled((images as string[]).map(id => ApiController._fetchWalletImage(id)))
 
-    state.wallets = CoreHelperUtil.uniqueBy(
-      [...state.wallets, ...ApiController._filterOutExtensions(data)],
-      'id'
-    )
-    state.count = count > state.count ? count : state.count
-    state.page = page
+    // state.wallets = CoreHelperUtil.uniqueBy(
+    //   [...state.wallets, ...ApiController._filterOutExtensions(data)],
+    //   'id'
+    // )
+    // state.count = count > state.count ? count : state.count
+    // state.page = page
   },
 
   async initializeExcludedWalletRdns({ ids }: { ids: string[] }) {
-    const { data } = await api.get<ApiGetWalletsResponse>({
-      path: '/getWallets',
-      params: {
-        ...ApiController._getSdkProperties(),
-        page: '1',
-        entries: String(ids.length),
-        chains: ChainController.state.activeCaipNetwork?.caipNetworkId,
-        include: ids?.join(',')
-      }
-    })
+    // const { data } = await api.get<ApiGetWalletsResponse>({
+    //   path: '/getWallets',
+    //   params: {
+    //     ...ApiController._getSdkProperties(),
+    //     page: '1',
+    //     entries: String(ids.length),
+    //     chains: ChainController.state.activeCaipNetwork?.caipNetworkId,
+    //     include: ids?.join(',')
+    //   }
+    // })
 
-    if (data) {
-      data.forEach(wallet => {
-        if (wallet?.rdns) {
-          state.excludedRDNS.push(wallet.rdns)
-        }
-      })
-    }
+    // if (data) {
+    //   data.forEach(wallet => {
+    //     if (wallet?.rdns) {
+    //       state.excludedRDNS.push(wallet.rdns)
+    //     }
+    //   })
+    // }
   },
 
   async searchWallet({ search, badge }: Pick<ApiGetWalletsRequest, 'search' | 'badge'>) {
-    const { includeWalletIds, excludeWalletIds } = OptionsController.state
-    state.search = []
-    const { data } = await api.get<ApiGetWalletsResponse>({
-      path: '/getWallets',
-      params: {
-        ...ApiController._getSdkProperties(),
-        page: '1',
-        entries: '100',
-        search: search?.trim(),
-        badge_type: badge,
-        chains: ChainController.state.activeCaipNetwork?.caipNetworkId,
-        include: includeWalletIds?.join(','),
-        exclude: excludeWalletIds?.join(',')
-      }
-    })
-    EventsController.sendEvent({
-      type: 'track',
-      event: 'SEARCH_WALLET',
-      properties: { badge: badge ?? '', search: search ?? '' }
-    })
-    const images = data.map(w => w.image_id).filter(Boolean)
-    await Promise.allSettled([
-      ...(images as string[]).map(id => ApiController._fetchWalletImage(id)),
-      CoreHelperUtil.wait(300)
-    ])
-    state.search = ApiController._filterOutExtensions(data)
+    // const { includeWalletIds, excludeWalletIds } = OptionsController.state
+    // state.search = []
+    // const { data } = await api.get<ApiGetWalletsResponse>({
+    //   path: '/getWallets',
+    //   params: {
+    //     ...ApiController._getSdkProperties(),
+    //     page: '1',
+    //     entries: '100',
+    //     search: search?.trim(),
+    //     badge_type: badge,
+    //     chains: ChainController.state.activeCaipNetwork?.caipNetworkId,
+    //     include: includeWalletIds?.join(','),
+    //     exclude: excludeWalletIds?.join(',')
+    //   }
+    // })
+    // EventsController.sendEvent({
+    //   type: 'track',
+    //   event: 'SEARCH_WALLET',
+    //   properties: { badge: badge ?? '', search: search ?? '' }
+    // })
+    // const images = data.map(w => w.image_id).filter(Boolean)
+    // await Promise.allSettled([
+    //   ...(images as string[]).map(id => ApiController._fetchWalletImage(id)),
+    //   CoreHelperUtil.wait(300)
+    // ])
+    // state.search = ApiController._filterOutExtensions(data)
   },
 
   prefetch() {

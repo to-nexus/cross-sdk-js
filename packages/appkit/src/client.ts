@@ -175,7 +175,7 @@ export class AppKit {
     this.defaultCaipNetwork = this.extendDefaultCaipNetwork(options)
     this.chainAdapters = this.createAdapters(options.adapters as AdapterBlueprint[])
     this.initialize(options)
-    this.sendInitializeEvent(options)
+    // this.sendInitializeEvent(options)
   }
 
   public static getInstance() {
@@ -1992,7 +1992,8 @@ export class AppKit {
         url: this.options?.metadata ? this.options?.metadata.url : '',
         icons: this.options?.metadata ? this.options?.metadata.icons : ['']
       },
-      logger
+      logger,
+      relayUrl: `ws://13.125.40.200:18081/ws` // TODO: change url
     }
 
     OptionsController.setUsingInjectedUniversalProvider(Boolean(this.options?.universalProvider))
