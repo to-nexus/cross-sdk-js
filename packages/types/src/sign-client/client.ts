@@ -22,7 +22,8 @@ export declare namespace SignClientTypes {
     | "session_event"
     | "session_authenticate"
     | "proposal_expire"
-    | "session_request_expire";
+    | "session_request_expire"
+    | "session_connect";
 
   interface BaseEventArgs<T = unknown> {
     id: number;
@@ -60,6 +61,7 @@ export declare namespace SignClientTypes {
     } & BaseEventArgs<AuthTypes.AuthRequestEventArgs>;
     proposal_expire: { id: number };
     session_request_expire: { id: number };
+    session_connect: { session: SessionTypes.Struct };
   }
 
   type Metadata = CoreTypes.Metadata;
