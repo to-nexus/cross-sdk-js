@@ -30,8 +30,10 @@ describe("Sign Client Validation", () => {
     clients = await initTwoClients();
     await testConnectMethod(clients);
     pairingTopic = clients.A.pairing.keys[0];
-    proposalId = clients.A.proposal.keys[0];
     topic = clients.A.session.keys[0];
+    proposalId = await clients.A.connect({}).then(() => {
+      return clients.A.proposal.keys[0];
+    });
   });
 
   afterAll(async () => {

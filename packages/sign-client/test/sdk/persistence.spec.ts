@@ -10,6 +10,7 @@ import {
   TEST_REQUEST_PARAMS,
   TEST_SIGN_CLIENT_OPTIONS_B,
   TEST_SIGN_CLIENT_OPTIONS_A,
+  TEST_NAMESPACES,
 } from "../shared";
 
 const generateClientDbName = (prefix: string) =>
@@ -202,6 +203,63 @@ describe("Sign Client Persistence", () => {
               }
             }),
           ]);
+
+          // delete
+          await deleteClients(clients);
+        });
+
+        it("should complete a session after dapp restart", async () => {
+          const db_a = generateClientDbName("client_a");
+          const db_b = generateClientDbName("client_b");
+          const clients = await initTwoClients(
+            {
+              storageOptions: { database: db_a },
+            },
+            {
+              storageOptions: { database: db_b },
+            },
+          );
+
+          const wallet = clients.B;
+
+          const { uri } = await clients.A.connect({});
+
+          if (!uri) {
+            throw new Error("uri is undefined");
+          }
+
+          await deleteClients({ A: clients.A, B: undefined });
+
+          const dapp = await SignClient.init({
+            ...TEST_SIGN_CLIENT_OPTIONS_A,
+            storageOptions: { database: db_a },
+          });
+
+          let dappSessionTopic: string | undefined;
+          let walletSessionTopic: string | undefined;
+
+          await Promise.all([
+            new Promise<void>((resolve) => {
+              dapp.on("session_connect", ({ session }) => {
+                expect(session).to.exist;
+                dappSessionTopic = session.topic;
+                resolve();
+              });
+            }),
+            new Promise<void>((resolve) => {
+              wallet.on("session_proposal", async (args) => {
+                const { id } = args;
+                const session = await wallet.approve({ id, namespaces: TEST_NAMESPACES });
+                walletSessionTopic = session.topic;
+                resolve();
+              });
+            }),
+            wallet.pair({ uri }),
+          ]);
+
+          expect(dappSessionTopic).to.be.a("string");
+          expect(walletSessionTopic).to.be.a("string");
+          expect(dappSessionTopic).toEqual(walletSessionTopic);
 
           // delete
           await deleteClients(clients);
