@@ -6,9 +6,6 @@
   ],
   "command": {
     "run": {
-      "ignore": [
-        "packages/web3wallet"
-      ]
     }
   },
   "version": "2.19.0",
