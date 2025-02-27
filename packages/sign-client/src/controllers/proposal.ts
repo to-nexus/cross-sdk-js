@@ -1,4 +1,4 @@
-import { Store } from "@walletconnect/core";
+import { Store } from "@cross-connect/core";
 import { Logger } from "@walletconnect/logger";
 import { ICore, ProposalTypes } from "@walletconnect/types";
 

@@ -32,7 +32,7 @@ import {
   EVENT_CLIENT_PAIRING_TRACES,
   EVENT_CLIENT_SESSION_ERRORS,
   RELAYER_EVENTS,
-} from "@walletconnect/core";
+} from "@cross-connect/core";
 
 describe("Sign Client Integration", () => {
   it("init", async () => {

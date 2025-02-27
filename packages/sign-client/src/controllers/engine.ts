@@ -12,7 +12,7 @@ import {
   RELAYER_EVENTS,
   TRANSPORT_TYPES,
   VERIFY_SERVER,
-} from "@walletconnect/core";
+} from "@cross-connect/core";
 
 import {
   formatJsonRpcError,

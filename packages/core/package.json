@@ -1,5 +1,5 @@
 {
-  "name": "@walletconnect/core",
+  "name": "@cross-connect/core",
   "description": "Core for WalletConnect Protocol",
   "version": "2.19.0",
   "author": "WalletConnect, Inc. <walletconnect.com>",

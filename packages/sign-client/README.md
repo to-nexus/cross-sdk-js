@@ -1,4 +1,4 @@
-# @walletconnect/sign-client
+# @cross-connect/sign-client
 
 Sign Client for WalletConnect Protocol
 

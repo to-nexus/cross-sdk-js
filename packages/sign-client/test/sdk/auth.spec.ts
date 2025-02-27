@@ -11,7 +11,7 @@ import {
 import { AuthTypes } from "@walletconnect/types";
 import { Wallet as CryptoWallet } from "@ethersproject/wallet";
 import { formatJsonRpcResult } from "@walletconnect/jsonrpc-utils";
-import { RELAYER_EVENTS } from "@walletconnect/core";
+import { RELAYER_EVENTS } from "@cross-connect/core";
 
 describe("Authenticated Sessions", () => {
   let cryptoWallet: CryptoWallet;

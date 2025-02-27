@@ -1,5 +1,5 @@
 {
-  "name": "@walletconnect/sign-client",
+  "name": "@cross-connect/sign-client",
   "description": "Sign Client for WalletConnect Protocol",
   "version": "2.19.0",
   "author": "WalletConnect, Inc. <walletconnect.com>",
@@ -38,7 +38,7 @@
     "prettier": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'"
   },
   "dependencies": {
-    "@walletconnect/core": "2.19.0",
+    "@cross-connect/core": "workspace:*",
     "@walletconnect/events": "1.0.1",
     "@walletconnect/heartbeat": "1.2.2",
     "@walletconnect/jsonrpc-utils": "1.0.8",

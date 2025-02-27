@@ -1,4 +1,4 @@
-import { Core } from "@walletconnect/core";
+import { Core } from "@cross-connect/core";
 import {
   generateChildLogger,
   getDefaultLoggerOptions,

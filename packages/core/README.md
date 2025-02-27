@@ -1,4 +1,4 @@
-# @walletconnect/core
+# @cross-connect/core
 
 Core for WalletConnect Protocol
 

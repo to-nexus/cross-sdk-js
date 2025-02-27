@@ -1,4 +1,4 @@
-import { Store } from "@walletconnect/core";
+import { Store } from "@cross-connect/core";
 import { Logger } from "@walletconnect/logger";
 import { ICore, PendingRequestTypes } from "@walletconnect/types";
 import { REQUEST_CONTEXT, SIGN_CLIENT_STORAGE_PREFIX } from "../constants";
