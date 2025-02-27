@@ -45,7 +45,7 @@
     "@walletconnect/logger": "2.1.2",
     "@walletconnect/time": "1.0.2",
     "@walletconnect/types": "2.19.0",
-    "@walletconnect/utils": "*",
+    "@walletconnect/utils": "2.19.0",
     "events": "3.3.0"
   },
   "devDependencies": {

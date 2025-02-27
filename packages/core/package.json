@@ -43,7 +43,7 @@
     "@walletconnect/safe-json": "1.0.2",
     "@walletconnect/time": "1.0.2",
     "@walletconnect/types": "2.19.0",
-    "@walletconnect/utils": "*",
+    "@walletconnect/utils": "2.19.0",
     "@walletconnect/window-getters": "1.0.1",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0",
