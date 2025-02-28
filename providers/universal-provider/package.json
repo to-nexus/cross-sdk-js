@@ -1,7 +1,7 @@
 {
   "name": "@cross-connect/universal-provider",
   "description": "Universal Provider for Cross Connect Protocol",
-  "version": "2.19.0",
+  "version": "2.19.1",
   "author": "Nexus",
   "homepage": "https://github.com/to-nexus/cross-connect",
   "repository": {
@@ -26,7 +26,7 @@
   ],
   "keywords": [
     "wallet",
-    "walletconnect"
+    "cross-connect"
   ],
   "scripts": {
     "clean": "rm -rf dist",
