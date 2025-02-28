@@ -15,7 +15,7 @@
   ],
   "keywords": [
     "wallet",
-    "walletconnect"
+    "cross-connect"
   ],
   "scripts": {
     "clean": "rm -rf dist",
