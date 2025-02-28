@@ -1,6 +1,6 @@
 # @cross-connect/core
 
-Core for WalletConnect Protocol
+Core for Cross Connect Protocol
 
 ## License
 

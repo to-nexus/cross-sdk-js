@@ -1,9 +1,9 @@
 {
   "name": "@cross-connect/sign-client",
-  "description": "Sign Client for WalletConnect Protocol",
+  "description": "Sign Client for Cross Connect Protocol",
   "version": "2.19.0",
-  "author": "WalletConnect, Inc. <walletconnect.com>",
-  "homepage": "https://github.com/walletconnect/walletconnect-monorepo/",
+  "author": "Nexus",
+  "homepage": "https://https://github.com/to-nexus/cross-connect",
   "license": "Apache-2.0",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",

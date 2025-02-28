@@ -1,21 +1,13 @@
 {
   "name": "cross-connect",
-  "description": "Monorepo for WalletConnect",
+  "description": "Monorepo for Cross Connect",
   "private": true,
   "keywords": [
-    "wallet",
-    "walletconnect",
-    "ethereum",
-    "jsonrpc",
-    "mobile",
-    "qrcode",
-    "web3",
-    "crypto",
-    "cryptocurrency",
-    "dapp"
+    "cross",
+    "cross-connect"
   ],
-  "author": "WalletConnect, Inc. <walletconnect.com>",
-  "homepage": "https://github.com/walletconnect/walletconnect-monorepo/",
+  "author": "Nexus",
+  "homepage": "https://github.com/to-nexus/cross-connect",
   "license": "Apache-2.0",
   "workspaces": [
     "packages/core",
@@ -40,10 +32,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/walletconnect/walletconnect-monorepo.git"
+    "url": "git+https://github.com/to-nexus/cross-connect"
   },
   "bugs": {
-    "url": "https://github.com/walletconnect/walletconnect-monorepo/issues"
+    "url": "https://github.com/to-nexus/cross-connect/issues"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "22.0.2",

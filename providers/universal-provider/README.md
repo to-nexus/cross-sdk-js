@@ -1,6 +1,6 @@
 # @cross-connect/universal-provider
 
-Universal Provider for WalletConnect Protocol
+Universal Provider for Cross Connect Protocol
 
 ## Usage
 
@@ -15,8 +15,8 @@ const provider = await UniversalProvider.init({
   projectId: "12345678",
   metadata: {
     name: "React App",
-    description: "React App for WalletConnect",
-    url: "https://walletconnect.com/",
+    description: "React App for Cross Connect",
+    url: "https://github.com/to-nexus/cross-connect",
     icons: ["https://avatars.githubusercontent.com/u/37784886"],
   },
   client: undefined, // optional instance of @cross-connect/sign-client
@@ -37,7 +37,7 @@ await provider.connect({
       events: ["chainChanged", "accountsChanged"],
       rpcMap: {
         80001:
-          "https://rpc.walletconnect.org?chainId=eip155:80001&projectId=<your walletconnect project id>",
+          "https://rpc.Cross Connect.org?chainId=eip155:80001&projectId=<your Cross Connect project id>",
       },
     },
     pairingTopic: "<123...topic>", // optional topic to connect to
