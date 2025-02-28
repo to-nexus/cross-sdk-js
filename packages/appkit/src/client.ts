@@ -1,7 +1,7 @@
 /* eslint-disable max-depth */
 import type { SessionTypes } from '@walletconnect/types'
-import UniversalProvider from '@walletconnect/universal-provider'
-import type { UniversalProviderOpts } from '@walletconnect/universal-provider'
+import UniversalProvider from '@cross-connect/universal-provider'
+import type { UniversalProviderOpts } from '@cross-connect/universal-provider'
 
 import {
   type CaipAddress,
@@ -1969,7 +1969,8 @@ export class AppKit {
         name: this.options?.metadata ? this.options?.metadata.name : '',
         description: this.options?.metadata ? this.options?.metadata.description : '',
         url: this.options?.metadata ? this.options?.metadata.url : '',
-        icons: this.options?.metadata ? this.options?.metadata.icons : ['']
+        icons: this.options?.metadata ? this.options?.metadata.icons : [''],
+        verifyUrl: 'https://13.125.40.200:18081/verify' // TODO: change url
       },
       logger,
       relayUrl: `ws://13.125.40.200:18081/ws` // TODO: change url

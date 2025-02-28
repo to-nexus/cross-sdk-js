@@ -1,4 +1,4 @@
-import type UniversalProvider from '@walletconnect/universal-provider'
+import type UniversalProvider from '@cross-connect/universal-provider'
 import { proxy, ref, subscribe } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 

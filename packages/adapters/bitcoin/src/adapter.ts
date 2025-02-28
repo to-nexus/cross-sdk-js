@@ -1,4 +1,4 @@
-import type UniversalProvider from '@walletconnect/universal-provider'
+import type UniversalProvider from '@cross-connect/universal-provider'
 
 import { type AppKit, type AppKitOptions, CoreHelperUtil, type Provider } from '@reown/appkit'
 import { ConstantsUtil } from '@reown/appkit-common'

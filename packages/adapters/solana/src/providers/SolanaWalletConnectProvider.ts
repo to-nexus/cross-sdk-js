@@ -7,7 +7,7 @@ import {
   VersionedTransaction
 } from '@solana/web3.js'
 import type { SessionTypes } from '@walletconnect/types'
-import UniversalProvider from '@walletconnect/universal-provider'
+import UniversalProvider from '@cross-connect/universal-provider'
 import base58 from 'bs58'
 
 import { type RequestArguments, WcHelpersUtil } from '@reown/appkit'

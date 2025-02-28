@@ -1,4 +1,4 @@
-import UniversalProvider from '@walletconnect/universal-provider'
+import UniversalProvider from '@cross-connect/universal-provider'
 import * as ethers from 'ethers'
 import { formatEther } from 'ethers/lib/utils.js'
 

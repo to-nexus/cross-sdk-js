@@ -1,4 +1,4 @@
-import type UniversalProvider from '@walletconnect/universal-provider'
+import type UniversalProvider from '@cross-connect/universal-provider'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CaipNetwork } from '@reown/appkit-common'

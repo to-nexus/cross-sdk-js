@@ -1,5 +1,5 @@
 import type { Connector } from '@wagmi/core'
-import { UniversalProvider } from '@walletconnect/universal-provider'
+import { UniversalProvider } from '@cross-connect/universal-provider'
 import { type Hex } from 'viem'
 
 import { WcHelpersUtil } from '@reown/appkit'

@@ -18,7 +18,7 @@ import {
 } from '@wagmi/core'
 import * as wagmiCore from '@wagmi/core'
 import { mainnet } from '@wagmi/core/chains'
-import type UniversalProvider from '@walletconnect/universal-provider'
+import type UniversalProvider from '@cross-connect/universal-provider'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConstantsUtil } from '@reown/appkit-common'

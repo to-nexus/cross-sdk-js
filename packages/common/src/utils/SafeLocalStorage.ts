@@ -21,7 +21,7 @@ export type SafeLocalStorageItems = {
   '@appkit/ens_cache': string
   '@appkit/identity_cache': string
   /*
-   * DO NOT CHANGE: @walletconnect/universal-provider requires us to set this specific key
+   * DO NOT CHANGE: @cross-connect/universal-provider requires us to set this specific key
    *  This value is a stringified version of { href: stiring; name: string }
    */
   WALLETCONNECT_DEEPLINK_CHOICE: string

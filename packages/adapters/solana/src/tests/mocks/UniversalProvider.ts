@@ -1,5 +1,5 @@
 import type { SessionTypes } from '@walletconnect/types'
-import UniversalProvider from '@walletconnect/universal-provider'
+import UniversalProvider from '@cross-connect/universal-provider'
 import { vi } from 'vitest'
 
 import { SolanaWalletConnectProvider } from '../../providers/SolanaWalletConnectProvider.js'

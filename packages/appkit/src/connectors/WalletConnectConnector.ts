@@ -1,5 +1,5 @@
 import type { SessionTypes } from '@walletconnect/types'
-import UniversalProvider from '@walletconnect/universal-provider'
+import UniversalProvider from '@cross-connect/universal-provider'
 
 import { type CaipNetwork, type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
 import { SIWXUtil } from '@reown/appkit-core'

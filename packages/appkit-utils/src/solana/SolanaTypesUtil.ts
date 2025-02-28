@@ -7,7 +7,7 @@ import type {
   TransactionSignature,
   VersionedTransaction
 } from '@solana/web3.js'
-import UniversalProvider from '@walletconnect/universal-provider'
+import UniversalProvider from '@cross-connect/universal-provider'
 
 import type { CaipNetwork, ChainNamespace } from '@reown/appkit-common'
 import type { ConnectorType } from '@reown/appkit-core'

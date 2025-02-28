@@ -1,4 +1,4 @@
-import UniversalProvider from '@walletconnect/universal-provider'
+import UniversalProvider from '@cross-connect/universal-provider'
 import { InfuraProvider, JsonRpcProvider } from 'ethers'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 

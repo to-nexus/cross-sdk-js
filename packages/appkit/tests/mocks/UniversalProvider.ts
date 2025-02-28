@@ -1,4 +1,4 @@
-import type UniversalProvider from '@walletconnect/universal-provider'
+import type UniversalProvider from '@cross-connect/universal-provider'
 import { vi } from 'vitest'
 
 export const mockProvider = {
