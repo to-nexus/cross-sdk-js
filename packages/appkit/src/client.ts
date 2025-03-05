@@ -169,6 +169,7 @@ export class AppKit {
     this.options = options
     this.version = options.sdkVersion
     this.caipNetworks = this.extendCaipNetworks(options)
+    console.log(`caipNetworks: ${JSON.stringify(this.caipNetworks)}`)
     this.chainNamespaces = [
       ...new Set(this.caipNetworks?.map(caipNetwork => caipNetwork.chainNamespace))
     ]

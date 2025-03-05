@@ -1,5 +1,5 @@
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
-import { mainnet } from '@reown/appkit/networks'
+import { crossTestnet, mainnet } from '@reown/appkit/networks'
 import {
   createAppKit,
   useAppKit,
@@ -13,11 +13,10 @@ import {
 } from '@reown/appkit/react'
 
 const networks = [ { 
-  id: mainnet.id,
-  name: mainnet.name,
-  nativeCurrency: mainnet.nativeCurrency,
-  rpcUrls: mainnet.rpcUrls,
-
+  id: crossTestnet.id,
+  name: crossTestnet.name,
+  nativeCurrency: crossTestnet.nativeCurrency,
+  rpcUrls: crossTestnet.rpcUrls,
 }]
 
 // Setup solana adapter
@@ -26,7 +25,7 @@ const ethersAdapter = new EthersAdapter()
 // Create modal
 const initCrossSdk = (projectId: string) => createAppKit({
   adapters: [ethersAdapter],
-  networks: [mainnet, ...networks],
+  networks: [crossTestnet, ...networks],
   metadata: {
     name: 'Cross SDK',
     description: 'Cross SDK for React',

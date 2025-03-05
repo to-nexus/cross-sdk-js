@@ -1,4 +1,4 @@
-import { mainnet } from '@reown/appkit/networks'
+import { mainnet, crossTestnet } from '@reown/appkit/networks'
 
 import {
   initCrossSdk,
@@ -27,7 +27,7 @@ export function ActionButtonList() {
   }
 
   function switchToNetwork() {
-    switchNetwork(mainnet)
+    switchNetwork(crossTestnet)
   }
 
   async function handleDisconnect() {
@@ -48,7 +48,7 @@ export function ActionButtonList() {
     <div className="action-button-list">
       <button onClick={openAppKit}>Open</button>
       <button onClick={handleDisconnect}>Disconnect</button>
-      <button onClick={switchToNetwork}>Switch to Ethereum</button>
+      <button onClick={switchToNetwork}>Switch to Cross</button>
       <button onClick={toggleTheme}>
         {themeMode === 'light' ? (
           <svg
