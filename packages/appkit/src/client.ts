@@ -849,7 +849,8 @@ export class AppKit {
   }
 
   private async initializeBlockchainApiController() {
-    await BlockchainApiController.getSupportedNetworks()
+    // TODO: implement api
+    // await BlockchainApiController.getSupportedNetworks()
   }
 
   private initControllers(options: AppKitOptionsWithSdk) {
@@ -985,7 +986,11 @@ export class AppKit {
         const provider = ProviderUtil.getProvider(namespace)
         const providerType = ProviderUtil.state.providerIds[namespace]
 
-        await adapter?.disconnect({ provider, providerType })
+        try {
+          await adapter?.disconnect({ provider, providerType })
+        } catch (e) {
+          console.log(`error on disconnect but proceeding next steps...: ${e}`)
+        }
 
         StorageUtil.removeConnectedNamespace(namespace)
         ProviderUtil.resetChain(namespace)
@@ -1514,6 +1519,7 @@ export class AppKit {
         caipNetwork: this.getCaipNetwork(),
         tokens: this.options.tokens
       })
+      console.log(`chainId: ${ChainController.state.activeCaipNetwork?.id} native balance: ${JSON.stringify(balance)}`)
       this.setBalance(balance.balance, balance.symbol, ChainController.state.activeChain)
     }
   }

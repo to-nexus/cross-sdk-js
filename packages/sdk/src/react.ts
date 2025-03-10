@@ -37,7 +37,7 @@ const initCrossSdk = (projectId: string) => createAppKit({
   features: {
     analytics: false,
     socials: false,
-    email: false,
+    email: false
   },
   customWallets: [
     {

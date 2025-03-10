@@ -486,7 +486,7 @@ export class EthersAdapter extends AdapterBlueprint {
           this.balancePromises[caipAddress] = new Promise<AdapterBlueprint.GetBalanceResult>(
             async resolve => {
               const balance = await jsonRpcProvider.getBalance(params.address)
-
+              console.log(`address: ${params.address} raw balance: ${balance}`)
               const formattedBalance = formatEther(balance)
 
               StorageUtil.updateNativeBalanceCache({

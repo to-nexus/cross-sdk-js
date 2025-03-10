@@ -161,18 +161,22 @@ export const BlockchainApiController = {
   },
 
   async isNetworkSupported(networkId?: CaipNetworkId) {
-    if (!networkId) {
-      return false
-    }
-    try {
-      if (!state.supportedChains.http.length) {
-        await BlockchainApiController.getSupportedNetworks()
-      }
-    } catch (e) {
-      return false
-    }
 
-    return state.supportedChains.http.includes(networkId)
+    return true
+
+    // TODO: implement api
+    // if (!networkId) {
+    //   return false
+    // }
+    // try {
+    //   if (!state.supportedChains.http.length) {
+    //     await BlockchainApiController.getSupportedNetworks()
+    //   }
+    // } catch (e) {
+    //   return false
+    // }
+
+    // return state.supportedChains.http.includes(networkId)
   },
 
   async getSupportedNetworks() {
@@ -289,6 +293,19 @@ export const BlockchainApiController = {
   },
 
   async fetchTokenPrice({ addresses }: BlockchainApiTokenPriceRequest) {
+
+    // TODO: support api
+    return {
+      fungibles: [
+        {
+          name: "CROSSx",
+          symbol: "CROSSx",
+          iconUrl: "",
+          price: 0.1
+        }
+      ]
+    }
+
     const isSupported = await BlockchainApiController.isNetworkSupported(
       ChainController.state.activeCaipNetwork?.caipNetworkId
     )
@@ -337,6 +354,13 @@ export const BlockchainApiController = {
     )
     if (!isSupported) {
       throw new Error('Network not supported for Gas Price')
+    }
+
+    // TODO: implement api
+    return {
+      standard: '100000',
+      fast: '100000',
+      instant: '100000'
     }
 
     return BlockchainApiController.get<BlockchainApiGasPriceResponse>({

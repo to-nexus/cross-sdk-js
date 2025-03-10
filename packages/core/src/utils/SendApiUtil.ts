@@ -41,14 +41,15 @@ export const SendApiUtil = {
   async getEIP155Balances(address: string, caipNetwork: CaipNetwork) {
     try {
       const chainIdHex = ERC7811Utils.getChainIdHexFromCAIP2ChainId(caipNetwork.caipNetworkId)
-      const walletCapabilities = (await ConnectionController.getCapabilities(address)) as Record<
-        string,
-        { assetDiscovery?: { supported: boolean } }
-      >
+      // TODO: Skip walletCapabilities as we do not support it yet
+      // const walletCapabilities = (await ConnectionController.getCapabilities(address)) as Record<
+      //   string,
+      //   { assetDiscovery?: { supported: boolean } }
+      // >
 
-      if (!walletCapabilities?.[chainIdHex]?.['assetDiscovery']?.supported) {
-        return null
-      }
+      // if (!walletCapabilities?.[chainIdHex]?.['assetDiscovery']?.supported) {
+      //   return null
+      // }
 
       const walletGetAssetsResponse = await ConnectionController.walletGetAssets({
         account: address as `0x${string}`,
