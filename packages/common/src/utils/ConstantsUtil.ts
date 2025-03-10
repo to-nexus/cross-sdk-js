@@ -5,7 +5,7 @@ export const ConstantsUtil = {
   WC_NAME_SUFFIX_LEGACY: '.wcn.id',
   BLOCKCHAIN_API_RPC_URL: 'https://testnet.cross-nexus.com:22001',
   PULSE_API_URL: 'https://pulse.walletconnect.org',
-  W3M_API_URL: 'https://api.web3modal.org',
+  W3M_API_URL: 'https://dev-wallet-server.cross-nexus.com/api',
   /* Connector IDs */
   CONNECTOR_ID: {
     WALLET_CONNECT: 'walletConnect',

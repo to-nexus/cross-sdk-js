@@ -179,6 +179,16 @@ export interface ApiGetAnalyticsConfigResponse {
   isAnalyticsEnabled: boolean
 }
 
+export interface ApiGasPriceRequest {
+  chainId: string
+}
+
+export interface ApiGasPriceResponse {
+  standard: string
+  fast: string
+  instant: string
+}
+
 export type ThemeMode = 'dark' | 'light'
 
 export interface ThemeVariables {

@@ -6,6 +6,8 @@ import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { FetchUtil } from '../utils/FetchUtil.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
 import type {
+  ApiGasPriceRequest,
+  ApiGasPriceResponse,
   ApiGetAnalyticsConfigResponse,
   ApiGetWalletsRequest,
   ApiGetWalletsResponse,
@@ -121,6 +123,26 @@ export const ApiController = {
     // if (ids) {
     //   await Promise.allSettled((ids as string[]).map(id => ApiController._fetchNetworkImage(id)))
     // }
+  },
+
+  async fetchGasPrice({ chainId }: ApiGasPriceRequest) {
+
+    // TODO: implement api
+    return {
+      standard: "2000000000",
+      fast: "2000000000",
+      instant: "2000000000"
+    }
+
+    // return api.get<ApiGasPriceResponse>({
+    //   path: `/v1/public/transaction/gas-suggestion/legacy`,
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   },
+    //   params: {
+    //     chain_id: chainId
+    //   }
+    // })
   },
 
   async fetchConnectorImages() {

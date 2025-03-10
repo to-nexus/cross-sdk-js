@@ -346,36 +346,6 @@ export const BlockchainApiController = {
     })
   },
 
-  async fetchGasPrice({ chainId }: BlockchainApiGasPriceRequest) {
-    const { st, sv } = BlockchainApiController.getSdkProperties()
-
-    const isSupported = await BlockchainApiController.isNetworkSupported(
-      ChainController.state.activeCaipNetwork?.caipNetworkId
-    )
-    if (!isSupported) {
-      throw new Error('Network not supported for Gas Price')
-    }
-
-    // TODO: implement api
-    return {
-      standard: '100000',
-      fast: '100000',
-      instant: '100000'
-    }
-
-    return BlockchainApiController.get<BlockchainApiGasPriceResponse>({
-      path: `/v1/convert/gas-price`,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      params: {
-        chainId,
-        st,
-        sv
-      }
-    })
-  },
-
   async generateSwapCalldata({
     amount,
     from,

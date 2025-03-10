@@ -8,6 +8,7 @@ import { ChainController } from '../../src/controllers/ChainController'
 import { ConnectionController } from '../../src/controllers/ConnectionController'
 import { OptionsController } from '../../src/controllers/OptionsController'
 import { SwapApiUtil } from '../../src/utils/SwapApiUtil'
+import { ApiController } from '../../src/controllers/ApiController'
 
 // Mock the controllers
 vi.mock('../../src/controllers/ChainController')
@@ -96,13 +97,13 @@ describe('SwapApiUtil', () => {
     it('should fetch gas price for EVM chain', async () => {
       ChainController.state.activeCaipNetwork = mockEthereumNetwork
       OptionsController.state.projectId = 'test-project-id'
-      BlockchainApiController.fetchGasPrice = vi
+      ApiController.fetchGasPrice = vi
         .fn()
         .mockResolvedValue({ standard: '20', fast: '25', instant: '30' })
 
       const result = await SwapApiUtil.fetchGasPrice()
 
-      expect(BlockchainApiController.fetchGasPrice).toHaveBeenCalledWith({
+      expect(ApiController.fetchGasPrice).toHaveBeenCalledWith({
         chainId: 'eip155:1'
       })
       expect(result).toEqual({ standard: '20', fast: '25', instant: '30' })
@@ -133,7 +134,7 @@ describe('SwapApiUtil', () => {
           }
         }
       }
-      BlockchainApiController.fetchGasPrice = vi.fn().mockRejectedValue(new Error('API Error'))
+      ApiController.fetchGasPrice = vi.fn().mockRejectedValue(new Error('API Error'))
 
       const result = await SwapApiUtil.fetchGasPrice()
 

@@ -1,4 +1,5 @@
 import { AccountController } from '../controllers/AccountController.js'
+import { ApiController } from '../controllers/ApiController.js'
 import { BlockchainApiController } from '../controllers/BlockchainApiController.js'
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
@@ -66,7 +67,7 @@ export const SwapApiUtil = {
 
         case 'eip155':
         default:
-          return await BlockchainApiController.fetchGasPrice({
+          return await ApiController.fetchGasPrice({
             chainId: caipNetwork.caipNetworkId
           })
       }
