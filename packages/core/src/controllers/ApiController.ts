@@ -125,24 +125,26 @@ export const ApiController = {
     // }
   },
 
-  async fetchGasPrice({ chainId }: ApiGasPriceRequest) {
+  async fetchGasPrice({ chainId: chainIdWithNetwork }: ApiGasPriceRequest) {
 
-    // TODO: implement api
-    return {
-      standard: "2000000000",
-      fast: "2000000000",
-      instant: "2000000000"
-    }
+    // MOCK: for server-down fallback
+    // return {
+    //   standard: "2000000000",
+    //   fast: "2000000000",
+    //   instant: "2000000000"
+    // }
 
-    // return api.get<ApiGasPriceResponse>({
-    //   path: `/v1/public/transaction/gas-suggestion/legacy`,
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   },
-    //   params: {
-    //     chain_id: chainId
-    //   }
-    // })
+    const chain_id = chainIdWithNetwork.split(":")[1];
+
+    return api.get<ApiGasPriceResponse>({
+      path: `/api/v1/public/transaction/gas-suggestion/legacy`,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      params: {
+        chain_id
+      }
+    })
   },
 
   async fetchConnectorImages() {
