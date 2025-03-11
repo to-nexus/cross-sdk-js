@@ -120,7 +120,9 @@ export const swapCalldataResponse = {
 }
 
 export const gasPriceResponse = {
-  standard: '60000000128',
-  fast: '150000000128',
-  instant: '195000000166'
+  data: {
+    standard: '60000000128',
+    fast: '150000000128',
+    instant: '195000000166'
+  }
 }

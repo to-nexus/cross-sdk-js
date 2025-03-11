@@ -60,16 +60,18 @@ export const SwapApiUtil = {
           )?.toString()
 
           return {
-            standard: lamportsPerSignature,
-            fast: lamportsPerSignature,
-            instant: lamportsPerSignature
+            data: {
+              standard: lamportsPerSignature,
+              fast: lamportsPerSignature,
+              instant: lamportsPerSignature
+            }
           }
 
         case 'eip155':
         default:
           return await ApiController.fetchGasPrice({
             chainId: caipNetwork.caipNetworkId
-          })
+          });
       }
     } catch {
       return null

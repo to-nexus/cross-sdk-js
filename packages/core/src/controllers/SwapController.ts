@@ -449,15 +449,16 @@ export const SwapController = {
 
   async getInitialGasPrice() {
     const res = await SwapApiUtil.fetchGasPrice()
-
     if (!res) {
       return { gasPrice: null, gasPriceInUSD: null }
     }
 
+    const { data } = res
+
     switch (ChainController.state?.activeCaipNetwork?.chainNamespace) {
       case 'solana':
-        state.gasFee = res.standard ?? '0'
-        state.gasPriceInUSD = NumberUtil.multiply(res.standard, state.networkPrice)
+        state.gasFee = res.data.standard ?? '0'
+        state.gasPriceInUSD = NumberUtil.multiply(data.standard, state.networkPrice)
           .div(1e9)
           .toNumber()
 
@@ -469,7 +470,7 @@ export const SwapController = {
       case 'eip155':
       default:
         // eslint-disable-next-line no-case-declarations
-        const value = res.standard ?? '0'
+        const value = data.standard ?? '0'
         // eslint-disable-next-line no-case-declarations
         const gasFee = BigInt(value)
         // eslint-disable-next-line no-case-declarations

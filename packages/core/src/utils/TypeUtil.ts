@@ -183,10 +183,20 @@ export interface ApiGasPriceRequest {
   chainId: string
 }
 
-export interface ApiGasPriceResponse {
-  standard: string
-  fast: string
-  instant: string
+export interface ApiGasPriceResponse extends ApiBaseReponse { // CROSS api returns with code, message and data
+  code?: number,
+  message?: string,
+  data: {
+    standard: string
+    fast: string
+    instant: string
+  }
+}
+
+export interface ApiBaseReponse { // CROSS api returns with code, message and data
+  code?: number,
+  message?: string,
+  data?: any
 }
 
 export type ThemeMode = 'dark' | 'light'

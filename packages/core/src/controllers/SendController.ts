@@ -163,7 +163,10 @@ export const SendController = {
         gasPrice: this.state.gasPrice,
         decimals: this.state.token.quantity.decimals
       })
+    } else {
+      console.log(`invalid token. not native nor erc20`)
     }
+
   },
 
   async fetchTokenBalance(onError?: (error: unknown) => void): Promise<Balance[]> {

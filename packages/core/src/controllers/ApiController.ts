@@ -127,13 +127,6 @@ export const ApiController = {
 
   async fetchGasPrice({ chainId: chainIdWithNetwork }: ApiGasPriceRequest) {
 
-    // MOCK: for server-down fallback
-    // return {
-    //   standard: "2000000000",
-    //   fast: "2000000000",
-    //   instant: "2000000000"
-    // }
-
     const chain_id = chainIdWithNetwork.split(":")[1];
 
     return api.get<ApiGasPriceResponse>({

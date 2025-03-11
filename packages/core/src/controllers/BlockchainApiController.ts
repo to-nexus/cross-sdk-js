@@ -421,6 +421,7 @@ export const BlockchainApiController = {
       return cachedBalance
     }
 
+    // TODO: implement api
     const balance = await BlockchainApiController.get<BlockchainApiBalanceResponse>({
       path: `/v1/account/${address}/balance`,
       params: {
