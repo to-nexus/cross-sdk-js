@@ -3,12 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Balance } from '@reown/appkit-common'
 
 import { AccountController } from '../../src/controllers/AccountController'
+import { ApiController } from '../../src/controllers/ApiController'
 import { BlockchainApiController } from '../../src/controllers/BlockchainApiController'
 import { ChainController } from '../../src/controllers/ChainController'
 import { ConnectionController } from '../../src/controllers/ConnectionController'
 import { OptionsController } from '../../src/controllers/OptionsController'
 import { SwapApiUtil } from '../../src/utils/SwapApiUtil'
-import { ApiController } from '../../src/controllers/ApiController'
 
 // Mock the controllers
 vi.mock('../../src/controllers/ChainController')
@@ -185,14 +185,14 @@ describe('SwapApiUtil', () => {
     it('should fetch and return tokens with balance', async () => {
       AccountController.state.address = '0x123'
       ChainController.state.activeCaipNetwork = mockEthereumNetwork
-      BlockchainApiController.getBalance = vi.fn().mockResolvedValue({
+      ApiController.getBalance = vi.fn().mockResolvedValue({
         balances: [{ address: '0x456', quantity: { decimals: '18', numeric: '1.5' } }]
       })
       ChainController.getActiveNetworkTokenAddress = vi.fn().mockReturnValue('0x789')
 
       const result = await SwapApiUtil.getMyTokensWithBalance()
 
-      expect(BlockchainApiController.getBalance).toHaveBeenCalledWith(
+      expect(ApiController.getBalance).toHaveBeenCalledWith(
         '0x123',
         'eip155:1',
         undefined

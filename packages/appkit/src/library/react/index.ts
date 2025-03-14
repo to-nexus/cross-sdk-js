@@ -18,6 +18,8 @@ import type { AppKit } from '../../../src/client.js'
 import { ProviderUtil } from '../../store/ProviderUtil.js'
 import type { AppKitOptions } from '../../utils/TypesUtil.js'
 
+export type { SendTransactionArgs } from '@reown/appkit-core'
+
 type OpenOptions = {
   view:
     | 'Account'

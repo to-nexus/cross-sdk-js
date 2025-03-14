@@ -53,7 +53,11 @@ export function useAppKitAccount(options?: { namespace?: ChainNamespace }): UseA
           accountType: chainAccountState?.preferredAccountType,
           isSmartAccountDeployed: Boolean(chainAccountState?.smartAccountDeployed)
         }
-      : undefined
+      : undefined,
+    balance: chainAccountState?.balance,
+    balanceSymbol: chainAccountState?.balanceSymbol,
+    balanceLoading: chainAccountState?.balanceLoading,
+    tokenBalance: chainAccountState?.tokenBalance
   }
 }
 

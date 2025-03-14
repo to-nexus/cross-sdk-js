@@ -4,7 +4,7 @@ import { BlockchainApiController } from '../controllers/BlockchainApiController.
 import { ChainController } from '../controllers/ChainController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
 import type { SwapTokenWithBalance } from './TypeUtil.js'
-import type { BlockchainApiBalanceResponse, BlockchainApiSwapAllowanceRequest } from './TypeUtil.js'
+import type { ApiBalanceResponse, BlockchainApiSwapAllowanceRequest } from './TypeUtil.js'
 
 // -- Types --------------------------------------------- //
 export type TokenInfo = {
@@ -111,7 +111,7 @@ export const SwapApiUtil = {
       return []
     }
 
-    const response = await BlockchainApiController.getBalance(
+    const response = await ApiController.getBalance(
       address,
       caipNetwork.caipNetworkId,
       forceUpdate
@@ -127,7 +127,7 @@ export const SwapApiUtil = {
     return this.mapBalancesToSwapTokens(balances)
   },
 
-  mapBalancesToSwapTokens(balances: BlockchainApiBalanceResponse['balances']) {
+  mapBalancesToSwapTokens(balances: ApiBalanceResponse['balances']) {
     return (
       balances?.map(
         token =>

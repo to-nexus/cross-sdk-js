@@ -5,7 +5,7 @@ import { type Balance, type CaipNetwork, ConstantsUtil } from '@reown/appkit-com
 
 import {
   AccountController,
-  BlockchainApiController,
+  ApiController,
   ChainController,
   type ChainControllerState,
   type ConnectionControllerClient,
@@ -122,7 +122,7 @@ describe('AccountController', () => {
         activeCaipNetwork: extendedMainnet,
         activeCaipAddress: 'eip155:1:0x123'
       } as unknown as ChainControllerState)
-      vi.spyOn(BlockchainApiController, 'getBalance').mockResolvedValue({
+      vi.spyOn(ApiController, 'getBalance').mockResolvedValue({
         balances: []
       })
       vi.spyOn(CoreHelperUtil, 'isAllowedRetry').mockReturnValue(true)
@@ -136,7 +136,7 @@ describe('AccountController', () => {
       const result = await AccountController.fetchTokenBalance()
 
       expect(result).toEqual([])
-      expect(BlockchainApiController.getBalance).not.toHaveBeenCalled()
+      expect(ApiController.getBalance).not.toHaveBeenCalled()
       expect(AccountController.state.balanceLoading).toBe(false)
     })
 
@@ -151,7 +151,7 @@ describe('AccountController', () => {
       const result = await AccountController.fetchTokenBalance()
 
       expect(result).toEqual([])
-      expect(BlockchainApiController.getBalance).not.toHaveBeenCalled()
+      expect(ApiController.getBalance).not.toHaveBeenCalled()
     })
 
     it('should not fetch balance if namespace is not defined', async () => {
@@ -163,7 +163,7 @@ describe('AccountController', () => {
       const result = await AccountController.fetchTokenBalance()
 
       expect(result).toEqual([])
-      expect(BlockchainApiController.getBalance).not.toHaveBeenCalled()
+      expect(ApiController.getBalance).not.toHaveBeenCalled()
     })
 
     it('should not fetch balance if address is not defined', async () => {
@@ -175,12 +175,12 @@ describe('AccountController', () => {
       const result = await AccountController.fetchTokenBalance()
 
       expect(result).toEqual([])
-      expect(BlockchainApiController.getBalance).not.toHaveBeenCalled()
+      expect(ApiController.getBalance).not.toHaveBeenCalled()
     })
 
     it('should set the retry if something fails', async () => {
       const mockError = new Error('API Error')
-      vi.spyOn(BlockchainApiController, 'getBalance').mockRejectedValue(mockError)
+      vi.spyOn(ApiController, 'getBalance').mockRejectedValue(mockError)
       const onError = vi.fn()
 
       const now = Date.now()
@@ -204,7 +204,7 @@ describe('AccountController', () => {
         { quantity: { decimals: '6' }, symbol: 'USDC' }
       ]
 
-      vi.spyOn(BlockchainApiController, 'getBalance').mockResolvedValue({
+      vi.spyOn(ApiController, 'getBalance').mockResolvedValue({
         balances: mockBalances as Balance[]
       })
 

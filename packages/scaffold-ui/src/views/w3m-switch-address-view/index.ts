@@ -7,7 +7,7 @@ import { ConstantsUtil } from '@reown/appkit-common'
 import {
   AccountController,
   type AccountType,
-  BlockchainApiController,
+  ApiController,
   ChainController,
   ModalController,
   OptionsController,
@@ -43,7 +43,7 @@ export class W3mSwitchAddressView extends LitElement {
   public override connectedCallback() {
     super.connectedCallback()
     this.allAccounts.forEach(account => {
-      BlockchainApiController.getBalance(account.address, this.caipNetwork?.caipNetworkId).then(
+      ApiController.getBalance(account.address, this.caipNetwork?.caipNetworkId).then(
         response => {
           let total = this.balances[account.address] || 0
           if (response.balances.length > 0) {

@@ -8,7 +8,7 @@ import {
 } from '@reown/appkit-common'
 
 import type {
-  BlockchainApiBalanceResponse,
+  ApiBalanceResponse,
   BlockchainApiIdentityResponse,
   BlockchainApiLookupEnsName,
   ConnectionStatus,
@@ -299,7 +299,7 @@ export const StorageUtil = {
     }
   },
   getBalanceCache() {
-    let cache: Record<string, { timestamp: number; balance: BlockchainApiBalanceResponse }> = {}
+    let cache: Record<string, { timestamp: number; balance: ApiBalanceResponse }> = {}
     try {
       const result = SafeLocalStorage.getItem(SafeLocalStorageKeys.PORTFOLIO_CACHE)
       cache = result ? JSON.parse(result) : {}
@@ -341,7 +341,7 @@ export const StorageUtil = {
   },
   updateBalanceCache(params: {
     caipAddress: string
-    balance: BlockchainApiBalanceResponse
+    balance: ApiBalanceResponse
     timestamp: number
   }) {
     try {

@@ -1,6 +1,8 @@
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 import { crossTestnet, mainnet } from '@reown/appkit/networks'
 import {
+  SendController,
+  ConnectionController,
   createAppKit,
   useAppKit,
   useAppKitAccount,
@@ -9,8 +11,10 @@ import {
   useAppKitState,
   useAppKitTheme,
   useDisconnect,
-  useWalletInfo
+  useWalletInfo,
 } from '@reown/appkit/react'
+
+export type { SendTransactionArgs } from '@reown/appkit'
 
 const networks = [ { 
   id: crossTestnet.id,
@@ -59,5 +63,7 @@ export {
   useAppKitAccount,
   useWalletInfo,
   useAppKitNetwork,
-  useDisconnect
+  useDisconnect,
+  SendController,
+  ConnectionController
 }

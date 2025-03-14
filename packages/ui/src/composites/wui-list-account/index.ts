@@ -4,7 +4,7 @@ import { property } from 'lit/decorators.js'
 import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
 import {
   AccountController,
-  BlockchainApiController,
+  ApiController,
   ChainController,
   StorageUtil
 } from '@reown/appkit-core'
@@ -48,7 +48,7 @@ export class WuiListAccount extends LitElement {
 
   public override connectedCallback() {
     super.connectedCallback()
-    BlockchainApiController.getBalance(this.accountAddress, this.caipNetwork?.caipNetworkId)
+    ApiController.getBalance(this.accountAddress, this.caipNetwork?.caipNetworkId)
       .then(response => {
         let total = this.balance
         if (response.balances.length > 0) {

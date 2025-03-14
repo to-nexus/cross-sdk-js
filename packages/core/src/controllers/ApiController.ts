@@ -6,6 +6,7 @@ import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { FetchUtil } from '../utils/FetchUtil.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
 import type {
+  ApiBalanceResponse,
   ApiGasPriceRequest,
   ApiGasPriceResponse,
   ApiGetAnalyticsConfigResponse,
@@ -123,6 +124,33 @@ export const ApiController = {
     // if (ids) {
     //   await Promise.allSettled((ids as string[]).map(id => ApiController._fetchNetworkImage(id)))
     // }
+  },
+
+  async getBalance(address: string, chainId?: string, forceUpdate?: string) {
+    const caipAddress = `${chainId}:${address}`
+    const cachedBalance = StorageUtil.getBalanceCacheForCaipAddress(caipAddress)
+    if (cachedBalance) {
+      return cachedBalance
+    }
+
+    const balance = await api.get<ApiBalanceResponse>({
+      path: `/v1/public/token/balance`,
+      params: {
+        account: address,
+        chainId,
+        project_id: "0123456789"
+      }
+    })
+
+    console.log(`balance`, JSON.stringify(balance, null, 2))
+
+    StorageUtil.updateBalanceCache({
+      caipAddress,
+      balance,
+      timestamp: Date.now()
+    })
+
+    return balance
   },
 
   async fetchGasPrice({ chainId: chainIdWithNetwork }: ApiGasPriceRequest) {

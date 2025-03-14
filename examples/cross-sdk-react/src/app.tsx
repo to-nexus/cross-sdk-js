@@ -1,3 +1,4 @@
+import { AccountInfo } from './components/account-info'
 import ActionButtonList from './components/action-button'
 import Footer from './components/footer'
 import InfoList from './components/info-list'
@@ -24,7 +25,7 @@ export default function App() {
         <appkit-button />
         <appkit-network-button />
       </div> */}
-
+      <AccountInfo />
       <ActionButtonList />
       <InfoList />
       <Footer />

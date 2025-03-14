@@ -179,6 +179,10 @@ export interface ApiGetAnalyticsConfigResponse {
   isAnalyticsEnabled: boolean
 }
 
+export interface ApiBalanceResponse {
+  balances: Balance[]
+}
+
 export interface ApiGasPriceRequest {
   chainId: string
 }
@@ -356,10 +360,6 @@ export interface BlockchainApiGenerateApproveCalldataResponse {
       gasPrice: string
     }
   }
-}
-
-export interface BlockchainApiBalanceResponse {
-  balances: Balance[]
 }
 
 export interface BlockchainApiLookupEnsName {
@@ -1169,6 +1169,10 @@ export type UseAppKitAccountReturn = {
     isSmartAccountDeployed: boolean
   }
   status: AccountControllerState['status']
+  balance?: AccountControllerState['balance'];
+  balanceSymbol?: AccountControllerState['balanceSymbol']
+  balanceLoading?: AccountControllerState['balanceLoading']
+  tokenBalance?: AccountControllerState['tokenBalance']
 }
 
 export type UseAppKitNetworkReturn = {

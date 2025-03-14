@@ -7,9 +7,6 @@ import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { FetchUtil, type RequestArguments } from '../utils/FetchUtil.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
 import type {
-  BlockchainApiBalanceResponse,
-  BlockchainApiGasPriceRequest,
-  BlockchainApiGasPriceResponse,
   BlockchainApiGenerateApproveCalldataRequest,
   BlockchainApiGenerateApproveCalldataResponse,
   BlockchainApiGenerateSwapCalldataRequest,
@@ -404,42 +401,6 @@ export const BlockchainApiController = {
         sv
       }
     })
-  },
-
-  async getBalance(address: string, chainId?: string, forceUpdate?: string) {
-    const { st, sv } = BlockchainApiController.getSdkProperties()
-
-    const isSupported = await BlockchainApiController.isNetworkSupported(
-      ChainController.state.activeCaipNetwork?.caipNetworkId
-    )
-    if (!isSupported) {
-      return { balances: [] }
-    }
-    const caipAddress = `${chainId}:${address}`
-    const cachedBalance = StorageUtil.getBalanceCacheForCaipAddress(caipAddress)
-    if (cachedBalance) {
-      return cachedBalance
-    }
-
-    // TODO: implement api
-    const balance = await BlockchainApiController.get<BlockchainApiBalanceResponse>({
-      path: `/v1/account/${address}/balance`,
-      params: {
-        currency: 'usd',
-        chainId,
-        forceUpdate,
-        st,
-        sv
-      }
-    })
-
-    StorageUtil.updateBalanceCache({
-      caipAddress,
-      balance,
-      timestamp: Date.now()
-    })
-
-    return balance
   },
 
   async lookupEnsName(name: string) {

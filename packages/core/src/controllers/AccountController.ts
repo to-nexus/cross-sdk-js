@@ -14,7 +14,7 @@ import type {
   SocialProvider,
   User
 } from '../utils/TypeUtil.js'
-import { BlockchainApiController } from './BlockchainApiController.js'
+import { ApiController } from './ApiController.js'
 import { ChainController } from './ChainController.js'
 import { SnackController } from './SnackController.js'
 import { SwapController } from './SwapController.js'
@@ -228,6 +228,7 @@ export const AccountController = {
   },
 
   async fetchTokenBalance(onError?: (error: unknown) => void): Promise<Balance[]> {
+    console.log(`fetchTokenBalance`)
     state.balanceLoading = true
     const chainId = ChainController.state.activeCaipNetwork?.caipNetworkId
     const chain = ChainController.state.activeCaipNetwork?.chainNamespace
@@ -244,7 +245,7 @@ export const AccountController = {
 
     try {
       if (address && chainId && chain) {
-        const response = await BlockchainApiController.getBalance(address, chainId)
+        const response = await ApiController.getBalance(address, chainId)
 
         /*
          * The 1Inch API includes many low-quality tokens in the balance response,

@@ -6,6 +6,7 @@ import { ConstantsUtil } from '@reown/appkit-common'
 
 import {
   AccountController,
+  ApiController,
   BlockchainApiController,
   ChainController,
   ConnectionController,
@@ -71,7 +72,7 @@ beforeAll(async () => {
   AccountController.setCaipAddress(caipAddress, chain)
 
   vi.spyOn(BlockchainApiController, 'fetchSwapTokens').mockResolvedValue(tokensResponse)
-  vi.spyOn(BlockchainApiController, 'getBalance').mockResolvedValue(balanceResponse)
+  vi.spyOn(ApiController, 'getBalance').mockResolvedValue(balanceResponse)
   vi.spyOn(BlockchainApiController, 'fetchSwapQuote').mockResolvedValue(swapQuoteResponse)
   vi.spyOn(BlockchainApiController, 'fetchTokenPrice').mockResolvedValue(networkTokenPriceResponse)
   vi.spyOn(BlockchainApiController, 'generateSwapCalldata').mockResolvedValue(swapCalldataResponse)

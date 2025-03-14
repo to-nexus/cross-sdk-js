@@ -80,14 +80,13 @@ export const EthersMethods = {
     const txParams = {
       to: data.to,
       value: data.value,
-      gasLimit: data.gas,
-      gasPrice: data.gasPrice,
       data: data.data,
       type: 0
     }
     const browserProvider = new BrowserProvider(provider, networkId)
     const signer = new JsonRpcSigner(browserProvider, address)
     const txResponse = await signer.sendTransaction(txParams)
+    console.log('txResponse', JSON.stringify(txResponse, (key, value) => typeof value === 'bigint' ? value.toString() : value))
     const txReceipt = await txResponse.wait()
 
     return (txReceipt?.hash as `0x${string}`) || null

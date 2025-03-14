@@ -1022,6 +1022,7 @@ export class AppKit {
             ChainController.state.activeChain as ChainNamespace
           )
           const result = await adapter?.sendTransaction({ ...args, provider })
+          console.log('Appkit sendTransaction result', JSON.stringify(result, null, 2))
 
           return result?.hash || ''
         }

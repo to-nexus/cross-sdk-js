@@ -1,18 +1,18 @@
 import type { CaipNetwork } from '@reown/appkit-common'
 
 import { AccountController } from '../controllers/AccountController.js'
-import { BlockchainApiController } from '../controllers/BlockchainApiController.js'
 import { ChainController } from '../controllers/ChainController.js'
+import { ApiController } from '../controllers/ApiController.js'
 import { ConnectionController } from '../controllers/ConnectionController.js'
 import { ERC7811Utils } from './ERC7811Util.js'
 import type { SwapTokenWithBalance } from './TypeUtil.js'
-import type { BlockchainApiBalanceResponse } from './TypeUtil.js'
+import type { ApiBalanceResponse } from './TypeUtil.js'
 
 // -- Controller ---------------------------------------- //
 export const SendApiUtil = {
   async getMyTokensWithBalance(
     forceUpdate?: string
-  ): Promise<BlockchainApiBalanceResponse['balances']> {
+  ): Promise<ApiBalanceResponse['balances']> {
     const address = AccountController.state.address
     const caipNetwork = ChainController.state.activeCaipNetwork
 
@@ -29,7 +29,7 @@ export const SendApiUtil = {
     }
 
     // Fallback to 1Inch API
-    const response = await BlockchainApiController.getBalance(
+    const response = await ApiController.getBalance(
       address,
       caipNetwork.caipNetworkId,
       forceUpdate
@@ -72,11 +72,11 @@ export const SendApiUtil = {
    * The 1Inch API includes many low-quality tokens in the balance response,
    * which appear inconsistently. This filter prevents them from being displayed.
    */
-  filterLowQualityTokens(balances: BlockchainApiBalanceResponse['balances']) {
+  filterLowQualityTokens(balances: ApiBalanceResponse['balances']) {
     return balances.filter(balance => balance.quantity.decimals !== '0')
   },
 
-  mapBalancesToSwapTokens(balances: BlockchainApiBalanceResponse['balances']) {
+  mapBalancesToSwapTokens(balances: ApiBalanceResponse['balances']) {
     return (
       balances?.map(
         token =>

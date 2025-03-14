@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Balance } from '@reown/appkit-common'
 
 import { AccountController } from '../../src/controllers/AccountController'
-import { BlockchainApiController } from '../../src/controllers/BlockchainApiController'
+import { ApiController } from '../../src/controllers/ApiController'
 import { ChainController } from '../../src/controllers/ChainController'
 import { ConnectionController } from '../../src/controllers/ConnectionController'
 import { ERC7811Utils, type WalletGetAssetsResponse } from '../../src/utils/ERC7811Util'
@@ -147,11 +147,11 @@ describe('SendApiUtil', () => {
 
       AccountController.state.address = mockSolanaAddress
       ChainController.state.activeCaipNetwork = mockSolanaNetwork
-      vi.mocked(BlockchainApiController.getBalance).mockResolvedValue({ balances: mockBalances })
+      vi.mocked(ApiController.getBalance).mockResolvedValue({ balances: mockBalances })
 
       const result = await SendApiUtil.getMyTokensWithBalance()
 
-      expect(BlockchainApiController.getBalance).toHaveBeenCalledWith(
+      expect(ApiController.getBalance).toHaveBeenCalledWith(
         mockSolanaAddress,
         mockSolanaNetwork.caipNetworkId,
         undefined
@@ -159,7 +159,7 @@ describe('SendApiUtil', () => {
       expect(result).toEqual(mockBalances)
     })
 
-    it('should use BlockchainApi when wallet_getAssets is not available', async () => {
+    it('should use Api when wallet_getAssets is not available', async () => {
       const mockBalances = [
         {
           symbol: 'ETH',
@@ -172,11 +172,11 @@ describe('SendApiUtil', () => {
       ]
 
       vi.mocked(ConnectionController.getCapabilities).mockResolvedValue({})
-      vi.mocked(BlockchainApiController.getBalance).mockResolvedValue({ balances: mockBalances })
+      vi.mocked(ApiController.getBalance).mockResolvedValue({ balances: mockBalances })
 
       const result = await SendApiUtil.getMyTokensWithBalance()
 
-      expect(BlockchainApiController.getBalance).toHaveBeenCalledWith(
+      expect(ApiController.getBalance).toHaveBeenCalledWith(
         mockEthereumAddress,
         mockEthereumNetwork.caipNetworkId,
         undefined
@@ -204,7 +204,7 @@ describe('SendApiUtil', () => {
         }
       ]
 
-      vi.mocked(BlockchainApiController.getBalance).mockResolvedValue({ balances: mockBalances })
+      vi.mocked(ApiController.getBalance).mockResolvedValue({ balances: mockBalances })
 
       const result = await SendApiUtil.getMyTokensWithBalance()
 
