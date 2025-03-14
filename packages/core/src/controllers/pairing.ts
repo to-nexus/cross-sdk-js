@@ -115,74 +115,85 @@ export class Pairing implements IPairing {
   };
 
   public pair: IPairing["pair"] = async (params) => {
-    this.isInitialized();
+    try { 
+      this.isInitialized();
 
-    const event = this.core.eventClient.createEvent({
-      properties: {
-        topic: params?.uri,
-        trace: [EVENT_CLIENT_PAIRING_TRACES.pairing_started],
-      },
-    });
+      const event = this.core.eventClient.createEvent({
+        properties: {
+          topic: params?.uri,
+          trace: [EVENT_CLIENT_PAIRING_TRACES.pairing_started],
+        },
+      });
 
-    this.isValidPair(params, event);
+      this.isValidPair(params, event);
 
-    const { topic, symKey, relay, expiryTimestamp, methods } = parseUri(params.uri);
+      const { topic, symKey, relay, expiryTimestamp, methods } = parseUri(params.uri);
+      console.log(`pairing.pair, topic: ${topic} symKey: ${symKey} relay: ${relay} expiryTimestamp: ${expiryTimestamp} methods: ${methods}`);
 
-    event.props.properties.topic = topic;
-    event.addTrace(EVENT_CLIENT_PAIRING_TRACES.pairing_uri_validation_success);
-    event.addTrace(EVENT_CLIENT_PAIRING_TRACES.pairing_uri_not_expired);
+      event.props.properties.topic = topic;
+      event.addTrace(EVENT_CLIENT_PAIRING_TRACES.pairing_uri_validation_success);
+      event.addTrace(EVENT_CLIENT_PAIRING_TRACES.pairing_uri_not_expired);
 
-    let existingPairing;
-    if (this.pairings.keys.includes(topic)) {
-      existingPairing = this.pairings.get(topic);
-      event.addTrace(EVENT_CLIENT_PAIRING_TRACES.existing_pairing);
-      if (existingPairing.active) {
-        event.setError(EVENT_CLIENT_PAIRING_ERRORS.active_pairing_already_exists);
-        throw new Error(
-          `Pairing already exists: ${topic}. Please try again with a new connection URI.`,
-        );
-      } else {
-        event.addTrace(EVENT_CLIENT_PAIRING_TRACES.pairing_not_expired);
+      let existingPairing;
+      if (this.pairings.keys.includes(topic)) {
+        existingPairing = this.pairings.get(topic);
+        event.addTrace(EVENT_CLIENT_PAIRING_TRACES.existing_pairing);
+        if (existingPairing.active) {
+          event.setError(EVENT_CLIENT_PAIRING_ERRORS.active_pairing_already_exists);
+          throw new Error(
+            `Pairing already exists: ${topic}. Please try again with a new connection URI.`,
+          );
+        } else {
+          event.addTrace(EVENT_CLIENT_PAIRING_TRACES.pairing_not_expired);
+        }
       }
-    }
 
-    const expiry = expiryTimestamp || calcExpiry(FIVE_MINUTES);
-    const pairing = { topic, relay, expiry, active: false, methods };
-    this.core.expirer.set(topic, expiry);
-    await this.pairings.set(topic, pairing);
+      const expiry = expiryTimestamp || calcExpiry(FIVE_MINUTES);
+      const pairing = { topic, relay, expiry, active: false, methods };
+      this.core.expirer.set(topic, expiry);
+      await this.pairings.set(topic, pairing);
 
-    event.addTrace(EVENT_CLIENT_PAIRING_TRACES.store_new_pairing);
+      event.addTrace(EVENT_CLIENT_PAIRING_TRACES.store_new_pairing);
 
-    if (params.activatePairing) {
-      await this.activate({ topic });
-    }
+      if (params.activatePairing) {
+        await this.activate({ topic });
+      }
 
-    this.events.emit(PAIRING_EVENTS.create, pairing);
+      this.events.emit(PAIRING_EVENTS.create, pairing);
 
-    event.addTrace(EVENT_CLIENT_PAIRING_TRACES.emit_inactive_pairing);
+      event.addTrace(EVENT_CLIENT_PAIRING_TRACES.emit_inactive_pairing);
 
-    // avoid overwriting keychain pairing already exists
-    if (!this.core.crypto.keychain.has(topic)) {
-      await this.core.crypto.setSymKey(symKey, topic);
-    }
-    event.addTrace(EVENT_CLIENT_PAIRING_TRACES.subscribing_pairing_topic);
+      // avoid overwriting keychain pairing already exists
+      if (!this.core.crypto.keychain.has(topic)) {
+        await this.core.crypto.setSymKey(symKey, topic);
+      }
+      event.addTrace(EVENT_CLIENT_PAIRING_TRACES.subscribing_pairing_topic);
 
-    try {
-      await this.core.relayer.confirmOnlineStateOrThrow();
+      try {
+        console.log("pairing.pair, try to confirmOnlineStateOrThrow");
+        await this.core.relayer.confirmOnlineStateOrThrow();
+      } catch (error) {
+        console.log("error on pairing.pair, confirmOnlineStateOrThrow", error);
+        event.setError(EVENT_CLIENT_PAIRING_ERRORS.no_internet_connection);
+      }
+
+      try {
+        console.log(`pairing.pair, subscribe, topic: ${topic} relay: ${relay.protocol}`);
+        await this.core.relayer.subscribe(topic, { relay });
+      } catch (error) {
+        console.log("error on pairing.pair, subscribe", error);
+        event.setError(EVENT_CLIENT_PAIRING_ERRORS.subscribe_pairing_topic_failure);
+        throw error;
+      }
+
+      event.addTrace(EVENT_CLIENT_PAIRING_TRACES.subscribe_pairing_topic_success);
+      console.log("pairing.pair, subscribe_pairing_topic_success");
+
+      return pairing;
     } catch (error) {
-      event.setError(EVENT_CLIENT_PAIRING_ERRORS.no_internet_connection);
-    }
-
-    try {
-      await this.core.relayer.subscribe(topic, { relay });
-    } catch (error) {
-      event.setError(EVENT_CLIENT_PAIRING_ERRORS.subscribe_pairing_topic_failure);
+      console.log("error on pairing.pair", error);
       throw error;
     }
-
-    event.addTrace(EVENT_CLIENT_PAIRING_TRACES.subscribe_pairing_topic_success);
-
-    return pairing;
   };
 
   public activate: IPairing["activate"] = async ({ topic }) => {

@@ -167,48 +167,61 @@ export class Relayer extends IRelayer {
   }
 
   public async subscribe(topic: string, opts?: RelayerTypes.SubscribeOptions) {
+    console.log("subscribe, try to isInitialized");
     this.isInitialized();
+    console.log("subscribe, passed isInitialized");
     if (!opts?.transportType || opts?.transportType === "relay") {
+      console.log("subscribe, try to toEstablishConnection");
       await this.toEstablishConnection();
+    } else {
+      console.log(`subscribe, transportType: ${opts?.transportType}`);
     }
-    // throw unless explicitly set to false
-    const shouldThrowOnFailure =
-      typeof opts?.internal?.throwOnFailedPublish === "undefined"
-        ? true
-        : opts?.internal?.throwOnFailedPublish;
 
-    let id = this.subscriber.topicMap.get(topic)?.[0] || "";
-    let resolvePromise: () => void;
-    const onSubCreated = (subscription: SubscriberTypes.Active) => {
-      if (subscription.topic === topic) {
-        this.subscriber.off(SUBSCRIBER_EVENTS.created, onSubCreated);
-        resolvePromise();
-      }
-    };
+    console.log("subscribe, passed toEstablishConnection, topic", topic);
 
-    await Promise.all([
-      new Promise<void>((resolve) => {
-        resolvePromise = resolve;
-        this.subscriber.on(SUBSCRIBER_EVENTS.created, onSubCreated);
-      }),
-      new Promise<void>(async (resolve, reject) => {
-        const result = await this.subscriber
-          .subscribe(topic, {
-            internal: {
-              throwOnFailedPublish: shouldThrowOnFailure,
-            },
-            ...opts,
-          })
-          .catch((error) => {
-            if (shouldThrowOnFailure) {
-              reject(error);
-            }
-          });
-        id = result || id;
-        resolve();
-      }),
-    ]);
-    return id;
+    try {
+      // throw unless explicitly set to false
+      const shouldThrowOnFailure =
+        typeof opts?.internal?.throwOnFailedPublish === "undefined"
+          ? true
+          : opts?.internal?.throwOnFailedPublish;
+
+      let id = this.subscriber.topicMap.get(topic)?.[0] || "";
+      let resolvePromise: () => void;
+      const onSubCreated = (subscription: SubscriberTypes.Active) => {
+        if (subscription.topic === topic) {
+          this.subscriber.off(SUBSCRIBER_EVENTS.created, onSubCreated);
+          resolvePromise();
+        }
+      };
+
+      await Promise.all([
+        new Promise<void>((resolve) => {
+          resolvePromise = resolve;
+          this.subscriber.on(SUBSCRIBER_EVENTS.created, onSubCreated);
+        }),
+        new Promise<void>(async (resolve, reject) => {
+          const result = await this.subscriber
+            .subscribe(topic, {
+              internal: {
+                throwOnFailedPublish: shouldThrowOnFailure,
+              },
+              ...opts,
+            })
+            .catch((error) => {
+              if (shouldThrowOnFailure) {
+                reject(error);
+              }
+            });
+          id = result || id;
+          resolve();
+        }),
+      ]);
+      return id;
+    } catch (error) {
+      console.log("error on replayer.subscribe", error);
+      throw error;
+    }
   }
 
   public request = async (request: RequestArguments<RelayJsonRpc.SubscribeParams>) => {
@@ -309,8 +322,12 @@ export class Relayer extends IRelayer {
   }
 
   public async confirmOnlineStateOrThrow() {
-    if (await isOnline()) return;
-    throw new Error("No internet connection detected. Please restart your network and try again.");
+    console.log("confirmOnlineStateOrThrow just return void");
+    return;
+
+    //TODO: remove this
+      if (await isOnline()) return;
+      throw new Error("No internet connection detected. Please restart your network and try again.");
   }
 
   public async handleBatchMessageEvents(messages: RelayerTypes.MessageEvent[]) {
@@ -349,11 +366,15 @@ export class Relayer extends IRelayer {
   // ---------- Private ----------------------------------------------- //
 
   private async connect(relayUrl?: string) {
+    console.log("connect, try to confirmOnlineStateOrThrow");
     await this.confirmOnlineStateOrThrow();
+    console.log("connect, passed confirmOnlineStateOrThrow");
     if (relayUrl && relayUrl !== this.relayUrl) {
       this.relayUrl = relayUrl;
+      console.log(`connect, relayUrl: ${relayUrl}`);
       await this.transportDisconnect();
     }
+    console.log("connect, passed relayUrl check");
 
     this.connectionAttemptInProgress = true;
     this.transportExplicitlyClosed = false;
@@ -642,7 +663,8 @@ export class Relayer extends IRelayer {
   }
 
   private async toEstablishConnection() {
-    await this.confirmOnlineStateOrThrow();
+    console.log(`on toEstablishConnection, connected? ${this.connected}`);
+    // await this.confirmOnlineStateOrThrow();
     if (this.connected) return;
     await this.connect();
   }

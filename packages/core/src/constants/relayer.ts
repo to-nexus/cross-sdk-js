@@ -2,7 +2,7 @@ export const RELAYER_DEFAULT_PROTOCOL = "irn";
 
 export const RELAYER_DEFAULT_LOGGER = "error";
 
-export const RELAYER_DEFAULT_RELAY_URL = "wss://13.125.40.200:18081/ws";
+export const RELAYER_DEFAULT_RELAY_URL = "wss://dev-cross-relay.cross-nexus.com/ws";
 
 export const RELAYER_CONTEXT = "relayer";
 
