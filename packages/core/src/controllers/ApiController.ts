@@ -133,8 +133,8 @@ export const ApiController = {
       return cachedBalance
     }
 
-    const balance = await api.get<ApiBalanceResponse>({
-      path: `/v1/public/token/balance`,
+    const response = await api.get<ApiBalanceResponse>({
+      path: `/api/v1/public/token/balance`,
       params: {
         account: address,
         chainId,
@@ -142,7 +142,7 @@ export const ApiController = {
       }
     })
 
-    console.log(`balance`, JSON.stringify(balance, null, 2))
+    const balance = response.data
 
     StorageUtil.updateBalanceCache({
       caipAddress,

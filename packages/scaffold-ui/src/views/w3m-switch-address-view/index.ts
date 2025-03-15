@@ -46,8 +46,8 @@ export class W3mSwitchAddressView extends LitElement {
       ApiController.getBalance(account.address, this.caipNetwork?.caipNetworkId).then(
         response => {
           let total = this.balances[account.address] || 0
-          if (response.balances.length > 0) {
-            total = response.balances.reduce((acc, balance) => acc + (balance?.value || 0), 0)
+          if (response.length > 0) {
+            total = response.reduce((acc, balance) => acc + (balance?.value || 0), 0)
           }
           this.balances[account.address] = total
           this.requestUpdate()

@@ -12,7 +12,7 @@ import type { ApiBalanceResponse } from './TypeUtil.js'
 export const SendApiUtil = {
   async getMyTokensWithBalance(
     forceUpdate?: string
-  ): Promise<ApiBalanceResponse['balances']> {
+  ): Promise<ApiBalanceResponse['data']> {
     const address = AccountController.state.address
     const caipNetwork = ChainController.state.activeCaipNetwork
 
@@ -28,14 +28,14 @@ export const SendApiUtil = {
       }
     }
 
-    // Fallback to 1Inch API
-    const response = await ApiController.getBalance(
+    // Fallback to cross wallet API
+    const balances = await ApiController.getBalance(
       address,
       caipNetwork.caipNetworkId,
       forceUpdate
     )
 
-    return this.filterLowQualityTokens(response.balances)
+    return this.filterLowQualityTokens(balances)
   },
 
   async getEIP155Balances(address: string, caipNetwork: CaipNetwork) {
@@ -72,11 +72,11 @@ export const SendApiUtil = {
    * The 1Inch API includes many low-quality tokens in the balance response,
    * which appear inconsistently. This filter prevents them from being displayed.
    */
-  filterLowQualityTokens(balances: ApiBalanceResponse['balances']) {
+  filterLowQualityTokens(balances: ApiBalanceResponse['data']) {
     return balances.filter(balance => balance.quantity.decimals !== '0')
   },
 
-  mapBalancesToSwapTokens(balances: ApiBalanceResponse['balances']) {
+  mapBalancesToSwapTokens(balances: ApiBalanceResponse['data']) {
     return (
       balances?.map(
         token =>

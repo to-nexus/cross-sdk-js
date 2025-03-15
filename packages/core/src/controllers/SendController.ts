@@ -20,7 +20,7 @@ import { SnackController } from './SnackController.js'
 export interface TxParams {
   receiverAddress: string
   sendTokenAmount: number
-  gasPrice: bigint
+  gasPrice?: bigint
   decimals: string
 }
 
@@ -276,7 +276,7 @@ export const SendController = {
         address,
         data,
         value: value ?? BigInt(0),
-        gasPrice: params.gasPrice
+        gasPrice: params.gasPrice ?? BigInt(2000000000)
       })
 
       SnackController.showSuccess('Transaction started')

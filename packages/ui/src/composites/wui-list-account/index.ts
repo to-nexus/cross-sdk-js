@@ -51,8 +51,8 @@ export class WuiListAccount extends LitElement {
     ApiController.getBalance(this.accountAddress, this.caipNetwork?.caipNetworkId)
       .then(response => {
         let total = this.balance
-        if (response.balances.length > 0) {
-          total = response.balances.reduce((acc, balance) => acc + (balance?.value || 0), 0)
+        if (response.length > 0) {
+          total = response.reduce((acc, balance) => acc + (balance?.value || 0), 0)
         }
         this.balance = total
         this.fetchingBalance = false

@@ -1,6 +1,7 @@
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 import { crossTestnet, mainnet } from '@reown/appkit/networks'
 import {
+  AccountController,
   SendController,
   ConnectionController,
   createAppKit,
@@ -65,5 +66,6 @@ export {
   useAppKitNetwork,
   useDisconnect,
   SendController,
+  AccountController,
   ConnectionController
 }

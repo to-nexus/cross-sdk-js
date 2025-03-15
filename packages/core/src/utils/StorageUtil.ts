@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import {
+  type Balance,
   type CaipNetworkId,
   type ChainNamespace,
   SafeLocalStorage,
@@ -8,7 +9,6 @@ import {
 } from '@reown/appkit-common'
 
 import type {
-  ApiBalanceResponse,
   BlockchainApiIdentityResponse,
   BlockchainApiLookupEnsName,
   ConnectionStatus,
@@ -299,7 +299,7 @@ export const StorageUtil = {
     }
   },
   getBalanceCache() {
-    let cache: Record<string, { timestamp: number; balance: ApiBalanceResponse }> = {}
+    let cache: Record<string, { timestamp: number; balance: Balance[] }> = {}
     try {
       const result = SafeLocalStorage.getItem(SafeLocalStorageKeys.PORTFOLIO_CACHE)
       cache = result ? JSON.parse(result) : {}
@@ -341,12 +341,13 @@ export const StorageUtil = {
   },
   updateBalanceCache(params: {
     caipAddress: string
-    balance: ApiBalanceResponse
+    balance: Balance[]
     timestamp: number
   }) {
     try {
       const cache = StorageUtil.getBalanceCache()
-      cache[params.caipAddress] = params
+      const { caipAddress, balance, timestamp } = params
+      cache[caipAddress] = { balance, timestamp }
       SafeLocalStorage.setItem(SafeLocalStorageKeys.PORTFOLIO_CACHE, JSON.stringify(cache))
     } catch {
       console.info('Unable to update balance cache', params)

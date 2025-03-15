@@ -21,12 +21,8 @@ export default function App() {
 
       <h1 className="page-title">Cross React Sdk Example</h1>
 
-      {/* <div className="appkit-buttons-container">
-        <appkit-button />
-        <appkit-network-button />
-      </div> */}
-      <AccountInfo />
       <ActionButtonList />
+      <AccountInfo />
       <InfoList />
       <Footer />
     </div>

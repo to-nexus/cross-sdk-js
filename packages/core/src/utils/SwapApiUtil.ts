@@ -111,23 +111,20 @@ export const SwapApiUtil = {
       return []
     }
 
-    const response = await ApiController.getBalance(
+    const balances = await ApiController.getBalance(
       address,
       caipNetwork.caipNetworkId,
       forceUpdate
     )
-    /*
-     * The 1Inch API includes many low-quality tokens in the balance response,
-     * which appear inconsistently. This filter prevents them from being displayed.
-     */
-    const balances = response.balances.filter(balance => balance.quantity.decimals !== '0')
 
-    AccountController.setTokenBalance(balances, ChainController.state.activeChain)
+    const filteredBalances = balances.filter(balance => balance.quantity.numeric > '0')
 
-    return this.mapBalancesToSwapTokens(balances)
+    AccountController.setTokenBalance(filteredBalances, ChainController.state.activeChain)
+
+    return this.mapBalancesToSwapTokens(filteredBalances)
   },
 
-  mapBalancesToSwapTokens(balances: ApiBalanceResponse['balances']) {
+  mapBalancesToSwapTokens(balances: ApiBalanceResponse['data']) {
     return (
       balances?.map(
         token =>

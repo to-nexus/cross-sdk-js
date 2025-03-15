@@ -3,14 +3,12 @@ import {
   useAppKitEvents,
   useAppKitNetwork,
   useAppKitState,
-  useAppKitTheme,
   useWalletInfo
 } from '@cross/sdk/react'
 
 export function InfoList() {
   const accountState = useAppKitAccount()
   const networkState = useAppKitNetwork()
-  const themeState = useAppKitTheme()
   const appKitState = useAppKitState()
   const eventsState = useAppKitEvents()
   const walletState = useWalletInfo()
@@ -28,13 +26,6 @@ export function InfoList() {
         <h2 className="code-container-title">useAppKitNetwork()</h2>
         <div className="code-container-content">
           <pre>{JSON.stringify(networkState, null, 2)}</pre>
-        </div>
-      </section>
-
-      <section className="code-container">
-        <h2 className="code-container-title">useAppKitTheme()</h2>
-        <div className="code-container-content">
-          <pre>{JSON.stringify(themeState, null, 2)}</pre>
         </div>
       </section>
 

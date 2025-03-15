@@ -179,8 +179,9 @@ export interface ApiGetAnalyticsConfigResponse {
   isAnalyticsEnabled: boolean
 }
 
-export interface ApiBalanceResponse {
-  balances: Balance[]
+
+export interface ApiBalanceResponse extends ApiBaseReponse {
+  data: Balance[]
 }
 
 export interface ApiGasPriceRequest {
@@ -188,8 +189,6 @@ export interface ApiGasPriceRequest {
 }
 
 export interface ApiGasPriceResponse extends ApiBaseReponse { // CROSS api returns with code, message and data
-  code?: number,
-  message?: string,
   data: {
     standard: string
     fast: string

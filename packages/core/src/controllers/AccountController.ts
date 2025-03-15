@@ -228,7 +228,6 @@ export const AccountController = {
   },
 
   async fetchTokenBalance(onError?: (error: unknown) => void): Promise<Balance[]> {
-    console.log(`fetchTokenBalance`)
     state.balanceLoading = true
     const chainId = ChainController.state.activeCaipNetwork?.caipNetworkId
     const chain = ChainController.state.activeCaipNetwork?.chainNamespace
@@ -245,22 +244,24 @@ export const AccountController = {
 
     try {
       if (address && chainId && chain) {
-        const response = await ApiController.getBalance(address, chainId)
+        const balance = await ApiController.getBalance(address, chainId)
 
-        /*
-         * The 1Inch API includes many low-quality tokens in the balance response,
-         * which appear inconsistently. This filter prevents them from being displayed.
-         */
-        const filteredBalances = response.balances.filter(
-          balance => balance.quantity.decimals !== '0'
-        )
+        let filteredBalance: Balance[] = []
+        // filter greater than 0 balance token
+        try  {
+          filteredBalance = balance.filter(
+            balance => balance.quantity.numeric > '0'
+          )
+        } catch (error) {
+          console.log(`fetchTokenBalance error: ${error}`)
+        }
 
-        this.setTokenBalance(filteredBalances, chain)
-        SwapController.setBalances(SwapApiUtil.mapBalancesToSwapTokens(response.balances))
+        this.setTokenBalance(filteredBalance, chain)
+        SwapController.setBalances(SwapApiUtil.mapBalancesToSwapTokens(filteredBalance))
         state.lastRetry = undefined
         state.balanceLoading = false
 
-        return filteredBalances
+        return filteredBalance
       }
     } catch (error) {
       state.lastRetry = Date.now()
