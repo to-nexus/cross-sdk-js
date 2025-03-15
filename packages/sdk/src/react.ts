@@ -67,5 +67,7 @@ export {
   useDisconnect,
   SendController,
   AccountController,
-  ConnectionController
+  ConnectionController,
+  mainnet,
+  crossTestnet
 }

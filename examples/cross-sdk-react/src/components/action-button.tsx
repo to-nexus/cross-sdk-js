@@ -1,14 +1,10 @@
-import { mainnet, crossTestnet } from '@reown/appkit/networks'
-
 import {
+  mainnet, 
+  crossTestnet,
   SendController,
   initCrossSdk,
   useAppKit,
-  useAppKitState,
-  useAppKitTheme,
-  useAppKitEvents,
   useAppKitAccount,
-  useWalletInfo,
   useAppKitNetwork,
   useDisconnect,
   AccountController
@@ -78,7 +74,7 @@ export function ActionButtonList() {
   return (
     <div>
       <div className="action-button-list">
-        <button onClick={connectWallet}>{account?.isConnected ? 'Connected' : 'Open'}</button>
+        <button onClick={connectWallet}>{account?.isConnected ? 'Connected' : 'Connect'}</button>
         <button onClick={handleDisconnect}>Disconnect</button>
         <button onClick={switchToNetwork}>Switch to Cross</button>
       </div>
