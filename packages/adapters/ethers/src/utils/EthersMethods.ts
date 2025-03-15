@@ -111,8 +111,37 @@ export const EthersMethods = {
       throw new Error('Contract method is undefined')
     }
     const method = contract[data.method]
+    console.log(`writeContractmethod: ${data.method}`)
     if (method) {
-      return await method(...data.args)
+      const result = await method(...data.args)
+      console.log(`writeContract result: ${JSON.stringify(result, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2)}`)
+      const hash = result.hash
+
+      return await (new Promise((resolve: (hash: `0x${string}`) => void, reject: (error: Error) => void) => {
+        const timeouts = [ 1000, 100 ];
+
+        const checkTx = async () => {
+            try {
+                // Try getting the transaction
+                console.log(`writeContract try getting transaction: ${hash}`)
+                const tx = await signer.provider.getTransaction(hash);
+
+                if (tx != null) {
+                    console.log(`writeContract transaction found: ${hash}`)
+                    resolve(hash as `0x${string}`);
+                    return;
+                }
+
+            } catch (error) {
+                console.log(`writeContract error: ${error} just return result with hash`)
+                resolve(hash as `0x${string}`)
+            }
+
+            // Wait another 4 seconds
+            signer.provider._setTimeout(() => { checkTx(); }, timeouts.pop() || 4000);
+        };
+        checkTx();
+      }));
     }
     throw new Error('Contract method is undefined')
   },

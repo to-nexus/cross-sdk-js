@@ -1085,7 +1085,7 @@ export class AppKit {
         }
 
         const result = await adapter?.writeContract({ ...args, caipNetwork, provider, caipAddress })
-
+        console.log('Appkit writeContract result', JSON.stringify(result, null, 2))
         return result?.hash as `0x${string}` | null
       },
       parseUnits: (value: string, decimals: number) => {

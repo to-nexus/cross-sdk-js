@@ -125,15 +125,22 @@ export function useAppKit() {
     throw new Error('Please call "createAppKit" before using "useAppKit" hook')
   }
 
-  async function open(options?: OpenOptions) {
-    await modal?.open(options)
+  async function connect() {
+    if (modal?.getIsConnectedState())
+      return
+
+    await modal?.open()
   }
 
-  async function close() {
-    await modal?.close()
-  }
+  // async function open(options?: OpenOptions) {
+  //   await modal?.open(options)
+  // }
 
-  return { open, close }
+  // async function close() {
+  //   await modal?.close()
+  // }
+
+  return { connect }
 }
 
 export function useWalletInfo() {

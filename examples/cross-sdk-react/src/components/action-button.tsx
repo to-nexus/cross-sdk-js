@@ -10,7 +10,8 @@ import {
   useAppKitAccount,
   useWalletInfo,
   useAppKitNetwork,
-  useDisconnect
+  useDisconnect,
+  AccountController
 } from '@cross/sdk/react'
 
 import type { SendTransactionArgs } from '@cross/sdk/react'
@@ -25,35 +26,41 @@ export function ActionButtonList() {
   const { disconnect } = useDisconnect()
   const { switchNetwork } = useAppKitNetwork()
   
+  // erc20 token contract address in caip format - eip155:{chainId}:{address}
   const ZENNY_ADDRESS = "eip155:612044:0x35Af8eF840Eda3e93FC8F5167dbd8FF0D6F96580"
+  // address to send erc20 token or cross
   const RECEIVER_ADDRESS = "0x920A31f0E48739C3FbB790D992b0690f7F5C42ea"
+  // amount of erc20 token to send
   const SEND_ZENNY_AMOUNT = 1
+  // amount of cross to send
   const SEND_CROSS_AMOUNT = 1
 
-  function openAppKit() {
-    // if (account?.isConnected)
-    //   return
-
-    appKit.open()
+  // used for connecting wallet
+  function connectWallet() {
+    appKit.connect()
   }
 
-  function handleSendNative() {
+  // used for sending CROSS
+  async function handleSendNative() {
 
-    SendController.sendNativeToken({
+    await SendController.sendNativeToken({
       receiverAddress: RECEIVER_ADDRESS,
       sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
       decimals: '18',
     })
+    AccountController.fetchTokenBalance()
   }
 
-  function handleSendERC20Token() {
+  // used for sending any of game tokens
+  async function handleSendERC20Token() {
 
-    SendController.sendERC20Token({
+    await SendController.sendERC20Token({
       receiverAddress: RECEIVER_ADDRESS,
       tokenAddress: ZENNY_ADDRESS,
       sendTokenAmount: SEND_ZENNY_AMOUNT, // in eth (not wei)
       decimals: '18',
     })
+    AccountController.fetchTokenBalance()
   }
 
   function switchToNetwork() {
@@ -71,7 +78,7 @@ export function ActionButtonList() {
   return (
     <div>
       <div className="action-button-list">
-        <button onClick={openAppKit}>{account?.isConnected ? 'Connected' : 'Open'}</button>
+        <button onClick={connectWallet}>{account?.isConnected ? 'Connected' : 'Open'}</button>
         <button onClick={handleDisconnect}>Disconnect</button>
         <button onClick={switchToNetwork}>Switch to Cross</button>
       </div>
