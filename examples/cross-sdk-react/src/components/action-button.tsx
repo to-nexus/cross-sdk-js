@@ -88,7 +88,7 @@ export function ActionButtonList() {
       sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
       decimals: '18',
     })
-    alert(`Send Cross completed. Now fetch token balance.`)
+    alert(`Send Cross completed.`)
     AccountController.fetchTokenBalance()
   }
 
@@ -106,7 +106,7 @@ export function ActionButtonList() {
       sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
       decimals: '18',
     })
-    alert(`Send ERC20 completed. Now fetch token balance.`)
+    alert(`Send ERC20 completed.`)
     AccountController.fetchTokenBalance()
   }
 
