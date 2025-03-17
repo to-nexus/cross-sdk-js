@@ -122,8 +122,6 @@ export const EthersMethods = {
 
         const checkTx = async () => {
             try {
-                // Try getting the transaction
-                console.log(`writeContract try getting transaction: ${hash}`)
                 const tx = await signer.provider.getTransaction(hash);
 
                 if (tx != null) {

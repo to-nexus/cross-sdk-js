@@ -78,6 +78,11 @@ export function ActionButtonList() {
   // used for sending CROSS
   async function handleSendNative() {
 
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
     await SendController.sendNativeToken({
       receiverAddress: RECEIVER_ADDRESS,
       sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
@@ -89,6 +94,11 @@ export function ActionButtonList() {
 
   // used for sending any of game tokens
   async function handleSendERC20Token() {
+
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
 
     await SendController.sendERC20Token({
       receiverAddress: RECEIVER_ADDRESS,

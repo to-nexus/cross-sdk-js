@@ -1978,10 +1978,10 @@ export class AppKit {
         description: this.options?.metadata ? this.options?.metadata.description : '',
         url: this.options?.metadata ? this.options?.metadata.url : '',
         icons: this.options?.metadata ? this.options?.metadata.icons : [''],
-        verifyUrl: 'https://13.125.40.200:18081/verify' // TODO: change url
+        verifyUrl: 'https://dev-cross-relay.cross-nexus.com/verify' // TODO: change url
       },
       logger,
-      relayUrl: `ws://13.125.40.200:18081/ws`
+      relayUrl: `wss://dev-cross-relay.cross-nexus.com/ws`
     }
 
     OptionsController.setUsingInjectedUniversalProvider(Boolean(this.options?.universalProvider))

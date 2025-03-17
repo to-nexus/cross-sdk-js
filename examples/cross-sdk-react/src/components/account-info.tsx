@@ -18,7 +18,7 @@ export function AccountInfo() {
     fetchTokenBalance();
   }, [account.caipAddress]);
   
-  if (!account) {
+  if (!account?.isConnected) {
     return <div>No account information available.</div>
   }
 

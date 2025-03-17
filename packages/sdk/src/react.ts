@@ -48,7 +48,7 @@ const initCrossSdk = (projectId: string) => createAppKit({
     {
       id: "cross_wallet",
       name: "Cross Wallet",
-      image_url: "https://dev-contents.crossops.in/wallet/token/images/CROSSx.svg",
+      image_url: "https://dev-contents.crossops.in/wallet/token/images/Cross.svg",
       mobile_link: "cross-wallet://"
     }
   ],
