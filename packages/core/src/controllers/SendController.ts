@@ -338,7 +338,7 @@ export const SendController = {
 
         await ConnectionController.writeContract({
           fromAddress: AccountController.state.address as `0x${string}`,
-          tokenAddress,
+          contractAddress: tokenAddress,
           args: [params.receiverAddress as `0x${string}`, amount ?? BigInt(0)],
           method: 'transfer',
           abi: ContractUtil.getERC20Abi(tokenAddress),

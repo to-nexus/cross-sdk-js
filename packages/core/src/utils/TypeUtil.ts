@@ -997,9 +997,9 @@ export type EstimateGasTransactionArgs =
     }
 
 export interface WriteContractArgs {
-  tokenAddress: `0x${string}`
+  contractAddress: `0x${string}`
   fromAddress: `0x${string}`
-  method: 'send' | 'transfer' | 'call' | 'approve'
+  method: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abi: any
   args: unknown[]

@@ -229,7 +229,7 @@ export const AccountController = {
 
   async fetchTokenBalance(onError?: (error: unknown) => void): Promise<Balance[]> {
     state.balanceLoading = true
-    const chainId = ChainController.state.activeCaipNetwork?.caipNetworkId
+    const networkId = ChainController.state.activeCaipNetwork?.caipNetworkId
     const chain = ChainController.state.activeCaipNetwork?.chainNamespace
     const caipAddress = ChainController.state.activeCaipAddress
     const address = caipAddress ? CoreHelperUtil.getPlainAddress(caipAddress) : undefined
@@ -243,18 +243,10 @@ export const AccountController = {
     }
 
     try {
-      if (address && chainId && chain) {
-        const balance = await ApiController.getBalance(address, chainId)
+      if (address && networkId && chain) {
+        const balance = await ApiController.getBalance(address, networkId)
 
-        let filteredBalance: Balance[] = []
-        // filter greater than 0 balance token
-        try  {
-          filteredBalance = balance.filter(
-            balance => balance.quantity.numeric > '0'
-          )
-        } catch (error) {
-          console.log(`fetchTokenBalance error: ${error}`)
-        }
+        const filteredBalance = balance.filter(balance => balance.quantity.numeric > '0')
 
         this.setTokenBalance(filteredBalance, chain)
         SwapController.setBalances(SwapApiUtil.mapBalancesToSwapTokens(filteredBalance))

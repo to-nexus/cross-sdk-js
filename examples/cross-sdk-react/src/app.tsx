@@ -12,11 +12,11 @@ export default function App() {
     <div className="page-container">
       <div className="logo-container">
         <img
-          src={themeMode === 'dark' ? '/reown-logo-white.png' : '/reown-logo.png'}
-          alt="Reown"
+          src={themeMode === 'dark' ? '/nexus-logo-white.png' : '/nexus-logo.png'}
+          alt="Nexus"
           width="150"
         />
-        <img src="/appkit-logo.png" alt="Reown" width="150" />
+        <img src="/appkit-logo.png" alt="Cross Sdk" width="150" />
       </div>
 
       <h1 className="page-title">Cross React Sdk Example</h1>

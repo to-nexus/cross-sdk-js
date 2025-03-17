@@ -4,7 +4,7 @@ export const crossTestnet = defineChain({
   id: 612044,
   name: 'CROSS',
   network: 'cross-testnet',
-  nativeCurrency: { name: 'CROSSx', symbol: 'CROSSx', decimals: 18 },
+  nativeCurrency: { name: 'CROSS', symbol: 'CROSS', decimals: 18 },
   rpcUrls: {
     default: {
       http: ['https://testnet.cross-nexus.com:22001'],

@@ -295,8 +295,8 @@ export const BlockchainApiController = {
     return {
       fungibles: [
         {
-          name: "CROSSx",
-          symbol: "CROSSx",
+          name: "CROSS",
+          symbol: "CROSS",
           iconUrl: "",
           price: 0.1
         }

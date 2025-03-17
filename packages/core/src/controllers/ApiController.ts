@@ -126,8 +126,8 @@ export const ApiController = {
     // }
   },
 
-  async getBalance(address: string, chainId?: string, forceUpdate?: string) {
-    const caipAddress = `${chainId}:${address}`
+  async getBalance(account: string, networkId?: string, forceUpdate?: string) {
+    const caipAddress = `${networkId}:${account}`
     const cachedBalance = StorageUtil.getBalanceCacheForCaipAddress(caipAddress)
     if (cachedBalance) {
       return cachedBalance
@@ -136,9 +136,9 @@ export const ApiController = {
     const response = await api.get<ApiBalanceResponse>({
       path: `/api/v1/public/token/balance`,
       params: {
-        account: address,
-        chainId,
-        project_id: "0123456789"
+        account,
+        networkId,
+        projectId: "0123456789"
       }
     })
 

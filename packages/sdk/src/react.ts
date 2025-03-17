@@ -15,7 +15,7 @@ import {
   useWalletInfo,
 } from '@reown/appkit/react'
 
-export type { SendTransactionArgs } from '@reown/appkit'
+export type { SendTransactionArgs, WriteContractArgs } from '@reown/appkit'
 
 const networks = [ { 
   id: crossTestnet.id,
@@ -48,7 +48,7 @@ const initCrossSdk = (projectId: string) => createAppKit({
     {
       id: "cross_wallet",
       name: "Cross Wallet",
-      image_url: "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+      image_url: "https://dev-contents.crossops.in/wallet/token/images/CROSSx.svg",
       mobile_link: "cross-wallet://"
     }
   ],

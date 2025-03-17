@@ -106,7 +106,7 @@ export const EthersMethods = {
     }
     const browserProvider = new BrowserProvider(provider, chainId)
     const signer = new JsonRpcSigner(browserProvider, address)
-    const contract = new Contract(data.tokenAddress, data.abi, signer)
+    const contract = new Contract(data.contractAddress, data.abi, signer)
     if (!contract || !data.method) {
       throw new Error('Contract method is undefined')
     }
@@ -127,7 +127,7 @@ export const EthersMethods = {
                 const tx = await signer.provider.getTransaction(hash);
 
                 if (tx != null) {
-                    console.log(`writeContract transaction found: ${hash}`)
+                    console.log(`writeContract tx found: ${JSON.stringify(tx, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2)  }`)
                     resolve(hash as `0x${string}`);
                     return;
                 }

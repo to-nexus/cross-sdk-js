@@ -28,24 +28,23 @@ export function AccountInfo() {
 
   return (
     <div>
-      <div>
-        <strong>CAIP Address:</strong> {account.caipAddress}
-      </div>
-      <div>
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'flex-start' }}>
         <strong>Native Symbol:</strong> {account.balanceSymbol}
         <strong>Native Balance:</strong> {account.balance}
       </div>
       <div>
         <strong>Tokens:</strong>
-        {
-          account.tokenBalance?.map((token) => (
-            <div key={`${token.chainId}-${token.symbol}`}>
-              <strong>ChainId:</strong> {token.chainId}
-              <strong>Symbol:</strong> {token.symbol}
-              <strong>Balance:</strong> {ConnectionController.formatUnits(BigInt(token.quantity.numeric), Number(token.quantity.decimals))}
-            </div>
-          ))
-        }
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+          {
+            account.tokenBalance?.map((token) => (
+              <div key={`${token.chainId}-${token.symbol}`} style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'flex-start' }}>
+                <strong>ChainId:</strong> {token.chainId}
+                <strong>Symbol:</strong> {token.symbol}
+                <strong>Balance:</strong> {ConnectionController.formatUnits(BigInt(token.quantity.numeric), Number(token.quantity.decimals))}
+              </div>
+            ))
+          }
+        </div>
       </div>
     </div>
   )
