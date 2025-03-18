@@ -93,6 +93,16 @@ export function ActionButtonList() {
     })
 
     alert(`resTx: ${JSON.stringify(resTx)}`)
+
+    // generate new tokenId for next NFT
+    const uuidHex = uuidv4().replace(/-/g, "");
+    const tokenId = BigInt(`0x${uuidHex}`).toString();
+    const newArgs = [
+      FROM_ADDRESS as `0x${string}`,
+      tokenId
+    ]
+
+    setContractArgs({...contractArgs, args: newArgs})
   }
 
   // used for sending CROSS
@@ -165,7 +175,7 @@ export function ActionButtonList() {
     }
     await AccountController.updateTokenBalance(balance)
     if (showResult) 
-      alert(`updated erc20 balance: ${JSON.stringify(account?.tokenBalance?.find((token) => token.address === ERC20_ADDRESS.toLowerCase()))}`)
+      alert(`updated erc20 balance: ${JSON.stringify(account?.tokenBalance?.find((token) => token.address === ERC20_ADDRESS.toLowerCase()), (key, value) => typeof value === 'bigint' ? value.toString() : value, 2)}`)
   }
 
   async function getBalanceOfNFT () {
@@ -188,7 +198,7 @@ export function ActionButtonList() {
       const tokenId = BigInt(`0x${uuidHex}`).toString();
       console.log(`tokenId to create next NFT: ${tokenId}`)
 
-      const args: WriteContractArgs = {
+      const buildArgs: WriteContractArgs = {
         fromAddress: FROM_ADDRESS,
         contractAddress: ERC721_ADDRESS,
         args: [   // arguments to pass to the specific method of contract
@@ -200,7 +210,7 @@ export function ActionButtonList() {
         chainNamespace: network?.caipNetwork?.chainNamespace
       }
   
-      setContractArgs(args)
+      setContractArgs(buildArgs)
     })()
     
   }, [FROM_ADDRESS, network?.caipNetwork?.chainNamespace])
@@ -219,7 +229,7 @@ export function ActionButtonList() {
       </div>
       <div className="action-button-list" style={{marginTop: '10px'}}>
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>
-        <button onClick={()=>getBalanceOfERC20}>Get Balance of ERC20</button>
+        <button onClick={()=>getBalanceOfERC20()}>Get Balance of ERC20</button>
         <button onClick={getBalanceOfNFT}>Get Balance of NFT</button>
       </div>
     </div>

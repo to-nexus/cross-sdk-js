@@ -22,7 +22,7 @@ import type {
 } from '@reown/appkit-core'
 import type { TransactionRequest } from 'ethers'
 
-async function pollingTx(hash: `0x${string}`, provider: Provider, signer: JsonRpcSigner) {
+async function pollingTx(hash: `0x${string}`, signer: JsonRpcSigner) {
   return await (new Promise((resolve: (hash: `0x${string}`) => void, reject: (error: Error) => void) => {
     console.log(`pollingTx with hash: ${hash}`)
     const timeouts = [ 1000, 100 ];
@@ -127,7 +127,7 @@ export const EthersMethods = {
       params: [ hexSign, txParams.customData ]
     }) as `0x${string}`
 
-    return await pollingTx(hash, provider, signer)
+    return await pollingTx(hash, signer)
 
     // const txResponse = await signer.sendTransaction(txParams)
     // console.log('txResponse', JSON.stringify(txResponse, (key, value) => typeof value === 'bigint' ? value.toString() : value))
@@ -166,7 +166,7 @@ export const EthersMethods = {
         params: [ hexSign, data.customData ]
       }) as `0x${string}`
   
-      return await pollingTx(hash, provider, signer)
+      return await pollingTx(hash, signer)
     }
     throw new Error('Contract method is undefined')
   },
