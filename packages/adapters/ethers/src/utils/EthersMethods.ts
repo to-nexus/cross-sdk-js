@@ -22,6 +22,33 @@ import type {
 } from '@reown/appkit-core'
 import type { TransactionRequest } from 'ethers'
 
+async function pollingTx(hash: `0x${string}`, provider: Provider, signer: JsonRpcSigner) {
+  return await (new Promise((resolve: (hash: `0x${string}`) => void, reject: (error: Error) => void) => {
+    console.log(`pollingTx with hash: ${hash}`)
+    const timeouts = [ 1000, 100 ];
+
+    const checkTx = async () => {
+        try {
+            const tx = await signer.provider.getTransaction(hash);
+
+            if (tx != null) {
+                console.log(`tx found: ${JSON.stringify(tx, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2)  }`)
+                resolve(hash as `0x${string}`);
+                return;
+            }
+
+        } catch (error) {
+            console.log(`pollingTx error: ${error} just return result with hash`)
+            resolve(hash as `0x${string}`)
+        }
+
+        // Wait another 4 seconds
+        signer.provider._setTimeout(() => { checkTx(); }, timeouts.pop() || 4000);
+    };
+    checkTx();
+  }));
+}
+
 export const EthersMethods = {
   signMessage: async (message: string, provider: Provider, address: string) => {
     if (!provider) {
@@ -86,13 +113,26 @@ export const EthersMethods = {
       type: 0,
       customData: data.customData
     }
+
     const browserProvider = new BrowserProvider(provider, networkId)
     const signer = new JsonRpcSigner(browserProvider, address)
-    const txResponse = await signer.sendTransaction(txParams)
-    console.log('txResponse', JSON.stringify(txResponse, (key, value) => typeof value === 'bigint' ? value.toString() : value))
-    const txReceipt = await txResponse.wait()
 
-    return (txReceipt?.hash as `0x${string}`) || null
+    const gasLimit = txParams.gasLimit ?? await browserProvider.estimateGas({ ...txParams, from: await signer.getAddress()});
+    const from = await signer.getAddress()
+    const txToSign = { ...txParams, from, gasLimit }
+    const hexSign = browserProvider.getRpcTransaction(txToSign)
+
+    const hash = await provider.request({
+      method: 'eth_sendTransaction',
+      params: [ hexSign, txParams.customData ]
+    }) as `0x${string}`
+
+    return await pollingTx(hash, provider, signer)
+
+    // const txResponse = await signer.sendTransaction(txParams)
+    // console.log('txResponse', JSON.stringify(txResponse, (key, value) => typeof value === 'bigint' ? value.toString() : value))
+    // const txReceipt = await txResponse.wait()
+    // return (txReceipt?.hash as `0x${string}`) || null
   },
 
   writeContract: async (
@@ -115,33 +155,18 @@ export const EthersMethods = {
     }
     const method = contract[data.method]
     if (method) {
-      const result = await method(...data.args)
-      console.log(`writeContract result: ${JSON.stringify(result, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2)}`)
-      const hash = result.hash
+      const txContract = await method.populateTransaction(...data.args)
+      const gasLimit = await browserProvider.estimateGas({ ...txContract, from: await signer.getAddress()});
+      const from = await signer.getAddress()
+      const txToSign = { ...txContract, from, gasLimit }
+      const hexSign = browserProvider.getRpcTransaction(txToSign)
 
-      return await (new Promise((resolve: (hash: `0x${string}`) => void, reject: (error: Error) => void) => {
-        const timeouts = [ 1000, 100 ];
-
-        const checkTx = async () => {
-            try {
-                const tx = await signer.provider.getTransaction(hash);
-
-                if (tx != null) {
-                    console.log(`writeContract tx found: ${JSON.stringify(tx, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2)  }`)
-                    resolve(hash as `0x${string}`);
-                    return;
-                }
-
-            } catch (error) {
-                console.log(`writeContract error: ${error} just return result with hash`)
-                resolve(hash as `0x${string}`)
-            }
-
-            // Wait another 4 seconds
-            signer.provider._setTimeout(() => { checkTx(); }, timeouts.pop() || 4000);
-        };
-        checkTx();
-      }));
+      const hash = await provider.request({
+        method: 'eth_sendTransaction',
+        params: [ hexSign, data.customData ]
+      }) as `0x${string}`
+  
+      return await pollingTx(hash, provider, signer)
     }
     throw new Error('Contract method is undefined')
   },

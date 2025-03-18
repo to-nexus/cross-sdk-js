@@ -1028,7 +1028,7 @@ export class AppKit {
           // update native balance
           this.updateNativeBalance()
 
-          return result?.hash ? { hash: `0x${result.hash}` } : null;
+          return result?.hash ? { hash: `${result.hash}` as `0x${string}` } : null;
         }
 
         return null
