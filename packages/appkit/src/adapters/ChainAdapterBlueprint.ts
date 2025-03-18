@@ -551,6 +551,7 @@ export namespace AdapterBlueprint {
     gas?: bigint | number
     caipNetwork?: CaipNetwork
     provider?: AppKitConnector['provider']
+    customData?: Record<string, unknown> | string
   }
 
   export type SendTransactionResult = {

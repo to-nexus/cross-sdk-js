@@ -982,6 +982,7 @@ export type SendTransactionArgs =
       gas?: bigint
       gasPrice: bigint
       address: `0x${string}`
+      customData?: Record<string, unknown> | string
     }
   | { chainNamespace: 'solana'; to: string; value: number }
 
@@ -1004,6 +1005,7 @@ export interface WriteContractArgs {
   abi: any
   args: unknown[]
   chainNamespace: ChainNamespace
+  customData?: Record<string, unknown> | string
 }
 
 export interface ReadContractArgs {

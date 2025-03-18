@@ -22,6 +22,7 @@ export interface TxParams {
   sendTokenAmount: number
   gasPrice?: bigint
   decimals: string
+  customData?: Record<string, unknown> | string
 }
 
 export interface ContractWriteParams {
@@ -29,6 +30,7 @@ export interface ContractWriteParams {
   tokenAddress: string
   sendTokenAmount: number
   decimals: string
+  customData?: Record<string, unknown> | string
 }
 export interface SendControllerState {
   tokenBalances: Balance[]
@@ -269,6 +271,7 @@ export const SendController = {
       Number(params.decimals)
     )
     const data = '0x'
+    const customData = params.customData??undefined
 
     try {
       const resTx = await ConnectionController.sendTransaction({
@@ -277,7 +280,8 @@ export const SendController = {
         address,
         data,
         value: value ?? BigInt(0),
-        gasPrice: params.gasPrice ?? BigInt(2000000000)
+        gasPrice: params.gasPrice ?? BigInt(2000000000),
+        customData
       })
 
       SnackController.showSuccess('Transaction started')
@@ -339,13 +343,16 @@ export const SendController = {
           params.tokenAddress as CaipAddress
         ) as `0x${string}`
 
+        const customData = params.customData??undefined
+
         const resTx = await ConnectionController.writeContract({
           fromAddress: AccountController.state.address as `0x${string}`,
           contractAddress: tokenAddress,
           args: [params.receiverAddress as `0x${string}`, amount ?? BigInt(0)],
           method: 'transfer',
           abi: ContractUtil.getERC20Abi(tokenAddress),
-          chainNamespace: 'eip155'
+          chainNamespace: 'eip155',
+          customData
         })
 
         SnackController.showSuccess('Transaction started')

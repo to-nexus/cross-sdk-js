@@ -138,7 +138,8 @@ export class EthersAdapter extends AdapterBlueprint {
         data: params.data as `0x${string}`,
         gas: params.gas as bigint,
         gasPrice: params.gasPrice as bigint,
-        address: params.address
+        address: params.address,
+        customData: params.customData
       },
       params.provider as Provider,
       params.address,

@@ -20,6 +20,7 @@ import type {
   SendTransactionArgs,
   WriteContractArgs
 } from '@reown/appkit-core'
+import type { TransactionRequest } from 'ethers'
 
 export const EthersMethods = {
   signMessage: async (message: string, provider: Provider, address: string) => {
@@ -78,11 +79,12 @@ export const EthersMethods = {
     if (data.chainNamespace && data.chainNamespace !== 'eip155') {
       throw new Error('sendTransaction - chainNamespace is not eip155')
     }
-    const txParams = {
+    const txParams: TransactionRequest = {
       to: data.to,
       value: data.value,
       data: data.data,
-      type: 0
+      type: 0,
+      customData: data.customData
     }
     const browserProvider = new BrowserProvider(provider, networkId)
     const signer = new JsonRpcSigner(browserProvider, address)
