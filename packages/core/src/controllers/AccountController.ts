@@ -11,6 +11,7 @@ import type {
   AccountType,
   AccountTypeMap,
   ConnectedWalletInfo,
+  ReadContractArgs,
   SocialProvider,
   User
 } from '../utils/TypeUtil.js'
@@ -18,6 +19,7 @@ import { ApiController } from './ApiController.js'
 import { ChainController } from './ChainController.js'
 import { SnackController } from './SnackController.js'
 import { SwapController } from './SwapController.js'
+import { ConnectionController } from './ConnectionController.js'
 
 // -- Types --------------------------------------------- //
 export interface AccountControllerState {
@@ -227,6 +229,13 @@ export const AccountController = {
     ChainController.setAccountProp('farcasterUrl', farcasterUrl, chain)
   },
 
+  // update a single token balance from contract. Use this after transaction(WriteContract).
+  async updateTokenBalance(balance: Balance[]) {
+    this.setTokenBalance(balance, ChainController.state.activeChain)
+    SwapController.setBalances(SwapApiUtil.mapBalancesToSwapTokens(balance))
+  },
+
+  // read all token balances from API. Blocknumber is not synced with the chain.
   async fetchTokenBalance(onError?: (error: unknown) => void): Promise<Balance[]> {
     state.balanceLoading = true
     const networkId = ChainController.state.activeCaipNetwork?.caipNetworkId
@@ -245,9 +254,10 @@ export const AccountController = {
     try {
       if (address && networkId && chain) {
         const balance = await ApiController.getBalance(address, networkId)
+        const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
-        const filteredBalance = balance.filter(balance => balance.quantity.numeric > '0')
-
+        const filteredBalance = balance.filter(balance => (balance.quantity.numeric > '0' && balance.address?.toLowerCase() !== ZERO_ADDRESS))
+        
         this.setTokenBalance(filteredBalance, chain)
         SwapController.setBalances(SwapApiUtil.mapBalancesToSwapTokens(filteredBalance))
         state.lastRetry = undefined

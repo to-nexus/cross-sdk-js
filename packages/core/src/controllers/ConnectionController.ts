@@ -10,6 +10,7 @@ import { StorageUtil } from '../utils/StorageUtil.js'
 import type {
   Connector,
   EstimateGasTransactionArgs,
+  ReadContractArgs,
   SendTransactionArgs,
   WalletGetAssetsParams,
   WalletGetAssetsResponse,
@@ -37,14 +38,15 @@ export interface ConnectionControllerClient {
   connectWalletConnect?: () => Promise<void>
   disconnect: () => Promise<void>
   signMessage: (message: string) => Promise<string>
-  sendTransaction: (args: SendTransactionArgs) => Promise<string | null>
+  sendTransaction: (args: SendTransactionArgs) => Promise<{ hash: `0x${string}` } | null>
   estimateGas: (args: EstimateGasTransactionArgs) => Promise<bigint>
   parseUnits: (value: string, decimals: number) => bigint
   formatUnits: (value: bigint, decimals: number) => string
   connectExternal?: (options: ConnectExternalOptions) => Promise<void>
   reconnectExternal?: (options: ConnectExternalOptions) => Promise<void>
   checkInstalled?: (ids?: string[]) => boolean
-  writeContract: (args: WriteContractArgs) => Promise<`0x${string}` | null>
+  writeContract: (args: WriteContractArgs) => Promise<{ hash: `0x${string}` } | null>
+  readContract: (args: ReadContractArgs) => Promise<unknown>
   getEnsAddress: (value: string) => Promise<false | string>
   getEnsAvatar: (value: string) => Promise<false | string>
   grantPermissions: (params: readonly unknown[] | object) => Promise<unknown>
@@ -204,7 +206,11 @@ export const ConnectionController = {
   },
 
   async writeContract(args: WriteContractArgs) {
-    return this._getClient()?.writeContract(args)
+    return this._getClient()?.  writeContract(args)
+  },
+
+  async readContract(args: ReadContractArgs) {
+    return this._getClient()?.readContract(args)
   },
 
   async getEnsAddress(value: string) {

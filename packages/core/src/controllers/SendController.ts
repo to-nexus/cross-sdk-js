@@ -169,6 +169,7 @@ export const SendController = {
 
   },
 
+  // not used in the appkit.
   async fetchTokenBalance(onError?: (error: unknown) => void): Promise<Balance[]> {
     state.loading = true
     const chainId = ChainController.state.activeCaipNetwork?.caipNetworkId
@@ -270,7 +271,7 @@ export const SendController = {
     const data = '0x'
 
     try {
-      await ConnectionController.sendTransaction({
+      const resTx = await ConnectionController.sendTransaction({
         chainNamespace: 'eip155',
         to,
         address,
@@ -293,6 +294,7 @@ export const SendController = {
         }
       })
       this.resetSend()
+      return resTx
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('SendController:sendERC20Token - failed to send native token', error)
@@ -311,6 +313,7 @@ export const SendController = {
         }
       })
       SnackController.showError('Something went wrong')
+      return null
     }
   },
 
@@ -336,7 +339,7 @@ export const SendController = {
           params.tokenAddress as CaipAddress
         ) as `0x${string}`
 
-        await ConnectionController.writeContract({
+        const resTx = await ConnectionController.writeContract({
           fromAddress: AccountController.state.address as `0x${string}`,
           contractAddress: tokenAddress,
           args: [params.receiverAddress as `0x${string}`, amount ?? BigInt(0)],
@@ -347,7 +350,10 @@ export const SendController = {
 
         SnackController.showSuccess('Transaction started')
         this.resetSend()
+
+        return resTx
       }
+      throw new Error('Invalid params to sendERC20Token')
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('SendController:sendERC20Token - failed to send erc20 token', error)
@@ -366,6 +372,7 @@ export const SendController = {
         }
       })
       SnackController.showError('Something went wrong')
+      return null
     }
   },
 

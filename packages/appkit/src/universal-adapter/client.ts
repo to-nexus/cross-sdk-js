@@ -173,10 +173,15 @@ export class UniversalAdapter extends AdapterBlueprint {
   ): Promise<AdapterBlueprint.WalletGetAssetsResponse> {
     return Promise.resolve({})
   }
+  
   public async writeContract(): Promise<AdapterBlueprint.WriteContractResult> {
     return Promise.resolve({
       hash: ''
     })
+  }
+
+  public async readContract(): Promise<AdapterBlueprint.ReadContractResult> {
+    return Promise.resolve({})
   }
 
   public async getEnsAddress(): Promise<AdapterBlueprint.GetEnsAddressResult> {

@@ -14,7 +14,7 @@ export function InfoList() {
       <section className="code-container">
         <h2 className="code-container-title">useAppKitAccount()</h2>
         <div className="code-container-content">
-          <pre>{JSON.stringify(accountState, null, 2)}</pre>
+          <pre>{JSON.stringify(accountState, (key, val)=>typeof val === 'bigint' ? val.toString() : val)}</pre>
         </div>
       </section>
 

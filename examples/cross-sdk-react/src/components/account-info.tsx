@@ -36,7 +36,7 @@ export function AccountInfo() {
         <strong>Tokens:</strong>
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
           {
-            account.tokenBalance?.map((token) => (
+            account.tokenBalance?.filter((token) => token.symbol !== 'CROSS').map((token) => (
               <div key={`${token.chainId}-${token.symbol}`} style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'flex-start' }}>
                 <strong>ChainId:</strong> {token.chainId}
                 <strong>Symbol:</strong> {token.symbol}

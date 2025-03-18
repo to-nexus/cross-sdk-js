@@ -166,6 +166,18 @@ export class EthersAdapter extends AdapterBlueprint {
     return { hash: result }
   }
 
+  public async readContract(
+    params: AdapterBlueprint.ReadContractParams
+  ): Promise<AdapterBlueprint.ReadContractResult> {
+    const { provider } = params
+    if (!provider) {
+      throw new Error('Provider is undefined')
+    }
+    const result = await EthersMethods.readContract(params, provider as Provider, Number(params.caipNetwork?.id))
+    return result;
+  }
+  
+
   public async estimateGas(
     params: AdapterBlueprint.EstimateGasTransactionArgs
   ): Promise<AdapterBlueprint.EstimateGasTransactionResult> {

@@ -12,6 +12,7 @@ import {
   type AccountType,
   type Connector as AppKitConnector,
   OptionsController,
+  type ReadContractArgs,
   type Tokens,
   type WriteContractArgs
 } from '@reown/appkit-core'
@@ -325,6 +326,15 @@ export abstract class AdapterBlueprint<
   ): Promise<AdapterBlueprint.WriteContractResult>
 
   /**
+   * Reads a contract method.
+   * @param {AdapterBlueprint.ReadContractParams} params - Parameters including contract address, method, and ABI
+   * @returns {Promise<AdapterBlueprint.ReadContractResult>} Object containing return value from contract method
+   */
+  public abstract readContract(
+    params: AdapterBlueprint.ReadContractParams
+  ): Promise<AdapterBlueprint.ReadContractResult>
+
+  /**
    * Gets the ENS address for a given name.
    * @param {AdapterBlueprint.GetEnsAddressParams} params - Parameters including name
    * @returns {Promise<AdapterBlueprint.GetEnsAddressResult>} Object containing the ENS address
@@ -474,6 +484,13 @@ export namespace AdapterBlueprint {
   export type WriteContractResult = {
     hash: string
   }
+
+  export type ReadContractParams = ReadContractArgs & {
+    caipNetwork: CaipNetwork
+    provider?: AppKitConnector['provider']
+  }
+
+  export type ReadContractResult = any
 
   export type ParseUnitsParams = {
     value: string

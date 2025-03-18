@@ -16,6 +16,7 @@ import { type CaipNetwork, isReownName } from '@reown/appkit-common'
 import type {
   EstimateGasTransactionArgs,
   Provider,
+  ReadContractArgs,
   SendTransactionArgs,
   WriteContractArgs
 } from '@reown/appkit-core'
@@ -111,7 +112,6 @@ export const EthersMethods = {
       throw new Error('Contract method is undefined')
     }
     const method = contract[data.method]
-    console.log(`writeContractmethod: ${data.method}`)
     if (method) {
       const result = await method(...data.args)
       console.log(`writeContract result: ${JSON.stringify(result, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2)}`)
@@ -140,6 +140,28 @@ export const EthersMethods = {
         };
         checkTx();
       }));
+    }
+    throw new Error('Contract method is undefined')
+  },
+
+  readContract: async (
+    data: ReadContractArgs,
+    provider: Provider,
+    chainId: number
+  ) => {
+    if (!provider) {
+      throw new Error('writeContract - provider is undefined')
+    }
+
+    const browserProvider = new BrowserProvider(provider, chainId)
+    const contract = new Contract(data.contractAddress, data.abi, browserProvider)
+    if (!contract || !data.method) {
+      throw new Error('Contract method is undefined')
+    }
+    const method = contract[data.method]
+    if (method) {
+      const result = await method(...data.args)
+      return result
     }
     throw new Error('Contract method is undefined')
   },
@@ -186,5 +208,5 @@ export const EthersMethods = {
   },
 
   parseUnits,
-  formatUnits
+  formatUnits,
 }

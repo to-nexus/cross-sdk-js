@@ -1006,6 +1006,14 @@ export interface WriteContractArgs {
   chainNamespace: ChainNamespace
 }
 
+export interface ReadContractArgs {
+  contractAddress: `0x${string}`
+  method: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  abi: any
+  args: unknown[]
+}
+
 export interface NetworkControllerClient {
   switchCaipNetwork: (network: CaipNetwork) => Promise<void>
   getApprovedCaipNetworksData: () => Promise<{

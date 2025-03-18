@@ -32,6 +32,7 @@ import {
   type NetworkControllerClient,
   type OptionsControllerState,
   type PublicStateControllerState,
+  type ReadContractArgs,
   type RouterControllerState,
   type SdkVersion,
   type SendTransactionArgs,
@@ -1023,11 +1024,14 @@ export class AppKit {
           )
           const result = await adapter?.sendTransaction({ ...args, provider })
           console.log('Appkit sendTransaction result', JSON.stringify(result, null, 2))
+          
+          // update native balance
+          this.updateNativeBalance()
 
-          return result?.hash || ''
+          return result?.hash ? { hash: `0x${result.hash}` } : null;
         }
 
-        return ''
+        return null
       },
       estimateGas: async (args: EstimateGasTransactionArgs) => {
         if (args.chainNamespace === ConstantsUtil.CHAIN.EVM) {
@@ -1086,7 +1090,21 @@ export class AppKit {
 
         const result = await adapter?.writeContract({ ...args, caipNetwork, provider, caipAddress })
         console.log('Appkit writeContract result', JSON.stringify(result, null, 2))
-        return result?.hash as `0x${string}` | null
+        return result ? { hash: result?.hash as `0x${string}` } : null
+      },
+      readContract: async (args: ReadContractArgs) => {
+        const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
+        const caipNetwork = this.getCaipNetwork()
+        const provider = ProviderUtil.getProvider(
+          ChainController.state.activeChain as ChainNamespace
+        )
+        if (!caipNetwork) {
+          throw new Error('CaipNetwork or CaipAddress is undefined')
+        }
+
+        const result = await adapter?.readContract({ ...args, provider, caipNetwork })
+        console.log('Appkit ReadContract result', JSON.stringify(result, (key, val)=>typeof val === 'bigint' ? val.toString() : val))
+        return result
       },
       parseUnits: (value: string, decimals: number) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
@@ -1481,6 +1499,7 @@ export class AppKit {
     adapter.on('disconnect', this.disconnect.bind(this))
 
     adapter.on('pendingTransactions', () => {
+      console.log(`pendingTransactions`)
       const address = AccountController.state.address
       const activeCaipNetwork = ChainController.state.activeCaipNetwork
 
@@ -1520,7 +1539,7 @@ export class AppKit {
         caipNetwork: this.getCaipNetwork(),
         tokens: this.options.tokens
       })
-      console.log(`chainId: ${ChainController.state.activeCaipNetwork?.id} native balance: ${JSON.stringify(balance)}`)
+      console.log(`chainId: ${ChainController.state.activeCaipNetwork?.id} native balance: ${JSON.stringify(balance)} tokens: ${JSON.stringify(this.options.tokens, (key, val)=>typeof val === 'bigint' ? val.toString() : val)}`)
       this.setBalance(balance.balance, balance.symbol, ChainController.state.activeChain)
     }
   }
