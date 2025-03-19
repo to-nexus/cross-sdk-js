@@ -141,7 +141,7 @@ export function ActionButtonList() {
 
     const resTx = await SendController.sendERC20Token({
       receiverAddress: RECEIVER_ADDRESS,
-      tokenAddress: ERC20_CAIP_ADDRESS,
+      contractAddress: ERC20_CAIP_ADDRESS,
       sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
       decimals: '18',
       customData: {

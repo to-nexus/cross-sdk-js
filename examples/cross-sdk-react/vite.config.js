@@ -6,9 +6,6 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_NODE_ENV': JSON.stringify(process.env.VITE_NODE_ENV || 'development'),
   },
-  optimizeDeps: {
-    include: ['@reown/appkit'],
-  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,

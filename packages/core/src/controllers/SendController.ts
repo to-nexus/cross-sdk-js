@@ -28,7 +28,7 @@ export interface TxParams {
 
 export interface ContractWriteParams {
   receiverAddress: string
-  tokenAddress: string
+  contractAddress: string
   sendTokenAmount: number
   decimals: string
   customData?: CustomData
@@ -138,7 +138,7 @@ export const SendController = {
       })
       this.sendERC20Token({
         receiverAddress: this.state.receiverAddress,
-        tokenAddress: this.state.token.address,
+        contractAddress: this.state.token.address,
         sendTokenAmount: this.state.sendTokenAmount,
         decimals: this.state.token.quantity.decimals
       })
@@ -338,20 +338,20 @@ export const SendController = {
         AccountController.state.address &&
         params.sendTokenAmount &&
         params.receiverAddress &&
-        params.tokenAddress
+        params.contractAddress
       ) {
-        const tokenAddress = CoreHelperUtil.getPlainAddress(
-          params.tokenAddress as CaipAddress
+        const contractAddress = CoreHelperUtil.getPlainAddress(
+          params.contractAddress as CaipAddress
         ) as `0x${string}`
 
         const customData = params.customData??undefined
 
         const resTx = await ConnectionController.writeContract({
           fromAddress: AccountController.state.address as `0x${string}`,
-          contractAddress: tokenAddress,
+          contractAddress,
           args: [params.receiverAddress as `0x${string}`, amount ?? BigInt(0)],
           method: 'transfer',
-          abi: ContractUtil.getERC20Abi(tokenAddress),
+          abi: ContractUtil.getERC20Abi(contractAddress),
           chainNamespace: 'eip155',
           customData
         })
