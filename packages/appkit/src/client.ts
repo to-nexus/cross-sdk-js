@@ -126,6 +126,30 @@ interface AppKitOptionsWithSdk extends AppKitOptions {
 // -- Helpers -------------------------------------------------------------------
 let isInitialized = false
 
+function getEnv(): string {
+  // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
+  if (typeof process !== 'undefined' && process.env?.["NODE_ENV"]) {
+    return process.env["NODE_ENV"];
+  }
+
+  // ✅ Vite 환경 (import.meta.env.MODE 사용)
+  if (typeof import.meta !== 'undefined' && import.meta.env?.MODE) {
+    return import.meta.env.MODE;
+  }
+
+  // ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
+  if (typeof process !== 'undefined' && process.env?.["NEXT_PUBLIC_ENV_MODE"]) {
+    return process.env["NEXT_PUBLIC_ENV_MODE"];
+  }
+
+  // ✅ 브라우저에서 직접 주입된 환경 변수 (globalThis 사용)
+  if (typeof globalThis !== 'undefined' && (globalThis as any).ENV_MODE) {
+    return (globalThis as any).ENV_MODE;
+  }
+
+  return 'development';
+}
+
 // -- Client --------------------------------------------------------------------
 export class AppKit {
   private static instance?: AppKit
@@ -1990,6 +2014,9 @@ export class AppKit {
       console.error(...args)
     })
 
+    const injectedEnv = getEnv();
+    console.log(`injected env from your project: ${injectedEnv}`)
+
     const universalProviderOptions: UniversalProviderOpts = {
       projectId: this.options?.projectId,
       metadata: {
@@ -1997,11 +2024,13 @@ export class AppKit {
         description: this.options?.metadata ? this.options?.metadata.description : '',
         url: this.options?.metadata ? this.options?.metadata.url : '',
         icons: this.options?.metadata ? this.options?.metadata.icons : [''],
-        verifyUrl: 'https://dev-cross-relay.cross-nexus.com/verify' // TODO: change url
+        verifyUrl: injectedEnv === 'development' ? ConstantsUtil.VERIFY_URL_DEV : ConstantsUtil.VERIFY_URL_PROD
       },
       logger,
-      relayUrl: `wss://dev-cross-relay.cross-nexus.com/ws`
+      relayUrl: injectedEnv === 'development' ? ConstantsUtil.RELAY_URL_DEV : ConstantsUtil.RELAY_URL_PROD
     }
+
+    console.log(`relayUrl: ${universalProviderOptions.relayUrl}`)
 
     OptionsController.setUsingInjectedUniversalProvider(Boolean(this.options?.universalProvider))
     this.universalProvider =

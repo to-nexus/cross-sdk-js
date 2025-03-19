@@ -4,6 +4,7 @@ import { AppKit } from '../src/client.js'
 import type { AppKitOptions } from '../src/utils/TypesUtil.js'
 import { PACKAGE_VERSION } from './constants.js'
 
+
 // -- Views ------------------------------------------------------------
 export * from '@reown/appkit-scaffold-ui'
 

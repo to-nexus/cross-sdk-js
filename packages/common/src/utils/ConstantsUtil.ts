@@ -6,6 +6,10 @@ export const ConstantsUtil = {
   BLOCKCHAIN_API_RPC_URL: 'https://testnet.cross-nexus.com:22001',
   PULSE_API_URL: 'https://pulse.walletconnect.org',
   W3M_API_URL: 'https://dev-wallet-server.cross-nexus.com',
+  RELAY_URL_DEV: "wss://dev-cross-relay.cross-nexus.com/ws",
+  RELAY_URL_PROD: "wss://cross-relay.cross-nexus.com/ws",
+  VERIFY_URL_DEV: "http://dev-cross-verify.cross-nexus.com",
+  VERIFY_URL_PROD: "http://cross-verify.cross-nexus.com",
   /* Connector IDs */
   CONNECTOR_ID: {
     WALLET_CONNECT: 'walletConnect',

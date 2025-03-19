@@ -24,7 +24,8 @@
     "noUncheckedIndexedAccess": true,
     "verbatimModuleSyntax": true,
     "sourceMap": true,
-    "incremental": true
+    "incremental": true,
+    "types": ["vite/client", "node", "react"]
   },
   "exclude": ["node_modules", "dist", "types", "out", ".next", ".turbo", "coverage", "package.json"]
 }

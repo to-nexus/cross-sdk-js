@@ -69,6 +69,11 @@ export function ActionButtonList() {
   // used for sending custom transaction
   async function handleSendTransaction() {
 
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+    
     if (!contractArgs) {
       alert('no contract args set')
       return
@@ -142,11 +147,20 @@ export function ActionButtonList() {
   }
 
   async function getBalanceOfNative () {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
     const balance = account?.balance
     alert(`CROSS balance: ${balance}`)
   }
 
   async function getBalanceOfERC20 ({showResult = true}: {showResult?: boolean} = {}) {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
 
     const amount = await ConnectionController.readContract({
       contractAddress: ERC20_ADDRESS,
