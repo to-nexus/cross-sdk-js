@@ -12,7 +12,7 @@ import {
 } from 'ethers'
 
 import { WcHelpersUtil } from '@reown/appkit'
-import { type CaipNetwork, isReownName } from '@reown/appkit-common'
+import { type CaipNetwork, type CustomData, isReownName } from '@reown/appkit-common'
 import type {
   EstimateGasTransactionArgs,
   Provider,
@@ -50,14 +50,14 @@ async function pollingTx(hash: `0x${string}`, signer: JsonRpcSigner) {
 }
 
 export const EthersMethods = {
-  signMessage: async (message: string, provider: Provider, address: string) => {
+  signMessage: async (message: string, provider: Provider, address: string, customData?: CustomData) => {
     if (!provider) {
       throw new Error('signMessage - provider is undefined')
     }
     const hexMessage = isHexString(message) ? message : hexlify(toUtf8Bytes(message))
     const signature = await provider.request({
       method: 'personal_sign',
-      params: [hexMessage, address]
+      params: [hexMessage, address, customData]
     })
 
     return signature as `0x${string}`

@@ -66,6 +66,22 @@ export function ActionButtonList() {
     switchNetwork(crossTestnet)
   }
 
+  // used for signing custom message
+  async function handleSignMessage() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    const signedMessage = await ConnectionController.signMessage({ 
+      message: `Hello, world! ${Date.now()}`,
+      customData: {
+        metadata: "This is metadata for signed message"
+      }
+    })
+    alert(`signedMessage: ${signedMessage}`)
+  }
+
   // used for sending custom transaction
   async function handleSendTransaction() {
 
@@ -246,6 +262,7 @@ export function ActionButtonList() {
         <button onClick={handleSendNative}>Send 1 CROSS</button>
         <button onClick={handleSendERC20Token}>Send 1 ERC20</button>
         <button onClick={handleSendTransaction}>Send Custom Transaction</button>
+        <button onClick={handleSignMessage}>Sign Custom Message</button>
       </div>
       <div className="action-button-list" style={{marginTop: '10px'}}>
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>

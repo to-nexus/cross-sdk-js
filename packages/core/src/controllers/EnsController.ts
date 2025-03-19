@@ -140,7 +140,9 @@ export const EnsController = {
         }
       })
 
-      const signature = await ConnectionController.signMessage(message)
+      const signature = await ConnectionController.signMessage({
+        message
+      })
       const networkId = network.id
 
       if (!networkId) {

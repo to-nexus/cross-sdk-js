@@ -9,6 +9,7 @@ import {
   type CaipNetworkId,
   type ChainNamespace,
   ConstantsUtil,
+  type CustomData,
   NetworkUtil,
   ParseUtil,
   SafeLocalStorage,
@@ -1029,12 +1030,13 @@ export class AppKit {
 
         return ids.some(id => Boolean(window.ethereum?.[String(id)]))
       },
-      signMessage: async (message: string) => {
+      signMessage: async (params: {message: string, customData?: CustomData}) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const result = await adapter?.signMessage({
-          message,
+          message: params.message,
           address: AccountController.state.address as string,
-          provider: ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace)
+          provider: ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace),
+          customData: params.customData
         })
 
         return result?.signature || ''

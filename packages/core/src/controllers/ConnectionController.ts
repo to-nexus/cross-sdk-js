@@ -1,7 +1,7 @@
 import { proxy, ref } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
-import { type CaipNetwork, type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
+import { type CaipNetwork, type ChainNamespace, ConstantsUtil, type CustomData } from '@reown/appkit-common'
 import { type W3mFrameTypes } from '@reown/appkit-wallet'
 
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
@@ -37,7 +37,7 @@ export interface ConnectExternalOptions {
 export interface ConnectionControllerClient {
   connectWalletConnect?: () => Promise<void>
   disconnect: () => Promise<void>
-  signMessage: (message: string) => Promise<string>
+  signMessage: (params: {message: string, customData?: CustomData}) => Promise<string>
   sendTransaction: (args: SendTransactionArgs) => Promise<{ hash: `0x${string}` } | null>
   estimateGas: (args: EstimateGasTransactionArgs) => Promise<bigint>
   parseUnits: (value: string, decimals: number) => bigint
@@ -173,8 +173,8 @@ export const ConnectionController = {
     })
   },
 
-  async signMessage(message: string) {
-    return this._getClient()?.signMessage(message)
+  async signMessage(params: {message: string, customData?: CustomData}) {
+    return this._getClient()?.signMessage(params)
   },
 
   parseUnits(value: string, decimals: number) {

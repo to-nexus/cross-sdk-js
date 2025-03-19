@@ -116,7 +116,7 @@ export class EthersAdapter extends AdapterBlueprint {
       throw new Error('Provider is undefined')
     }
     try {
-      const signature = await EthersMethods.signMessage(message, provider as Provider, address)
+      const signature = await EthersMethods.signMessage(message, provider as Provider, address, params.customData)
 
       return { signature }
     } catch (error) {

@@ -458,6 +458,7 @@ export namespace AdapterBlueprint {
     message: string
     address: string
     provider?: AppKitConnector['provider']
+    customData?: CustomData
   }
 
   export type SignMessageResult = {

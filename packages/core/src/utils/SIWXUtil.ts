@@ -101,7 +101,9 @@ export const SIWXUtil = {
         })
       }
 
-      const signature = await client.signMessage(message)
+      const signature = await client.signMessage({
+        message
+      })
 
       await siwx.addSession({
         data: siwxMessage,
