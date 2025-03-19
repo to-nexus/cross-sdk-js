@@ -24,7 +24,6 @@ const networks = [ {
   rpcUrls: crossTestnet.rpcUrls,
 }]
 
-// Setup solana adapter
 const ethersAdapter = new EthersAdapter()
 
 // Create modal
@@ -35,14 +34,22 @@ const initCrossSdk = (projectId: string) => createAppKit({
     name: 'Cross SDK',
     description: 'Cross SDK for React',
     url: 'https://to.nexus',
-    icons: ['https://avatars.githubusercontent.com/u/179229932?s=200&v=4']
+    icons: ['https://dev-contents.crossops.in/wallet/token/images/Cross.svg']
   },
   projectId,
   themeMode: 'light',
   features: {
-    analytics: false,
+    swaps: false,
+    onramp: false,
+    receive: false,
+    send: false,
+    email: true,
+    emailShowWallets: false,
     socials: false,
-    email: false
+    history: false,
+    analytics: false,
+    allWallets: true,
+    legalCheckbox: false
   },
   customWallets: [
     {
