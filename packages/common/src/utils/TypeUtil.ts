@@ -126,6 +126,11 @@ export interface Balance {
   iconUrl: string
 }
 
+export interface CustomData {
+  metadata: Record<string, unknown> | string
+  [key: string]: unknown
+}
+
 type BalanceQuantity = {
   decimals: string
   numeric: string

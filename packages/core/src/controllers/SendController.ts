@@ -14,6 +14,7 @@ import { ConnectionController } from './ConnectionController.js'
 import { EventsController } from './EventsController.js'
 import { RouterController } from './RouterController.js'
 import { SnackController } from './SnackController.js'
+import type { CustomData } from '../utils/TypeUtil.js'
 
 // -- Types --------------------------------------------- //
 
@@ -22,7 +23,7 @@ export interface TxParams {
   sendTokenAmount: number
   gasPrice?: bigint
   decimals: string
-  customData?: Record<string, unknown> | string
+  customData?: CustomData
 }
 
 export interface ContractWriteParams {
@@ -30,7 +31,7 @@ export interface ContractWriteParams {
   tokenAddress: string
   sendTokenAmount: number
   decimals: string
-  customData?: Record<string, unknown> | string
+  customData?: CustomData
 }
 export interface SendControllerState {
   tokenBalances: Balance[]

@@ -73,7 +73,7 @@ export function ActionButtonList() {
       alert('Please connect wallet first.')
       return
     }
-    
+
     if (!contractArgs) {
       alert('no contract args set')
       return
@@ -89,11 +89,13 @@ export function ActionButtonList() {
       abi,
       chainNamespace,
       customData: {
-        activity: 'You are about to send custom transaction to the contract.',
-        currentFormat: 'This is a JSON formatted custom data.',
-        providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
-        txTime: new Date().toISOString(),
-        randomValue: uuidv4(),
+        metadata: {
+          activity: 'You are about to send custom transaction to the contract.',
+          currentFormat: 'This is a JSON formatted custom data.',
+          providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
+          txTime: new Date().toISOString(),
+          randomValue: uuidv4(),
+        }
       }
     })
 
@@ -122,7 +124,9 @@ export function ActionButtonList() {
       receiverAddress: RECEIVER_ADDRESS,
       sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
       decimals: '18',
-      customData: "You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data."
+      customData: {
+        metadata: "You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data."
+      }
     })
     alert(`resTx: ${JSON.stringify(resTx)}`)
   }
@@ -140,7 +144,9 @@ export function ActionButtonList() {
       tokenAddress: ERC20_CAIP_ADDRESS,
       sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
       decimals: '18',
-      customData: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+      customData: {
+        metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+      }
     })
     alert(`resTx: ${JSON.stringify(resTx)}`)
     getBalanceOfERC20({showResult: false});

@@ -4,7 +4,8 @@ import {
   type CaipAddress,
   type CaipNetwork,
   type ChainNamespace,
-  ConstantsUtil as CommonConstantsUtil
+  ConstantsUtil as CommonConstantsUtil,
+  type CustomData
 } from '@reown/appkit-common'
 import {
   AccountController,
@@ -551,7 +552,7 @@ export namespace AdapterBlueprint {
     gas?: bigint | number
     caipNetwork?: CaipNetwork
     provider?: AppKitConnector['provider']
-    customData?: Record<string, unknown> | string
+    customData?: CustomData
   }
 
   export type SendTransactionResult = {

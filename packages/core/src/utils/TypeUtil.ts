@@ -982,7 +982,7 @@ export type SendTransactionArgs =
       gas?: bigint
       gasPrice: bigint
       address: `0x${string}`
-      customData?: Record<string, unknown> | string
+      customData?: CustomData
     }
   | { chainNamespace: 'solana'; to: string; value: number }
 
@@ -1005,7 +1005,7 @@ export interface WriteContractArgs {
   abi: any
   args: unknown[]
   chainNamespace: ChainNamespace
-  customData?: Record<string, unknown> | string
+  customData?: CustomData
 }
 
 export interface ReadContractArgs {
@@ -1014,6 +1014,11 @@ export interface ReadContractArgs {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abi: any
   args: unknown[]
+}
+
+export interface CustomData {
+  metadata: Record<string, unknown> | string
+  [key: string]: unknown
 }
 
 export interface NetworkControllerClient {
