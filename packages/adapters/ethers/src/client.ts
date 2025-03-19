@@ -486,7 +486,11 @@ export class EthersAdapter extends AdapterBlueprint {
       }
       const cachedBalance = StorageUtil.getNativeBalanceCacheForCaipAddress(caipAddress)
       if (cachedBalance) {
-        return { balance: cachedBalance.balance, symbol: cachedBalance.symbol }
+        if (params.ignoreCache) {
+          console.log(`found cached balance: ${cachedBalance.balance}, but proceed to getBalance by jsonRpcProvider`)
+        } else {
+          return { balance: cachedBalance.balance, symbol: cachedBalance.symbol }
+        }
       }
 
       const jsonRpcProvider = new JsonRpcProvider(caipNetwork.rpcUrls.default.http[0], {

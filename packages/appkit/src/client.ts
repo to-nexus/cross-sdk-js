@@ -1050,7 +1050,7 @@ export class AppKit {
           console.log('Appkit sendTransaction result', JSON.stringify(result, null, 2))
           
           // update native balance
-          this.updateNativeBalance()
+          this.updateNativeBalance(true)  // ignoreCache after sendTransaction
 
           return result?.hash ? { hash: `${result.hash}` as `0x${string}` } : null;
         }
@@ -1554,14 +1554,15 @@ export class AppKit {
     })
   }
 
-  private async updateNativeBalance() {
+  private async updateNativeBalance(ignoreCache: boolean = false) {
     const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
     if (adapter && ChainController.state.activeChain && AccountController.state.address) {
       const balance = await adapter.getBalance({
         address: AccountController.state.address,
         chainId: ChainController.state.activeCaipNetwork?.id as string | number,
         caipNetwork: this.getCaipNetwork(),
-        tokens: this.options.tokens
+        tokens: this.options.tokens,
+        ignoreCache: ignoreCache
       })
       console.log(`chainId: ${ChainController.state.activeCaipNetwork?.id} native balance: ${JSON.stringify(balance)} tokens: ${JSON.stringify(this.options.tokens, (key, val)=>typeof val === 'bigint' ? val.toString() : val)}`)
       this.setBalance(balance.balance, balance.symbol, ChainController.state.activeChain)

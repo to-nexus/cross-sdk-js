@@ -422,6 +422,7 @@ export namespace AdapterBlueprint {
     chainId: number | string
     caipNetwork?: CaipNetwork
     tokens?: Tokens
+    ignoreCache?: boolean
   }
 
   export type GetProfileParams = {
