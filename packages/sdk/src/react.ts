@@ -29,7 +29,7 @@ const ethersAdapter = new EthersAdapter()
 // Create modal
 const initCrossSdk = (projectId: string) => createAppKit({
   adapters: [ethersAdapter],
-  networks: [crossMainnet, ...networks],
+  networks: [crossTestnet, crossMainnet, ...networks],
   metadata: {
     name: 'Cross SDK',
     description: 'Cross SDK for React',
