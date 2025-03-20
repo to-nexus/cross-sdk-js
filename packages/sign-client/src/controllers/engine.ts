@@ -2145,12 +2145,15 @@ export class Engine extends IEngine {
     payload,
   ) => {
     const { id } = payload;
+    console.log(`onSessionDeleteRequest - id: ${id}`);
     try {
       this.isValidDisconnect({ topic, reason: payload.params });
+      console.log(`onSessionDeleteRequest - isValidDisconnect`);
       Promise.all([
         new Promise((resolve) => {
           // RPC request needs to happen before deletion as it utalises session encryption
           this.client.core.relayer.once(RELAYER_EVENTS.publish, async () => {
+            console.log(`onSessionDeleteRequest - resolve deleteSession`);
             resolve(await this.deleteSession({ topic, id }));
           });
         }),
@@ -2359,6 +2362,7 @@ export class Engine extends IEngine {
     topic: string;
     error: ErrorResponse;
   }) => {
+    console.log(`cleanupPendingSentRequestsForTopic - topic: ${topic}`);
     const pendingRequests = this.client.core.history.pending;
     if (pendingRequests.length > 0) {
       const forSession = pendingRequests.filter(
