@@ -329,6 +329,13 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
   }
 
+  public async signEIP712(
+    params: AdapterBlueprint.SignEIP712Params
+  ): Promise<AdapterBlueprint.SignEIP712Result> {
+
+    return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
+  }
+
   public async sendTransaction(
     params: AdapterBlueprint.SendTransactionParams
   ): Promise<AdapterBlueprint.SendTransactionResult> {

@@ -2,7 +2,6 @@
 import type { SessionTypes } from '@walletconnect/types'
 import UniversalProvider from '@cross-connect/universal-provider'
 import type { UniversalProviderOpts } from '@cross-connect/universal-provider'
-
 import {
   type CaipAddress,
   type CaipNetwork,
@@ -37,6 +36,7 @@ import {
   type RouterControllerState,
   type SdkVersion,
   type SendTransactionArgs,
+  type SignEIP712Args,
   type SocialProvider,
   type ThemeControllerState,
   type UseAppKitAccountReturn,
@@ -1037,6 +1037,16 @@ export class AppKit {
           address: AccountController.state.address as string,
           provider: ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace),
           customData: params.customData
+        })
+
+        return result?.signature || ''
+      },
+      signEIP712: async (args: SignEIP712Args) => {
+        const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
+        const result = await adapter?.signEIP712({
+          ...args,
+          caipNetwork: this.getCaipNetwork(),
+          provider: ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace),
         })
 
         return result?.signature || ''

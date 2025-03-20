@@ -12,6 +12,7 @@ import type {
   EstimateGasTransactionArgs,
   ReadContractArgs,
   SendTransactionArgs,
+  SignEIP712Args,
   WalletGetAssetsParams,
   WalletGetAssetsResponse,
   WcWallet,
@@ -38,6 +39,7 @@ export interface ConnectionControllerClient {
   connectWalletConnect?: () => Promise<void>
   disconnect: () => Promise<void>
   signMessage: (params: {message: string, customData?: CustomData}) => Promise<string>
+  signEIP712: (args: SignEIP712Args) => Promise<string>
   sendTransaction: (args: SendTransactionArgs) => Promise<{ hash: `0x${string}` } | null>
   estimateGas: (args: EstimateGasTransactionArgs) => Promise<bigint>
   parseUnits: (value: string, decimals: number) => bigint
@@ -175,6 +177,10 @@ export const ConnectionController = {
 
   async signMessage(params: {message: string, customData?: CustomData}) {
     return this._getClient()?.signMessage(params)
+  },
+
+  async signEIP712(args: SignEIP712Args) {
+    return this._getClient()?.signEIP712(args)
   },
 
   parseUnits(value: string, decimals: number) {

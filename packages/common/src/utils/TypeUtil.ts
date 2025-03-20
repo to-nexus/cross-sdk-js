@@ -35,7 +35,6 @@ export type AdapterType =
   | 'solana'
   | 'wagmi'
   | 'ethers'
-  | 'ethers5'
   | 'universal'
   | 'polkadot'
   | 'bip122'

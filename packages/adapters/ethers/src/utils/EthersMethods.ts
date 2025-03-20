@@ -4,11 +4,12 @@ import {
   Contract,
   InfuraProvider,
   JsonRpcSigner,
+  ethers,
   formatUnits,
   hexlify,
   isHexString,
   parseUnits,
-  toUtf8Bytes
+  toUtf8Bytes,
 } from 'ethers'
 
 import { WcHelpersUtil } from '@reown/appkit'
@@ -18,9 +19,11 @@ import type {
   Provider,
   ReadContractArgs,
   SendTransactionArgs,
+  SignEIP712Args,
   WriteContractArgs
 } from '@reown/appkit-core'
 import type { TransactionRequest } from 'ethers'
+import { getBigInt, toQuantity } from 'ethers/utils'
 
 async function pollingTx(hash: `0x${string}`, signer: JsonRpcSigner) {
   return await (new Promise((resolve: (hash: `0x${string}`) => void, reject: (error: Error) => void) => {
@@ -58,6 +61,62 @@ export const EthersMethods = {
     const signature = await provider.request({
       method: 'personal_sign',
       params: [hexMessage, address, customData]
+    })
+
+    return signature as `0x${string}`
+  },
+
+  signEIP712: async (
+    data: SignEIP712Args,
+    provider: Provider,
+    chainId: number
+  ) => {
+    if (!provider) {
+      throw new Error('signEIP712 - provider is undefined')
+    }
+
+    const { contractAddress, fromAddress, spenderAddress, value, abi, customData } = data
+
+    const browserProvider = new BrowserProvider(provider, chainId)
+    const signer = new JsonRpcSigner(browserProvider, fromAddress)
+    const contract = new Contract(contractAddress, abi, signer)
+    if (!contract) {
+      throw new Error('Contract method is undefined')
+    }
+    
+    const domain = {
+      name: contract['name'] ? await contract['name']() : '',
+      version: '1',
+      chainId: chainId,
+      verifyingContract: contractAddress
+    }
+
+    const types = {
+      Permit: [
+          { name: "owner", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+      ],
+    };
+
+    const nonce = contract['nonces'] ? await contract['nonces'](fromAddress) : 0
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 60  // after 1 hour
+
+    const message = {
+      owner: fromAddress,
+      spender: spenderAddress,
+      nonce: toQuantity(getBigInt(nonce)),
+      value: toQuantity(getBigInt(value)),
+      deadline: toQuantity(getBigInt(deadline))
+    }
+
+    console.log(`signEIP712 with hexSign: ${JSON.stringify(message)}`)
+
+    const signature = await provider.request({
+      method: 'eth_signTypedData_v4',
+      params: [message, customData]
     })
 
     return signature as `0x${string}`

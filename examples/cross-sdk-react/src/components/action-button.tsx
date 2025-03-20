@@ -11,9 +11,12 @@ import {
   useDisconnect,
 } from '@cross/sdk/react'
 
+import { Signature } from 'ethers'
+
 import type { WriteContractArgs, SendTransactionArgs } from '@cross/sdk/react'
 import { sampleErc20ABI } from '../contracts/sample-erc20';
 import { sampleErc721ABI } from '../contracts/sample-erc721';
+import { sampleEIP721 } from '../contracts/sample-eip721';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 }from "uuid";
 
@@ -81,6 +84,36 @@ export function ActionButtonList() {
     })
     alert(`signedMessage: ${signedMessage}`)
   }
+
+  // used for signing typed data with EIP712
+  async function handleSignEIP712() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    const PERMIT_CONTRACT_ADDRESS = '0xC95DEdAD3950A81B8AEF6fa4D28211bA37B4Ae21'
+    const PERMIT_SPENDER_ADDRESS = '0x920A31f0E48739C3FbB790D992b0690f7F5C42ea'
+    const PERMIT_VALUE = 1000000000000000000n
+    const PERMIT_ABI = sampleEIP721
+
+    const resSignedEIP712 = await ConnectionController.signEIP712({
+      contractAddress: PERMIT_CONTRACT_ADDRESS,
+      fromAddress: FROM_ADDRESS,
+      spenderAddress: PERMIT_SPENDER_ADDRESS,
+      value: PERMIT_VALUE,
+      abi: PERMIT_ABI
+    })
+
+    if (!resSignedEIP712) {
+      alert('resSignedEIP712 is undefined')
+      return
+    }
+
+    console.log(`resSignedEIP712: ${resSignedEIP712}`)
+    const signature = Signature.from(resSignedEIP712)
+    alert(`v: ${signature?.v}, r: ${signature?.r}, s: ${signature?.s}`)
+  } 
 
   // used for sending custom transaction
   async function handleSendTransaction() {
@@ -262,7 +295,10 @@ export function ActionButtonList() {
         <button onClick={handleSendNative}>Send 1 CROSS</button>
         <button onClick={handleSendERC20Token}>Send 1 ERC20</button>
         <button onClick={handleSendTransaction}>Send Custom Transaction</button>
-        <button onClick={handleSignMessage}>Sign Custom Message</button>
+      </div>
+      <div className="action-button-list" style={{marginTop: '10px'}}>
+        <button onClick={handleSignMessage}>Sign Message</button>
+        <button onClick={handleSignEIP712}>Sign EIP712</button>
       </div>
       <div className="action-button-list" style={{marginTop: '10px'}}>
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>

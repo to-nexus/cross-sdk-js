@@ -146,6 +146,13 @@ export class BitcoinAdapter extends AdapterBlueprint<BitcoinConnector> {
     return { signature }
   }
 
+  public async signEIP712(
+    params: AdapterBlueprint.SignEIP712Params
+  ): Promise<AdapterBlueprint.SignEIP712Result> {
+
+    return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
+  }
+
   public getWalletConnectProvider(
     params: AdapterBlueprint.GetWalletConnectProviderParams
   ): AdapterBlueprint.GetWalletConnectProviderResult {

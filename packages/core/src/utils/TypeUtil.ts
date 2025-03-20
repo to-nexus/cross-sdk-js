@@ -997,6 +997,16 @@ export type EstimateGasTransactionArgs =
       chainNamespace: 'solana'
     }
 
+export interface SignEIP712Args {
+  contractAddress: `0x${string}`;
+  fromAddress: `0x${string}`;
+  spenderAddress: `0x${string}`;
+  value: bigint;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  abi: any;
+  customData?: CustomData;
+}
+
 export interface WriteContractArgs {
   contractAddress: `0x${string}`
   fromAddress: `0x${string}`

@@ -148,6 +148,13 @@ export class SolanaAdapter extends AdapterBlueprint<SolanaProvider> {
     }
   }
 
+  public async signEIP712(
+    params: AdapterBlueprint.SignEIP712Params
+  ): Promise<AdapterBlueprint.SignEIP712Result> {
+
+    return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
+  }
+
   public async estimateGas(
     params: AdapterBlueprint.EstimateGasTransactionArgs
   ): Promise<AdapterBlueprint.EstimateGasTransactionResult> {

@@ -300,6 +300,15 @@ export abstract class AdapterBlueprint<
   ): Promise<AdapterBlueprint.SignMessageResult>
 
   /**
+   * Signs an EIP712 message with the connected wallet.
+   * @param {AdapterBlueprint.SignEIP712Params} params - Parameters including domain, types, message, and optional provider
+   * @returns {Promise<AdapterBlueprint.SignEIP712Result>} Object containing the signature
+   */
+  public abstract signEIP712(
+    params: AdapterBlueprint.SignEIP712Params
+  ): Promise<AdapterBlueprint.SignEIP712Result>
+
+  /**
    * Estimates gas for a transaction.
    * @param {AdapterBlueprint.EstimateGasTransactionArgs} params - Parameters including address, to, data, and optional provider
    * @returns {Promise<AdapterBlueprint.EstimateGasTransactionResult>} Object containing the gas estimate
@@ -462,6 +471,21 @@ export namespace AdapterBlueprint {
   }
 
   export type SignMessageResult = {
+    signature: string
+  }
+
+  export type SignEIP712Params = {
+    contractAddress: `0x${string}`
+    fromAddress: `0x${string}`
+    spenderAddress: `0x${string}`
+    value: bigint
+    abi: any
+    provider?: AppKitConnector['provider']
+    caipNetwork?: CaipNetwork
+    customData?: CustomData
+  } 
+
+  export type SignEIP712Result = {
     signature: string
   }
 

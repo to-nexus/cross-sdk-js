@@ -1,5 +1,5 @@
 import UniversalProvider from '@cross-connect/universal-provider'
-import { InfuraProvider, JsonRpcProvider, formatEther } from 'ethers'
+import { InfuraProvider, JsonRpcProvider, Signature, formatEther } from 'ethers'
 
 import { type AppKitOptions, WcConstantsUtil } from '@reown/appkit'
 import type { CaipNetwork } from '@reown/appkit-common'
@@ -124,6 +124,29 @@ export class EthersAdapter extends AdapterBlueprint {
     }
   }
 
+  public async signEIP712(
+    params: AdapterBlueprint.SignEIP712Params
+  ): Promise<AdapterBlueprint.SignEIP712Result> {
+    try {
+      const signature = await EthersMethods.signEIP712(
+        {
+          contractAddress: params.contractAddress,
+          fromAddress: params.fromAddress,
+          spenderAddress: params.spenderAddress,
+          value: params.value,
+          abi: params.abi,
+          customData: params.customData
+        },
+        params.provider as Provider,
+        Number(params.caipNetwork?.id)
+      )
+
+      return { signature }
+    } catch (error) {
+      throw new Error('EthersAdapter:signEIP712 - Sign EIP712 message failed')
+    }
+  }
+
   public async sendTransaction(
     params: AdapterBlueprint.SendTransactionParams
   ): Promise<AdapterBlueprint.SendTransactionResult> {
@@ -158,7 +181,15 @@ export class EthersAdapter extends AdapterBlueprint {
 
     const { address } = ParseUtil.parseCaipAddress(params.caipAddress)
     const result = await EthersMethods.writeContract(
-      params,
+      {
+        contractAddress: params.contractAddress,
+        fromAddress: params.fromAddress,
+        method: params.method,
+        abi: params.abi,
+        args: params.args,
+        customData: params.customData,
+        chainNamespace: params.caipNetwork?.chainNamespace
+      },
       params.provider as Provider,
       address,
       Number(params.caipNetwork?.id)

@@ -107,10 +107,18 @@ export class UniversalAdapter extends AdapterBlueprint {
     }
   }
 
+  public override async signEIP712(
+    params: AdapterBlueprint.SignEIP712Params
+  ): Promise<AdapterBlueprint.SignEIP712Result> {
+    return Promise.resolve({
+      signature: ''
+    })
+  }
+
   public override async signMessage(
     params: AdapterBlueprint.SignMessageParams
   ): Promise<AdapterBlueprint.SignMessageResult> {
-    const { provider, message, address } = params
+    const { provider, message, address, customData } = params
     if (!provider) {
       throw new Error('UniversalAdapter:signMessage - provider is undefined')
     }
@@ -134,7 +142,7 @@ export class UniversalAdapter extends AdapterBlueprint {
       signature = await provider.request(
         {
           method: 'personal_sign',
-          params: [message, address]
+          params: [message, address, customData]
         },
         ChainController.state.activeCaipNetwork?.caipNetworkId
       )
