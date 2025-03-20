@@ -102,7 +102,10 @@ export function ActionButtonList() {
       fromAddress: FROM_ADDRESS,
       spenderAddress: PERMIT_SPENDER_ADDRESS,
       value: PERMIT_VALUE,
-      abi: PERMIT_ABI
+      abi: PERMIT_ABI,
+      customData: {
+        metadata: "This is metadata for signed EIP712"
+      }
     })
 
     if (!resSignedEIP712) {

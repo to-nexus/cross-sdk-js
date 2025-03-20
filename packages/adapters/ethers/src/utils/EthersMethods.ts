@@ -116,7 +116,7 @@ export const EthersMethods = {
 
     const signature = await provider.request({
       method: 'eth_signTypedData_v4',
-      params: [message, customData]
+      params: [{domain, types, message}, customData]
     })
 
     return signature as `0x${string}`
