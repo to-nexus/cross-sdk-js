@@ -1654,7 +1654,6 @@ export class Engine extends IEngine {
       if (!this.initialized || this.relayMessageCache.length > 0) {
         this.relayMessageCache.push(event);
       } else {
-        console.log(`@cross-connect/sign-client: registerRelayerEvents - onRelayMessage`);
         this.onRelayMessage(event);
       }
     });
@@ -1675,6 +1674,7 @@ export class Engine extends IEngine {
     try {
       if (isJsonRpcRequest(payload)) {
         this.client.core.history.set(topic, payload);
+        console.log(`@cross-connect/sign-client: onRelayMessage - after set history`);
         this.onRelayEventRequest({
           topic,
           payload,
@@ -1695,11 +1695,13 @@ export class Engine extends IEngine {
   }
 
   private onRelayEventRequest: EnginePrivate["onRelayEventRequest"] = async (event) => {
+    console.log(`@cross-connect/sign-client: onRelayEventRequest`);
     this.requestQueue.queue.push(event);
     await this.processRequestsQueue();
   };
 
   private processRequestsQueue = async () => {
+    console.log(`@cross-connect/sign-client: processRequestsQueue`);
     if (this.requestQueue.state === ENGINE_QUEUE_STATES.active) {
       this.client.logger.info(`Request queue already active, skipping...`);
       return;
