@@ -1334,6 +1334,7 @@ export class Engine extends IEngine {
   };
 
   private deleteSession: EnginePrivate["deleteSession"] = async (params) => {
+    console.log(`deleteSession - params: ${JSON.stringify(params, (key, val) => typeof val === 'bigint' ? val.toString() : val)}`);
     const { topic, expirerHasDeleted = false, emitEvent = true, id = 0 } = params;
     const { self } = this.client.session.get(topic);
     // Await the unsubscribe first to avoid deleting the symKey too early below.
@@ -1361,6 +1362,7 @@ export class Engine extends IEngine {
     if (topic === this.sessionRequestQueue.queue[0]?.topic) {
       this.sessionRequestQueue.state = ENGINE_QUEUE_STATES.idle;
     }
+    console.log(`deleteSession - emitEvent? ${emitEvent}`);
     if (emitEvent) this.client.events.emit("session_delete", { id, topic });
   };
 
