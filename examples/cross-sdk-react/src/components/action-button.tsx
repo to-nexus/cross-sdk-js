@@ -1,5 +1,5 @@
 import {
-  mainnet, 
+  crossMainnet, 
   crossTestnet,
   AccountController,
   ConnectionController,
@@ -66,7 +66,9 @@ export function ActionButtonList() {
   }
 
   function handleSwitchNetwork() {
-    switchNetwork(crossTestnet)
+    const targetNetwork = import.meta.env['VITE_NODE_ENV'] === 'production' ? crossMainnet : crossTestnet
+    switchNetwork(targetNetwork)
+    alert(`Current network: ${targetNetwork.caipNetworkId}`)
   }
 
   // used for signing custom message

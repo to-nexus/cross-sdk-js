@@ -1328,13 +1328,13 @@ export class AppKit {
           : (`${user.chainId}:${user.address}` as CaipAddress)
       this.setSmartAccountDeployed(Boolean(user.smartAccountDeployed), namespace)
 
-      if (!HelpersUtil.isLowerCaseMatch(user.address, AccountController.state.address)) {
-        this.syncIdentity({
-          address: user.address,
-          chainId: user.chainId,
-          chainNamespace: namespace
-        })
-      }
+      // if (!HelpersUtil.isLowerCaseMatch(user.address, AccountController.state.address)) {
+      //   this.syncIdentity({
+      //     address: user.address,
+      //     chainId: user.chainId,
+      //     chainNamespace: namespace
+      //   })
+      // }
 
       this.setCaipAddress(caipAddress, namespace)
       this.setUser({ ...(AccountController.state.user || {}), email: user.email }, namespace)
@@ -1755,11 +1755,11 @@ export class AppKit {
       // Only update state when needed
       if (!HelpersUtil.isLowerCaseMatch(address, AccountController.state.address)) {
         this.setCaipAddress(`${chainNamespace}:${network?.id}:${address}`, chainNamespace)
-        await this.syncIdentity({
-          address,
-          chainId: network?.id as string | number,
-          chainNamespace
-        })
+        // await this.syncIdentity({
+        //   address,
+        //   chainId: network?.id as string | number,
+        //   chainNamespace
+        // })
       }
       await this.syncBalance({ address, chainId: network?.id, chainNamespace })
     }

@@ -1,5 +1,5 @@
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
-import { crossTestnet, mainnet } from '@reown/appkit/networks'
+import { crossTestnet, crossMainnet } from '@reown/appkit/networks'
 import {
   AccountController,
   SendController,
@@ -29,7 +29,7 @@ const ethersAdapter = new EthersAdapter()
 // Create modal
 const initCrossSdk = (projectId: string) => createAppKit({
   adapters: [ethersAdapter],
-  networks: [crossTestnet, ...networks],
+  networks: [crossMainnet, ...networks],
   metadata: {
     name: 'Cross SDK',
     description: 'Cross SDK for React',
@@ -74,6 +74,6 @@ export {
   SendController,
   AccountController,
   ConnectionController,
-  mainnet,
+  crossMainnet,
   crossTestnet
 }
