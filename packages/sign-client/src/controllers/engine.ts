@@ -1725,10 +1725,11 @@ export class Engine extends IEngine {
     const { topic, payload, attestation, transportType, encryptedId } = event;
 
     const reqMethod = payload.method as JsonRpcTypes.WcMethod;
-
+    console.log(`@cross-connect/sign-client: processRequest - reqMethod: ${reqMethod}`);
     if (this.shouldIgnorePairingRequest({ topic, requestMethod: reqMethod })) {
       return;
     }
+    console.log(`@cross-connect/sign-client: proceed`);
 
     switch (reqMethod) {
       case "wc_sessionPropose":
@@ -1742,6 +1743,7 @@ export class Engine extends IEngine {
       case "wc_sessionPing":
         return await this.onSessionPingRequest(topic, payload);
       case "wc_sessionDelete":
+        console.log(`@cross-connect/sign-client: reqMethod is wc_sessionDelete`);
         return await this.onSessionDeleteRequest(topic, payload);
       case "wc_sessionRequest":
         return await this.onSessionRequest({
