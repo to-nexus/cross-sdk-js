@@ -1649,10 +1649,12 @@ export class Engine extends IEngine {
 
   private registerRelayerEvents() {
     this.client.core.relayer.on(RELAYER_EVENTS.message, (event: RelayerTypes.MessageEvent) => {
+      console.log(`@cross-connect/sign-client: registerRelayerEvents - event: ${JSON.stringify(event)}`);
       // capture any messages that arrive before the client is initialized so we can process them after initialization is complete
       if (!this.initialized || this.relayMessageCache.length > 0) {
         this.relayMessageCache.push(event);
       } else {
+        console.log(`@cross-connect/sign-client: registerRelayerEvents - onRelayMessage`);
         this.onRelayMessage(event);
       }
     });
@@ -1660,7 +1662,7 @@ export class Engine extends IEngine {
 
   private async onRelayMessage(event: RelayerTypes.MessageEvent) {
     const { topic, message, attestation, transportType } = event;
-
+    console.log(`@cross-connect/sign-client: onRelayMessage - topic: ${topic}`);
     // Retrieve the public key (if defined) to decrypt possible `auth_request` response
     const { publicKey } = this.client.auth.authKeys.keys.includes(AUTH_PUBLIC_KEY_NAME)
       ? this.client.auth.authKeys.get(AUTH_PUBLIC_KEY_NAME)
