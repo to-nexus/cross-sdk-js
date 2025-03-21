@@ -74,4 +74,5 @@ WORKDIR /app
 COPY --from=builder /nexus/apps/cross-sdk-js/examples/cross-sdk-react/dist ./dist
 
 # 정적 파일 호스팅, 포트 3012
-CMD ["serve", "-s", "dist", "-l", "3012"]
+CMD ["serve", "-s", "dist", "-l", "0.0.0.0:3012"]
+
