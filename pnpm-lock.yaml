@@ -725,63 +725,24 @@ importers:
       '@reown/appkit':
         specifier: workspace:*
         version: link:../appkit
-      '@reown/appkit-adapter-bitcoin':
-        specifier: workspace:*
-        version: link:../adapters/bitcoin
       '@reown/appkit-adapter-ethers':
         specifier: workspace:*
         version: link:../adapters/ethers
-      '@reown/appkit-adapter-polkadot':
-        specifier: workspace:*
-        version: link:../adapters/polkadot
-      '@reown/appkit-adapter-solana':
-        specifier: workspace:*
-        version: link:../adapters/solana
-      '@reown/appkit-adapter-wagmi':
-        specifier: workspace:*
-        version: link:../adapters/wagmi
-      '@reown/appkit-cdn':
-        specifier: workspace:*
-        version: link:../cdn
-      '@reown/appkit-cli':
-        specifier: workspace:*
-        version: link:../cli
       '@reown/appkit-common':
         specifier: workspace:*
         version: link:../common
       '@reown/appkit-core':
         specifier: workspace:*
         version: link:../core
-      '@reown/appkit-experimental':
-        specifier: workspace:*
-        version: link:../experimental
-      '@reown/appkit-polyfills':
-        specifier: workspace:*
-        version: link:../polyfills
       '@reown/appkit-scaffold-ui':
         specifier: workspace:*
         version: link:../scaffold-ui
-      '@reown/appkit-siwe':
-        specifier: workspace:*
-        version: link:../siwe
-      '@reown/appkit-siwx':
-        specifier: workspace:*
-        version: link:../siwx
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../ui
-      '@reown/appkit-ui-new':
-        specifier: workspace:*
-        version: link:../ui-new
-      '@reown/appkit-utils':
-        specifier: workspace:*
-        version: link:../appkit-utils
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
-      '@reown/appkit-wallet-button':
-        specifier: workspace:*
-        version: link:../wallet-button
       '@to-nexus/universal-provider':
         specifier: ^2.19.0
         version: 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
