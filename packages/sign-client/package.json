@@ -3,7 +3,7 @@
   "description": "Sign Client for Cross Connect Protocol",
   "version": "2.19.0",
   "author": "Nexus",
-  "homepage": "https://https://github.com/to-nexus/cross-connect",
+  "homepage": "https://github.com/to-nexus/cross-connect",
   "license": "Apache-2.0",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
