@@ -24,12 +24,6 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 9.5.0
-      - name: Configure NPM Auth
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
-          echo "@to-nexus:registry=https://npm.pkg.github.com" >> .npmrc
-          echo "registry=https://npm.pkg.github.com" >> .npmrc
-
       - name: Install dependencies
         run: |
           pnpm config set @to-nexus:registry https://npm.pkg.github.com/
