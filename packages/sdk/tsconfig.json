@@ -3,8 +3,15 @@
     "composite": true,
     "outDir": "./dist/esm",
     "declarationDir": "./dist/types",
-    "removeComments": false
+    "removeComments": false,
+    "baseUrl": ".",
+    "rootDir": "../../packages",
+    "paths": {
+      "@reown/appkit": ["../appkit/exports"],
+      "@reown/appkit/*": ["../appkit/exports/*"],
+      "@reown/appkit-adapter-ethers": ["../adapters/ethers/src"],
+    }
   },
   "extends": "../../tsconfig.json",
-  "include": ["exports", "src", "package.json"]
+  "include": ["exports", "src", "package.json", "../appkit/exports/react.ts", "../adapters/ethers/src/index.ts"]
 }
