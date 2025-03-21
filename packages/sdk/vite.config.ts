@@ -6,12 +6,9 @@ export default defineConfig({
   plugins: [react()],
   build: {
     lib: {
-      entry: {
-        index: resolve(__dirname, 'src/index.ts'),
-        react: resolve(__dirname, 'src/react.ts'),
-      },
+      entry: resolve(__dirname, 'src/react.ts'),
       formats: ['es'],
-      fileName: (format, entryName) => `${entryName}.js`,
+      fileName: (format) => 'react.js',
     },
     rollupOptions: {
       external: [
