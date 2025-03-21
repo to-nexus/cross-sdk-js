@@ -1,0 +1,80 @@
+name: build-image
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  build_image:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Get Service Name
+        id: env
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${{ inputs.environment }}/${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Dcocker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # - name: Debug Build
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.READ_ONLY_REPO }}
+      #   run: |
+      #     echo "$GITHUB_TOKEN" > ./github_token
+      #     docker build \
+      #       --secret id=github_token,src=./github_token \
+      #       --build-arg SERVICE_NAME=${{steps.env.outputs.SERVICE_NAME }} \
+      #       --build-arg WORKDIR="/nexus/apps/${{steps.env.outputs.SERVICE_NAME }}" \
+      #       --no-cache \
+      #       .
+
+      - name: Build API
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{steps.env.outputs.ECR_REPO }}:${{steps.env.outputs.GIT_SHA }},${{ steps.login-ecr.outputs.registry }}/${{steps.env.outputs.ECR_REPO }}:latest
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+      # - name: Send release announcement to Slack workflow
+      #   id: slack
+      #   uses: slackapi/slack-github-action@v1.24.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "release-version": "${{ env.RELEASE_VERSION }}",
+      #         "release-link": "https://github.com/blockscout/blockscout/releases/tag/v${{ env.RELEASE_VERSION }}"
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
