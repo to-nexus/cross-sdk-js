@@ -1,8 +1,8 @@
 {
   "name": "@to-nexus/sdk",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
-  "main": "./dist/esm/exports/index.js",
+  "main": "./dist/esm/index.js",
   "types": "./dist/types/exports/index.d.ts",
   "files": [
     "dist",
@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
-    "build": "vite build",
+    "build": "vite build && tsc --emitDeclarationOnly --declaration --outDir dist/types",
     "watch": "tsc --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
@@ -18,13 +18,13 @@
   "exports": {
     ".": {
       "types": "./dist/types/exports/index.d.ts",
-      "import": "./dist/esm/exports/index.js",
-      "default": "./dist/esm/exports/index.js"
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
     },
     "./react": {
       "types": "./dist/types/exports/react.d.ts",
-      "import": "./dist/esm/exports/react.js",
-      "default": "./dist/esm/exports/react.js"
+      "import": "./dist/esm/react.js",
+      "default": "./dist/esm/react.js"
     }
   },
   "typesVersions": {
@@ -33,6 +33,40 @@
         "./dist/types/exports/react.d.ts"
       ]
     }
+  },
+  "dependencies": {
+    "@reown/appkit": "workspace:*",
+    "@reown/appkit-adapter-ethers": "workspace:*",
+    "@reown/appkit-adapter-bitcoin": "workspace:*",
+    "@reown/appkit-adapter-polkadot": "workspace:*",
+    "@reown/appkit-adapter-solana": "workspace:*",
+    "@reown/appkit-adapter-wagmi": "workspace:*",
+    "@reown/appkit-cdn": "workspace:*",
+    "@reown/appkit-cli": "workspace:*",
+    "@reown/appkit-common": "workspace:*",
+    "@reown/appkit-core": "workspace:*",
+    "@reown/appkit-experimental": "workspace:*",
+    "@reown/appkit-polyfills": "workspace:*",
+    "@reown/appkit-scaffold-ui": "workspace:*",
+    "@reown/appkit-siwe": "workspace:*",
+    "@reown/appkit-siwx": "workspace:*",
+    "@reown/appkit-ui": "workspace:*",
+    "@reown/appkit-ui-new": "workspace:*",
+    "@reown/appkit-utils": "workspace:*",
+    "@reown/appkit-wallet": "workspace:*",
+    "@reown/appkit-wallet-button": "workspace:*",
+    "vite": "5.4.12",
+    "valtio": "^1.10.5",
+    "big.js": "^6.2.1",
+    "viem": "^1.19.9",
+    "@walletconnect/logger": "^2.0.1",
+    "dayjs": "^1.11.10",
+    "zod": "^3.22.4",
+    "bs58": "^5.0.0",
+    "lit": "^3.0.0",
+    "qrcode": "^1.5.3",
+    "@coinbase/wallet-sdk": "^3.7.1",
+    "@to-nexus/universal-provider": "^2.19.0"
   },
   "peerDependencies": {
     "ethers": "^6.13.0",

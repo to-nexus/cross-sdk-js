@@ -1,17 +1,60 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "outDir": "./dist/esm",
-    "declarationDir": "./dist/types",
+    "outDir": "./dist/types",
+    "declaration": true,
     "removeComments": false,
     "baseUrl": ".",
-    "rootDir": "../../packages",
     "paths": {
-      "@reown/appkit": ["../appkit/exports"],
-      "@reown/appkit/*": ["../appkit/exports/*"],
-      "@reown/appkit-adapter-ethers": ["../adapters/ethers/src"],
+      "@reown/appkit": ["../appkit"],
+      "@reown/appkit/*": ["../appkit/*"],
+      "@reown/appkit-adapter-ethers": ["../appkit-adapter-ethers"],
+      "@reown/appkit-adapter-ethers/*": ["../appkit-adapter-ethers/*"],
+      "@reown/appkit-adapter-bitcoin": ["../appkit-adapter-bitcoin"],
+      "@reown/appkit-adapter-bitcoin/*": ["../appkit-adapter-bitcoin/*"],
+      "@reown/appkit-adapter-polkadot": ["../appkit-adapter-polkadot"],
+      "@reown/appkit-adapter-polkadot/*": ["../appkit-adapter-polkadot/*"],
+      "@reown/appkit-adapter-solana": ["../appkit-adapter-solana"],
+      "@reown/appkit-adapter-solana/*": ["../appkit-adapter-solana/*"],
+      "@reown/appkit-adapter-wagmi": ["../appkit-adapter-wagmi"],
+      "@reown/appkit-adapter-wagmi/*": ["../appkit-adapter-wagmi/*"],
+      "@reown/appkit-cdn": ["../appkit-cdn"],
+      "@reown/appkit-cdn/*": ["../appkit-cdn/*"],
+      "@reown/appkit-cli": ["../appkit-cli"],
+      "@reown/appkit-cli/*": ["../appkit-cli/*"],
+      "@reown/appkit-common": ["../appkit-common"],
+      "@reown/appkit-common/*": ["../appkit-common/*"],
+      "@reown/appkit-core": ["../appkit-core"],
+      "@reown/appkit-core/*": ["../appkit-core/*"],
+      "@reown/appkit-experimental": ["../appkit-experimental"],
+      "@reown/appkit-experimental/*": ["../appkit-experimental/*"],
+      "@reown/appkit-polyfills": ["../appkit-polyfills"],
+      "@reown/appkit-polyfills/*": ["../appkit-polyfills/*"],
+      "@reown/appkit-scaffold-ui": ["../appkit-scaffold-ui"],
+      "@reown/appkit-scaffold-ui/*": ["../appkit-scaffold-ui/*"],
+      "@reown/appkit-siwe": ["../appkit-siwe"],
+      "@reown/appkit-siwe/*": ["../appkit-siwe/*"],
+      "@reown/appkit-siwx": ["../appkit-siwx"],
+      "@reown/appkit-siwx/*": ["../appkit-siwx/*"],
+      "@reown/appkit-ui": ["../appkit-ui"],
+      "@reown/appkit-ui/*": ["../appkit-ui/*"],
+      "@reown/appkit-ui-new": ["../appkit-ui-new"],
+      "@reown/appkit-ui-new/*": ["../appkit-ui-new/*"],
+      "@reown/appkit-utils": ["../appkit-utils"],
+      "@reown/appkit-utils/*": ["../appkit-utils/*"],
+      "@reown/appkit-wallet": ["../appkit-wallet"],
+      "@reown/appkit-wallet/*": ["../appkit-wallet/*"],
+      "@reown/appkit-wallet-button": ["../appkit-wallet-button"],
+      "@reown/appkit-wallet-button/*": ["../appkit-wallet-button/*"]
     }
   },
-  "extends": "../../tsconfig.json",
-  "include": ["exports", "src", "package.json", "../appkit/exports/react.ts", "../adapters/ethers/src/index.ts"]
+  "include": [
+    "exports",
+    "src",
+    "package.json"
+  ],
+  "references": [
+    { "path": "../appkit" }
+  ]
 }

@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
@@ -10,4 +11,25 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
+  resolve: {
+    alias: [
+      {
+      // SDK 패키지의 서브패스를 직접 파일 경로로 매핑
+        find: /^@to-nexus\/sdk\/react$/,
+        replacement: path.resolve(__dirname, '../../packages/sdk/dist/esm/react.js')
+      },
+      {
+        find: /^@to-nexus\/sdk$/,
+        replacement: path.resolve(__dirname, '../../packages/sdk/dist/esm/index.js')
+      }
+    ]
+  },
+  // optimizeDeps 설정 제거 (문제의 원인일 수 있음)
+  server: {
+    // 필요한 경우 HMR 관련 설정 추가
+    hmr: {
+      // 워크스페이스 패키지의 변경 사항을 감지하도록 설정
+      clientPort: 3012
+    }
+  }
 })
