@@ -19,6 +19,7 @@ jobs:
           node-version: "20.x"
           registry-url: "https://npm.pkg.github.com"
           scope: "@to-nexus"
+          always-auth: true
       - name: Install dependencies
         run: npm install
       - name: Build packages
