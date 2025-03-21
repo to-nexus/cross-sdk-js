@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -34,17 +34,18 @@
       ]
     }
   },
-  "dependencies": {
-    "@reown/appkit": "workspace:*",
-    "@reown/appkit-adapter-ethers": "workspace:*",
-    "ethers": "6.13.2",
-    "react": "19.0.0",
-    "react-dom": "19.0.0"
+  "peerDependencies": {
+    "ethers": "^6.13.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vitejs/plugin-react": "4.2.1",
-    "vite": "5.4.12"
+    "vite": "5.4.12",
+    "ethers": "6.13.2",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   }
 }

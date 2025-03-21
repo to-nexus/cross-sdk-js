@@ -718,22 +718,6 @@ importers:
         version: 2.1.9(@types/node@22.13.4)(@vitest/ui@2.1.8)(happy-dom@15.11.7)(jsdom@24.1.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   packages/sdk:
-    dependencies:
-      '@reown/appkit':
-        specifier: workspace:*
-        version: link:../appkit
-      '@reown/appkit-adapter-ethers':
-        specifier: workspace:*
-        version: link:../adapters/ethers
-      ethers:
-        specifier: 6.13.2
-        version: 6.13.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      react:
-        specifier: 19.0.0
-        version: 19.0.0
-      react-dom:
-        specifier: 19.0.0
-        version: 19.0.0(react@19.0.0)
     devDependencies:
       '@types/react':
         specifier: 19.0.0
@@ -744,6 +728,15 @@ importers:
       '@vitejs/plugin-react':
         specifier: 4.2.1
         version: 4.2.1(vite@5.4.12(@types/node@22.13.4))
+      ethers:
+        specifier: 6.13.2
+        version: 6.13.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      react:
+        specifier: 19.0.0
+        version: 19.0.0
+      react-dom:
+        specifier: 19.0.0
+        version: 19.0.0(react@19.0.0)
       vite:
         specifier: 5.4.12
         version: 5.4.12(@types/node@22.13.4)
