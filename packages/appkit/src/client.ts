@@ -1124,6 +1124,8 @@ export class AppKit {
           throw new Error('CaipNetwork or CaipAddress is undefined')
         }
 
+        console.log(`caipNetwork: ${JSON.stringify(caipNetwork, null, 2)}`)
+
         const result = await adapter?.writeContract({ ...args, caipNetwork, provider, caipAddress })
         console.log('Appkit writeContract result', JSON.stringify(result, null, 2))
         return result ? { hash: result?.hash as `0x${string}` } : null
