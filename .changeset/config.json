@@ -1,7 +1,11 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
-  "changelog": ["@changesets/changelog-github", 
-  { "repo": "reown-com/appkit" }],
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "reown-com/appkit"
+    }
+  ],
   "commit": false,
   "fixed": [],
   "linked": [],
@@ -9,9 +13,7 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@examples/*",
-    "@apps/*",
-    "@apps/browser-extension",
+    "@to-nexus/sdk-example-react",
     "@reown/appkit-adapter-polkadot",
     "@reown/appkit-ui-new"
   ]
