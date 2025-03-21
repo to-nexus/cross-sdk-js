@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/sdk",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -52,7 +52,6 @@
     "bs58": "^5.0.0",
     "lit": "^3.0.0",
     "qrcode": "^1.5.3",
-    "@coinbase/wallet-sdk": "^3.7.1",
     "@to-nexus/universal-provider": "^2.19.0"
   },
   "peerDependencies": {

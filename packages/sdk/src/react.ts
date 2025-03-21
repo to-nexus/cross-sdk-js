@@ -50,6 +50,7 @@ const initCrossSdk = (projectId: string) => createAppKit({
     analytics: false,
     legalCheckbox: false
   },
+  enableCoinbase: false,
   customWallets: [
     {
       id: "cross_wallet",
