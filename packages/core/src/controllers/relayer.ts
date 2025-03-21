@@ -536,7 +536,6 @@ export class Relayer extends IRelayer {
       this.logger.trace({ type: "event", event: event.id, ...messageEvent });
       this.events.emit(event.id, messageEvent);
       await this.acknowledgePayload(payload);
-      console.log(`@cross-connect/core: onProviderPayload - try to onMessageEvent`);
       await this.onMessageEvent(messageEvent);
     } else if (isJsonRpcResponse(payload)) {
       this.events.emit(RELAYER_EVENTS.message_ack, payload);
@@ -548,7 +547,6 @@ export class Relayer extends IRelayer {
       return;
     }
     this.events.emit(RELAYER_EVENTS.message, messageEvent);
-    console.log(`@cross-connect/core: onMessageEvent - messageEvent: ${JSON.stringify(messageEvent)}`);
     await this.recordMessageEvent(messageEvent);
   }
 

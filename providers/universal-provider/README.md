@@ -12,12 +12,12 @@ import UniversalProvider from "@cross-connect/universal-provider";
 const provider = await UniversalProvider.init({
   logger: "info",
   relayUrl: "ws://<relay-url>",
-  projectId: "12345678",
+  projectId: "<YOUR-PROJECT-ID>",
   metadata: {
     name: "React App",
     description: "React App for Cross Connect",
     url: "https://github.com/to-nexus/cross-connect",
-    icons: ["https://avatars.githubusercontent.com/u/37784886"],
+    icons: ["https://dev-contents.crossops.in/wallet/token/images/CROSSx.svg"],
   },
   client: undefined, // optional instance of @cross-connect/sign-client
 });

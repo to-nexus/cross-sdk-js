@@ -1334,7 +1334,6 @@ export class Engine extends IEngine {
   };
 
   private deleteSession: EnginePrivate["deleteSession"] = async (params) => {
-    console.log(`deleteSession - params: ${JSON.stringify(params, (key, val) => typeof val === 'bigint' ? val.toString() : val)}`);
     const { topic, expirerHasDeleted = false, emitEvent = true, id = 0 } = params;
     const { self } = this.client.session.get(topic);
     // Await the unsubscribe first to avoid deleting the symKey too early below.
@@ -1362,7 +1361,6 @@ export class Engine extends IEngine {
     if (topic === this.sessionRequestQueue.queue[0]?.topic) {
       this.sessionRequestQueue.state = ENGINE_QUEUE_STATES.idle;
     }
-    console.log(`deleteSession - emitEvent? ${emitEvent}`);
     if (emitEvent) this.client.events.emit("session_delete", { id, topic });
   };
 
@@ -1649,7 +1647,6 @@ export class Engine extends IEngine {
 
   private registerRelayerEvents() {
     this.client.core.relayer.on(RELAYER_EVENTS.message, (event: RelayerTypes.MessageEvent) => {
-      console.log(`@cross-connect/sign-client: registerRelayerEvents - event: ${JSON.stringify(event)}`);
       // capture any messages that arrive before the client is initialized so we can process them after initialization is complete
       if (!this.initialized || this.relayMessageCache.length > 0) {
         this.relayMessageCache.push(event);
@@ -1661,7 +1658,6 @@ export class Engine extends IEngine {
 
   private async onRelayMessage(event: RelayerTypes.MessageEvent) {
     const { topic, message, attestation, transportType } = event;
-    console.log(`@cross-connect/sign-client: onRelayMessage - topic: ${topic}`);
     // Retrieve the public key (if defined) to decrypt possible `auth_request` response
     const { publicKey } = this.client.auth.authKeys.keys.includes(AUTH_PUBLIC_KEY_NAME)
       ? this.client.auth.authKeys.get(AUTH_PUBLIC_KEY_NAME)
@@ -1674,7 +1670,6 @@ export class Engine extends IEngine {
     try {
       if (isJsonRpcRequest(payload)) {
         this.client.core.history.set(topic, payload);
-        console.log(`@cross-connect/sign-client: onRelayMessage - after set history`);
         this.onRelayEventRequest({
           topic,
           payload,
@@ -1695,13 +1690,11 @@ export class Engine extends IEngine {
   }
 
   private onRelayEventRequest: EnginePrivate["onRelayEventRequest"] = async (event) => {
-    console.log(`@cross-connect/sign-client: onRelayEventRequest`);
     this.requestQueue.queue.push(event);
     await this.processRequestsQueue();
   };
 
   private processRequestsQueue = async () => {
-    console.log(`@cross-connect/sign-client: processRequestsQueue`);
     if (this.requestQueue.state === ENGINE_QUEUE_STATES.active) {
       this.client.logger.info(`Request queue already active, skipping...`);
       return;
@@ -1729,11 +1722,9 @@ export class Engine extends IEngine {
     const { topic, payload, attestation, transportType, encryptedId } = event;
 
     const reqMethod = payload.method as JsonRpcTypes.WcMethod;
-    console.log(`@cross-connect/sign-client: processRequest - reqMethod: ${reqMethod}`);
     if (this.shouldIgnorePairingRequest({ topic, requestMethod: reqMethod })) {
       return;
     }
-    console.log(`@cross-connect/sign-client: proceed`);
 
     switch (reqMethod) {
       case "wc_sessionPropose":
@@ -1747,7 +1738,6 @@ export class Engine extends IEngine {
       case "wc_sessionPing":
         return await this.onSessionPingRequest(topic, payload);
       case "wc_sessionDelete":
-        console.log(`@cross-connect/sign-client: reqMethod is wc_sessionDelete`);
         return await this.onSessionDeleteRequest(topic, payload);
       case "wc_sessionRequest":
         return await this.onSessionRequest({
@@ -2151,15 +2141,12 @@ export class Engine extends IEngine {
     payload,
   ) => {
     const { id } = payload;
-    console.log(`onSessionDeleteRequest - id: ${id}`);
     try {
       this.isValidDisconnect({ topic, reason: payload.params });
-      console.log(`onSessionDeleteRequest - isValidDisconnect`);
       Promise.all([
         new Promise((resolve) => {
           // RPC request needs to happen before deletion as it utalises session encryption
           this.client.core.relayer.once(RELAYER_EVENTS.publish, async () => {
-            console.log(`onSessionDeleteRequest - resolve deleteSession`);
             resolve(await this.deleteSession({ topic, id }));
           });
         }),
@@ -2368,7 +2355,6 @@ export class Engine extends IEngine {
     topic: string;
     error: ErrorResponse;
   }) => {
-    console.log(`cleanupPendingSentRequestsForTopic - topic: ${topic}`);
     const pendingRequests = this.client.core.history.pending;
     if (pendingRequests.length > 0) {
       const forSession = pendingRequests.filter(
