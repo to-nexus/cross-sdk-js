@@ -2,43 +2,38 @@
   "name": "@to-nexus/sdk",
   "version": "1.0.1",
   "type": "module",
-  "main": "./dist/esm/exports/index.js",
-  "types": "./dist/types/exports/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "!tsconfig.tsbuildinfo"
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
-    "build": "tsc --build tsconfig.build.json",
-    "watch": "tsc --watch",
+    "build": "vite build",
+    "watch": "vite build --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "exports": {
     ".": {
-      "types": "./dist/types/exports/index.d.ts",
-      "import": "./dist/esm/exports/index.js",
-      "default": "./dist/esm/exports/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./react": {
-      "types": "./dist/types/exports/react.d.ts",
-      "import": "./dist/esm/exports/react.js",
-      "default": "./dist/esm/exports/react.js"
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js",
+      "default": "./dist/react.js"
     }
   },
   "typesVersions": {
     "*": {
       "react": [
-        "./dist/types/exports/react.d.ts"
+        "./dist/react.d.ts"
       ]
     }
-  },
-  "dependencies": {
-    "@reown/appkit": "^1.0.0",
-    "@reown/appkit-adapter-ethers": "^1.0.0",
-    "@reown/appkit/networks": "^1.0.0",
-    "@reown/appkit/react": "^1.0.0"
   },
   "peerDependencies": {
     "ethers": "^6.13.0",
