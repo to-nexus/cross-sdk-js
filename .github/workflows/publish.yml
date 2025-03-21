@@ -29,12 +29,7 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
           echo "@to-nexus:registry=https://npm.pkg.github.com" >> .npmrc
           echo "registry=https://npm.pkg.github.com" >> .npmrc
-      - name: Update pnpm-lock.yaml
-        run: |
-          sed -i 's/@cross\/sdk/@to-nexus\/sdk/g' pnpm-lock.yaml
-          sed -i 's/@cross-connect\/universal-provider/@to-nexus\/universal-provider/g' pnpm-lock.yaml
-          sed -i 's/@cross-connect\/core/@to-nexus\/core/g' pnpm-lock.yaml
-          sed -i 's/@cross-connect\/sign-client/@to-nexus\/sign-client/g' pnpm-lock.yaml
+
       - name: Install dependencies
         run: |
           pnpm config set @to-nexus:registry https://npm.pkg.github.com/
