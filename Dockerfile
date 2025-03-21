@@ -58,7 +58,7 @@ RUN npm run build
 
 WORKDIR $WORKDIR/examples/cross-sdk-react
 RUN echo "$VITE_PROJECT_ID" > .env
-
+RUN pnpm i
 RUN npm run build
 
 
@@ -71,7 +71,7 @@ RUN npm install -g serve
 WORKDIR /app
 
 # 빌드 결과만 복사
-COPY --from=builder /nexus/apps/${SERVICE_NAME}/examples/cross-sdk-react/dist ./dist
+COPY --from=builder /nexus/apps/cross-sdk-js/examples/cross-sdk-react/dist ./dist
 
 # 정적 파일 호스팅, 포트 3012
 CMD ["serve", "-s", "dist", "-l", "3012"]
