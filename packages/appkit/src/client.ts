@@ -1,7 +1,7 @@
 /* eslint-disable max-depth */
 import type { SessionTypes } from '@walletconnect/types'
-import UniversalProvider from '@cross-connect/universal-provider'
-import type { UniversalProviderOpts } from '@cross-connect/universal-provider'
+import UniversalProvider from '@to-nexus/universal-provider'
+import type { UniversalProviderOpts } from '@to-nexus/universal-provider'
 import {
   type CaipAddress,
   type CaipNetwork,

@@ -1,7 +1,7 @@
 import type { BaseWalletAdapter } from '@solana/wallet-adapter-base'
 import type { Commitment, ConnectionConfig } from '@solana/web3.js'
 import { Connection, PublicKey } from '@solana/web3.js'
-import UniversalProvider from '@cross-connect/universal-provider'
+import UniversalProvider from '@to-nexus/universal-provider'
 import bs58 from 'bs58'
 
 import { type AppKit, type AppKitOptions } from '@reown/appkit'

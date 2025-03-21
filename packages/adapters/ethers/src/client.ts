@@ -1,4 +1,4 @@
-import UniversalProvider from '@cross-connect/universal-provider'
+import UniversalProvider from '@to-nexus/universal-provider'
 import { InfuraProvider, JsonRpcProvider, Signature, formatEther } from 'ethers'
 
 import { type AppKitOptions, WcConstantsUtil } from '@reown/appkit'

@@ -102,7 +102,7 @@
     }
   },
   "dependencies": {
-    "@cross-connect/universal-provider": "2.19.3",
+    "@to-nexus/universal-provider": "2.19.0",
     "@reown/appkit-common": "workspace:*",
     "@reown/appkit-core": "workspace:*",
     "@reown/appkit-polyfills": "workspace:*",
@@ -117,7 +117,7 @@
     "viem": ">=2.23.0"
   },
   "devDependencies": {
-    "@cross-connect/universal-provider": "2.19.3",
+    "@to-nexus/universal-provider": "2.19.0",
     "@reown/appkit-siwe": "workspace:*",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",

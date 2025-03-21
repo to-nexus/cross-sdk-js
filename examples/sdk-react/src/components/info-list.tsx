@@ -2,7 +2,7 @@ import {
   useAppKitAccount,
   useAppKitNetwork,
   useAppKitState,
-} from '@cross/sdk/react'
+} from '@to-nexus/sdk/react'
 
 export function InfoList() {
   const accountState = useAppKitAccount()

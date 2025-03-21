@@ -1,4 +1,4 @@
-import { useAppKitAccount, AccountController, ConnectionController } from '@cross/sdk/react'
+import { useAppKitAccount, AccountController, ConnectionController } from '@to-nexus/sdk/react'
 import { useEffect, useState } from 'react';
 
 export function AccountInfo() {

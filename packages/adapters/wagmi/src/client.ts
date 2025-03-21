@@ -27,7 +27,7 @@ import {
   watchPendingTransactions
 } from '@wagmi/core'
 import { type Chain } from '@wagmi/core/chains'
-import type UniversalProvider from '@cross-connect/universal-provider'
+import type UniversalProvider from '@to-nexus/universal-provider'
 import {
   type GetEnsAddressReturnType,
   type Hex,

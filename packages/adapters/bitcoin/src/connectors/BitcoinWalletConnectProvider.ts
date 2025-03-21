@@ -1,4 +1,4 @@
-import UniversalProvider from '@cross-connect/universal-provider'
+import UniversalProvider from '@to-nexus/universal-provider'
 
 import { type RequestArguments, WcHelpersUtil } from '@reown/appkit'
 import type { CaipNetwork } from '@reown/appkit-common'

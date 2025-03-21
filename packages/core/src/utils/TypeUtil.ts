@@ -1,4 +1,4 @@
-import type UniversalProvider from '@cross-connect/universal-provider'
+import type UniversalProvider from '@to-nexus/universal-provider'
 
 import type {
   AdapterType,

@@ -6,7 +6,7 @@ import {
   ProviderNotFoundError,
   createConnector
 } from '@wagmi/core'
-import { type UniversalProvider as UniversalProviderType } from '@cross-connect/universal-provider'
+import { type UniversalProvider as UniversalProviderType } from '@to-nexus/universal-provider'
 import {
   type AddEthereumChainParameter,
   type Address,

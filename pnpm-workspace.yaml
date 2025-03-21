@@ -14,7 +14,7 @@ packages:
   - 'packages/wallet-button'
   - 'packages/experimental'
   - 'packages/cli'
-  - 'examples/cross-sdk-react'
+  - 'examples/sdk-react'
   - 'packages/ui-new'
   - 'packages/appkit-new'
   - 'packages/cdn'

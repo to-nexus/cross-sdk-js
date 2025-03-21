@@ -1,5 +1,5 @@
 {
-  "name": "@examples/cross-sdk-react",
+  "name": "@to-nexus/sdk-example-react",
   "private": true,
   "version": "1.0.0",
   "scripts": {
@@ -7,7 +7,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@cross/sdk": "workspace:*",
+    "@to-nexus/sdk": "workspace:*",
     "ethers": "6.13.2",
     "react": "19.0.0",
     "react-dom": "19.0.0",

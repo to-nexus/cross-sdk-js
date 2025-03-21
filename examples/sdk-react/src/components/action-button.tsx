@@ -9,11 +9,11 @@ import {
   useAppKitAccount,
   useAppKitNetwork,
   useDisconnect,
-} from '@cross/sdk/react'
+} from '@to-nexus/sdk/react'
 
 import { Signature } from 'ethers'
 
-import type { WriteContractArgs, SendTransactionArgs } from '@cross/sdk/react'
+import type { WriteContractArgs, SendTransactionArgs } from '@to-nexus/sdk/react'
 import { sampleErc20ABI } from '../contracts/sample-erc20';
 import { sampleErc721ABI } from '../contracts/sample-erc721';
 import { sampleEIP721 } from '../contracts/sample-eip721';

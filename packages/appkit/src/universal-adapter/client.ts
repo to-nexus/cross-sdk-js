@@ -1,4 +1,4 @@
-import type UniversalProvider from '@cross-connect/universal-provider'
+import type UniversalProvider from '@to-nexus/universal-provider'
 import bs58 from 'bs58'
 import { toHex } from 'viem'
 
