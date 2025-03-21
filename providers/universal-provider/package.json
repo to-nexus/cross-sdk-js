@@ -24,6 +24,10 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
   "keywords": [
     "wallet",
     "cross-connect"
