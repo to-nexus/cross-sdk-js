@@ -21,8 +21,6 @@ jobs:
           scope: "@to-nexus"
       - name: Install dependencies
         run: npm install
-      - name: Version up
-        run: npx lerna version patch --yes --no-git-tag-version --no-push
       - name: Build packages
         run: npm run build
       - name: Publish package on NPM 📦
