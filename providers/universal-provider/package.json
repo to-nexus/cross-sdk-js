@@ -1,7 +1,7 @@
 {
-  "name": "@cross-connect/universal-provider",
+  "name": "@cross-nexus/universal-provider",
   "description": "Universal Provider for Cross Connect Protocol",
-  "version": "2.19.3",
+  "version": "2.19.0",
   "author": "Nexus",
   "homepage": "https://github.com/to-nexus/cross-connect",
   "repository": {

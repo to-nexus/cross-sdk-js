@@ -1,4 +1,4 @@
-# @cross-connect/universal-provider
+# @cross-nexus/universal-provider
 
 Universal Provider for Cross Connect Protocol
 
@@ -6,7 +6,7 @@ Universal Provider for Cross Connect Protocol
 
 ```typescript
 import { ethers } from "ethers";
-import UniversalProvider from "@cross-connect/universal-provider";
+import UniversalProvider from "@cross-nexus/universal-provider";
 
 //  Initialize the provider
 const provider = await UniversalProvider.init({
