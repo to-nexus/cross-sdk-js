@@ -25,10 +25,10 @@
     "reset": "npm run clean; npm run check",
     "new-version": "lerna version --no-private --no-git-tag-version --exact && ./scripts/update_relayer_sdk_version.sh",
     "pre-publish": "npm run new-version; npm run reset",
-    "npm-publish:rc": "lerna exec --no-private -- npm publish --access restricted --tag rc --provenance --registry=https://npm.pkg.github.com",
-    "npm-publish:latest": "lerna exec --no-private -- npm publish --access restricted --tag latest --provenance --registry=https://npm.pkg.github.com",
-    "npm-publish:next": "lerna exec --no-private -- npm publish --access restricted --tag next --provenance --registry=https://npm.pkg.github.com",
-    "npm-publish:canary": "lerna exec --no-private -- npm publish --access restricted --tag canary --provenance --registry=https://npm.pkg.github.com"
+    "npm-publish:rc": "lerna exec --no-private -- npm publish --access restricted --tag rc --registry=https://npm.pkg.github.com",
+    "npm-publish:latest": "lerna exec --no-private -- npm publish --access restricted --tag latest --registry=https://npm.pkg.github.com",
+    "npm-publish:next": "lerna exec --no-private -- npm publish --access restricted --tag next --registry=https://npm.pkg.github.com",
+    "npm-publish:canary": "lerna exec --no-private -- npm publish --access restricted --tag canary --registry=https://npm.pkg.github.com"
   },
   "repository": {
     "type": "git",
