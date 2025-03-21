@@ -8,6 +8,5 @@
     "run": {
     }
   },
-  "version": "2.19.1",
-  "useWorkspaces": true
+  "version": "2.19.1"
 }
