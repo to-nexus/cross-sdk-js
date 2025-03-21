@@ -1,4 +1,4 @@
-import SignClient from "@cross-connect/sign-client";
+import SignClient from "@to-nexus/sign-client";
 import { SignClientTypes, ProposalTypes, AuthTypes } from "@walletconnect/types";
 import { JsonRpcProvider } from "@walletconnect/jsonrpc-provider";
 import { KeyValueStorageOptions, IKeyValueStorage } from "@walletconnect/keyvaluestorage";

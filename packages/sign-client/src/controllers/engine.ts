@@ -12,7 +12,7 @@ import {
   RELAYER_EVENTS,
   TRANSPORT_TYPES,
   VERIFY_SERVER,
-} from "@cross-connect/core";
+} from "@to-nexus/core";
 
 import {
   formatJsonRpcError,

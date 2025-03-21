@@ -1,5 +1,5 @@
 {
-  "name": "@cross-connect/sign-client",
+  "name": "@to-nexus/sign-client",
   "description": "Sign Client for Cross Connect Protocol",
   "version": "2.19.0",
   "author": "Nexus",
@@ -38,7 +38,7 @@
     "prettier": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'"
   },
   "dependencies": {
-    "@cross-connect/core": "*",
+    "@to-nexus/core": "*",
     "@walletconnect/events": "1.0.1",
     "@walletconnect/heartbeat": "1.2.2",
     "@walletconnect/jsonrpc-utils": "1.0.8",

@@ -1,4 +1,4 @@
-# @cross-connect/core
+# @to-nexus/core
 
 Core for Cross Connect Protocol
 

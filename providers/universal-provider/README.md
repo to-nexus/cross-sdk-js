@@ -1,4 +1,4 @@
-# @cross-nexus/universal-provider
+# @to-nexus/universal-provider
 
 Universal Provider for Cross Connect Protocol
 
@@ -6,7 +6,7 @@ Universal Provider for Cross Connect Protocol
 
 ```typescript
 import { ethers } from "ethers";
-import UniversalProvider from "@cross-nexus/universal-provider";
+import UniversalProvider from "@to-nexus/universal-provider";
 
 //  Initialize the provider
 const provider = await UniversalProvider.init({
@@ -19,7 +19,7 @@ const provider = await UniversalProvider.init({
     url: "https://github.com/to-nexus/cross-connect",
     icons: ["https://dev-contents.crossops.in/wallet/token/images/CROSSx.svg"],
   },
-  client: undefined, // optional instance of @cross-connect/sign-client
+  client: undefined, // optional instance of @to-nexus/sign-client
 });
 
 //  create sub providers for each namespace/chain

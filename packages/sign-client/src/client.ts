@@ -1,4 +1,4 @@
-import { Core } from "@cross-connect/core";
+import { Core } from "@to-nexus/core";
 import {
   generateChildLogger,
   getDefaultLoggerOptions,

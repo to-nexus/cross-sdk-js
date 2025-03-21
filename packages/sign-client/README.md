@@ -1,4 +1,4 @@
-# @cross-connect/sign-client
+# @to-nexus/sign-client
 
 Sign Client for Cross Connect Protocol
 

@@ -1,4 +1,4 @@
-import Client from "@cross-connect/sign-client";
+import Client from "@to-nexus/sign-client";
 import { JsonRpcProvider } from "@walletconnect/jsonrpc-provider";
 import { HttpConnection } from "@walletconnect/jsonrpc-http-connection";
 import { EngineTypes, SessionTypes } from "@walletconnect/types";

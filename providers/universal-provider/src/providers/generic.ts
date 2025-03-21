@@ -1,6 +1,6 @@
 import HttpConnection from "@walletconnect/jsonrpc-http-connection";
 import { JsonRpcProvider } from "@walletconnect/jsonrpc-provider";
-import Client from "@cross-connect/sign-client";
+import Client from "@to-nexus/sign-client";
 import { EngineTypes, SessionTypes } from "@walletconnect/types";
 import EventEmitter from "events";
 import { GENERIC_SUBPROVIDER_NAME, PROVIDER_EVENTS } from "../constants";

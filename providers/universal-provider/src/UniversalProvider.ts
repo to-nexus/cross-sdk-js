@@ -1,4 +1,4 @@
-import SignClient from "@cross-connect/sign-client";
+import SignClient from "@to-nexus/sign-client";
 import { SessionTypes } from "@walletconnect/types";
 import { JsonRpcResult } from "@walletconnect/jsonrpc-types";
 import { getSdkError, isValidArray, parseNamespaceKey } from "@walletconnect/utils";

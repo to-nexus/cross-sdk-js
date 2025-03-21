@@ -1,5 +1,5 @@
 {
-  "name": "@cross-nexus/universal-provider",
+  "name": "@to-nexus/universal-provider",
   "description": "Universal Provider for Cross Connect Protocol",
   "version": "2.19.0",
   "author": "Nexus",
@@ -47,7 +47,7 @@
     "@walletconnect/jsonrpc-utils": "1.0.8",
     "@walletconnect/keyvaluestorage": "1.1.1",
     "@walletconnect/logger": "2.1.2",
-    "@cross-connect/sign-client": "*",
+    "@to-nexus/sign-client": "*",
     "@walletconnect/types": "2.19.0",
     "@walletconnect/utils": "2.19.0",
     "events": "3.3.0",

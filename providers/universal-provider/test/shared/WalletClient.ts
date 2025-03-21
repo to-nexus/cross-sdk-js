@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import SignClient from "@cross-connect/sign-client";
+import SignClient from "@to-nexus/sign-client";
 import { formatJsonRpcError, formatJsonRpcResult } from "@walletconnect/jsonrpc-utils";
 import { SIGNER_EVENTS } from "@walletconnect/signer-connection";
 import { SignClientTypes, SessionTypes } from "@walletconnect/types";

@@ -1,4 +1,4 @@
-import { SignClient } from "@cross-connect/sign-client/dist/types/client";
+import { SignClient } from "@to-nexus/sign-client/dist/types/client";
 import UniversalProvider from "../../src";
 import { disconnectSocket } from "./index";
 
