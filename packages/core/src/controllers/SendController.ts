@@ -260,6 +260,7 @@ export const SendController = {
   },
 
   async sendNativeToken(params: TxParams) {
+    console.log('sendNativeToken called')
     RouterController.pushTransactionStack({
       view: 'Account',
       goBack: false
@@ -323,6 +324,7 @@ export const SendController = {
   },
 
   async sendERC20Token(params: ContractWriteParams) {
+    console.log('sendERC20Token called')
     RouterController.pushTransactionStack({
       view: 'Account',
       goBack: false
