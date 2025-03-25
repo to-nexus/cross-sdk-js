@@ -1,1 +1,1 @@
-export * from '../src/react.js'
+export * from '@to-nexus/sdk/react'
