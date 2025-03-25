@@ -1,10 +1,10 @@
 import { getWallets } from '@wallet-standard/app'
 import type { Wallet, WalletWithFeatures } from '@wallet-standard/base'
 
-import type { CaipNetwork } from '@reown/appkit-common'
-import type { Provider, RequestArguments } from '@reown/appkit-core'
-import { PresetsUtil } from '@reown/appkit-utils'
-import { bitcoin, bitcoinTestnet } from '@reown/appkit/networks'
+import type { CaipNetwork } from '@to-nexus/appkit-common'
+import type { Provider, RequestArguments } from '@to-nexus/appkit-core'
+import { PresetsUtil } from '@to-nexus/appkit-utils'
+import { bitcoin, bitcoinTestnet } from '@to-nexus/appkit/networks'
 
 import { MethodNotSupportedError } from '../errors/MethodNotSupportedError.js'
 import type { BitcoinConnector } from '../utils/BitcoinConnector.js'

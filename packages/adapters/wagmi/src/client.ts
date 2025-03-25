@@ -37,23 +37,23 @@ import {
 } from 'viem'
 import { normalize } from 'viem/ens'
 
-import { AppKit, type AppKitOptions, WcHelpersUtil } from '@reown/appkit'
-import type { AppKitNetwork, BaseNetwork, CaipNetwork, ChainNamespace } from '@reown/appkit-common'
+import { AppKit, type AppKitOptions, WcHelpersUtil } from '@to-nexus/appkit'
+import type { AppKitNetwork, BaseNetwork, CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
 import {
   ConstantsUtil as CommonConstantsUtil,
   NetworkUtil,
   isReownName
-} from '@reown/appkit-common'
-import { CoreHelperUtil, StorageUtil } from '@reown/appkit-core'
+} from '@to-nexus/appkit-common'
+import { CoreHelperUtil, StorageUtil } from '@to-nexus/appkit-core'
 import {
   type ConnectorType,
   ConstantsUtil as CoreConstantsUtil,
   type Provider
-} from '@reown/appkit-core'
-import { CaipNetworksUtil, PresetsUtil } from '@reown/appkit-utils'
+} from '@to-nexus/appkit-core'
+import { CaipNetworksUtil, PresetsUtil } from '@to-nexus/appkit-utils'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
-import { AdapterBlueprint } from '@reown/appkit/adapters'
-import { WalletConnectConnector } from '@reown/appkit/connectors'
+import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
+import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
 
 import { authConnector } from './connectors/AuthConnector.js'
 import { walletConnect } from './connectors/UniversalConnector.js'

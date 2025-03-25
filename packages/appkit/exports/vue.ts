@@ -1,7 +1,7 @@
 import { type Ref, onUnmounted, ref } from 'vue'
 
-import { ChainController, CoreHelperUtil, type UseAppKitNetworkReturn } from '@reown/appkit-core'
-import type { AppKitNetwork } from '@reown/appkit/networks'
+import { ChainController, CoreHelperUtil, type UseAppKitNetworkReturn } from '@to-nexus/appkit-core'
+import type { AppKitNetwork } from '@to-nexus/appkit/networks'
 
 import { AppKit } from '../src/client.js'
 import { getAppKit } from '../src/library/vue/index.js'
@@ -16,9 +16,9 @@ export * from '../src/library/vue/index.js'
 
 // -- Utils & Other -----------------------------------------------------
 export * from '../src/utils/index.js'
-export type * from '@reown/appkit-core'
-export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@reown/appkit-common'
-export { CoreHelperUtil, AccountController } from '@reown/appkit-core'
+export type * from '@to-nexus/appkit-core'
+export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@to-nexus/appkit-common'
+export { CoreHelperUtil, AccountController } from '@to-nexus/appkit-core'
 
 let modal: AppKit | undefined = undefined
 

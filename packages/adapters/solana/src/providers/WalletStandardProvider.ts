@@ -28,15 +28,15 @@ import {
 } from '@wallet-standard/features'
 import base58 from 'bs58'
 
-import { type CaipNetwork, ConstantsUtil } from '@reown/appkit-common'
-import type { RequestArguments } from '@reown/appkit-core'
-import type { Provider as CoreProvider } from '@reown/appkit-core'
-import { PresetsUtil } from '@reown/appkit-utils'
+import { type CaipNetwork, ConstantsUtil } from '@to-nexus/appkit-common'
+import type { RequestArguments } from '@to-nexus/appkit-core'
+import type { Provider as CoreProvider } from '@to-nexus/appkit-core'
+import { PresetsUtil } from '@to-nexus/appkit-utils'
 import type {
   AnyTransaction,
   GetActiveChain,
   Provider as SolanaProvider
-} from '@reown/appkit-utils/solana'
+} from '@to-nexus/appkit-utils/solana'
 
 import { solanaChains } from '../utils/chains.js'
 import { WalletStandardFeatureNotSupportedError } from './shared/Errors.js'

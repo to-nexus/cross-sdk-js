@@ -1,9 +1,9 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 
-import type { Balance } from '@reown/appkit-common'
-import { NumberUtil } from '@reown/appkit-common'
-import { ConstantsUtil, RouterController, SendController } from '@reown/appkit-core'
+import type { Balance } from '@to-nexus/appkit-common'
+import { NumberUtil } from '@to-nexus/appkit-common'
+import { ConstantsUtil, RouterController, SendController } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

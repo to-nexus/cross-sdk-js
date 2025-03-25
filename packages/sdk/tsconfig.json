@@ -7,10 +7,6 @@
     "removeComments": false,
     "baseUrl": ".",
     "paths": {
-      "@reown/appkit": ["../appkit"],
-      "@reown/appkit/*": ["../appkit/*"],
-      "@reown/appkit-adapter-ethers": ["../adapters/ethers"],
-      "@reown/appkit-adapter-ethers/*": ["../adapters/ethers/*"],
       "@reown/appkit-adapter-bitcoin": ["../adapters/bitcoin"],
       "@reown/appkit-adapter-bitcoin/*": ["../adapters/bitcoin/*"],
       "@reown/appkit-adapter-polkadot": ["../adapters/polkadot"],
@@ -23,10 +19,6 @@
       "@reown/appkit-cdn/*": ["../cdn/*"],
       "@reown/appkit-cli": ["../cli"],
       "@reown/appkit-cli/*": ["../cli/*"],
-      "@reown/appkit-common": ["../common"],
-      "@reown/appkit-common/*": ["../common/*"],
-      "@reown/appkit-core": ["../core"],
-      "@reown/appkit-core/*": ["../core/*"],
       "@reown/appkit-experimental": ["../experimental"],
       "@reown/appkit-experimental/*": ["../experimental/*"],
       "@reown/appkit-polyfills": ["../polyfills"],
@@ -41,8 +33,6 @@
       "@reown/appkit-ui/*": ["../ui/*"],
       "@reown/appkit-ui-new": ["../ui-new"],
       "@reown/appkit-ui-new/*": ["../ui-new/*"],
-      "@reown/appkit-utils": ["../appkit-utils"],
-      "@reown/appkit-utils/*": ["../appkit-utils/*"],
       "@reown/appkit-wallet": ["../wallet"],
       "@reown/appkit-wallet/*": ["../wallet/*"],
       "@reown/appkit-wallet-button": ["../wallet-button"],
@@ -53,16 +43,5 @@
     "exports",
     "src",
     "package.json"
-  ],
-  "references": [
-    { "path": "../adapters/ethers" },
-    { "path": "../appkit" },
-    { "path": "../appkit-utils" },
-    { "path": "../common" },
-    { "path": "../core" },
-    { "path": "../polyfills" },
-    { "path": "../scaffold-ui" },
-    { "path": "../ui" },
-    { "path": "../wallet" },
   ]
 }

@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 
-import { ConstantsUtil } from '@reown/appkit-common'
-import { ChainController, ConnectorController, RouterController } from '@reown/appkit-core'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
+import { ChainController, ConnectorController, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

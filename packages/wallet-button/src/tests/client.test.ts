@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest'
 
-import type { ParsedCaipAddress } from '@reown/appkit-common'
-import { type Connector, ConnectorController, type WcWallet } from '@reown/appkit-core'
+import type { ParsedCaipAddress } from '@to-nexus/appkit-common'
+import { type Connector, ConnectorController, type WcWallet } from '@to-nexus/appkit-core'
 
 import { AppKitWalletButton } from '../client'
 import { ApiController } from '../controllers/ApiController'

@@ -1,12 +1,12 @@
-import { ConstantsUtil, NetworkUtil } from '@reown/appkit-common'
+import { ConstantsUtil, NetworkUtil } from '@to-nexus/appkit-common'
 import {
   ChainController,
   CoreHelperUtil,
   type SIWXConfig,
   type SIWXMessage,
   type SIWXSession
-} from '@reown/appkit-core'
-import { HelpersUtil } from '@reown/appkit-utils'
+} from '@to-nexus/appkit-core'
+import { HelpersUtil } from '@to-nexus/appkit-utils'
 
 import type { AppKitSIWEClient } from '../exports/index.js'
 

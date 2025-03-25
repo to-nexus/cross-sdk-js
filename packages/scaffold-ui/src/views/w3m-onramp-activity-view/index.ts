@@ -2,14 +2,14 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { DateUtil, type Transaction } from '@reown/appkit-common'
+import { DateUtil, type Transaction } from '@to-nexus/appkit-common'
 import {
   AccountController,
   AssetController,
   OnRampController,
   OptionsController,
   TransactionsController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { TransactionUtil, customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

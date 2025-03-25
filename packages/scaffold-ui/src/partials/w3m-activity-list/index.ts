@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 
-import { DateUtil } from '@reown/appkit-common'
-import type { Transaction, TransactionImage } from '@reown/appkit-common'
+import { DateUtil } from '@to-nexus/appkit-common'
+import type { Transaction, TransactionImage } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ChainController,
@@ -11,7 +11,7 @@ import {
   OptionsController,
   RouterController,
   TransactionsController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { TransactionUtil, customElement } from '@reown/appkit-ui'
 import type { TransactionType } from '@reown/appkit-ui'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'

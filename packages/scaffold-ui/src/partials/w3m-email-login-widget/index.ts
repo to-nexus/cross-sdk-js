@@ -4,14 +4,14 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 import { createRef, ref } from 'lit/directives/ref.js'
 import type { Ref } from 'lit/directives/ref.js'
 
-import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
+import { type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ChainController,
   ConnectionController,
   ConnectorController,
   CoreHelperUtil
-} from '@reown/appkit-core'
-import { EventsController, RouterController, SnackController } from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
+import { EventsController, RouterController, SnackController } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

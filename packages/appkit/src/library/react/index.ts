@@ -2,7 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 
 import { useSnapshot } from 'valtio'
 
-import type { ChainNamespace } from '@reown/appkit-common'
+import type { ChainNamespace } from '@to-nexus/appkit-common'
 import type {
   AppKitAccountButton,
   AppKitButton,
@@ -18,7 +18,7 @@ import type { AppKit } from '../../../src/client.js'
 import { ProviderUtil } from '../../store/ProviderUtil.js'
 import type { AppKitOptions } from '../../utils/TypesUtil.js'
 
-export type { SendTransactionArgs } from '@reown/appkit-core'
+export type { SendTransactionArgs } from '@to-nexus/appkit-core'
 
 type OpenOptions = {
   view:
@@ -67,7 +67,7 @@ export function getAppKit(appKit: AppKit) {
 }
 
 // -- Core Hooks ---------------------------------------------------------------
-export * from '@reown/appkit-core/react'
+export * from '@to-nexus/appkit-core/react'
 
 export function useAppKitProvider<T>(chainNamespace: ChainNamespace) {
   const { providers, providerIds } = useSnapshot(ProviderUtil.state)

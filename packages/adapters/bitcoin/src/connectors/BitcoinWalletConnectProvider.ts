@@ -1,8 +1,8 @@
 import UniversalProvider from '@to-nexus/universal-provider'
 
-import { type RequestArguments, WcHelpersUtil } from '@reown/appkit'
-import type { CaipNetwork } from '@reown/appkit-common'
-import { WalletConnectConnector } from '@reown/appkit/connectors'
+import { type RequestArguments, WcHelpersUtil } from '@to-nexus/appkit'
+import type { CaipNetwork } from '@to-nexus/appkit-common'
+import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
 
 import type { BitcoinConnector } from '../utils/BitcoinConnector.js'
 import { ProviderEventEmitter } from '../utils/ProviderEventEmitter.js'

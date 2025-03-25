@@ -12,10 +12,10 @@ import {
   getProviders
 } from 'sats-connect'
 
-import type { CaipNetwork } from '@reown/appkit-common'
-import { CoreHelperUtil } from '@reown/appkit-core'
-import type { RequestArguments } from '@reown/appkit-core'
-import { PresetsUtil } from '@reown/appkit-utils'
+import type { CaipNetwork } from '@to-nexus/appkit-common'
+import { CoreHelperUtil } from '@to-nexus/appkit-core'
+import type { RequestArguments } from '@to-nexus/appkit-core'
+import { PresetsUtil } from '@to-nexus/appkit-utils'
 
 import type { BitcoinConnector } from '../utils/BitcoinConnector.js'
 import { ProviderEventEmitter } from '../utils/ProviderEventEmitter.js'

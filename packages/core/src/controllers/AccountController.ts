@@ -1,7 +1,7 @@
 import { proxy, ref } from 'valtio/vanilla'
 
-import type { CaipAddress, ChainNamespace } from '@reown/appkit-common'
-import type { Balance } from '@reown/appkit-common'
+import type { CaipAddress, ChainNamespace } from '@to-nexus/appkit-common'
+import type { Balance } from '@to-nexus/appkit-common'
 import type { W3mFrameTypes } from '@reown/appkit-wallet'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'

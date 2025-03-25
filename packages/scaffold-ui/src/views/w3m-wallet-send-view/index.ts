@@ -7,7 +7,7 @@ import {
   RouterController,
   SendController,
   SwapController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

@@ -2,8 +2,8 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import type { CaipAddress, ChainNamespace } from '@reown/appkit-common'
-import { ConstantsUtil } from '@reown/appkit-common'
+import type { CaipAddress, ChainNamespace } from '@to-nexus/appkit-common'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   type AccountType,
@@ -12,7 +12,7 @@ import {
   ModalController,
   OptionsController,
   StorageUtil
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

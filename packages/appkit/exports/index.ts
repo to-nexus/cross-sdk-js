@@ -1,4 +1,4 @@
-import { CoreHelperUtil } from '@reown/appkit-core'
+import { CoreHelperUtil } from '@to-nexus/appkit-core'
 
 import { AppKit } from '../src/client.js'
 import type { AppKitOptions } from '../src/utils/TypesUtil.js'
@@ -10,9 +10,9 @@ export * from '@reown/appkit-scaffold-ui'
 
 // -- Utils & Other -----------------------------------------------------
 export * from '../src/utils/index.js'
-export type * from '@reown/appkit-core'
-export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@reown/appkit-common'
-export { CoreHelperUtil, AccountController, SendController, ConnectionController } from '@reown/appkit-core'
+export type * from '@to-nexus/appkit-core'
+export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@to-nexus/appkit-common'
+export { CoreHelperUtil, AccountController, SendController, ConnectionController } from '@to-nexus/appkit-core'
 
 export type CreateAppKit = Omit<AppKitOptions, 'sdkType' | 'sdkVersion'>
 

@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import { NumberUtil } from '@reown/appkit-common'
+import { NumberUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ChainController,
@@ -12,7 +12,7 @@ import {
   SwapController,
   type SwapInputTarget,
   type SwapToken
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 

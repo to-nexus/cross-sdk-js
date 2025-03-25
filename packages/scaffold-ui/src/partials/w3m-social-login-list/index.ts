@@ -13,9 +13,9 @@ import {
   RouterController,
   SnackController,
   type SocialProvider
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
-import { SocialProviderEnum } from '@reown/appkit-utils'
+import { SocialProviderEnum } from '@to-nexus/appkit-utils'
 
 import styles from './styles.js'
 

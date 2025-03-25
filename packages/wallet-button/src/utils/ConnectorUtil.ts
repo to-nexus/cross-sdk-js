@@ -1,5 +1,5 @@
 /* eslint-disable max-depth */
-import { ParseUtil, type ParsedCaipAddress } from '@reown/appkit-common'
+import { ParseUtil, type ParsedCaipAddress } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ChainController,
@@ -12,8 +12,8 @@ import {
   RouterController,
   StorageUtil,
   type WcWallet
-} from '@reown/appkit-core'
-import { SocialProviderEnum } from '@reown/appkit-utils'
+} from '@to-nexus/appkit-core'
+import { SocialProviderEnum } from '@to-nexus/appkit-utils'
 
 import { ConstantsUtil } from './ConstantsUtil.js'
 import type { SocialProvider } from './TypeUtil.js'

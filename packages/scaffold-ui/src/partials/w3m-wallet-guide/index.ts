@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { RouterController, type WalletGuideType } from '@reown/appkit-core'
+import { RouterController, type WalletGuideType } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

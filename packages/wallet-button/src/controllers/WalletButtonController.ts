@@ -1,6 +1,6 @@
 import { proxy } from 'valtio/vanilla'
 
-import type { ParsedCaipAddress } from '@reown/appkit-common'
+import type { ParsedCaipAddress } from '@to-nexus/appkit-common'
 
 // -- Types --------------------------------------------- //
 export interface WalletButtonControllerState {

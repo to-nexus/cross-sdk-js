@@ -7,8 +7,8 @@ import {
   ModalController,
   OnRampController,
   OptionsController
-} from '@reown/appkit-core'
-import type { PaymentCurrency } from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
+import type { PaymentCurrency } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

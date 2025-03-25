@@ -12,7 +12,7 @@ import {
   ModalController,
   RouterController,
   SnackController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@reown/appkit-ui'
 import type { W3mFrameTypes } from '@reown/appkit-wallet'
 

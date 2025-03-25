@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 
-import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
-import { ChainController, StorageUtil } from '@reown/appkit-core'
+import { type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
+import { ChainController, StorageUtil } from '@to-nexus/appkit-core'
 
 import '../../components/wui-icon/index.js'
 import '../../components/wui-image/index.js'

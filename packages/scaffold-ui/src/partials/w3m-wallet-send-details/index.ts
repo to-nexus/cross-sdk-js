@@ -2,8 +2,8 @@ import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { type CaipNetwork } from '@reown/appkit-common'
-import { AssetUtil, RouterController } from '@reown/appkit-core'
+import { type CaipNetwork } from '@to-nexus/appkit-common'
+import { AssetUtil, RouterController } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

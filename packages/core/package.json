@@ -1,6 +1,6 @@
 {
-  "name": "@reown/appkit-core",
-  "version": "1.6.9",
+  "name": "@to-nexus/appkit-core",
+  "version": "1.0.0",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@to-nexus/universal-provider": "2.19.0",
-    "@reown/appkit-common": "workspace:*",
+    "@to-nexus/appkit-common": "workspace:*",
     "@reown/appkit-wallet": "workspace:*",
     "valtio": "1.13.2",
     "viem": ">=2.23"

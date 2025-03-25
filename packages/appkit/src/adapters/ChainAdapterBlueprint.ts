@@ -6,7 +6,7 @@ import {
   type ChainNamespace,
   ConstantsUtil as CommonConstantsUtil,
   type CustomData
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 import {
   AccountController,
   type AccountControllerState,
@@ -16,8 +16,8 @@ import {
   type ReadContractArgs,
   type Tokens,
   type WriteContractArgs
-} from '@reown/appkit-core'
-import { PresetsUtil } from '@reown/appkit-utils'
+} from '@to-nexus/appkit-core'
+import { PresetsUtil } from '@to-nexus/appkit-utils'
 import { W3mFrameProvider } from '@reown/appkit-wallet'
 
 import type { AppKit } from '../client.js'

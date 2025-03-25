@@ -2,14 +2,14 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { type Ref, createRef, ref } from 'lit/directives/ref.js'
 
-import { ConstantsUtil } from '@reown/appkit-common'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   CoreHelperUtil,
   EnsController,
   EventsController,
   SnackController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 

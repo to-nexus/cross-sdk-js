@@ -1,4 +1,4 @@
-import { ConstantsUtil } from '@reown/appkit-common'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
 
 import { ChainController } from '../controllers/ChainController.js'
 

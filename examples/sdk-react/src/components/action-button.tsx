@@ -35,7 +35,7 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [ contractArgs, setContractArgs ] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155');
-  console.log(`walletProvider, namespace: ${walletProvider?.namespaces?.['eip155']}, uri: ${walletProvider?.uri}`)
+  console.log(`walletProvider, namespace: ${JSON.stringify(walletProvider?.namespaces?.['eip155'])}, uri: ${walletProvider?.uri}`)
   
   // erc20 token contract address
   const ERC20_ADDRESS = "0x35Af8eF840Eda3e93FC8F5167dbd8FF0D6F96580"
@@ -73,6 +73,20 @@ export function ActionButtonList() {
     const targetNetwork = import.meta.env['VITE_NODE_ENV'] === 'production' ? crossMainnet : crossTestnet
     switchNetwork(targetNetwork)
     alert(`Current network: ${targetNetwork.caipNetworkId}`)
+  }
+
+  // used for provider request
+  async function handleProviderRequest  () {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    const res = await walletProvider?.request({
+      method: 'eth_chainId',
+      params: [account.address, 'latest']
+    })
+    alert(`response by eth_chainId: ${JSON.stringify(res)}`)
   }
 
   // used for signing custom message
@@ -308,6 +322,7 @@ export function ActionButtonList() {
       <div className="action-button-list" style={{marginTop: '10px'}}>
         <button onClick={handleSignMessage}>Sign Message</button>
         <button onClick={handleSignEIP712}>Sign EIP712</button>
+        <button onClick={handleProviderRequest}>Provider Request</button>
       </div>
       <div className="action-button-list" style={{marginTop: '10px'}}>
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>

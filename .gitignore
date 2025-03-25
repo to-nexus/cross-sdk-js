@@ -18,3 +18,5 @@ tsconfig.tsbuildinfo
 .cache-synpress
 .parcel-cache
 .coverage
+.d.ts
+.d.ts.map

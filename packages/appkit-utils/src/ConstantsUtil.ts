@@ -1,4 +1,4 @@
-import type { ChainNamespace } from '@reown/appkit-common'
+import type { ChainNamespace } from '@to-nexus/appkit-common'
 
 export const ConstantsUtil = {
   /* Connector names */

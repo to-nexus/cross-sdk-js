@@ -1,4 +1,4 @@
-import type { SIWXMessage } from '@reown/appkit-core'
+import type { SIWXMessage } from '@to-nexus/appkit-core'
 
 /**
  * This is the base class for a SIWX messenger.

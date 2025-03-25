@@ -1,13 +1,13 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import { getW3mThemeVariables } from '@reown/appkit-common'
+import { getW3mThemeVariables } from '@to-nexus/appkit-common'
 import {
   ConnectorController,
   ModalController,
   RouterController,
   ThemeController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

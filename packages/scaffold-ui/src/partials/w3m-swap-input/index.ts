@@ -1,13 +1,13 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 
-import { InputUtil, NumberUtil } from '@reown/appkit-common'
+import { InputUtil, NumberUtil } from '@to-nexus/appkit-common'
 import {
   EventsController,
   RouterController,
   type SwapInputTarget,
   type SwapToken
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

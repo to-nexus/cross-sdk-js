@@ -8,4 +8,4 @@ export * from './cross/index.js'
 export * from './utils.js'
 
 // -- Types ---------------------------------------------------------------
-export type { AppKitNetwork } from '@reown/appkit-common'
+export type { AppKitNetwork } from '@to-nexus/appkit-common'

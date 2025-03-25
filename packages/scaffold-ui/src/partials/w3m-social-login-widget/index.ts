@@ -6,7 +6,7 @@ import {
   ConstantsUtil as CommonConstantsUtil,
   SafeLocalStorage,
   SafeLocalStorageKeys
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 import {
   AccountController,
   ChainController,
@@ -19,9 +19,9 @@ import {
   SnackController,
   type SocialProvider,
   type WalletGuideType
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
-import { SocialProviderEnum } from '@reown/appkit-utils'
+import { SocialProviderEnum } from '@to-nexus/appkit-utils'
 
 import styles from './styles.js'
 

@@ -6,7 +6,7 @@ import {
   SafeLocalStorage,
   SafeLocalStorageKeys,
   getSafeConnectorIdKey
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 
 import type {
   BlockchainApiIdentityResponse,

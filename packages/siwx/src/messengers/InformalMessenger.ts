@@ -1,4 +1,4 @@
-import type { SIWXMessage } from '@reown/appkit-core'
+import type { SIWXMessage } from '@to-nexus/appkit-core'
 
 import { SIWXMessenger } from '../core/SIWXMessenger.js'
 

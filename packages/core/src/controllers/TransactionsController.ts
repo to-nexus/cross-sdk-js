@@ -1,7 +1,7 @@
 import { proxy, subscribe as sub } from 'valtio/vanilla'
 
-import type { Transaction } from '@reown/appkit-common'
-import type { CaipNetworkId } from '@reown/appkit-common'
+import type { Transaction } from '@to-nexus/appkit-common'
+import type { CaipNetworkId } from '@to-nexus/appkit-common'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 
 import { AccountController } from './AccountController.js'

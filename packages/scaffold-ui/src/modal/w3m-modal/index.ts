@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { type CaipAddress, type CaipNetwork, ConstantsUtil } from '@reown/appkit-common'
+import { type CaipAddress, type CaipNetwork, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ApiController,
   AssetUtil,
@@ -14,7 +14,7 @@ import {
   SIWXUtil,
   SnackController,
   ThemeController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement, initializeTheming } from '@reown/appkit-ui'
 
 import styles from './styles.js'

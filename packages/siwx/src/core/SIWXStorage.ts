@@ -1,5 +1,5 @@
-import type { CaipNetworkId } from '@reown/appkit-common'
-import type { SIWXSession } from '@reown/appkit-core'
+import type { CaipNetworkId } from '@to-nexus/appkit-common'
+import type { SIWXSession } from '@to-nexus/appkit-core'
 
 /**
  * This is the interface for a SIWX storage.

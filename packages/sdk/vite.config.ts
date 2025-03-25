@@ -2,16 +2,12 @@ import { defineConfig } from 'vite';
 import path from 'path';
 
 const bundleInternally = new Set([
-  "@reown/appkit",
-  "@reown/appkit-adapter-ethers",
   "@reown/appkit-adapter-bitcoin",
   "@reown/appkit-adapter-polkadot",
   "@reown/appkit-adapter-solana",
   "@reown/appkit-adapter-wagmi",
   "@reown/appkit-cdn",
   "@reown/appkit-cli",
-  "@reown/appkit-common",
-  "@reown/appkit-core",
   "@reown/appkit-experimental",
   "@reown/appkit-polyfills",
   "@reown/appkit-scaffold-ui",
@@ -19,7 +15,6 @@ const bundleInternally = new Set([
   "@reown/appkit-siwx",
   "@reown/appkit-ui",
   "@reown/appkit-ui-new",
-  "@reown/appkit-utils",
   "@reown/appkit-wallet",
   "@reown/appkit-wallet-button",
 ]);

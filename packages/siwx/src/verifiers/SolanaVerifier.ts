@@ -1,8 +1,8 @@
 import bs58 from 'bs58'
 import nacl from 'tweetnacl'
 
-import { ConstantsUtil } from '@reown/appkit-common'
-import type { SIWXSession } from '@reown/appkit-core'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
+import type { SIWXSession } from '@to-nexus/appkit-core'
 
 import { SIWXVerifier } from '../core/SIWXVerifier.js'
 

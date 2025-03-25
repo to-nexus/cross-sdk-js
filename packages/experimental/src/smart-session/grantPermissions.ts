@@ -1,11 +1,11 @@
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ChainController,
   ConnectionController,
   OptionsController,
   RouterController
-} from '@reown/appkit-core'
-import { ProviderUtil } from '@reown/appkit/store'
+} from '@to-nexus/appkit-core'
+import { ProviderUtil } from '@to-nexus/appkit/store'
 
 import {
   assertWalletGrantPermissionsResponse,

@@ -1,13 +1,13 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import { NavigationUtil } from '@reown/appkit-common'
+import { NavigationUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   CoreHelperUtil,
   EventsController,
   RouterController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 

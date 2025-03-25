@@ -10,7 +10,7 @@ import {
   CoreHelperUtil,
   ModalController,
   OptionsController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 import type { WuiAccountButton } from '@reown/appkit-ui'
 

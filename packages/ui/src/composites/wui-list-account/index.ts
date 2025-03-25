@@ -1,13 +1,13 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 
-import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
+import { type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ApiController,
   ChainController,
   StorageUtil
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 
 import '../../components/wui-image/index.js'

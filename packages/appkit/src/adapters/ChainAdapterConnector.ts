@@ -1,5 +1,5 @@
-import type { CaipNetwork } from '@reown/appkit-common'
-import type { Connector } from '@reown/appkit-core'
+import type { CaipNetwork } from '@to-nexus/appkit-common'
+import type { Connector } from '@to-nexus/appkit-core'
 
 export interface ChainAdapterConnector extends Connector {
   chains: CaipNetwork[]

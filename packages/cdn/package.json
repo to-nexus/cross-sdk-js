@@ -28,8 +28,8 @@
     }
   },
   "dependencies": {
-    "@reown/appkit": "workspace:*",
-    "@reown/appkit-adapter-ethers": "workspace:*",
+    "@to-nexus/appkit": "workspace:*",
+    "@to-nexus/appkit-adapter-ethers": "workspace:*",
     "@reown/appkit-adapter-solana": "workspace:*",
     "@reown/appkit-adapter-wagmi": "workspace:*",
     "@reown/appkit-polyfills": "workspace:*",

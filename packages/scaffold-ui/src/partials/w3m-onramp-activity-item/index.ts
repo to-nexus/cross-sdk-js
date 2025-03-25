@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 
-import { ApiController } from '@reown/appkit-core'
+import { ApiController } from '@to-nexus/appkit-core'
 import { type ColorType, customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

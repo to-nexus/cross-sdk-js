@@ -3,8 +3,8 @@ import { state } from 'lit/decorators.js'
 import { createRef, ref } from 'lit/directives/ref.js'
 import type { Ref } from 'lit/directives/ref.js'
 
-import { ConnectorController } from '@reown/appkit-core'
-import { EventsController, RouterController, SnackController } from '@reown/appkit-core'
+import { ConnectorController } from '@to-nexus/appkit-core'
+import { EventsController, RouterController, SnackController } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

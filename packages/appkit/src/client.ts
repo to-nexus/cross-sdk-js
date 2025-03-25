@@ -14,7 +14,7 @@ import {
   SafeLocalStorage,
   SafeLocalStorageKeys,
   getW3mThemeVariables
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 import {
   type AccountControllerState,
   type ChainAdapter,
@@ -43,7 +43,7 @@ import {
   type UseAppKitNetworkReturn,
   type WalletFeature,
   type WriteContractArgs
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import {
   AccountController,
   AlertController,
@@ -63,7 +63,7 @@ import {
   SnackController,
   StorageUtil,
   ThemeController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { WalletUtil } from '@reown/appkit-scaffold-ui/utils'
 import { setColorTheme, setThemeVariables } from '@reown/appkit-ui'
 import {
@@ -72,14 +72,14 @@ import {
   HelpersUtil,
   LoggerUtil,
   ConstantsUtil as UtilConstantsUtil
-} from '@reown/appkit-utils'
+} from '@to-nexus/appkit-utils'
 import {
   W3mFrameHelpers,
   W3mFrameProvider,
   W3mFrameRpcConstants,
   type W3mFrameTypes
 } from '@reown/appkit-wallet'
-import type { AppKitNetwork } from '@reown/appkit/networks'
+import type { AppKitNetwork } from '@to-nexus/appkit/networks'
 
 import type { AdapterBlueprint } from './adapters/ChainAdapterBlueprint.js'
 import { W3mFrameProviderSingleton } from './auth-provider/W3MFrameProviderSingleton.js'

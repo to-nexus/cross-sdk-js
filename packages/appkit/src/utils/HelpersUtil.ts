@@ -1,8 +1,8 @@
 import type { SessionTypes } from '@walletconnect/types'
 import type { Namespace, NamespaceConfig } from '@to-nexus/universal-provider'
 
-import type { CaipNetwork, CaipNetworkId, ChainNamespace } from '@reown/appkit-common'
-import { EnsController } from '@reown/appkit-core'
+import type { CaipNetwork, CaipNetworkId, ChainNamespace } from '@to-nexus/appkit-common'
+import { EnsController } from '@to-nexus/appkit-core'
 
 import { solana, solanaDevnet } from '../networks/index.js'
 

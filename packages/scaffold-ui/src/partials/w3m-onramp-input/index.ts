@@ -8,7 +8,7 @@ import {
   OnRampController,
   type PaymentCurrency,
   type PurchaseCurrency
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

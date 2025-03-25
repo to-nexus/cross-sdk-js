@@ -1,7 +1,7 @@
 import UniversalProvider from '@to-nexus/universal-provider'
 
-import type { CaipNetworkId, ChainNamespace } from '@reown/appkit-common'
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import type { CaipNetworkId, ChainNamespace } from '@to-nexus/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 
 import { AccountController } from '../controllers/AccountController.js'

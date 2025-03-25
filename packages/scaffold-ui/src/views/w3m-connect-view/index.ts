@@ -4,7 +4,7 @@ import { state } from 'lit/decorators/state.js'
 import { classMap } from 'lit/directives/class-map.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { ConstantsUtil } from '@reown/appkit-common'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ChainController,
   ConnectionController,
@@ -15,9 +15,9 @@ import {
   OptionsController,
   RouterController,
   type WalletGuideType
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { MathUtil, customElement } from '@reown/appkit-ui'
-import { ConstantsUtil as AppKitConstantsUtil } from '@reown/appkit-utils'
+import { ConstantsUtil as AppKitConstantsUtil } from '@to-nexus/appkit-utils'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
 import styles from './styles.js'

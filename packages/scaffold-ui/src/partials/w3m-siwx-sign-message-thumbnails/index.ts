@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit'
 
-import { AccountController, OptionsController } from '@reown/appkit-core'
+import { AccountController, OptionsController } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

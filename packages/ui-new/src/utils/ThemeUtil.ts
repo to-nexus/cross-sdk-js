@@ -1,7 +1,7 @@
 import { css, unsafeCSS } from 'lit'
 
-import { getW3mThemeVariables } from '@reown/appkit-common'
-import type { ThemeType, ThemeVariables } from '@reown/appkit-common'
+import { getW3mThemeVariables } from '@to-nexus/appkit-common'
+import type { ThemeType, ThemeVariables } from '@to-nexus/appkit-common'
 
 import { ThemeHelperUtil } from './ThemeHelperUtil.js'
 

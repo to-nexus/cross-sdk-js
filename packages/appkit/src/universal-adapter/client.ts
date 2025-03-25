@@ -2,13 +2,13 @@ import type UniversalProvider from '@to-nexus/universal-provider'
 import bs58 from 'bs58'
 import { toHex } from 'viem'
 
-import { type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
+import { type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ChainController,
   ConstantsUtil as CoreConstantsUtil,
   CoreHelperUtil
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 
 import { AdapterBlueprint } from '../adapters/ChainAdapterBlueprint.js'
 import { WalletConnectConnector } from '../connectors/WalletConnectConnector.js'

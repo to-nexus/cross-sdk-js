@@ -1,6 +1,6 @@
 import { proxy } from 'valtio/vanilla'
 
-import type { CaipAddress, CaipNetworkId } from '@reown/appkit-common'
+import type { CaipAddress, CaipNetworkId } from '@to-nexus/appkit-common'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'

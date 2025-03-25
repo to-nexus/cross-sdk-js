@@ -1,6 +1,6 @@
 import { type Ref, onMounted, onUnmounted, ref } from 'vue'
 
-import type { ChainNamespace } from '@reown/appkit-common'
+import type { ChainNamespace } from '@to-nexus/appkit-common'
 
 import { AccountController } from '../src/controllers/AccountController.js'
 import { ChainController } from '../src/controllers/ChainController.js'

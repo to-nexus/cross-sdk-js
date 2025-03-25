@@ -12,8 +12,8 @@ import {
   toUtf8Bytes,
 } from 'ethers'
 
-import { WcHelpersUtil } from '@reown/appkit'
-import { type CaipNetwork, type CustomData, isReownName } from '@reown/appkit-common'
+import { WcHelpersUtil } from '@to-nexus/appkit'
+import { type CaipNetwork, type CustomData, isReownName } from '@to-nexus/appkit-common'
 import type {
   EstimateGasTransactionArgs,
   Provider,
@@ -21,7 +21,7 @@ import type {
   SendTransactionArgs,
   SignEIP712Args,
   WriteContractArgs
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import type { TransactionRequest } from 'ethers'
 import { getBigInt, toQuantity } from 'ethers/utils'
 

@@ -1,13 +1,13 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import type { Balance } from '@reown/appkit-common'
+import type { Balance } from '@to-nexus/appkit-common'
 import {
   ChainController,
   CoreHelperUtil,
   RouterController,
   SendController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

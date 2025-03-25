@@ -2,9 +2,9 @@ import type { Connector } from '@wagmi/core'
 import { UniversalProvider } from '@to-nexus/universal-provider'
 import { type Hex } from 'viem'
 
-import { WcHelpersUtil } from '@reown/appkit'
-import { type CaipNetworkId } from '@reown/appkit-common'
-import { ConstantsUtil, PresetsUtil } from '@reown/appkit-utils'
+import { WcHelpersUtil } from '@to-nexus/appkit'
+import { type CaipNetworkId } from '@to-nexus/appkit-common'
+import { ConstantsUtil, PresetsUtil } from '@to-nexus/appkit-utils'
 
 export async function getWalletConnectCaipNetworks(connector?: Connector) {
   if (!connector) {

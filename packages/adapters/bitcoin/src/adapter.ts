@@ -1,10 +1,10 @@
 import type UniversalProvider from '@to-nexus/universal-provider'
 
-import { type AppKit, type AppKitOptions, CoreHelperUtil, type Provider } from '@reown/appkit'
-import { ConstantsUtil } from '@reown/appkit-common'
-import { ChainController, StorageUtil } from '@reown/appkit-core'
-import { AdapterBlueprint } from '@reown/appkit/adapters'
-import { bitcoin } from '@reown/appkit/networks'
+import { type AppKit, type AppKitOptions, CoreHelperUtil, type Provider } from '@to-nexus/appkit'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
+import { ChainController, StorageUtil } from '@to-nexus/appkit-core'
+import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
+import { bitcoin } from '@to-nexus/appkit/networks'
 
 import { BitcoinWalletConnectConnector } from './connectors/BitcoinWalletConnectProvider.js'
 import { LeatherConnector } from './connectors/LeatherConnector.js'

@@ -1,6 +1,6 @@
 import type { Assign, ChainFormatters, Prettify } from 'viem'
 
-import type { CaipNetwork } from '@reown/appkit-common'
+import type { CaipNetwork } from '@to-nexus/appkit-common'
 
 export function defineChain<
   formatters extends ChainFormatters,

@@ -2,8 +2,8 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import type { WcWallet } from '@reown/appkit-core'
-import { ApiController, ConnectorController } from '@reown/appkit-core'
+import type { WcWallet } from '@to-nexus/appkit-core'
+import { ApiController, ConnectorController } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'

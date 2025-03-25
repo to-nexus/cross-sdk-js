@@ -1,4 +1,4 @@
-import { SIWXUtil } from '@reown/appkit-core'
+import { SIWXUtil } from '@to-nexus/appkit-core'
 
 import { type SIWEControllerClient } from '../core/controller/SIWEController.js'
 import { ConstantsUtil } from '../core/utils/ConstantsUtil.js'

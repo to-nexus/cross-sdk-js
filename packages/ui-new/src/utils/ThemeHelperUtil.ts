@@ -1,6 +1,6 @@
 import { type CSSResultGroup, css as litCSS, unsafeCSS } from 'lit'
 
-import type { ThemeType } from '@reown/appkit-common'
+import type { ThemeType } from '@to-nexus/appkit-common'
 
 import { styles as allStyles, tokens } from './ThemeConstantsUtil.js'
 

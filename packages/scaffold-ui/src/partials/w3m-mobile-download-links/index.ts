@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 
-import type { WcWallet } from '@reown/appkit-core'
-import { CoreHelperUtil, RouterController } from '@reown/appkit-core'
+import type { WcWallet } from '@to-nexus/appkit-core'
+import { CoreHelperUtil, RouterController } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@reown/appkit-ui'
 
 import styles from './styles.js'

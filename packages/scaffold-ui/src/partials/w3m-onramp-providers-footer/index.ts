@@ -5,7 +5,7 @@ import {
   EventsController,
   OptionsController,
   RouterController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 

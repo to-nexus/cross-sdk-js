@@ -8,7 +8,7 @@ import {
   type ChainNamespace,
   ConstantsUtil as CommonConstantsUtil,
   NetworkUtil
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'

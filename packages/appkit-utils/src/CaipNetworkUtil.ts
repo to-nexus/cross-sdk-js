@@ -5,7 +5,7 @@ import {
   type CaipNetwork,
   type CaipNetworkId,
   ConstantsUtil
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 
 import { PresetsUtil } from './PresetsUtil.js'
 

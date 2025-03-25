@@ -4,7 +4,7 @@ import {
   SafeLocalStorage,
   type SafeLocalStorageItems,
   SafeLocalStorageKeys
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 import {
   AccountController,
   ApiController,
@@ -13,8 +13,8 @@ import {
   type SIWXConfig,
   type SIWXMessage,
   type SIWXSession
-} from '@reown/appkit-core'
-import { ConstantsUtil as AppKitConstantUtil } from '@reown/appkit-utils'
+} from '@to-nexus/appkit-core'
+import { ConstantsUtil as AppKitConstantUtil } from '@to-nexus/appkit-utils'
 
 import type { SIWXMessenger } from '../core/SIWXMessenger.js'
 import { InformalMessenger } from '../index.js'

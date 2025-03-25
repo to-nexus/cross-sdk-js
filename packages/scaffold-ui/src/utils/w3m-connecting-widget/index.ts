@@ -9,7 +9,7 @@ import {
   RouterController,
   SnackController,
   ThemeController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import type { IconType } from '@reown/appkit-ui'
 
 import styles from './styles.js'

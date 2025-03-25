@@ -1,7 +1,7 @@
 import { proxy, ref, snapshot, subscribe as sub } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
-import { type ChainNamespace, ConstantsUtil, getW3mThemeVariables } from '@reown/appkit-common'
+import { type ChainNamespace, ConstantsUtil, getW3mThemeVariables } from '@to-nexus/appkit-common'
 
 import { MobileWalletUtil } from '../utils/MobileWallet.js'
 import type { AuthConnector, Connector, WcWallet } from '../utils/TypeUtil.js'

@@ -1,9 +1,9 @@
 import UniversalProvider from '@to-nexus/universal-provider'
 import { InfuraProvider, JsonRpcProvider, Signature, formatEther } from 'ethers'
 
-import { type AppKitOptions, WcConstantsUtil } from '@reown/appkit'
-import type { CaipNetwork } from '@reown/appkit-common'
-import { ConstantsUtil as CommonConstantsUtil, ParseUtil } from '@reown/appkit-common'
+import { type AppKitOptions, WcConstantsUtil } from '@to-nexus/appkit'
+import type { CaipNetwork } from '@to-nexus/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil, ParseUtil } from '@to-nexus/appkit-common'
 import {
   type CombinedProvider,
   type Connector,
@@ -12,13 +12,13 @@ import {
   OptionsController,
   type Provider,
   StorageUtil
-} from '@reown/appkit-core'
-import { ConstantsUtil, PresetsUtil } from '@reown/appkit-utils'
-import { EthersHelpersUtil, type ProviderType } from '@reown/appkit-utils/ethers'
+} from '@to-nexus/appkit-core'
+import { ConstantsUtil, PresetsUtil } from '@to-nexus/appkit-utils'
+import { EthersHelpersUtil, type ProviderType } from '@to-nexus/appkit-utils/ethers'
 import type { W3mFrameProvider } from '@reown/appkit-wallet'
-import { AdapterBlueprint } from '@reown/appkit/adapters'
-import { WalletConnectConnector } from '@reown/appkit/connectors'
-import { ProviderUtil } from '@reown/appkit/store'
+import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
+import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
+import { ProviderUtil } from '@to-nexus/appkit/store'
 
 import { EthersMethods } from './utils/EthersMethods.js'
 

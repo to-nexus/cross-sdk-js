@@ -1,9 +1,9 @@
-import type { CaipNetworkId } from '@reown/appkit-common'
+import type { CaipNetworkId } from '@to-nexus/appkit-common'
 import type {
   SIWXConfig as SIWXConfigInterface,
   SIWXMessage,
   SIWXSession
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 
 import type { SIWXMessenger } from './SIWXMessenger.js'
 import type { SIWXStorage } from './SIWXStorage.js'

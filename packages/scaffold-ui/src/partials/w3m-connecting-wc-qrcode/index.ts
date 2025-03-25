@@ -6,7 +6,7 @@ import {
   ConnectionController,
   EventsController,
   ThemeController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'

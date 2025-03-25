@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { CaipNetworkId } from '@reown/appkit-common'
+import type { CaipNetworkId } from '@to-nexus/appkit-common'
 
 import type { W3mFrameRpcConstants } from './W3mFrameConstants.js'
 import {

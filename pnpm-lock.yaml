@@ -117,16 +117,16 @@ importers:
       '@exodus/bitcoin-wallet-standard':
         specifier: 0.0.0
         version: 0.0.0
-      '@reown/appkit':
+      '@to-nexus/appkit':
         specifier: workspace:*
         version: link:../../appkit
-      '@reown/appkit-common':
+      '@to-nexus/appkit-common':
         specifier: workspace:*
         version: link:../../common
-      '@reown/appkit-core':
+      '@to-nexus/appkit-core':
         specifier: workspace:*
         version: link:../../core
-      '@reown/appkit-utils':
+      '@to-nexus/appkit-utils':
         specifier: workspace:*
         version: link:../../appkit-utils
       '@to-nexus/universal-provider':
@@ -166,15 +166,6 @@ importers:
       '@ethersproject/sha2':
         specifier: 5.7.0
         version: 5.7.0
-      '@reown/appkit':
-        specifier: workspace:*
-        version: link:../../appkit
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../../core
       '@reown/appkit-polyfills':
         specifier: workspace:*
         version: link:../../polyfills
@@ -184,12 +175,21 @@ importers:
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../../ui
-      '@reown/appkit-utils':
-        specifier: workspace:*
-        version: link:../../appkit-utils
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../../wallet
+      '@to-nexus/appkit':
+        specifier: workspace:*
+        version: link:../../appkit
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@to-nexus/appkit-utils':
+        specifier: workspace:*
+        version: link:../../appkit-utils
       '@to-nexus/universal-provider':
         specifier: 2.19.0
         version: 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -219,13 +219,13 @@ importers:
 
   packages/adapters/polkadot:
     dependencies:
-      '@reown/appkit':
+      '@to-nexus/appkit':
         specifier: workspace:*
         version: link:../../appkit
-      '@reown/appkit-common':
+      '@to-nexus/appkit-common':
         specifier: workspace:*
         version: link:../../common
-      '@reown/appkit-core':
+      '@to-nexus/appkit-core':
         specifier: workspace:*
         version: link:../../core
     devDependencies:
@@ -238,15 +238,6 @@ importers:
 
   packages/adapters/solana:
     dependencies:
-      '@reown/appkit':
-        specifier: workspace:*
-        version: link:../../appkit
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../../core
       '@reown/appkit-polyfills':
         specifier: workspace:*
         version: link:../../polyfills
@@ -256,9 +247,6 @@ importers:
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../../ui
-      '@reown/appkit-utils':
-        specifier: workspace:*
-        version: link:../../appkit-utils
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../../wallet
@@ -274,6 +262,18 @@ importers:
       '@solana/web3.js':
         specifier: 1.95.8
         version: 1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@to-nexus/appkit':
+        specifier: workspace:*
+        version: link:../../appkit
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@to-nexus/appkit-utils':
+        specifier: workspace:*
+        version: link:../../appkit-utils
       '@to-nexus/universal-provider':
         specifier: 2.19.0
         version: 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -333,15 +333,6 @@ importers:
 
   packages/adapters/wagmi:
     dependencies:
-      '@reown/appkit':
-        specifier: workspace:*
-        version: link:../../appkit
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../../core
       '@reown/appkit-polyfills':
         specifier: workspace:*
         version: link:../../polyfills
@@ -351,12 +342,21 @@ importers:
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../../ui
-      '@reown/appkit-utils':
-        specifier: workspace:*
-        version: link:../../appkit-utils
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../../wallet
+      '@to-nexus/appkit':
+        specifier: workspace:*
+        version: link:../../appkit
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@to-nexus/appkit-utils':
+        specifier: workspace:*
+        version: link:../../appkit-utils
       '@to-nexus/universal-provider':
         specifier: 2.19.0
         version: 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -398,12 +398,6 @@ importers:
 
   packages/appkit:
     dependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-polyfills':
         specifier: workspace:*
         version: link:../polyfills
@@ -413,12 +407,18 @@ importers:
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../ui
-      '@reown/appkit-utils':
-        specifier: workspace:*
-        version: link:../appkit-utils
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
+      '@to-nexus/appkit-utils':
+        specifier: workspace:*
+        version: link:../appkit-utils
       '@to-nexus/universal-provider':
         specifier: 2.19.0
         version: 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -468,18 +468,18 @@ importers:
 
   packages/appkit-utils:
     dependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-polyfills':
         specifier: workspace:*
         version: link:../polyfills
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
       '@to-nexus/universal-provider':
         specifier: 2.19.0
         version: 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -511,12 +511,6 @@ importers:
 
   packages/cdn:
     dependencies:
-      '@reown/appkit':
-        specifier: workspace:*
-        version: link:../appkit
-      '@reown/appkit-adapter-ethers':
-        specifier: workspace:*
-        version: link:../adapters/ethers
       '@reown/appkit-adapter-solana':
         specifier: workspace:*
         version: link:../adapters/solana
@@ -526,6 +520,12 @@ importers:
       '@reown/appkit-polyfills':
         specifier: workspace:*
         version: link:../polyfills
+      '@to-nexus/appkit':
+        specifier: workspace:*
+        version: link:../appkit
+      '@to-nexus/appkit-adapter-ethers':
+        specifier: workspace:*
+        version: link:../adapters/ethers
       '@wagmi/connectors':
         specifier: 5.7.7
         version: 5.7.7(@types/react@19.0.0)(@wagmi/core@2.16.4(@tanstack/query-core@5.69.0)(@types/react@19.0.0)(react@19.0.0)(typescript@5.7.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)))(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8)
@@ -610,12 +610,12 @@ importers:
 
   packages/core:
     dependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
       '@to-nexus/universal-provider':
         specifier: 2.19.0
         version: 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -638,18 +638,18 @@ importers:
 
   packages/experimental:
     dependencies:
-      '@reown/appkit':
-        specifier: workspace:*
-        version: link:../appkit
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../ui
+      '@to-nexus/appkit':
+        specifier: workspace:*
+        version: link:../appkit
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
       lit:
         specifier: 3.1.0
         version: 3.1.0
@@ -682,21 +682,21 @@ importers:
 
   packages/scaffold-ui:
     dependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../ui
-      '@reown/appkit-utils':
-        specifier: workspace:*
-        version: link:../appkit-utils
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
+      '@to-nexus/appkit-utils':
+        specifier: workspace:*
+        version: link:../appkit-utils
       lit:
         specifier: 3.1.0
         version: 3.1.0
@@ -713,18 +713,6 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@reown/appkit':
-        specifier: workspace:*
-        version: link:../appkit
-      '@reown/appkit-adapter-ethers':
-        specifier: workspace:*
-        version: link:../adapters/ethers
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-scaffold-ui':
         specifier: workspace:*
         version: link:../scaffold-ui
@@ -734,6 +722,18 @@ importers:
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
+      '@to-nexus/appkit':
+        specifier: workspace:*
+        version: link:../appkit
+      '@to-nexus/appkit-adapter-ethers':
+        specifier: workspace:*
+        version: link:../adapters/ethers
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
       '@to-nexus/universal-provider':
         specifier: ^2.19.0
         version: 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
@@ -789,21 +789,21 @@ importers:
 
   packages/siwe:
     dependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../ui
-      '@reown/appkit-utils':
-        specifier: workspace:*
-        version: link:../appkit-utils
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
+      '@to-nexus/appkit-utils':
+        specifier: workspace:*
+        version: link:../appkit-utils
       '@walletconnect/utils':
         specifier: 2.18.0
         version: 2.18.0
@@ -819,13 +819,13 @@ importers:
 
   packages/siwx:
     dependencies:
-      '@reown/appkit-common':
+      '@to-nexus/appkit-common':
         specifier: workspace:*
         version: link:../common
-      '@reown/appkit-core':
+      '@to-nexus/appkit-core':
         specifier: workspace:*
         version: link:../core
-      '@reown/appkit-utils':
+      '@to-nexus/appkit-utils':
         specifier: workspace:*
         version: link:../appkit-utils
       bip322-js:
@@ -860,15 +860,15 @@ importers:
         specifier: 1.5.3
         version: 1.5.3
     devDependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
       '@types/qrcode':
         specifier: 1.5.5
         version: 1.5.5
@@ -906,15 +906,15 @@ importers:
         specifier: 1.5.3
         version: 1.5.3
     devDependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-wallet':
         specifier: workspace:*
         version: link:../wallet
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
       '@types/qrcode':
         specifier: 1.5.5
         version: 1.5.5
@@ -945,12 +945,12 @@ importers:
 
   packages/wallet:
     dependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
       '@reown/appkit-polyfills':
         specifier: workspace:*
         version: link:../polyfills
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
       '@walletconnect/logger':
         specifier: 2.1.2
         version: 2.1.2
@@ -970,16 +970,16 @@ importers:
 
   packages/wallet-button:
     dependencies:
-      '@reown/appkit-common':
-        specifier: workspace:*
-        version: link:../common
-      '@reown/appkit-core':
-        specifier: workspace:*
-        version: link:../core
       '@reown/appkit-ui':
         specifier: workspace:*
         version: link:../ui
-      '@reown/appkit-utils':
+      '@to-nexus/appkit-common':
+        specifier: workspace:*
+        version: link:../common
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
+      '@to-nexus/appkit-utils':
         specifier: workspace:*
         version: link:../appkit-utils
       lit:

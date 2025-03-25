@@ -2,12 +2,12 @@ import { type CreateConfigParameters, createConnector } from '@wagmi/core'
 import { SwitchChainError, getAddress } from 'viem'
 import type { Address } from 'viem'
 
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
-import { NetworkUtil } from '@reown/appkit-common'
-import { AlertController, OptionsController } from '@reown/appkit-core'
-import { ErrorUtil } from '@reown/appkit-utils'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
+import { NetworkUtil } from '@to-nexus/appkit-common'
+import { AlertController, OptionsController } from '@to-nexus/appkit-core'
+import { ErrorUtil } from '@to-nexus/appkit-utils'
 import { W3mFrameProvider } from '@reown/appkit-wallet'
-import { W3mFrameProviderSingleton } from '@reown/appkit/auth-provider'
+import { W3mFrameProviderSingleton } from '@to-nexus/appkit/auth-provider'
 
 // -- Types ----------------------------------------------------------------------------------------
 interface W3mFrameProviderOptions {

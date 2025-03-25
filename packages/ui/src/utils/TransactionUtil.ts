@@ -1,5 +1,5 @@
-import { DateUtil } from '@reown/appkit-common'
-import type { Transaction, TransactionImage, TransactionTransfer } from '@reown/appkit-common'
+import { DateUtil } from '@to-nexus/appkit-common'
+import type { Transaction, TransactionImage, TransactionTransfer } from '@to-nexus/appkit-common'
 
 import type { TransactionType } from './TypeUtil.js'
 import { UiHelperUtil } from './UiHelperUtil.js'

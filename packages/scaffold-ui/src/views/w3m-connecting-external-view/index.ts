@@ -1,11 +1,11 @@
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
-import type { BaseError } from '@reown/appkit-core'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
+import type { BaseError } from '@to-nexus/appkit-core'
 import {
   ChainController,
   ConnectionController,
   EventsController,
   ModalController
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'

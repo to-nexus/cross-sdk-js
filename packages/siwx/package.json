@@ -17,9 +17,9 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@reown/appkit-common": "workspace:*",
-    "@reown/appkit-core": "workspace:*",
-    "@reown/appkit-utils": "workspace:*",
+    "@to-nexus/appkit-common": "workspace:*",
+    "@to-nexus/appkit-core": "workspace:*",
+    "@to-nexus/appkit-utils": "workspace:*",
     "bip322-js": "2.0.0",
     "bs58": "6.0.0",
     "tweetnacl": "1.0.3",

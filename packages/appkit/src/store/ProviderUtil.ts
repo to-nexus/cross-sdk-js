@@ -2,8 +2,8 @@ import type UniversalProvider from '@to-nexus/universal-provider'
 import { proxy, ref, subscribe } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
-import type { ChainNamespace } from '@reown/appkit-common'
-import type { ConnectorType } from '@reown/appkit-core'
+import type { ChainNamespace } from '@to-nexus/appkit-common'
+import type { ConnectorType } from '@to-nexus/appkit-core'
 
 type StateKey = keyof ProviderStoreUtilState
 

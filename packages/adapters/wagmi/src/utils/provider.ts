@@ -1,8 +1,8 @@
 import { http } from '@wagmi/core'
 import type { Chain } from '@wagmi/core/chains'
 
-import { CoreHelperUtil } from '@reown/appkit-core'
-import { ConstantsUtil, PresetsUtil } from '@reown/appkit-utils'
+import { CoreHelperUtil } from '@to-nexus/appkit-core'
+import { ConstantsUtil, PresetsUtil } from '@to-nexus/appkit-utils'
 
 // -- Helpers ------------------------------------------------------------------
 const RPC_URL = CoreHelperUtil.getBlockchainApiUrl()

@@ -1,7 +1,7 @@
 import { onUnmounted, reactive, ref } from 'vue'
 
-import type { ChainNamespace } from '@reown/appkit-common'
-import { type Event } from '@reown/appkit-core'
+import type { ChainNamespace } from '@to-nexus/appkit-common'
+import { type Event } from '@to-nexus/appkit-core'
 import type {
   AppKitAccountButton,
   AppKitButton,
@@ -64,7 +64,7 @@ export function getAppKit(appKit: AppKit) {
 }
 
 // -- Core Hooks ---------------------------------------------------------------
-export * from '@reown/appkit-core/vue'
+export * from '@to-nexus/appkit-core/vue'
 
 export function useAppKitProvider<T>(chainNamespace: ChainNamespace) {
   const state = ref(ProviderUtil.state)

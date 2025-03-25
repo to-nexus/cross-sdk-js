@@ -2,9 +2,9 @@ import type {
   AppKitOptions,
   ConnectionControllerClient,
   NetworkControllerClient
-} from '@reown/appkit'
-import type { AdapterType, CaipNetwork, ChainNamespace } from '@reown/appkit-common'
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+} from '@to-nexus/appkit'
+import type { AdapterType, CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 
 export class PolkadotClient {
   // Metadata

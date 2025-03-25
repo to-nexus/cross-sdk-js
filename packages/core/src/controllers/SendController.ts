@@ -1,8 +1,8 @@
 import { proxy, ref, subscribe as sub } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
-import { type Balance, type CaipAddress, NumberUtil } from '@reown/appkit-common'
-import { ContractUtil } from '@reown/appkit-common'
+import { type Balance, type CaipAddress, NumberUtil } from '@to-nexus/appkit-common'
+import { ContractUtil } from '@to-nexus/appkit-common'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'

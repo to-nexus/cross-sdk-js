@@ -1,10 +1,10 @@
-import type { AppKitSdkVersion, Balance, ChainNamespace } from '@reown/appkit-common'
+import type { AppKitSdkVersion, Balance, ChainNamespace } from '@to-nexus/appkit-common'
 import {
   ConstantsUtil as CommonConstants,
   SafeLocalStorage,
   SafeLocalStorageKeys
-} from '@reown/appkit-common'
-import type { CaipAddress, CaipNetwork } from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
+import type { CaipAddress, CaipNetwork } from '@to-nexus/appkit-common'
 
 import { ConstantsUtil } from './ConstantsUtil.js'
 import type { AccountTypeMap, ChainAdapter, LinkingRecord, NamespaceTypeMap } from './TypeUtil.js'

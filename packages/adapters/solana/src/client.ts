@@ -4,20 +4,20 @@ import { Connection, PublicKey } from '@solana/web3.js'
 import UniversalProvider from '@to-nexus/universal-provider'
 import bs58 from 'bs58'
 
-import { type AppKit, type AppKitOptions } from '@reown/appkit'
-import { type CaipNetwork, ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import { type AppKit, type AppKitOptions } from '@to-nexus/appkit'
+import { type CaipNetwork, ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AlertController,
   ChainController,
   CoreHelperUtil,
   type Provider as CoreProvider,
   StorageUtil
-} from '@reown/appkit-core'
-import { ErrorUtil } from '@reown/appkit-utils'
-import { SolConstantsUtil } from '@reown/appkit-utils/solana'
-import type { Provider as SolanaProvider } from '@reown/appkit-utils/solana'
+} from '@to-nexus/appkit-core'
+import { ErrorUtil } from '@to-nexus/appkit-utils'
+import { SolConstantsUtil } from '@to-nexus/appkit-utils/solana'
+import type { Provider as SolanaProvider } from '@to-nexus/appkit-utils/solana'
 import { W3mFrameProvider } from '@reown/appkit-wallet'
-import { AdapterBlueprint } from '@reown/appkit/adapters'
+import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
 
 import { AuthProvider } from './providers/AuthProvider.js'
 import {

@@ -5,7 +5,7 @@ import type {
   TransactionDirection,
   TransactionImage,
   TransactionStatus
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 
 import '../../components/wui-image/index.js'
 import type { TransactionIconType, TransactionType } from '../../utils/TypeUtil.js'

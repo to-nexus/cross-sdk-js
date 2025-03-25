@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import type { WcWallet } from '@reown/appkit-core'
+import type { WcWallet } from '@to-nexus/appkit-core'
 import {
   AssetUtil,
   ConnectionController,
@@ -11,7 +11,7 @@ import {
   OptionsController,
   RouterController,
   StorageUtil
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 @customElement('w3m-connect-custom-widget')

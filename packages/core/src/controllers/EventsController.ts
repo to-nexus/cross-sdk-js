@@ -1,6 +1,6 @@
 import { proxy, subscribe as sub } from 'valtio/vanilla'
 
-import { ConstantsUtil, isSafe } from '@reown/appkit-common'
+import { ConstantsUtil, isSafe } from '@to-nexus/appkit-common'
 
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { FetchUtil } from '../utils/FetchUtil.js'

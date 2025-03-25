@@ -19,12 +19,12 @@ import {
   numberToHex
 } from 'viem'
 
-import { WcHelpersUtil } from '@reown/appkit'
-import type { AppKitOptions } from '@reown/appkit'
-import type { AppKit } from '@reown/appkit'
-import { ConstantsUtil } from '@reown/appkit-common'
-import type { CaipNetwork, ChainNamespace } from '@reown/appkit-common'
-import { StorageUtil } from '@reown/appkit-core'
+import { WcHelpersUtil } from '@to-nexus/appkit'
+import type { AppKitOptions } from '@to-nexus/appkit'
+import type { AppKit } from '@to-nexus/appkit'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
+import type { CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
+import { StorageUtil } from '@to-nexus/appkit-core'
 
 type UniversalConnector = Connector & {
   onDisplayUri(uri: string): void

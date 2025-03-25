@@ -14,7 +14,7 @@ import {
   OptionsController,
   RouterController,
   SIWXUtil
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import { ConstantsUtil } from '../../utils/ConstantsUtil.js'

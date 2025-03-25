@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 
-import type { Platform } from '@reown/appkit-core'
-import { ConnectionController } from '@reown/appkit-core'
+import type { Platform } from '@to-nexus/appkit-core'
+import { ConnectionController } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 @customElement('w3m-connecting-header')

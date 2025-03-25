@@ -1,7 +1,7 @@
-import { type CaipNetwork, ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
-import { CoreHelperUtil, type RequestArguments } from '@reown/appkit-core'
-import { PresetsUtil } from '@reown/appkit-utils'
-import { bitcoin } from '@reown/appkit/networks'
+import { type CaipNetwork, ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
+import { CoreHelperUtil, type RequestArguments } from '@to-nexus/appkit-core'
+import { PresetsUtil } from '@to-nexus/appkit-utils'
+import { bitcoin } from '@to-nexus/appkit/networks'
 
 import { MethodNotSupportedError } from '../errors/MethodNotSupportedError.js'
 import type { BitcoinConnector } from '../utils/BitcoinConnector.js'

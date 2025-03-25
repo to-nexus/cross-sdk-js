@@ -11,7 +11,7 @@ import type {
   ChainNamespace,
   SdkFramework,
   Transaction
-} from '@reown/appkit-common'
+} from '@to-nexus/appkit-common'
 import type { W3mFrameProvider, W3mFrameTypes } from '@reown/appkit-wallet'
 
 import type { AccountControllerState } from '../controllers/AccountController.js'

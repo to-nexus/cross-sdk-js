@@ -5,7 +5,7 @@ import {
   CoreHelperUtil,
   OptionsController,
   StorageUtil
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 
 import { WalletUtil } from './WalletUtil.js'
 

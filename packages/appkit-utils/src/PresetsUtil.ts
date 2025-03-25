@@ -1,5 +1,5 @@
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
-import type { ConnectorType } from '@reown/appkit-core'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
+import type { ConnectorType } from '@to-nexus/appkit-core'
 
 import { ConstantsUtil } from './ConstantsUtil.js'
 

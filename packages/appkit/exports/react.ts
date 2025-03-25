@@ -1,6 +1,6 @@
-import { CoreHelperUtil, type UseAppKitNetworkReturn } from '@reown/appkit-core'
-import { useAppKitNetworkCore } from '@reown/appkit-core/react'
-import type { AppKitNetwork } from '@reown/appkit/networks'
+import { CoreHelperUtil, type UseAppKitNetworkReturn } from '@to-nexus/appkit-core'
+import { useAppKitNetworkCore } from '@to-nexus/appkit-core/react'
+import type { AppKitNetwork } from '@to-nexus/appkit/networks'
 
 import { AppKit } from '../src/client.js'
 import { getAppKit } from '../src/library/react/index.js'
@@ -15,9 +15,9 @@ export * from '../src/library/react/index.js'
 
 // -- Utils & Other -----------------------------------------------------
 export * from '../src/utils/index.js'
-export type * from '@reown/appkit-core'
-export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@reown/appkit-common'
-export { CoreHelperUtil, AccountController } from '@reown/appkit-core'
+export type * from '@to-nexus/appkit-core'
+export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@to-nexus/appkit-common'
+export { CoreHelperUtil, AccountController } from '@to-nexus/appkit-core'
 
 export let modal: AppKit | undefined = undefined
 
@@ -60,4 +60,4 @@ export function useAppKitNetwork(): UseAppKitNetworkReturn {
   }
 }
 
-export { useAppKitAccount } from '@reown/appkit-core/react'
+export { useAppKitAccount } from '@to-nexus/appkit-core/react'

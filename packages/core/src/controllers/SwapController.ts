@@ -1,8 +1,8 @@
 import { proxy, subscribe as sub } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
-import { type ChainNamespace, NumberUtil } from '@reown/appkit-common'
-import { ConstantsUtil as CommonConstantsUtil } from '@reown/appkit-common'
+import { type ChainNamespace, NumberUtil } from '@to-nexus/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'

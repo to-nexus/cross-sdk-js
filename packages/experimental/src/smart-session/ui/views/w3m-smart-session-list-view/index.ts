@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-import { DateUtil } from '@reown/appkit-common'
-import { CoreHelperUtil } from '@reown/appkit-core'
+import { DateUtil } from '@to-nexus/appkit-common'
+import { CoreHelperUtil } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 import { SmartSessionsController } from '../../../controllers/SmartSessionsController.js'

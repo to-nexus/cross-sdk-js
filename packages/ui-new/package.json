@@ -23,9 +23,9 @@
   },
   "devDependencies": {
     "@types/qrcode": "1.5.5",
-    "@reown/appkit-common": "workspace:*",
+    "@to-nexus/appkit-common": "workspace:*",
     "@reown/appkit-wallet": "workspace:*",
-    "@reown/appkit-core": "workspace:*",
+    "@to-nexus/appkit-core": "workspace:*",
     "eslint-plugin-lit": "1.11.0",
     "eslint-plugin-wc": "2.0.4",
     "vitest": "2.1.9",

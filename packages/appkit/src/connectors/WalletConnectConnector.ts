@@ -1,9 +1,9 @@
 import type { SessionTypes } from '@walletconnect/types'
 import UniversalProvider from '@to-nexus/universal-provider'
 
-import { type CaipNetwork, type ChainNamespace, ConstantsUtil } from '@reown/appkit-common'
-import { SIWXUtil } from '@reown/appkit-core'
-import { PresetsUtil } from '@reown/appkit-utils'
+import { type CaipNetwork, type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
+import { SIWXUtil } from '@to-nexus/appkit-core'
+import { PresetsUtil } from '@to-nexus/appkit-utils'
 
 import type { ChainAdapterConnector } from '../adapters/ChainAdapterConnector.js'
 import { WcHelpersUtil } from '../utils/index.js'

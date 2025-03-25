@@ -7,7 +7,7 @@ import {
   CoreHelperUtil,
   FetchUtil,
   type WcWallet
-} from '@reown/appkit-core'
+} from '@to-nexus/appkit-core'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 

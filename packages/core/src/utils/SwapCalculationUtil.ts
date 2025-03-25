@@ -1,5 +1,5 @@
 // -- Types --------------------------------------------- //
-import { NumberUtil } from '@reown/appkit-common'
+import { NumberUtil } from '@to-nexus/appkit-common'
 
 import type { SwapTokenWithBalance } from './TypeUtil.js'
 

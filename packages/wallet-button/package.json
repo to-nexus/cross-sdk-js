@@ -36,10 +36,10 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@reown/appkit-common": "workspace:*",
-    "@reown/appkit-core": "workspace:*",
+    "@to-nexus/appkit-common": "workspace:*",
+    "@to-nexus/appkit-core": "workspace:*",
     "@reown/appkit-ui": "workspace:*",
-    "@reown/appkit-utils": "workspace:*",
+    "@to-nexus/appkit-utils": "workspace:*",
     "lit": "3.1.0",
     "valtio": "1.13.2"
   },

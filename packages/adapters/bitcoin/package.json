@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
+    "build:types": "tsc -p tsconfig.declarations.json",
     "build": "tsc --build tsconfig.build.json",
     "watch": "tsc --watch",
     "typecheck": "tsc --noEmit",
@@ -25,10 +26,10 @@
   },
   "dependencies": {
     "@exodus/bitcoin-wallet-standard": "0.0.0",
-    "@reown/appkit": "workspace:*",
-    "@reown/appkit-common": "workspace:*",
-    "@reown/appkit-core": "workspace:*",
-    "@reown/appkit-utils": "workspace:*",
+    "@to-nexus/appkit": "workspace:*",
+    "@to-nexus/appkit-common": "workspace:*",
+    "@to-nexus/appkit-core": "workspace:*",
+    "@to-nexus/appkit-utils": "workspace:*",
     "@wallet-standard/app": "1.1.0",
     "@wallet-standard/base": "1.1.0",
     "@to-nexus/universal-provider": "2.19.0",

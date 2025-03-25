@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit'
 
-import { RouterController } from '@reown/appkit-core'
+import { RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@reown/appkit-ui'
 
 @customElement('w3m-what-is-a-buy-view')

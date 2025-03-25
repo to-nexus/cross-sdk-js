@@ -1,11 +1,11 @@
 import type { Connection, PublicKey, SendOptions } from '@solana/web3.js'
 
-import { type CaipNetwork, ConstantsUtil } from '@reown/appkit-common'
-import type { RequestArguments } from '@reown/appkit-core'
-import type { Provider as CoreProvider } from '@reown/appkit-core'
-import { PresetsUtil } from '@reown/appkit-utils'
-import { type AnyTransaction, type Provider as SolanaProvider } from '@reown/appkit-utils/solana'
-import { solana } from '@reown/appkit/networks'
+import { type CaipNetwork, ConstantsUtil } from '@to-nexus/appkit-common'
+import type { RequestArguments } from '@to-nexus/appkit-core'
+import type { Provider as CoreProvider } from '@to-nexus/appkit-core'
+import { PresetsUtil } from '@to-nexus/appkit-utils'
+import { type AnyTransaction, type Provider as SolanaProvider } from '@to-nexus/appkit-utils/solana'
+import { solana } from '@to-nexus/appkit/networks'
 
 import { ProviderEventEmitter } from './shared/ProviderEventEmitter.js'
 
