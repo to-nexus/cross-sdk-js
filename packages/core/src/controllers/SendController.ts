@@ -260,12 +260,14 @@ export const SendController = {
   },
 
   async sendNativeToken(params: TxParams) {
-    console.log('sendNativeToken called')
     try {
+      console.log('sendNativeToken called and try')
       RouterController.pushTransactionStack({
         view: 'Account',
         goBack: false
       })
+
+      console.log('sendNativeToken after pushTransactionStack')
 
       const to = params.receiverAddress as `0x${string}`
       const address = AccountController.state.address as `0x${string}`
@@ -273,9 +275,12 @@ export const SendController = {
         params.sendTokenAmount.toString(),
         Number(params.decimals)
       )
+
+      console.log('sendNativeToken parsed value')
       const data = '0x'
       const customData = params.customData??undefined
     
+      console.log('sendNativeToken now sending transaction')
       const resTx = await ConnectionController.sendTransaction({
         chainNamespace: 'eip155',
         to,
@@ -285,6 +290,8 @@ export const SendController = {
         gasPrice: params.gasPrice ?? BigInt(2000000000),
         customData
       })
+
+      console.log('sendNativeToken transaction sent')
 
       SnackController.showSuccess('Transaction started')
       EventsController.sendEvent({
