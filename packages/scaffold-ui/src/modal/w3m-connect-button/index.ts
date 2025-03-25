@@ -3,8 +3,8 @@ import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
 import { ModalController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
-import type { WuiConnectButton } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
+import type { WuiConnectButton } from '@to-nexus/appkit-ui'
 
 class W3mConnectButtonBase extends LitElement {
   // -- Members ------------------------------------------- //

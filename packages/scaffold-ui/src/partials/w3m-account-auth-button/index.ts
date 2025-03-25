@@ -9,7 +9,7 @@ import {
   type SocialProvider,
   StorageUtil
 } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-account-auth-button')
 export class W3mAccountAuthButton extends LitElement {

@@ -3,7 +3,7 @@ import { property, state } from 'lit/decorators.js'
 
 import { NumberUtil } from '@to-nexus/appkit-common'
 import { ChainController, ConstantsUtil, SwapController } from '@to-nexus/appkit-core'
-import { UiHelperUtil, customElement } from '@reown/appkit-ui'
+import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

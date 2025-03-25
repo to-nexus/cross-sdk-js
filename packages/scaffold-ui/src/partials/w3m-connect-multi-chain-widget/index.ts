@@ -4,7 +4,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import type { Connector } from '@to-nexus/appkit-core'
 import { AssetUtil, ConnectorController, RouterController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-connect-multi-chain-widget')
 export class W3mConnectMultiChainWidget extends LitElement {

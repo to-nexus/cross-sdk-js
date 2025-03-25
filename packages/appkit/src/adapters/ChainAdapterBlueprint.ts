@@ -18,7 +18,7 @@ import {
   type WriteContractArgs
 } from '@to-nexus/appkit-core'
 import { PresetsUtil } from '@to-nexus/appkit-utils'
-import { W3mFrameProvider } from '@reown/appkit-wallet'
+import { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 
 import type { AppKit } from '../client.js'
 import { WalletConnectConnector } from '../connectors/WalletConnectConnector.js'

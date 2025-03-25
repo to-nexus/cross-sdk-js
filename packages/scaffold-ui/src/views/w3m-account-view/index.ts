@@ -3,7 +3,7 @@ import { state } from 'lit/decorators.js'
 
 import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import { ChainController, ConnectorController, StorageUtil } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-account-view')
 export class W3mAccountView extends LitElement {

@@ -11,8 +11,8 @@ import {
   RouterController,
   SnackController
 } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
-import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
+import { customElement } from '@to-nexus/appkit-ui'
+import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
 import { SIWEController } from '../../../core/controller/SIWEController.js'
 

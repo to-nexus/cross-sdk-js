@@ -3,7 +3,7 @@ import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
 import { type Balance, type CaipAddress, NumberUtil } from '@to-nexus/appkit-common'
 import { ContractUtil } from '@to-nexus/appkit-common'
-import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
+import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'

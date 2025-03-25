@@ -10,7 +10,7 @@ import {
   OptionsController,
   TransactionsController
 } from '@to-nexus/appkit-core'
-import { TransactionUtil, customElement } from '@reown/appkit-ui'
+import { TransactionUtil, customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

@@ -15,7 +15,7 @@ import {
   SnackController,
   ThemeController
 } from '@to-nexus/appkit-core'
-import { UiHelperUtil, customElement, initializeTheming } from '@reown/appkit-ui'
+import { UiHelperUtil, customElement, initializeTheming } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 
-import type { VisualType } from '@reown/appkit-ui'
-import { customElement } from '@reown/appkit-ui'
+import type { VisualType } from '@to-nexus/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 type Data = {
   images: VisualType[]

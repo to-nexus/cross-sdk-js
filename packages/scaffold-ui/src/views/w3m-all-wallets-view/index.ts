@@ -8,7 +8,7 @@ import {
   RouterController,
   SnackController
 } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-all-wallets-view')
 export class W3mAllWalletsView extends LitElement {

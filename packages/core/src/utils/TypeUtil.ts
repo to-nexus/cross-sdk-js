@@ -12,7 +12,7 @@ import type {
   SdkFramework,
   Transaction
 } from '@to-nexus/appkit-common'
-import type { W3mFrameProvider, W3mFrameTypes } from '@reown/appkit-wallet'
+import type { W3mFrameProvider, W3mFrameTypes } from '@to-nexus/appkit-wallet'
 
 import type { AccountControllerState } from '../controllers/AccountController.js'
 import type { ConnectionControllerClient } from '../controllers/ConnectionController.js'

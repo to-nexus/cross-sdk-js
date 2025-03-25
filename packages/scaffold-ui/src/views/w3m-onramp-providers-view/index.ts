@@ -13,8 +13,8 @@ import {
   RouterController
 } from '@to-nexus/appkit-core'
 import type { CoinbasePaySDKChainNameValues } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
-import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
+import { customElement } from '@to-nexus/appkit-ui'
+import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
 @customElement('w3m-onramp-providers-view')
 export class W3mOnRampProvidersView extends LitElement {

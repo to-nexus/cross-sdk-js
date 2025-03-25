@@ -3,7 +3,7 @@ import { property } from 'lit/decorators.js'
 
 import type { WcWallet } from '@to-nexus/appkit-core'
 import { CoreHelperUtil, RouterController } from '@to-nexus/appkit-core'
-import { UiHelperUtil, customElement } from '@reown/appkit-ui'
+import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

@@ -51,7 +51,7 @@ import {
   type Provider
 } from '@to-nexus/appkit-core'
 import { CaipNetworksUtil, PresetsUtil } from '@to-nexus/appkit-utils'
-import type { W3mFrameProvider } from '@reown/appkit-wallet'
+import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
 import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
 

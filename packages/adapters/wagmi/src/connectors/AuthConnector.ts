@@ -6,7 +6,7 @@ import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import { NetworkUtil } from '@to-nexus/appkit-common'
 import { AlertController, OptionsController } from '@to-nexus/appkit-core'
 import { ErrorUtil } from '@to-nexus/appkit-utils'
-import { W3mFrameProvider } from '@reown/appkit-wallet'
+import { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 import { W3mFrameProviderSingleton } from '@to-nexus/appkit/auth-provider'
 
 // -- Types ----------------------------------------------------------------------------------------

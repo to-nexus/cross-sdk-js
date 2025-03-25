@@ -3,8 +3,8 @@
  * For now exporting only Wagmi and Solana adapters. Until we found a better workaround and need other adapters, we can keep it this way.
  */
 import { createAppKit } from '@to-nexus/appkit'
-import { SolanaAdapter } from '@reown/appkit-adapter-solana'
-import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+import { SolanaAdapter } from '@to-nexus/appkit-adapter-solana'
+import { WagmiAdapter } from '@to-nexus/appkit-adapter-wagmi'
 import '@reown/appkit-polyfills'
 import * as AppKitNetworks from '@to-nexus/appkit/networks'
 

@@ -8,7 +8,7 @@ import {
   ChainController,
   StorageUtil
 } from '@to-nexus/appkit-core'
-import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
+import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
 import '../../components/wui-image/index.js'
 import '../../components/wui-text/index.js'

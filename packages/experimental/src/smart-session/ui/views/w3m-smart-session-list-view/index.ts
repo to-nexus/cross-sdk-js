@@ -3,7 +3,7 @@ import { state } from 'lit/decorators.js'
 
 import { DateUtil } from '@to-nexus/appkit-common'
 import { CoreHelperUtil } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 import { SmartSessionsController } from '../../../controllers/SmartSessionsController.js'
 import type { SmartSession } from '../../../utils/TypeUtils.js'

@@ -12,7 +12,7 @@ import UniversalProvider from '@to-nexus/universal-provider'
 import type { CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
 import type { ConnectorType } from '@to-nexus/appkit-core'
 import type { Provider as CoreProvider } from '@to-nexus/appkit-core'
-import type { W3mFrameProvider, W3mFrameTypes } from '@reown/appkit-wallet'
+import type { W3mFrameProvider, W3mFrameTypes } from '@to-nexus/appkit-wallet'
 
 export type Connection = SolanaConnection
 

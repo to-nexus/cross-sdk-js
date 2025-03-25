@@ -4,7 +4,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import { type CaipNetwork } from '@to-nexus/appkit-common'
 import { AssetUtil, RouterController } from '@to-nexus/appkit-core'
-import { UiHelperUtil, customElement } from '@reown/appkit-ui'
+import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

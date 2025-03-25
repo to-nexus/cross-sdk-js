@@ -12,7 +12,7 @@ import type {
   W3mButton,
   W3mConnectButton,
   W3mNetworkButton
-} from '@reown/appkit-scaffold-ui'
+} from '@to-nexus/appkit-scaffold-ui'
 
 import type { AppKit } from '../../../src/client.js'
 import { ProviderUtil } from '../../store/ProviderUtil.js'

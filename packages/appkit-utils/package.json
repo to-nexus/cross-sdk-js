@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -47,7 +47,7 @@
     "@to-nexus/appkit-common": "workspace:*",
     "@to-nexus/appkit-core": "workspace:*",
     "@reown/appkit-polyfills": "workspace:*",
-    "@reown/appkit-wallet": "workspace:*",
+    "@to-nexus/appkit-wallet": "workspace:*",
     "@walletconnect/logger": "2.1.2",
     "@to-nexus/universal-provider": "2.19.0",
     "valtio": "1.13.2",
@@ -73,14 +73,14 @@
     "wagmi",
     "ethers"
   ],
-  "author": "Reown <support@reown.com> (https://reown.com)",
+  "author": "Nexus <support@to.nexus> (https://to.nexus)",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/reown-com/appkit",
+  "homepage": "https://github.com/to-nexus/appkit",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reown-com/appkit.git"
+    "url": "git+https://github.com/to-nexus/appkit.git"
   },
   "bugs": {
-    "url": "https://github.com/reown-com/appkit/issues"
+    "url": "https://github.com/to-nexus/appkit/issues"
   }
 }

@@ -1,6 +1,6 @@
 {
-  "name": "@reown/appkit-cdn",
-  "version": "1.6.9",
+  "name": "@to-nexus/appkit-cdn",
+  "version": "1.0.1",
   "main": "dist/wagmi.js",
   "type": "module",
   "files": [
@@ -30,8 +30,8 @@
   "dependencies": {
     "@to-nexus/appkit": "workspace:*",
     "@to-nexus/appkit-adapter-ethers": "workspace:*",
-    "@reown/appkit-adapter-solana": "workspace:*",
-    "@reown/appkit-adapter-wagmi": "workspace:*",
+    "@to-nexus/appkit-adapter-solana": "workspace:*",
+    "@to-nexus/appkit-adapter-wagmi": "workspace:*",
     "@reown/appkit-polyfills": "workspace:*",
     "@wagmi/connectors": "5.7.7",
     "@wagmi/core": "2.16.4",

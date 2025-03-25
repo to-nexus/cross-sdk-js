@@ -11,8 +11,8 @@ import {
   ModalController,
   OptionsController
 } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
-import type { WuiAccountButton } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
+import type { WuiAccountButton } from '@to-nexus/appkit-ui'
 
 class W3mAccountButtonBase extends LitElement {
   // -- Members ------------------------------------------- //

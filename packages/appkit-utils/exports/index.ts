@@ -1,6 +1,6 @@
 import type UniversalProvider from '@to-nexus/universal-provider'
 
-import type { W3mFrameProvider } from '@reown/appkit-wallet'
+import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 
 export { ConstantsUtil } from '../src/ConstantsUtil.js'
 export { PresetsUtil } from '../src/PresetsUtil.js'

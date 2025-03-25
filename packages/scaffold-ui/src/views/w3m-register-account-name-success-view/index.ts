@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit'
 
 import { NavigationUtil } from '@to-nexus/appkit-common'
 import { CoreHelperUtil, RouterController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

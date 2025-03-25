@@ -1,6 +1,6 @@
 {
-  "name": "@reown/appkit-wallet",
-  "version": "1.6.9",
+  "name": "@to-nexus/appkit-wallet",
+  "version": "1.0.1",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -22,15 +22,15 @@
     "@reown/appkit-polyfills": "workspace:*",
     "zod": "3.22.4"
   },
-  "author": "Reown <support@reown.com> (https://reown.com)",
+  "author": "Nexus <support@to.nexus> (https://to.nexus)",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/reown-com/appkit",
+  "homepage": "https://github.com/to-nexus/appkit",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reown-com/appkit.git"
+    "url": "git+https://github.com/to-nexus/appkit.git"
   },
   "bugs": {
-    "url": "https://github.com/reown-com/appkit/issues"
+    "url": "https://github.com/to-nexus/appkit/issues"
   },
   "devDependencies": {
     "jsdom": "24.1.0",

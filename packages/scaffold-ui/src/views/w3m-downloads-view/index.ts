@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit'
 
 import { CoreHelperUtil, RouterController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-downloads-view')
 export class W3mDownloadsView extends LitElement {

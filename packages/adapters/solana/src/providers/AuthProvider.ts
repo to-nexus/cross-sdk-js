@@ -11,7 +11,7 @@ import type {
   GetActiveChain,
   Provider as SolanaProvider
 } from '@to-nexus/appkit-utils/solana'
-import { W3mFrameProvider } from '@reown/appkit-wallet'
+import { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 
 import { withSolanaNamespace } from '../utils/withSolanaNamespace.js'
 import { ProviderEventEmitter } from './shared/ProviderEventEmitter.js'

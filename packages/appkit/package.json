@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -106,10 +106,10 @@
     "@to-nexus/appkit-common": "workspace:*",
     "@to-nexus/appkit-core": "workspace:*",
     "@reown/appkit-polyfills": "workspace:*",
-    "@reown/appkit-scaffold-ui": "workspace:*",
-    "@reown/appkit-ui": "workspace:*",
+    "@to-nexus/appkit-scaffold-ui": "workspace:*",
+    "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-utils": "workspace:*",
-    "@reown/appkit-wallet": "workspace:*",
+    "@to-nexus/appkit-wallet": "workspace:*",
     "@walletconnect/types": "2.18.0",
     "@walletconnect/utils": "2.18.0",
     "bs58": "6.0.0",
@@ -118,7 +118,7 @@
   },
   "devDependencies": {
     "@to-nexus/universal-provider": "2.19.0",
-    "@reown/appkit-siwe": "workspace:*",
+    "@to-nexus/appkit-siwe": "workspace:*",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vitest/coverage-v8": "2.1.3",
@@ -129,14 +129,14 @@
     "vitest": "2.1.9",
     "vue": "3.x"
   },
-  "author": "Reown <support@reown.com> (https://reown.com)",
+  "author": "Nexus <support@to.nexus> (https://to.nexus)",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/reown-com/appkit",
+  "homepage": "https://github.com/to-nexus/appkit",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reown-com/appkit.git"
+    "url": "git+https://github.com/to-nexus/appkit.git"
   },
   "bugs": {
-    "url": "https://github.com/reown-com/appkit/issues"
+    "url": "https://github.com/to-nexus/appkit/issues"
   }
 }

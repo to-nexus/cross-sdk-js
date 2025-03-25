@@ -6,7 +6,7 @@ import { PACKAGE_VERSION } from './constants.js'
 
 
 // -- Views ------------------------------------------------------------
-export * from '@reown/appkit-scaffold-ui'
+export * from '@to-nexus/appkit-scaffold-ui'
 
 // -- Utils & Other -----------------------------------------------------
 export * from '../src/utils/index.js'

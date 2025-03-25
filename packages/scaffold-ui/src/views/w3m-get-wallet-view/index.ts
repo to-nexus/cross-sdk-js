@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
 import { ApiController, AssetUtil, CoreHelperUtil, OptionsController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 const EXPLORER = 'https://walletconnect.com/explorer'
 

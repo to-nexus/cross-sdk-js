@@ -12,9 +12,9 @@ import {
   RouterController,
   TransactionsController
 } from '@to-nexus/appkit-core'
-import { TransactionUtil, customElement } from '@reown/appkit-ui'
-import type { TransactionType } from '@reown/appkit-ui'
-import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
+import { TransactionUtil, customElement } from '@to-nexus/appkit-ui'
+import type { TransactionType } from '@to-nexus/appkit-ui'
+import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
 import styles from './styles.js'
 

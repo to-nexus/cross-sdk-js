@@ -4,7 +4,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import type { WcWallet } from '@to-nexus/appkit-core'
 import { ApiController, ConnectorController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
 import styles from './styles.js'

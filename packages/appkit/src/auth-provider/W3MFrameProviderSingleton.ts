@@ -1,5 +1,5 @@
 import type { CaipNetworkId } from '@to-nexus/appkit-common'
-import { W3mFrameProvider } from '@reown/appkit-wallet'
+import { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 
 interface W3mFrameProviderConfig {
   projectId: string

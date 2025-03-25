@@ -4,7 +4,7 @@ import { property } from 'lit/decorators.js'
 import type { Balance } from '@to-nexus/appkit-common'
 import { NumberUtil } from '@to-nexus/appkit-common'
 import { ConstantsUtil, RouterController, SendController } from '@to-nexus/appkit-core'
-import { UiHelperUtil, customElement } from '@reown/appkit-ui'
+import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

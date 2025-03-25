@@ -7,7 +7,7 @@ import {
   RouterController,
   SwapController
 } from '@to-nexus/appkit-core'
-import { UiHelperUtil, customElement } from '@reown/appkit-ui'
+import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

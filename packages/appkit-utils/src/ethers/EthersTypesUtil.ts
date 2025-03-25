@@ -1,7 +1,7 @@
 import type { ProviderInterface } from '@coinbase/wallet-sdk'
 import type UniversalProvider from '@to-nexus/universal-provider'
 
-import type { W3mFrameProvider } from '@reown/appkit-wallet'
+import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 
 import type { SocialProvider } from '../TypeUtil.js'
 

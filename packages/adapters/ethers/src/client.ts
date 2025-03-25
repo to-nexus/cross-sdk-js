@@ -15,7 +15,7 @@ import {
 } from '@to-nexus/appkit-core'
 import { ConstantsUtil, PresetsUtil } from '@to-nexus/appkit-utils'
 import { EthersHelpersUtil, type ProviderType } from '@to-nexus/appkit-utils/ethers'
-import type { W3mFrameProvider } from '@reown/appkit-wallet'
+import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
 import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
 import { ProviderUtil } from '@to-nexus/appkit/store'

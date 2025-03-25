@@ -2,7 +2,7 @@ import UniversalProvider from '@to-nexus/universal-provider'
 
 import type { CaipNetworkId, ChainNamespace } from '@to-nexus/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
-import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
+import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
 import { AccountController } from '../controllers/AccountController.js'
 import { ChainController } from '../controllers/ChainController.js'
@@ -314,7 +314,7 @@ export const SIWXUtil = {
 
 /**
  * This interface represents the SIWX configuration plugin, which is used to create and manage SIWX messages and sessions.
- * AppKit provides predefined implementations for this interface through `@reown/appkit-siwx`.
+ * AppKit provides predefined implementations for this interface through `@to-nexus/appkit-siwx`.
  * You may use it to create a custom implementation following your needs, but watch close for the methods requirements.
  */
 export interface SIWXConfig {

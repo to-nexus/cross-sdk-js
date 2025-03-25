@@ -10,7 +10,7 @@ import {
   SnackController,
   ThemeController
 } from '@to-nexus/appkit-core'
-import type { IconType } from '@reown/appkit-ui'
+import type { IconType } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

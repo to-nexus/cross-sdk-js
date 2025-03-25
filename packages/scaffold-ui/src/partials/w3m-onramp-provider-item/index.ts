@@ -3,7 +3,7 @@ import { property } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
 import { AssetUtil, ChainController, type OnRampProvider } from '@to-nexus/appkit-core'
-import { type ColorType, customElement } from '@reown/appkit-ui'
+import { type ColorType, customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

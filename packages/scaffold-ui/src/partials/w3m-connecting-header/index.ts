@@ -3,7 +3,7 @@ import { property, state } from 'lit/decorators.js'
 
 import type { Platform } from '@to-nexus/appkit-core'
 import { ConnectionController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-connecting-header')
 export class W3mConnectingHeader extends LitElement {

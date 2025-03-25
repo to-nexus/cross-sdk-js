@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit'
 
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 

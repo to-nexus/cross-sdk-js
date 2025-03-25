@@ -29,14 +29,14 @@
     "reown",
     "polyfills"
   ],
-  "author": "Reown <support@reown.com> (https://reown.com)",
+  "author": "Nexus <support@to.nexus> (https://to.nexus)",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/reown-com/appkit",
+  "homepage": "https://github.com/to-nexus/appkit",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reown-com/appkit.git"
+    "url": "git+https://github.com/to-nexus/appkit.git"
   },
   "bugs": {
-    "url": "https://github.com/reown-com/appkit/issues"
+    "url": "https://github.com/to-nexus/appkit/issues"
   }
 }

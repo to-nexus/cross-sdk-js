@@ -13,8 +13,8 @@ import {
   RouterController,
   SnackController
 } from '@to-nexus/appkit-core'
-import { UiHelperUtil, customElement } from '@reown/appkit-ui'
-import type { W3mFrameTypes } from '@reown/appkit-wallet'
+import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
+import type { W3mFrameTypes } from '@to-nexus/appkit-wallet'
 
 import styles from './styles.js'
 

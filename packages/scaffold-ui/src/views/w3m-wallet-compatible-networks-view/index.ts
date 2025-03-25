@@ -3,8 +3,8 @@ import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
 import { AccountController, AssetUtil, ChainController, CoreHelperUtil } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
-import { W3mFrameRpcConstants } from '@reown/appkit-wallet'
+import { customElement } from '@to-nexus/appkit-ui'
+import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
 import styles from './styles.js'
 

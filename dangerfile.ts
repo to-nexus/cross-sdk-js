@@ -94,7 +94,7 @@ async function checkUiPackage() {
       fail(`${f} is a ui element, but does not define wui- prefix`)
     }
 
-    if (diff?.added.includes('@reown/appkit-ui/')) {
+    if (diff?.added.includes('@to-nexus/appkit-ui/')) {
       fail(`${f} should use relative imports instead of direct package access`)
     }
   }
@@ -189,8 +189,8 @@ async function checkCorePackage() {
   for (const f of created_core_controllers) {
     const diff = await diffForFile(f)
 
-    if (diff?.added.includes('import @reown/appkit-ui')) {
-      fail(`${f} is importing @reown/appkit-ui, which is not allowed in core package`)
+    if (diff?.added.includes('import @to-nexus/appkit-ui')) {
+      fail(`${f} is importing @to-nexus/appkit-ui, which is not allowed in core package`)
     }
 
     if (!diff?.added.includes(TYPE_COMMENT)) {
@@ -271,7 +271,7 @@ async function checkScaffoldHtmlPackage() {
 
     if (
       diff?.added.includes('@to-nexus/appkit-core/') ||
-      diff?.added.includes('@reown/appkit-ui/') ||
+      diff?.added.includes('@to-nexus/appkit-ui/') ||
       diff?.added.includes('@reown/scaffold/')
     ) {
       fail(`${f} should use relative imports instead of direct package access`)
@@ -308,8 +308,8 @@ async function checkClientPackages() {
       fail(`${f} is not allowed to import from @to-nexus/appkit-core`)
     }
 
-    if (diff?.added.includes("from '@reown/appkit-ui")) {
-      fail(`${f} is not allowed to import from @reown/appkit-ui`)
+    if (diff?.added.includes("from '@to-nexus/appkit-ui")) {
+      fail(`${f} is not allowed to import from @to-nexus/appkit-ui`)
     }
 
     if (containsRelativeImportWithoutJSExtension(diff?.added)) {
@@ -381,8 +381,8 @@ async function checkChangesetFiles() {
 
   const ignoredChangesetFiles = [
     '@apps/gallery-new',
-    '@reown/appkit-ui-new',
-    '@reown/appkit-scaffold-ui-new',
+    '@to-nexus/appkit-ui-new',
+    '@to-nexus/appkit-scaffold-ui-new',
     '@apps/laboratory-new',
     '@reown/appkit-new'
   ]

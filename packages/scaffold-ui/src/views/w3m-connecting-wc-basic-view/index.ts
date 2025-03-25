@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
 import { ApiController, CoreHelperUtil, OptionsController, StorageUtil } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-connecting-wc-basic-view')
 export class W3mConnectingWcBasicView extends LitElement {

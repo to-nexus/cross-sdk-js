@@ -5,7 +5,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 import { ConstantsUtil } from '@to-nexus/appkit-common'
 import type { Connector } from '@to-nexus/appkit-core'
 import { AssetUtil, ConnectorController, RouterController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-connect-external-widget')
 export class W3mConnectExternalWidget extends LitElement {

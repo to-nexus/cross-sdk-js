@@ -64,8 +64,8 @@ import {
   StorageUtil,
   ThemeController
 } from '@to-nexus/appkit-core'
-import { WalletUtil } from '@reown/appkit-scaffold-ui/utils'
-import { setColorTheme, setThemeVariables } from '@reown/appkit-ui'
+import { WalletUtil } from '@to-nexus/appkit-scaffold-ui/utils'
+import { setColorTheme, setThemeVariables } from '@to-nexus/appkit-ui'
 import {
   CaipNetworksUtil,
   ErrorUtil,
@@ -78,7 +78,7 @@ import {
   W3mFrameProvider,
   W3mFrameRpcConstants,
   type W3mFrameTypes
-} from '@reown/appkit-wallet'
+} from '@to-nexus/appkit-wallet'
 import type { AppKitNetwork } from '@to-nexus/appkit/networks'
 
 import type { AdapterBlueprint } from './adapters/ChainAdapterBlueprint.js'
@@ -2239,8 +2239,8 @@ export class AppKit {
       isInitialized = true
       this.initPromise = new Promise<void>(async resolve => {
         await Promise.all([
-          import('@reown/appkit-ui'),
-          import('@reown/appkit-scaffold-ui/w3m-modal')
+          import('@to-nexus/appkit-ui'),
+          import('@to-nexus/appkit-scaffold-ui/w3m-modal')
         ])
         const modal = document.createElement('w3m-modal')
         if (!OptionsController.state.disableAppend && !OptionsController.state.enableEmbedded) {

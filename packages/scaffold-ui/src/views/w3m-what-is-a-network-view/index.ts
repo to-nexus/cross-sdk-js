@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit'
 
 import { CoreHelperUtil } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 const data = [
   {

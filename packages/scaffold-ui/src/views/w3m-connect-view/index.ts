@@ -16,7 +16,7 @@ import {
   RouterController,
   type WalletGuideType
 } from '@to-nexus/appkit-core'
-import { MathUtil, customElement } from '@reown/appkit-ui'
+import { MathUtil, customElement } from '@to-nexus/appkit-ui'
 import { ConstantsUtil as AppKitConstantsUtil } from '@to-nexus/appkit-utils'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'

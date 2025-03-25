@@ -3,7 +3,7 @@ import { property, state } from 'lit/decorators.js'
 
 import type { BadgeType, WcWallet } from '@to-nexus/appkit-core'
 import { ApiController, ConnectorController } from '@to-nexus/appkit-core'
-import { customElement } from '@reown/appkit-ui'
+import { customElement } from '@to-nexus/appkit-ui'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
 import styles from './styles.js'

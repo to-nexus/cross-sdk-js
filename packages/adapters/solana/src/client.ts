@@ -16,7 +16,7 @@ import {
 import { ErrorUtil } from '@to-nexus/appkit-utils'
 import { SolConstantsUtil } from '@to-nexus/appkit-utils/solana'
 import type { Provider as SolanaProvider } from '@to-nexus/appkit-utils/solana'
-import { W3mFrameProvider } from '@reown/appkit-wallet'
+import { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
 
 import { AuthProvider } from './providers/AuthProvider.js'
