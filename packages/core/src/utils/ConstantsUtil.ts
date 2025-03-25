@@ -3,7 +3,7 @@ import type { ChainNamespace } from '@to-nexus/appkit-common'
 import type { DefaultAccountTypes, Features, SocialProvider } from './TypeUtil.js'
 
 const SECURE_SITE =
-  process.env['NEXT_PUBLIC_SECURE_SITE_ORIGIN'] || 'https://secure.walletconnect.org'
+  'https://secure.walletconnect.org'
 
 export const ONRAMP_PROVIDERS = [
   {

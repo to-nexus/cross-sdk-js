@@ -2,12 +2,6 @@ import { defineConfig } from 'vite';
 import path from 'path';
 
 export default defineConfig({
-  define: {
-    'process.env.NEXT_PUBLIC_SECURE_SITE_ORIGIN': JSON.stringify('https://secure.walletconnect.org'),
-    'process.env.NEXT_PUBLIC_SECURE_SITE_SDK_URL': JSON.stringify('https://secure.walletconnect.org/sdk'),
-    'process.env.NEXT_PUBLIC_DEFAULT_LOG_LEVEL': JSON.stringify('error'),
-    'process.env.NEXT_PUBLIC_SECURE_SITE_SDK_VERSION': JSON.stringify('3')
-  },
   build: {
     lib: {
       entry: {

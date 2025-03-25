@@ -3,7 +3,7 @@ import type { ConnectMethod } from '@to-nexus/appkit-core'
 export const ConstantsUtil = {
   ACCOUNT_TABS: [{ label: 'Tokens' }, { label: 'NFTs' }, { label: 'Activity' }],
   SECURE_SITE_ORIGIN:
-    process.env['NEXT_PUBLIC_SECURE_SITE_ORIGIN'] || 'https://secure.walletconnect.org',
+    'https://secure.walletconnect.org',
   VIEW_DIRECTION: {
     Next: 'next',
     Prev: 'prev'
