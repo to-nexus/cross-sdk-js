@@ -1053,12 +1053,18 @@ export class AppKit {
         return result?.signature || ''
       },
       sendTransaction: async (args: SendTransactionArgs) => {
+        console.log('Appkit sendTransaction called')
+        console.log(`Appkit sendTransaction chainNamespace: ${args.chainNamespace}`)
+        console.log(`Appkit sendTransaction EVM: ${ConstantsUtil.CHAIN.EVM}`)
+
         if (args.chainNamespace === ConstantsUtil.CHAIN.EVM) {
+          console.log('Appkit sendTransaction EVM')
           const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
           const provider = ProviderUtil.getProvider(
             ChainController.state.activeChain as ChainNamespace
           )
+          console.log(`Appkit sendTransaction provider`)
           const result = await adapter?.sendTransaction({ ...args, provider })
           console.log('Appkit sendTransaction result', JSON.stringify(result, null, 2))
           
@@ -1068,6 +1074,7 @@ export class AppKit {
           return result?.hash ? { hash: `${result.hash}` as `0x${string}` } : null;
         }
 
+        console.log('Appkit sendTransaction not EVM')
         return null
       },
       estimateGas: async (args: EstimateGasTransactionArgs) => {
