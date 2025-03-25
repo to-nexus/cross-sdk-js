@@ -34,7 +34,7 @@ const initCrossSdk = (projectId: string) => createAppKit({
     name: 'Cross SDK',
     description: 'Cross SDK for React',
     url: 'https://to.nexus',
-    icons: ['https://dev-contents.crossops.in/wallet/token/images/Cross.svg']
+    icons: ['https://contents.crosstoken.io/wallet/token/images/Cross.svg']
   },
   projectId,
   themeMode: 'light',
