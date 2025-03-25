@@ -9,7 +9,7 @@
     "moduleResolution": "node",
     "paths": {
       "*": ["node_modules/*"]
-    },
+    }
   },
   "include": ["src"],
 }

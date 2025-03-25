@@ -1,22 +1,19 @@
 {
   "name": "@to-nexus/sdk-example-react",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.1",
   "scripts": {
     "dev": "vite --port 3012",
     "build": "vite build"
   },
   "dependencies": {
     "@to-nexus/sdk": "workspace:*",
-    "ethers": "6.13.2",
+    "ethers": "^6.13.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "uuid": "latest"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/react": "18.2.0",
-    "@types/react-dom": "18.2.0",
-    "@vitejs/plugin-react": "4.2.1",
     "vite": "5.4.12"
   }
 }

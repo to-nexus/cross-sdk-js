@@ -1,14 +1,16 @@
 import {
   crossMainnet, 
   crossTestnet,
-  AccountController,
-  ConnectionController,
-  SendController,
   initCrossSdk,
   useAppKit,
+  useAppKitProvider,
   useAppKitAccount,
   useAppKitNetwork,
   useDisconnect,
+  AccountController,
+  ConnectionController,
+  SendController,
+  UniversalProvider
 } from '@to-nexus/sdk/react'
 
 import { Signature } from 'ethers'
@@ -32,6 +34,8 @@ export function ActionButtonList() {
   const { disconnect } = useDisconnect()
   const { switchNetwork } = useAppKitNetwork()
   const [ contractArgs, setContractArgs ] = useState<WriteContractArgs | null>(null)
+  const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155');
+  console.log(`walletProvider, namespace: ${walletProvider?.namespaces?.['eip155']}, uri: ${walletProvider?.uri}`)
   
   // erc20 token contract address
   const ERC20_ADDRESS = "0x35Af8eF840Eda3e93FC8F5167dbd8FF0D6F96580"

@@ -1,9 +1,6 @@
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 import { crossTestnet, crossMainnet } from '@reown/appkit/networks'
 import {
-  AccountController,
-  SendController,
-  ConnectionController,
   createAppKit,
   useAppKit,
   useAppKitProvider,
@@ -15,8 +12,10 @@ import {
   useDisconnect,
   useWalletInfo,
 } from '@reown/appkit/react'
+import { AccountController, SendController, ConnectionController } from '@reown/appkit-core'
+import UniversalProvider from '@to-nexus/universal-provider'
 
-export type { SendTransactionArgs, WriteContractArgs } from '@reown/appkit'
+export type { SendTransactionArgs, WriteContractArgs } from '@reown/appkit-core'
 
 const networks = [ { 
   id: crossTestnet.id,
@@ -74,9 +73,11 @@ export {
   useAppKitNetwork,
   useDisconnect,
   useAppKitProvider,
+  ConnectionController,
   SendController,
   AccountController,
-  ConnectionController,
   crossMainnet,
   crossTestnet
 }
+
+export { UniversalProvider }
