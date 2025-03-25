@@ -77,7 +77,6 @@ export {
   SendController,
   AccountController,
   crossMainnet,
-  crossTestnet
+  crossTestnet,
+  UniversalProvider
 }
-
-export { UniversalProvider }
