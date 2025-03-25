@@ -261,21 +261,21 @@ export const SendController = {
 
   async sendNativeToken(params: TxParams) {
     console.log('sendNativeToken called')
-    RouterController.pushTransactionStack({
-      view: 'Account',
-      goBack: false
-    })
-
-    const to = params.receiverAddress as `0x${string}`
-    const address = AccountController.state.address as `0x${string}`
-    const value = ConnectionController.parseUnits(
-      params.sendTokenAmount.toString(),
-      Number(params.decimals)
-    )
-    const data = '0x'
-    const customData = params.customData??undefined
-
     try {
+      RouterController.pushTransactionStack({
+        view: 'Account',
+        goBack: false
+      })
+
+      const to = params.receiverAddress as `0x${string}`
+      const address = AccountController.state.address as `0x${string}`
+      const value = ConnectionController.parseUnits(
+        params.sendTokenAmount.toString(),
+        Number(params.decimals)
+      )
+      const data = '0x'
+      const customData = params.customData??undefined
+    
       const resTx = await ConnectionController.sendTransaction({
         chainNamespace: 'eip155',
         to,
@@ -325,17 +325,17 @@ export const SendController = {
 
   async sendERC20Token(params: ContractWriteParams) {
     console.log('sendERC20Token called')
-    RouterController.pushTransactionStack({
-      view: 'Account',
-      goBack: false
-    })
-
-    const amount = ConnectionController.parseUnits(
-      params.sendTokenAmount.toString(),
-      Number(params.decimals)
-    )
-
     try {
+      RouterController.pushTransactionStack({
+        view: 'Account',
+        goBack: false
+      })
+
+      const amount = ConnectionController.parseUnits(
+        params.sendTokenAmount.toString(),
+        Number(params.decimals)
+      )
+
       if (
         AccountController.state.address &&
         params.sendTokenAmount &&
