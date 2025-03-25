@@ -3,6 +3,7 @@
     "composite": true,
     "outDir": "./dist/esm",
     "declarationDir": "./dist/types",
+    "declarationMap": true,
     "removeComments": false
   },
   "extends": "../../tsconfig.json",

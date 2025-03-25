@@ -3,7 +3,6 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist/types",
-    "declaration": true,
     "declarationMap": true,
     "removeComments": false,
     "baseUrl": ".",
