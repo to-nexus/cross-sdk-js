@@ -15,10 +15,11 @@ export * from '../src/library/react/index.js'
 
 // -- Utils & Other -----------------------------------------------------
 export * from '../src/utils/index.js'
-export type * from '@reown/appkit-core'
-export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@reown/appkit-common'
 export { CoreHelperUtil, AccountController, SendController, ConnectionController } from '@reown/appkit-core'
+export { useAppKitAccount } from '@reown/appkit-core/react'
+export type * from '@reown/appkit-core'
 export type { SendTransactionArgs, WriteContractArgs } from '@reown/appkit-core'
+export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@reown/appkit-common'
 
 export let modal: AppKit | undefined = undefined
 
@@ -60,5 +61,3 @@ export function useAppKitNetwork(): UseAppKitNetworkReturn {
     switchNetwork
   }
 }
-
-export { useAppKitAccount } from '@reown/appkit-core/react'
