@@ -25,6 +25,7 @@ export type CreateAppKit = Omit<AppKitOptions, 'sdkType' | 'sdkVersion'>
 
 export function createAppKit(options: CreateAppKit) {
   if (!modal) {
+    console.log('createAppKit', JSON.stringify(options))
     modal = new AppKit({
       ...options,
       sdkVersion: CoreHelperUtil.generateSdkVersion(
@@ -34,6 +35,8 @@ export function createAppKit(options: CreateAppKit) {
       )
     })
     getAppKit(modal)
+  } else {
+    console.log('createAppKit already initialized')
   }
 
   return modal

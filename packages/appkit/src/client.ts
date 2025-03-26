@@ -193,6 +193,7 @@ export class AppKit {
   private defaultCaipNetwork?: CaipNetwork
 
   public constructor(options: AppKitOptionsWithSdk) {
+    console.log('AppKit constructor', JSON.stringify(options))
     this.options = options
     this.version = options.sdkVersion
     this.caipNetworks = this.extendCaipNetworks(options)
@@ -211,11 +212,12 @@ export class AppKit {
   }
 
   private async initialize(options: AppKitOptionsWithSdk) {
+    console.log('AppKit initialize', JSON.stringify(options))
     this.initControllers(options)
     await this.initChainAdapters()
     await this.injectModalUi()
     await this.syncExistingConnection()
-
+    console.log('AppKit initialize done')
     PublicStateController.set({ initialized: true })
   }
 
@@ -881,6 +883,7 @@ export class AppKit {
   }
 
   private initControllers(options: AppKitOptionsWithSdk) {
+    console.log('initControllers', JSON.stringify(options))
     this.initializeOptionsController(options)
     this.initializeChainController(options)
     this.initializeThemeController(options)
@@ -1983,9 +1986,11 @@ export class AppKit {
   }
 
   private async syncExistingConnection() {
+    console.log('syncExistingConnection')
     await Promise.allSettled(
       this.chainNamespaces.map(namespace => this.syncNamespaceConnection(namespace))
     )
+    console.log('syncExistingConnection done')
   }
 
   private getAdapter(namespace?: ChainNamespace) {
@@ -2190,8 +2195,10 @@ export class AppKit {
   }
 
   private async initChainAdapters() {
+    console.log('initChainAdapters', JSON.stringify(this.chainNamespaces))
     await Promise.all(
       this.chainNamespaces.map(async namespace => {
+        console.log('initChainAdapter', namespace)
         await this.initChainAdapter(namespace)
       })
     )
@@ -2242,17 +2249,22 @@ export class AppKit {
   }
 
   private async injectModalUi() {
+    console.log('injectModalUi')
     if (!this.initPromise && !isInitialized && CoreHelperUtil.isClient()) {
+      console.log('injectModalUi to initialize')
       isInitialized = true
       this.initPromise = new Promise<void>(async resolve => {
         await Promise.all([
           import('@to-nexus/appkit-ui'),
           import('@to-nexus/appkit-scaffold-ui/w3m-modal')
         ])
+        console.log('injectModalUi awaited promises')
         const modal = document.createElement('w3m-modal')
         if (!OptionsController.state.disableAppend && !OptionsController.state.enableEmbedded) {
+          console.log('injectModalUi to insert modal')
           document.body.insertAdjacentElement('beforeend', modal)
         }
+        console.log('injectModalUi resolve')
         resolve()
       })
     }
