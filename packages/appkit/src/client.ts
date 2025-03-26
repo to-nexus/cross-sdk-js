@@ -212,12 +212,10 @@ export class AppKit {
   }
 
   private async initialize(options: AppKitOptionsWithSdk) {
-    console.log('AppKit initialize', JSON.stringify(options))
     this.initControllers(options)
     await this.initChainAdapters()
     await this.injectModalUi()
     await this.syncExistingConnection()
-    console.log('AppKit initialize done')
     PublicStateController.set({ initialized: true })
   }
 
@@ -797,11 +795,13 @@ export class AppKit {
 
   // -- Private ------------------------------------------------------------------
   private initializeOptionsController(options: AppKitOptionsWithSdk) {
+    console.log('initializeOptionsController')
     OptionsController.setDebug(options.debug !== false)
 
     if (!options.projectId) {
       AlertController.open(ErrorUtil.ALERT_ERRORS.PROJECT_ID_NOT_CONFIGURED, 'error')
 
+      console.log('initializeOptionsController - has no projectId')
       return
     }
 
@@ -883,7 +883,6 @@ export class AppKit {
   }
 
   private initControllers(options: AppKitOptionsWithSdk) {
-    console.log('initControllers', JSON.stringify(options))
     this.initializeOptionsController(options)
     this.initializeChainController(options)
     this.initializeThemeController(options)
@@ -2249,22 +2248,17 @@ export class AppKit {
   }
 
   private async injectModalUi() {
-    console.log('injectModalUi')
     if (!this.initPromise && !isInitialized && CoreHelperUtil.isClient()) {
-      console.log('injectModalUi to initialize')
       isInitialized = true
       this.initPromise = new Promise<void>(async resolve => {
         await Promise.all([
           import('@to-nexus/appkit-ui'),
           import('@to-nexus/appkit-scaffold-ui/w3m-modal')
         ])
-        console.log('injectModalUi awaited promises')
         const modal = document.createElement('w3m-modal')
         if (!OptionsController.state.disableAppend && !OptionsController.state.enableEmbedded) {
-          console.log('injectModalUi to insert modal')
           document.body.insertAdjacentElement('beforeend', modal)
         }
-        console.log('injectModalUi resolve')
         resolve()
       })
     }
