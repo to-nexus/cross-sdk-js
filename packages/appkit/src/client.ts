@@ -193,11 +193,9 @@ export class AppKit {
   private defaultCaipNetwork?: CaipNetwork
 
   public constructor(options: AppKitOptionsWithSdk) {
-    console.log('AppKit constructor', JSON.stringify(options))
     this.options = options
     this.version = options.sdkVersion
     this.caipNetworks = this.extendCaipNetworks(options)
-    console.log(`caipNetworks: ${JSON.stringify(this.caipNetworks)}`)
     this.chainNamespaces = [
       ...new Set(this.caipNetworks?.map(caipNetwork => caipNetwork.chainNamespace))
     ]
@@ -795,13 +793,11 @@ export class AppKit {
 
   // -- Private ------------------------------------------------------------------
   private initializeOptionsController(options: AppKitOptionsWithSdk) {
-    console.log('initializeOptionsController')
     OptionsController.setDebug(options.debug !== false)
 
     if (!options.projectId) {
       AlertController.open(ErrorUtil.ALERT_ERRORS.PROJECT_ID_NOT_CONFIGURED, 'error')
 
-      console.log('initializeOptionsController - has no projectId')
       return
     }
 
@@ -1055,20 +1051,14 @@ export class AppKit {
         return result?.signature || ''
       },
       sendTransaction: async (args: SendTransactionArgs) => {
-        console.log('Appkit sendTransaction called')
-        console.log(`Appkit sendTransaction chainNamespace: ${args.chainNamespace}`)
-        console.log(`Appkit sendTransaction EVM: ${ConstantsUtil.CHAIN.EVM}`)
 
         if (args.chainNamespace === ConstantsUtil.CHAIN.EVM) {
-          console.log('Appkit sendTransaction EVM')
           const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
           const provider = ProviderUtil.getProvider(
             ChainController.state.activeChain as ChainNamespace
           )
-          console.log(`Appkit sendTransaction provider`)
           const result = await adapter?.sendTransaction({ ...args, provider })
-          console.log('Appkit sendTransaction result', JSON.stringify(result, null, 2))
           
           // update native balance
           this.updateNativeBalance(true)  // ignoreCache after sendTransaction
@@ -1076,7 +1066,6 @@ export class AppKit {
           return result?.hash ? { hash: `${result.hash}` as `0x${string}` } : null;
         }
 
-        console.log('Appkit sendTransaction not EVM')
         return null
       },
       estimateGas: async (args: EstimateGasTransactionArgs) => {
@@ -1134,10 +1123,8 @@ export class AppKit {
           throw new Error('CaipNetwork or CaipAddress is undefined')
         }
 
-        console.log(`caipNetwork: ${JSON.stringify(caipNetwork, null, 2)}`)
 
         const result = await adapter?.writeContract({ ...args, caipNetwork, provider, caipAddress })
-        console.log('Appkit writeContract result', JSON.stringify(result, null, 2))
         return result ? { hash: result?.hash as `0x${string}` } : null
       },
       readContract: async (args: ReadContractArgs) => {
@@ -1985,11 +1972,9 @@ export class AppKit {
   }
 
   private async syncExistingConnection() {
-    console.log('syncExistingConnection')
     await Promise.allSettled(
       this.chainNamespaces.map(namespace => this.syncNamespaceConnection(namespace))
     )
-    console.log('syncExistingConnection done')
   }
 
   private getAdapter(namespace?: ChainNamespace) {
@@ -2194,10 +2179,8 @@ export class AppKit {
   }
 
   private async initChainAdapters() {
-    console.log('initChainAdapters', JSON.stringify(this.chainNamespaces))
     await Promise.all(
       this.chainNamespaces.map(async namespace => {
-        console.log('initChainAdapter', namespace)
         await this.initChainAdapter(namespace)
       })
     )

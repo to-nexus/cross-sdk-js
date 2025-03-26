@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/sdk",
-  "version": "1.0.31",
+  "version": "1.1.0",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -35,13 +35,13 @@
     }
   },
   "dependencies": {
-    "@to-nexus/appkit": "~1.0.0",
-    "@to-nexus/appkit-adapter-ethers": "workspace:*",
-    "@to-nexus/appkit-common": "~1.0.0",
-    "@to-nexus/appkit-core": "~1.0.0",
-    "@to-nexus/appkit-scaffold-ui": "~1.0.0",
-    "@to-nexus/appkit-ui": "~1.0.0",
-    "@to-nexus/appkit-wallet": "~1.0.0",
+    "@to-nexus/appkit": "~1.1.0",
+    "@to-nexus/appkit-adapter-ethers": "~1.1.0",
+    "@to-nexus/appkit-common": "~1.1.0",
+    "@to-nexus/appkit-core": "~1.1.0",
+    "@to-nexus/appkit-scaffold-ui": "~1.1.0",
+    "@to-nexus/appkit-ui": "~1.1.0",
+    "@to-nexus/appkit-wallet": "~1.1.0",
     "vite": "5.4.12",
     "valtio": "^1.10.5",
     "big.js": "^6.2.1",

@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-utils",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -44,10 +44,10 @@
     "test": "vitest run --dir tests --coverage.enabled=true --coverage.reporter=json --coverage.reporter=json-summary --coverage.reportOnFailure=true"
   },
   "dependencies": {
-    "@to-nexus/appkit-common": "~1.0.0",
-    "@to-nexus/appkit-core": "~1.0.0",
+    "@to-nexus/appkit-common": "~1.1.0",
+    "@to-nexus/appkit-core": "~1.1.0",
     "@reown/appkit-polyfills": "workspace:*",
-    "@to-nexus/appkit-wallet": "~1.0.0",
+    "@to-nexus/appkit-wallet": "~1.1.0",
     "@walletconnect/logger": "2.1.2",
     "@to-nexus/universal-provider": "~2.19.0",
     "valtio": "1.13.2",

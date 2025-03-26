@@ -341,7 +341,6 @@ export const ApiController = {
   },
 
   prefetchAnalyticsConfig() {
-    console.log(`prefetchAnalyticsConfig, analytics?: ${OptionsController.state.features?.analytics}`)
     if (OptionsController.state.features?.analytics) {
       ApiController.fetchAnalyticsConfig()
     }

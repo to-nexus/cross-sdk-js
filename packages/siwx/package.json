@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-siwx",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "type": "module",
   "main": "./dist/esm/src/index.js",
   "types": "./dist/types/src/index.d.ts",
@@ -17,9 +17,9 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@to-nexus/appkit-common": "~1.0.0",
-    "@to-nexus/appkit-core": "~1.0.0",
-    "@to-nexus/appkit-utils": "~1.0.0",
+    "@to-nexus/appkit-common": "~1.1.0",
+    "@to-nexus/appkit-core": "~1.1.0",
+    "@to-nexus/appkit-utils": "~1.1.0",
     "bip322-js": "2.0.0",
     "bs58": "6.0.0",
     "tweetnacl": "1.0.3",

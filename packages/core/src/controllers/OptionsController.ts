@@ -184,14 +184,11 @@ export const OptionsController = {
   },
 
   setFeatures(features: OptionsControllerState['features'] | undefined) {
-    console.log('setFeatures')
     if (!features) {
-      console.log('setFeatures no features')
       return
     }
 
     if (!state.features) {
-      console.log('setFeatures no state.features')
       state.features = ConstantsUtil.DEFAULT_FEATURES
     }
 
@@ -201,8 +198,6 @@ export const OptionsController = {
     if (state.features.socials) {
       state.features.socials = OptionsUtil.filterSocialsByPlatform(state.features.socials)
     }
-
-    console.log(`setFeatures done - ${JSON.stringify(state.features)}`)
   },
 
   setProjectId(projectId: OptionsControllerState['projectId']) {
