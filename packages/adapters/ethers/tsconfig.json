@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
     "composite": true,
+    "declaration": true,
     "outDir": "./dist/esm",
     "declarationDir": "./dist/types",
-    "declarationMap": true
+    "declarationMap": true,
+    "rootDir": "."
   },
   "extends": "../../../tsconfig.json",
-  "include": ["src", "tests"]
+  "include": ["src", "exports", "tests"]
 }
