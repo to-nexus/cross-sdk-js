@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-ui",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -22,9 +22,9 @@
   },
   "devDependencies": {
     "@types/qrcode": "1.5.5",
-    "@to-nexus/appkit-common": "workspace:*",
-    "@to-nexus/appkit-wallet": "workspace:*",
-    "@to-nexus/appkit-core": "workspace:*",
+    "@to-nexus/appkit-common": "~1.0.0",
+    "@to-nexus/appkit-wallet": "~1.0.0",
+    "@to-nexus/appkit-core": "~1.0.0",
     "eslint-plugin-lit": "1.11.0",
     "eslint-plugin-wc": "2.0.4",
     "vitest": "2.1.9",

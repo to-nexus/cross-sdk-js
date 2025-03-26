@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -102,14 +102,14 @@
     }
   },
   "dependencies": {
-    "@to-nexus/universal-provider": "2.19.0",
-    "@to-nexus/appkit-common": "workspace:*",
-    "@to-nexus/appkit-core": "workspace:*",
+    "@to-nexus/universal-provider": "~2.19.0",
+    "@to-nexus/appkit-common": "~1.0.0",
+    "@to-nexus/appkit-core": "~1.0.0",
     "@reown/appkit-polyfills": "workspace:*",
-    "@to-nexus/appkit-scaffold-ui": "workspace:*",
-    "@to-nexus/appkit-ui": "workspace:*",
-    "@to-nexus/appkit-utils": "workspace:*",
-    "@to-nexus/appkit-wallet": "workspace:*",
+    "@to-nexus/appkit-scaffold-ui": "~1.0.0",
+    "@to-nexus/appkit-ui": "~1.0.0",
+    "@to-nexus/appkit-utils": "~1.0.0",
+    "@to-nexus/appkit-wallet": "~1.0.0",
     "@walletconnect/types": "2.18.0",
     "@walletconnect/utils": "2.18.0",
     "bs58": "6.0.0",
@@ -117,8 +117,7 @@
     "viem": ">=2.23.0"
   },
   "devDependencies": {
-    "@to-nexus/universal-provider": "2.19.0",
-    "@to-nexus/appkit-siwe": "workspace:*",
+    "@to-nexus/appkit-siwe": "~1.0.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vitest/coverage-v8": "2.1.3",

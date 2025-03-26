@@ -677,7 +677,7 @@ export class AppKit {
     await ConnectionController.disconnect()
   }
 
-  public getConnectMethodsOrder() {
+  public getConnectMethodsOrder(): ConnectMethod[] {
     return WalletUtil.getConnectOrderMethod(
       OptionsController.state.features,
       ConnectorController.getConnectors()
