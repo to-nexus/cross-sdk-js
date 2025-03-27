@@ -310,10 +310,7 @@ export class Relayer extends IRelayer {
   }
 
   public async confirmOnlineStateOrThrow() {
-    return;
-
-    //TODO: remove this
-      if (await isOnline()) return;
+    if (await isOnline()) return;
       throw new Error("No internet connection detected. Please restart your network and try again.");
   }
 

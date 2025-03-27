@@ -1705,17 +1705,20 @@ export class Engine extends IEngine {
     );
 
     while (this.requestQueue.queue.length > 0) {
+      console.log(`Processing request queue, length: ${this.requestQueue.queue.length}`);
       this.requestQueue.state = ENGINE_QUEUE_STATES.active;
       const request = this.requestQueue.queue.shift();
       if (!request) continue;
 
       try {
         await this.processRequest(request);
+        console.log(`Processing request done, now iterate`);
       } catch (error) {
-        this.client.logger.warn(error);
+        this.client.logger.warn(`Error processing request: ${error}`);
       }
     }
     this.requestQueue.state = ENGINE_QUEUE_STATES.idle;
+    console.log(`Processing request queue finised, state; ${this.requestQueue.state}`);
   };
 
   private processRequest: EnginePrivate["onRelayEventRequest"] = async (event) => {
