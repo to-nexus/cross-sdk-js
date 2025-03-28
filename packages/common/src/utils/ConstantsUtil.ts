@@ -3,13 +3,13 @@ import type { ChainNamespace } from './TypeUtil.js'
 export const ConstantsUtil = {
   WC_NAME_SUFFIX: '.reown.id',
   WC_NAME_SUFFIX_LEGACY: '.wcn.id',
-  BLOCKCHAIN_API_RPC_URL: 'https://testnet.cross-nexus.com:22001',
+  BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001',
   PULSE_API_URL: 'https://pulse.walletconnect.org',
-  W3M_API_URL: 'https://dev-wallet-server.cross-nexus.com',
-  RELAY_URL_DEV: "wss://dev-cross-relay.cross-nexus.com/ws",
-  RELAY_URL_PROD: "wss://cross-relay.cross-nexus.com/ws",
-  VERIFY_URL_DEV: "http://dev-cross-verify.cross-nexus.com",
-  VERIFY_URL_PROD: "http://cross-verify.cross-nexus.com",
+  W3M_API_URL: 'https://dev-wallet-server.crosstoken.io',
+  RELAY_URL_DEV: "wss://dev-cross-relay.crosstoken.io/ws",
+  RELAY_URL_PROD: "wss://cross-relay.crosstoken.io/ws",
+  VERIFY_URL_DEV: "http://dev-cross-verify.crosstoken.io",
+  VERIFY_URL_PROD: "http://cross-verify.crosstoken.io",
   /* Connector IDs */
   CONNECTOR_ID: {
     WALLET_CONNECT: 'walletConnect',

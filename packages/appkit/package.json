@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -102,7 +102,7 @@
     }
   },
   "dependencies": {
-    "@to-nexus/universal-provider": "~2.19.0",
+    "@to-nexus/universal-provider": "~2.19.6",
     "@to-nexus/appkit-common": "workspace:*",
     "@to-nexus/appkit-core": "workspace:*",
     "@reown/appkit-polyfills": "workspace:*",
