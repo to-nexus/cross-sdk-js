@@ -130,8 +130,8 @@ importers:
         specifier: workspace:*
         version: link:../../appkit-utils
       '@to-nexus/universal-provider':
-        specifier: ~2.19.6
-        version: 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+        specifier: ~2.19.7
+        version: 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@wallet-standard/app':
         specifier: 1.1.0
         version: 1.1.0
@@ -191,8 +191,8 @@ importers:
         specifier: workspace:*
         version: link:../../wallet
       '@to-nexus/universal-provider':
-        specifier: ~2.19.6
-        version: 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+        specifier: ~2.19.7
+        version: 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@walletconnect/utils':
         specifier: 2.18.0
         version: 2.18.0
@@ -275,8 +275,8 @@ importers:
         specifier: workspace:*
         version: link:../../wallet
       '@to-nexus/universal-provider':
-        specifier: ~2.19.6
-        version: 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+        specifier: ~2.19.7
+        version: 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@wallet-standard/app':
         specifier: 1.1.0
         version: 1.1.0
@@ -358,8 +358,8 @@ importers:
         specifier: workspace:*
         version: link:../../wallet
       '@to-nexus/universal-provider':
-        specifier: ~2.19.6
-        version: 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+        specifier: ~2.19.7
+        version: 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@wagmi/core':
         specifier: '>=2.16.4'
         version: 2.16.4(@tanstack/query-core@5.69.2)(@types/react@19.0.0)(react@19.0.0)(typescript@5.7.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))
@@ -374,7 +374,7 @@ importers:
         version: 2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       wagmi:
         specifier: '>=2.14.11'
-        version: 2.14.15(@tanstack/query-core@5.69.2)(@tanstack/react-query@5.69.2(react@19.0.0))(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8)
+        version: 2.14.15(@tanstack/query-core@5.69.2)(@tanstack/react-query@5.69.3(react@19.0.0))(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8)
     optionalDependencies:
       '@wagmi/connectors':
         specifier: '>=5.7'
@@ -420,8 +420,8 @@ importers:
         specifier: workspace:*
         version: link:../wallet
       '@to-nexus/universal-provider':
-        specifier: ~2.19.6
-        version: 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+        specifier: ~2.19.7
+        version: 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@walletconnect/types':
         specifier: 2.18.0
         version: 2.18.0
@@ -481,8 +481,8 @@ importers:
         specifier: workspace:*
         version: link:../wallet
       '@to-nexus/universal-provider':
-        specifier: ~2.19.6
-        version: 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+        specifier: ~2.19.7
+        version: 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@walletconnect/logger':
         specifier: 2.1.2
         version: 2.1.2
@@ -543,7 +543,7 @@ importers:
         version: 5.4.12(@types/node@22.13.4)
       wagmi:
         specifier: 2.14.9
-        version: 2.14.9(@tanstack/query-core@5.69.2)(@tanstack/react-query@5.69.2(react@19.0.0))(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8)
+        version: 2.14.9(@tanstack/query-core@5.69.2)(@tanstack/react-query@5.69.3(react@19.0.0))(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8)
     devDependencies:
       http-server:
         specifier: 14.1.1
@@ -617,8 +617,8 @@ importers:
         specifier: workspace:*
         version: link:../wallet
       '@to-nexus/universal-provider':
-        specifier: ~2.19.6
-        version: 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+        specifier: ~2.19.7
+        version: 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       valtio:
         specifier: 1.13.2
         version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
@@ -735,8 +735,8 @@ importers:
         specifier: workspace:*
         version: link:../wallet
       '@to-nexus/universal-provider':
-        specifier: ~2.19.6
-        version: 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+        specifier: ~2.19.7
+        version: 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
       '@walletconnect/logger':
         specifier: ^2.0.1
         version: 2.1.2
@@ -2581,20 +2581,20 @@ packages:
   '@tanstack/query-core@5.69.2':
     resolution: {integrity: sha512-+spKBqGMSxVMhYPMHr4L7efc4CDdb0Y8nE4UxP/FjV4V3ajP3uhBsh0T7pSuObBgYkU+nY1PRkJhKNmwlHmkUg==}
 
-  '@tanstack/react-query@5.69.2':
-    resolution: {integrity: sha512-m5clVHliwYK1ZAhS7m6A/PfEU/ibzZjhLszw/YuNFw5rHoKcX6Y6JO4eRV4ugpZFIn0sZ5lSrbcz/jwzAGI2pw==}
+  '@tanstack/react-query@5.69.3':
+    resolution: {integrity: sha512-EozCj1aFM/c827GQbVnvEt2x80oBax1vd2e5s/2EDeD469AZW9BPAyRK9VVyD0I1yvO6vOI+tPKXXFcadbSXvA==}
     peerDependencies:
       react: ^18 || ^19
 
-  '@to-nexus/core@2.19.6':
-    resolution: {integrity: sha512-XasrrnPtfrrjM+Ac/prF2ua+b3Wag2UXzLn2n5pe6W+Zy0WZClnl1UcwooOHkXM7/LR6YqPbsev6hnmXUFRQKQ==, tarball: https://npm.pkg.github.com/download/@to-nexus/core/2.19.6/8b2ed3a07e1a78f7fb3a445a4747f37c8aeceffd}
+  '@to-nexus/core@2.19.7':
+    resolution: {integrity: sha512-ANQIj3CUN/V+ddjUae+qo/vAhqigQV4uuWLXlsQ5nAIDW/fFyFGUnoJWCFHiM2HkeRwMZP83CNCpgu51NxAOOQ==, tarball: https://npm.pkg.github.com/download/@to-nexus/core/2.19.7/7f6a0ad483bc7e1267a709490443f03b5874bcca}
     engines: {node: '>=18'}
 
-  '@to-nexus/sign-client@2.19.6':
-    resolution: {integrity: sha512-geBccD+MdkUpCpQgQcGHt6TtY0/V7gi04G6NdwrGdsq8cefgJEF97q6d984MfTrSqYonE//y4gYJPEmg+gplOA==, tarball: https://npm.pkg.github.com/download/@to-nexus/sign-client/2.19.6/76daed06fb9c21a001a9161f5212b0e654cb991e}
+  '@to-nexus/sign-client@2.19.7':
+    resolution: {integrity: sha512-cvm91w44At9u3Ypiiy7eaSkMLnvIYOiZ6dBz0AP6OUAWTFTgw8dMIN8gCU+72hPvD/myxLc3jOMXDWNU/CJJUA==, tarball: https://npm.pkg.github.com/download/@to-nexus/sign-client/2.19.7/51e6804854d426c3999b4efdf8686135b29b7562}
 
-  '@to-nexus/universal-provider@2.19.6':
-    resolution: {integrity: sha512-TUZ6jxhbfFgtBCAOXdawdfNJh1LOEZY1RLAvs8G6Eg8gakUeRpNWgFsugfGCdMO51pT+Sex2eB+eUpbEkku9kg==, tarball: https://npm.pkg.github.com/download/@to-nexus/universal-provider/2.19.6/9e380316b73aba7d8efea36968605cb8ac906aee}
+  '@to-nexus/universal-provider@2.19.7':
+    resolution: {integrity: sha512-bEQGTSW1P4Zk4PTemI5KMZDFyHy5QtyCfxAPsZ07pUn1CtdFBasJ7Em14JDPC+5L6zi8+Nd5QGV/2SSL07rHIA==, tarball: https://npm.pkg.github.com/download/@to-nexus/universal-provider/2.19.7/37b3553a233f5114fed4e463aaaa563e12b9f973}
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -8799,12 +8799,12 @@ snapshots:
 
   '@tanstack/query-core@5.69.2': {}
 
-  '@tanstack/react-query@5.69.2(react@19.0.0)':
+  '@tanstack/react-query@5.69.3(react@19.0.0)':
     dependencies:
       '@tanstack/query-core': 5.69.2
       react: 19.0.0
 
-  '@to-nexus/core@2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
+  '@to-nexus/core@2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -8847,7 +8847,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/core@2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)':
+  '@to-nexus/core@2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -8890,9 +8890,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/sign-client@2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
+  '@to-nexus/sign-client@2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
-      '@to-nexus/core': 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+      '@to-nexus/core': 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
       '@walletconnect/events': 1.0.1
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-utils': 1.0.8
@@ -8925,9 +8925,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/sign-client@2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)':
+  '@to-nexus/sign-client@2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)':
     dependencies:
-      '@to-nexus/core': 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+      '@to-nexus/core': 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@walletconnect/events': 1.0.1
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-utils': 1.0.8
@@ -8960,9 +8960,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/universal-provider@2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
+  '@to-nexus/universal-provider@2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
-      '@to-nexus/sign-client': 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+      '@to-nexus/sign-client': 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
       '@walletconnect/events': 1.0.1
       '@walletconnect/jsonrpc-http-connection': 1.0.8
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -8999,9 +8999,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/universal-provider@2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)':
+  '@to-nexus/universal-provider@2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)':
     dependencies:
-      '@to-nexus/sign-client': 2.19.6(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+      '@to-nexus/sign-client': 2.19.7(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@walletconnect/events': 1.0.1
       '@walletconnect/jsonrpc-http-connection': 1.0.8
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -14047,9 +14047,9 @@ snapshots:
     dependencies:
       xml-name-validator: 5.0.0
 
-  wagmi@2.14.15(@tanstack/query-core@5.69.2)(@tanstack/react-query@5.69.2(react@19.0.0))(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8):
+  wagmi@2.14.15(@tanstack/query-core@5.69.2)(@tanstack/react-query@5.69.3(react@19.0.0))(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8):
     dependencies:
-      '@tanstack/react-query': 5.69.2(react@19.0.0)
+      '@tanstack/react-query': 5.69.3(react@19.0.0)
       '@wagmi/connectors': 5.7.11(@types/react@19.0.0)(@wagmi/core@2.16.7(@tanstack/query-core@5.69.2)(@types/react@19.0.0)(react@19.0.0)(typescript@5.7.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)))(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8)
       '@wagmi/core': 2.16.7(@tanstack/query-core@5.69.2)(@types/react@19.0.0)(react@19.0.0)(typescript@5.7.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))
       react: 19.0.0
@@ -14085,9 +14085,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  wagmi@2.14.9(@tanstack/query-core@5.69.2)(@tanstack/react-query@5.69.2(react@19.0.0))(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8):
+  wagmi@2.14.9(@tanstack/query-core@5.69.2)(@tanstack/react-query@5.69.3(react@19.0.0))(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8):
     dependencies:
-      '@tanstack/react-query': 5.69.2(react@19.0.0)
+      '@tanstack/react-query': 5.69.3(react@19.0.0)
       '@wagmi/connectors': 5.7.5(@types/react@19.0.0)(@wagmi/core@2.16.3(@tanstack/query-core@5.69.2)(@types/react@19.0.0)(react@19.0.0)(typescript@5.7.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)))(bufferutil@4.0.9)(react@19.0.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8)
       '@wagmi/core': 2.16.3(@tanstack/query-core@5.69.2)(@types/react@19.0.0)(react@19.0.0)(typescript@5.7.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8))
       react: 19.0.0
