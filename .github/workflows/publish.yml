@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - hotfix/*
 
 jobs:
   changeset:
@@ -10,6 +11,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Create Release Pull Request or Update to Existing
-        uses: changesets/action@v1
+        uses: changesets/action@v1.4.1
         with:
           publish: npm run changeset:publish
         env:
