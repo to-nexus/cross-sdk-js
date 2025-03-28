@@ -32,21 +32,20 @@ export function ActionButtonList() {
   const account = useAppKitAccount()
   const network = useAppKitNetwork()
   const { disconnect } = useDisconnect()
-  // const { switchNetwork } = useAppKitNetwork()
+  const { switchNetwork } = useAppKitNetwork()
   const [ contractArgs, setContractArgs ] = useState<WriteContractArgs | null>(null)
-  // const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155');
-  // console.log(`walletProvider, namespace: ${JSON.stringify(walletProvider?.namespaces?.['eip155'])}, uri: ${walletProvider?.uri}`)
+  const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155');
   
   // erc20 token contract address
-  const ERC20_ADDRESS = "0x35Af8eF840Eda3e93FC8F5167dbd8FF0D6F96580"
+  const ERC20_ADDRESS = "0x6892a97F4E85D45f4CaCAfBc5fc0B5186f355A1b"
   // define decimals of erc20 token (ERC20 standard is 18)
   const ERC20_DECIMALS = 18;
   // erc20 token contract address in caip format - eip155:{chainId}:{address}
   const ERC20_CAIP_ADDRESS = `${network.caipNetworkId}:${ERC20_ADDRESS}`
     // erc721 token contract address
-  const ERC721_ADDRESS = "0x219eF07b171282040996AbA38b73c465085FE9E1"
+  const ERC721_ADDRESS = "0xEeE291deAF8505681AA7A3e930A6f12b7f21fe65"
   // address to send erc20 token or cross
-  const RECEIVER_ADDRESS = "0x920A31f0E48739C3FbB790D992b0690f7F5C42ea"
+  const RECEIVER_ADDRESS = "0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379"
   // address of wallet owner
   const FROM_ADDRESS = AccountController.state.address as `0x${string}`
   // amount of erc20 token in eth to send
@@ -71,7 +70,7 @@ export function ActionButtonList() {
 
   function handleSwitchNetwork() {
     const targetNetwork = import.meta.env['VITE_NODE_ENV'] === 'production' ? crossMainnet : crossTestnet
-    // switchNetwork(targetNetwork)
+    switchNetwork(targetNetwork)
     alert(`Current network: ${targetNetwork.caipNetworkId}`)
   }
 
