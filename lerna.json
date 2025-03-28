@@ -1,12 +1,8 @@
 {
-  "npmClient": "npm",
-  "packages": [
-    "packages/*",
-    "providers/*"
-  ],
+  "npmClient": "pnpm",
+  "packages": ["packages/*", "providers/*"],
+  "version": "2.19.5",
   "command": {
-    "run": {
-    }
-  },
-  "version": "2.19.1"
+    "run": {}
+  }
 }
