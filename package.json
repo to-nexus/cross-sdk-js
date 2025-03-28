@@ -26,9 +26,12 @@
     "new-version": "lerna version --no-private --no-git-tag-version --exact && ./scripts/update_relayer_sdk_version.sh",
     "pre-publish": "npm run new-version; npm run reset",
     "npm-publish:rc": "lerna exec --no-private -- npm publish --access restricted --tag rc --registry=https://npm.pkg.github.com",
-    "npm-publish:latest": "lerna exec --no-private -- npm publish --access restricted --tag latest --registry=https://npm.pkg.github.com",
+    "npm-publish:latest": "lerna exec --no-private -- npm publish --access restricted --tag latest --registry=https://npm.pkg.github.com && changeset publish",
     "npm-publish:next": "lerna exec --no-private -- npm publish --access restricted --tag next --registry=https://npm.pkg.github.com",
-    "npm-publish:canary": "lerna exec --no-private -- npm publish --access restricted --tag canary --registry=https://npm.pkg.github.com"
+    "npm-publish:canary": "lerna exec --no-private -- npm publish --access restricted --tag canary --registry=https://npm.pkg.github.com",
+    "changeset": "changeset",
+    "changeset:publish": "changeset publish",
+    "version-packages": "changeset version"
   },
   "repository": {
     "type": "git",
@@ -38,6 +41,7 @@
     "url": "https://github.com/to-nexus/cross-connect/issues"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.28.1",
     "@rollup/plugin-commonjs": "22.0.2",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "13.3.0",
