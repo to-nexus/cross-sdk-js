@@ -23,7 +23,7 @@ export const ConstantsUtil = {
   PULSE_API_URL: 'https://pulse.walletconnect.org',
   W3M_API_URL: getEnv() === 'development' ? 'https://dev-wallet-server.crosstoken.io' : 'https://stg-wallet-server.crosstoken.io',
   RELAY_URL_DEV: "wss://dev-cross-relay.crosstoken.io/ws",
-  RELAY_URL_PROD: "wss://stg-cross-relay.crosstoken.io/ws",
+  RELAY_URL_PROD: "wss://cross-relay.crosstoken.io/ws",
   VERIFY_URL_DEV: "http://dev-cross-verify.crosstoken.io",
   VERIFY_URL_PROD: "http://cross-verify.crosstoken.io",
   /* Connector IDs */
