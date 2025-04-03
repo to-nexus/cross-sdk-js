@@ -66,6 +66,13 @@ export function getAppKit(appKit: AppKit) {
   }
 }
 
+export async function getUniversalProvider() {
+  if (!modal) {
+    throw new Error('Please call "createAppKit" before using "getUniversalProvider" hook')
+  }
+  return await modal.getUniversalProvider()
+}
+
 // -- Core Hooks ---------------------------------------------------------------
 export * from '@to-nexus/appkit-core/react'
 

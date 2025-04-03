@@ -10,7 +10,8 @@ import {
   AccountController,
   ConnectionController,
   SendController,
-  UniversalProvider
+  UniversalProvider,
+  getUniversalProvider
 } from '@to-nexus/sdk/react'
 
 import { Signature } from 'ethers'
@@ -35,7 +36,7 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [ contractArgs, setContractArgs ] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155');
-  
+    
   // erc20 token contract address
   const ERC20_ADDRESS = "0x6892a97F4E85D45f4CaCAfBc5fc0B5186f355A1b"
   // define decimals of erc20 token (ERC20 standard is 18)
@@ -305,6 +306,22 @@ export function ActionButtonList() {
     })()
     
   }, [FROM_ADDRESS, network?.caipNetwork?.chainNamespace])
+
+  useEffect(() => {
+    if (!account?.isConnected)
+      return;
+
+    const accessUniversalProvider = async () => {
+      const universalProvider = await getUniversalProvider();
+      const res = await universalProvider?.request({
+        method: 'eth_requestAccounts',
+        params: []
+      })
+      console.log(`eth_requestAccounts res: ${JSON.stringify(res)}`);
+    }
+
+    accessUniversalProvider();
+  }, [appKit]);
 
   return (
     <div>

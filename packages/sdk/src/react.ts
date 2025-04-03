@@ -11,6 +11,7 @@ import {
   useAppKitTheme,
   useDisconnect,
   useWalletInfo,
+  getUniversalProvider
 } from '@to-nexus/appkit/react'
 import { AccountController, SendController, ConnectionController } from '@to-nexus/appkit-core'
 import UniversalProvider from '@to-nexus/universal-provider'
@@ -78,5 +79,6 @@ export {
   AccountController,
   crossMainnet,
   crossTestnet,
-  UniversalProvider
+  UniversalProvider,
+  getUniversalProvider
 }
