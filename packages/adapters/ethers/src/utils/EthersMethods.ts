@@ -182,7 +182,7 @@ export const EthersMethods = {
 
     const hash = await provider.request({
       method: 'eth_sendTransaction',
-      params: [ hexSign, txParams.customData ]
+      params: [ hexSign, data.customData ]
     }) as `0x${string}`
 
     return await pollingTx(hash, signer)
