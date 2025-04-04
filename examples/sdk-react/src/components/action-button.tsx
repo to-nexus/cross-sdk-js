@@ -38,7 +38,7 @@ export function ActionButtonList() {
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155');
     
   // erc20 token contract address
-  const ERC20_ADDRESS = "0x6892a97F4E85D45f4CaCAfBc5fc0B5186f355A1b"
+  const ERC20_ADDRESS = "0x88f8146EB4120dA51Fc978a22933CbeB71D8Bde6"
   // define decimals of erc20 token (ERC20 standard is 18)
   const ERC20_DECIMALS = 18;
   // erc20 token contract address in caip format - eip155:{chainId}:{address}
