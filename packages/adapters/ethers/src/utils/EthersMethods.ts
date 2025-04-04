@@ -169,8 +169,7 @@ export const EthersMethods = {
       to: data.to,
       value: data.value,
       data: data.data,
-      type: 0,
-      customData: data.customData
+      type: 0
     }
 
     const browserProvider = new BrowserProvider(provider, networkId)
@@ -214,7 +213,8 @@ export const EthersMethods = {
     }
     const method = contract[data.method]
     if (method) {
-      const txContract = await method.populateTransaction(...data.args)
+      const { customData, ...args } = data; // exclude customData to tx
+      const txContract = await method.populateTransaction(args)
       const gasLimit = await browserProvider.estimateGas({ ...txContract, from: await signer.getAddress()});
       const from = await signer.getAddress()
       const txToSign = { ...txContract, from, gasLimit }
