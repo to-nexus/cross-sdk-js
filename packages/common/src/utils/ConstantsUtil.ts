@@ -5,12 +5,12 @@ function getEnv(): string {
     return import.meta.env['VITE_ENV_MODE'];
   }
   
-  if (typeof process !== 'undefined' && process.env?.["NODE_ENV"]) {
-    return process.env["NODE_ENV"];
-  }
-
   if (typeof process !== 'undefined' && process.env?.["NEXT_PUBLIC_ENV_MODE"]) {
     return process.env["NEXT_PUBLIC_ENV_MODE"];
+  }
+
+  if (typeof process !== 'undefined' && process.env?.["NODE_ENV"]) {
+    return process.env["NODE_ENV"];
   }
 
   return 'development';
