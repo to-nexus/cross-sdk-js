@@ -3,7 +3,10 @@ on:
   push:
     branches:
       - main
-      - feature/*package*
+
+  pull_request:
+    branches:
+      - main
 jobs:
   sonarqube:
     name: SonarQube
