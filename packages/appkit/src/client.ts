@@ -134,16 +134,16 @@ function getEnv(): string {
     return import.meta.env['VITE_ENV_MODE'];
   }
   
-  // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
-  if (typeof process !== 'undefined' && process.env?.["NODE_ENV"]) {
-    console.log('getEnv(), process.env.NODE_ENV', process.env["NODE_ENV"])
-    return process.env["NODE_ENV"];
-  }
-
   // ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
   if (typeof process !== 'undefined' && process.env?.["NEXT_PUBLIC_ENV_MODE"]) {
     console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env["NEXT_PUBLIC_ENV_MODE"])
     return process.env["NEXT_PUBLIC_ENV_MODE"];
+  }
+
+  // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
+  if (typeof process !== 'undefined' && process.env?.["NODE_ENV"]) {
+    console.log('getEnv(), process.env.NODE_ENV', process.env["NODE_ENV"])
+    return process.env["NODE_ENV"];
   }
 
   // ✅ 브라우저에서 직접 주입된 환경 변수 (globalThis 사용)
