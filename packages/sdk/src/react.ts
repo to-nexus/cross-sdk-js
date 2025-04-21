@@ -35,7 +35,7 @@ const initCrossSdk = (projectId: string) => createAppKit({
     name: 'Cross SDK',
     description: 'Cross SDK for React',
     url: 'https://to.nexus',
-    icons: ['https://contents.crosstoken.io/wallet/token/images/Cross.svg']
+    icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
   },
   projectId,
   themeMode: 'light',
@@ -56,7 +56,7 @@ const initCrossSdk = (projectId: string) => createAppKit({
     {
       id: "cross_wallet",
       name: "Cross Wallet",
-      image_url: "https://dev-contents.crossops.in/wallet/token/images/Cross.svg",
+      image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
       mobile_link: "cross-wallet://"
     }
   ],

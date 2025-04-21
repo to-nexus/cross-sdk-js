@@ -154,6 +154,7 @@ export class W3mConnectingWcView extends LitElement {
   }
 
   private platformTemplate() {
+    console.log('this.platform', this.platform)
     switch (this.platform) {
       case 'browser':
         return html`<w3m-connecting-wc-browser></w3m-connecting-wc-browser>`

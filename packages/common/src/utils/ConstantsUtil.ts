@@ -21,7 +21,7 @@ export const ConstantsUtil = {
   WC_NAME_SUFFIX_LEGACY: '.wcn.id',
   BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001',
   PULSE_API_URL: 'https://pulse.walletconnect.org',
-  W3M_API_URL: getEnv() === 'development' ? 'https://dev-wallet-server.crosstoken.io' : 'https://stg-wallet-server.crosstoken.io',
+  W3M_API_URL: getEnv() === 'development' ? 'https://dev-wallet-server.crosstoken.io' : 'https://wallet-server.crosstoken.io',
   RELAY_URL_DEV: "wss://dev-cross-relay.crosstoken.io/ws",
   RELAY_URL_PROD: "wss://cross-relay.crosstoken.io/ws",
   VERIFY_URL_DEV: "http://dev-cross-verify.crosstoken.io",
