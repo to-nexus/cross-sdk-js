@@ -1,5 +1,6 @@
 FROM node:20 AS builder
 
+
 ARG SERVICE_NAME
 ARG WORKDIR
 ARG VITE_PROJECT_ID
@@ -17,6 +18,8 @@ RUN --mount=type=secret,id=github_token \
   git config --global url."https://$(cat /run/secrets/github_token)@github.com/to-nexus".insteadOf "https://github.com/to-nexus"
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
+  echo ".npmrc mounted"
 RUN pnpm i
 RUN npm run build
 
