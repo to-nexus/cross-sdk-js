@@ -49,7 +49,7 @@ jobs:
           version: 9.5.0
       - name: Install dependencies
         run: |
-          rm -f pnpm-lock.yaml
+          # rm -f pnpm-lock.yaml
           pnpm install
       - name: Build packages
         run: pnpm run build
