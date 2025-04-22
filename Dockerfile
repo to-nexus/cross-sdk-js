@@ -21,11 +21,11 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   echo ".npmrc mounted"
 RUN pnpm i
-RUN npm run build
+# RUN npm run build
 
 WORKDIR $WORKDIR/examples/cross-sdk-react
 RUN echo "$VITE_PROJECT_ID" > .env
-RUN pnpm i
+# RUN pnpm i
 RUN npm run build
 RUN pwd 
 RUN ls -alh
