@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - feature/*package*
+      - ci/*
   pull_request:
     branches:
       - main
@@ -22,7 +22,7 @@ jobs:
 
   publish:
     needs: sonarqube
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -34,25 +34,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20.x"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@to-nexus"
-          always-auth: true
-      - name: Configure NPM Auth
+      - name: Configure npm for Nexus
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
-          echo "@to-nexus:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+      - name: Verify npm authentication
+        run: cat .npmrc
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 9.5.0
       - name: Install dependencies
         run: |
+          # rm -f pnpm-lock.yaml
           pnpm install
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build packages
         run: pnpm run build
-      - name: Publish package on GitHub Packages
+      - name: Publish package to Nexus
         run: pnpm run publish:latest
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
