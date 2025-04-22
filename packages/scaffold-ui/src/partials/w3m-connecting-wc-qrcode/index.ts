@@ -23,7 +23,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     EventsController.sendEvent({
       type: 'track',
       event: 'SELECT_WALLET',
-      properties: { name: this.wallet?.name ?? 'WalletConnect', platform: 'qrcode' }
+      properties: { name: this.wallet?.name ?? 'Cross Wallet', platform: 'qrcode' }
     })
   }
 
@@ -47,7 +47,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
         <wui-shimmer borderRadius="l" width="100%"> ${this.qrCodeTemplate()} </wui-shimmer>
 
         <wui-text variant="paragraph-500" color="fg-100">
-          Scan this QR Code with your phone
+          Scan this QR Code with your phone partial
         </wui-text>
         ${this.copyTemplate()}
       </wui-flex>
@@ -71,7 +71,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     }
 
     const size = this.getBoundingClientRect().width - 40
-    const alt = this.wallet ? this.wallet.name : undefined
+    const alt = this.wallet ? this.wallet.name : "Cross Wallet"
     ConnectionController.setWcLinking(undefined)
     ConnectionController.setRecentWallet(this.wallet)
 

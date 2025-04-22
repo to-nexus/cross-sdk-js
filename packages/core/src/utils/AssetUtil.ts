@@ -59,7 +59,8 @@ export const AssetUtil = {
       return AssetController.state.walletImages[wallet.image_id]
     }
 
-    return undefined
+    // return undefined
+    return "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg"
   },
 
   getNetworkImage(network?: CaipNetwork) {

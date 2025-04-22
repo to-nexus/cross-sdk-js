@@ -2036,10 +2036,13 @@ export class AppKit {
         description: this.options?.metadata ? this.options?.metadata.description : '',
         url: this.options?.metadata ? this.options?.metadata.url : '',
         icons: this.options?.metadata ? this.options?.metadata.icons : [''],
-        verifyUrl: injectedEnv === 'development' ? ConstantsUtil.VERIFY_URL_DEV : ConstantsUtil.VERIFY_URL_PROD
+        verifyUrl: injectedEnv === 'development' ? ConstantsUtil.VERIFY_URL_DEV : ConstantsUtil.VERIFY_URL_PROD,
+        redirect: {
+          universal: this.options?.metadata?.redirect?.universal
+        }
       },
       logger,
-      relayUrl: injectedEnv === 'development' ? ConstantsUtil.RELAY_URL_DEV : ConstantsUtil.RELAY_URL_PROD
+      relayUrl: injectedEnv === 'development' ? ConstantsUtil.RELAY_URL_DEV : ConstantsUtil.RELAY_URL_PROD,
     }
 
     console.log(`relayUrl: ${universalProviderOptions.relayUrl}`)

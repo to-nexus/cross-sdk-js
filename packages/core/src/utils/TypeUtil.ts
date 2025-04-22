@@ -134,6 +134,9 @@ export type Metadata = {
   description: string
   url: string
   icons: string[]
+  redirect?: {
+    universal?: string
+  }
 }
 
 // -- ApiController Types -------------------------------------------------------
