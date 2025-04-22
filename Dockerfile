@@ -27,7 +27,8 @@ WORKDIR $WORKDIR/examples/cross-sdk-react
 RUN echo "$VITE_PROJECT_ID" > .env
 RUN pnpm i
 RUN npm run build
-
+RUN pwd 
+RUN ls -alh
 
 FROM node:20-alpine AS runner
 
