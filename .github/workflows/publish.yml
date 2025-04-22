@@ -36,7 +36,9 @@ jobs:
         with:
           node-version: "20.x"
       - name: Configure npm for Nexus
-        run: echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
       - name: Verify npm authentication
