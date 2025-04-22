@@ -52,6 +52,6 @@ jobs:
       - name: Build packages
         run: pnpm run build
       - name: Publish package on NPM
-        run: pnpm run publish:latest
+        run: pnpm publish --filter "@nexus-cross/*" --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
