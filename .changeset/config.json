@@ -5,7 +5,22 @@
   "fixed": [],
   "linked": [
     [
-      "packages/*"
+      "packages/sdk",
+      "packages/adapters/*",
+      "packages/appkit",
+      "packages/common",
+      "packages/ui",
+      "packages/core",
+      "packages/appkit-utils",
+      "packages/scaffold-ui",
+      "packages/polyfills",
+      "packages/wallet",
+      "packages/siwe",
+      "packages/siwx",
+      "packages/wallet-button",
+      "packages/experimental",
+      "packages/cli",
+      "packages/cdn"
     ]
   ],
   "access": "restricted",
