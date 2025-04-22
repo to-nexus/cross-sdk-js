@@ -38,7 +38,7 @@ jobs:
           registry-url: "https://registry.npmjs.org/"
       - name: Configure NPM Auth
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GIT_NPM_PACKAGE_TOKEN }}" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GIT_NPM_PACKAGE_TOKEN }}" >> .npmrc
           echo "@to-nexus:registry=https://npm.pkg.github.com" >> .npmrc
 
       - name: Install pnpm
