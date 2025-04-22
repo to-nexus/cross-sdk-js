@@ -21,11 +21,11 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   echo ".npmrc mounted"
 RUN pnpm i
-# RUN npm run build
+RUN npm run build
 
-WORKDIR $WORKDIR/examples/cross-sdk-react
+WORKDIR $WORKDIR/examples/sdk-react
 RUN echo "$VITE_PROJECT_ID" > .env
-# RUN pnpm i
+RUN pnpm i
 RUN npm run build
 RUN pwd 
 RUN ls -alh
@@ -39,7 +39,7 @@ RUN npm install -g serve
 WORKDIR /app
 
 # 빌드 결과만 복사
-COPY --from=builder /nexus/apps/cross-sdk-js/examples/cross-sdk-react/dist ./dist
+COPY --from=builder /nexus/apps/cross-sdk-js/examples/sdk-react/dist ./dist
 
 # 정적 파일 호스팅, 포트 3012
 CMD ["serve", "-s", "dist", "-l", "0.0.0.0:3012"]
