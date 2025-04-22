@@ -143,7 +143,7 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error('EthersAdapter:signEIP712 - Sign EIP712 message failed')
+      throw new Error('EthersAdapter:signEIP712 failed: ' + error)
     }
   }
 

@@ -19,14 +19,16 @@ import { Signature } from 'ethers'
 import type { WriteContractArgs, SendTransactionArgs } from '@to-nexus/sdk/react'
 import { sampleErc20ABI } from '../contracts/sample-erc20';
 import { sampleErc721ABI } from '../contracts/sample-erc721';
-import { sampleEIP721 } from '../contracts/sample-eip721';
+import { sampleEIP712 } from '../contracts/sample-eip712';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 }from "uuid";
 
 // Your unique project id provided by Cross Team. If you don't have one, please contact us.
 const projectId = import.meta.env['VITE_PROJECT_ID']
+// Redirect URL to return to after wallet app interaction
+const redirectUrl = 'https://localhost:4173'
 // Initialize SDK here
-initCrossSdk(projectId);
+initCrossSdk(projectId, redirectUrl);
 
 export function ActionButtonList() {
   const appKit = useAppKit()
@@ -112,10 +114,10 @@ export function ActionButtonList() {
       return
     }
 
-    const PERMIT_CONTRACT_ADDRESS = '0xC95DEdAD3950A81B8AEF6fa4D28211bA37B4Ae21'
+    const PERMIT_CONTRACT_ADDRESS = '0x88f8146EB4120dA51Fc978a22933CbeB71D8Bde6'
     const PERMIT_SPENDER_ADDRESS = '0x920A31f0E48739C3FbB790D992b0690f7F5C42ea'
     const PERMIT_VALUE = 1000000000000000000n
-    const PERMIT_ABI = sampleEIP721
+    const PERMIT_ABI = sampleEIP712
 
     const resSignedEIP712 = await ConnectionController.signEIP712({
       contractAddress: PERMIT_CONTRACT_ADDRESS,
