@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - feature/*package*
+      - ci/*
   pull_request:
     branches:
       - main
@@ -22,7 +22,7 @@ jobs:
 
   publish:
     needs: sonarqube
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -34,13 +34,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20.x"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@to-nexus"
-          always-auth: true
-      - name: Configure NPM Auth
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
-          echo "@to-nexus:registry=https://npm.pkg.github.com" >> .npmrc
+          registry-url: "https://registry.npmjs.org/"
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -49,10 +43,10 @@ jobs:
         run: |
           pnpm install
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
       - name: Build packages
         run: pnpm run build
-      - name: Publish package on GitHub Packages
+      - name: Publish package on NPM
         run: pnpm run publish:latest
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
