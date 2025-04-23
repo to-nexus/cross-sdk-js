@@ -32,6 +32,8 @@ RUN ls -alh
 
 FROM node:20-alpine AS runner
 
+WORKDIR /app
+
 RUN groupadd --system nexus && useradd --system --gid nexus nexus
 
 RUN chown -R nexus:nexus /app
@@ -43,7 +45,6 @@ RUN chown -R nexus:nexus /app
 RUN npm install -g serve
 
 # 실행 디렉토리 설정
-WORKDIR /app
 
 # 빌드 결과만 복사
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-react/dist ./dist
