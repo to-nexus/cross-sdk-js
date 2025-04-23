@@ -15,57 +15,57 @@ permissions:
   packages: write
 
 jobs:
-  # sonarqube:
-  #   name: SonarQube Analysis
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #     - name: SonarQube Scan
-  #       uses: SonarSource/sonarqube-scan-action@v5
-  #       env:
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  sonarqube:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  # publish_npm:
-  #   name: Publish to Nexus NPM
-  #   needs: sonarqube
-  #   if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Setup Node
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: "20.x"
-  #
-  #     - name: Configure npm for Nexus
-  #       run: |
-  #         echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
-  #         echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
-  #       env:
-  #         NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
-  #
-  #     - name: Verify npm authentication
-  #       run: cat .npmrc
-  #
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v2
-  #       with:
-  #         version: 9.5.0
-  #
-  #     - name: Install dependencies
-  #       run: pnpm install
-  #
-  #     - name: Build packages
-  #       run: pnpm run build
-  #
-  #     - name: Publish package to Nexus
-  #       run: pnpm run publish:latest
-  #       env:
-  #         NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+  publish_npm:
+    name: Publish to Nexus NPM
+    needs: sonarqube
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Verify npm authentication
+        run: cat .npmrc
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm run build
+
+      - name: Publish package to Nexus
+        run: pnpm run publish:latest
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
 
   build_and_push:
     name: Build and Push Docker Image
