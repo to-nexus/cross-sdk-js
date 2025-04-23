@@ -1,5 +1,6 @@
 {
   "name": "cross-connect",
+  "version": "2.19.8",
   "description": "Monorepo for Cross Connect",
   "private": true,
   "keywords": [
@@ -15,6 +16,7 @@
     "providers/universal-provider"
   ],
   "scripts": {
+    "prebuild": "node scripts/inject-version.js",
     "clean": "npm run clean --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "prettier": "npm run prettier --workspaces --if-present",

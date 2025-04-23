@@ -28,12 +28,12 @@ jobs:
         run: cat .npmrc
       - name: Install dependencies
         run: npm install
-      - name: Create Release Pull Request or Update to Existing
-        uses: changesets/action@v1.4.1
-        with:
-          version: npm run version-packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Create Release Pull Request or Update to Existing
+      #   uses: changesets/action@v1.4.1
+      #   with:
+      #     version: npm run version-packages
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
     needs: changeset
@@ -59,8 +59,6 @@ jobs:
         run: npm install
       - name: Build packages
         run: npm run build
-      - name: Version packages
-        run: npm run version-packages
       - name: Publish package to Nexus 📦
         run: npm run changeset:publish
         env:
