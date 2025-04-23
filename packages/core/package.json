@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/core",
   "description": "Core for Cross Connect Protocol",
-  "version": "2.19.7",
+  "version": "2.19.8",
   "author": "Nexus",
   "homepage": "https://github.com/to-nexus/cross-connect",
   "license": "Apache-2.0",
@@ -14,8 +14,8 @@
     "dist"
   ],
   "publishConfig": {
-    "access": "restricted",
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://package.cross-nexus.com/repository/cross-sdk-js/"
   },
   "keywords": [
     "wallet",

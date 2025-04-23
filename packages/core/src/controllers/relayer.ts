@@ -462,13 +462,12 @@ export class Relayer extends IRelayer {
   };
 
   private async createProvider() {
-    if (this.provider.connection) {
-      this.unregisterProviderListeners();
-    }
-    const auth = await this.core.crypto.signJWT(this.relayUrl);
-
-    this.provider = new JsonRpcProvider(
-      new WsConnection(
+    try {
+      if (this.provider.connection) {
+        this.unregisterProviderListeners();
+      }
+      const auth = await this.core.crypto.signJWT(this.relayUrl);
+      const wsConnection = new WsConnection(
         formatRelayRpcUrl({
           sdkVersion: RELAYER_SDK_VERSION,
           protocol: this.protocol,
@@ -480,9 +479,14 @@ export class Relayer extends IRelayer {
           bundleId: this.bundleId,
           packageName: this.packageName,
         }),
-      ),
-    );
-    this.registerProviderListeners();
+      );
+
+      this.provider = new JsonRpcProvider(wsConnection);
+      this.registerProviderListeners();
+    } catch (e) {
+      this.logger.error(`error on ws connection: ${(e as Error)?.message}`);
+      throw e;
+    }
   }
 
   private async recordMessageEvent(messageEvent: RelayerTypes.MessageEvent) {

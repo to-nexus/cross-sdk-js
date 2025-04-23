@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/universal-provider",
   "description": "Universal Provider for Cross Connect Protocol",
-  "version": "2.19.7",
+  "version": "2.19.8",
   "author": "Nexus",
   "homepage": "https://github.com/to-nexus/cross-connect",
   "repository": {
@@ -25,8 +25,8 @@
     "dist"
   ],
   "publishConfig": {
-    "access": "restricted",
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://package.cross-nexus.com/repository/cross-sdk-js/"
   },
   "keywords": [
     "wallet",
