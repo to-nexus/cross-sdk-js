@@ -32,6 +32,13 @@ RUN ls -alh
 
 FROM node:20-alpine AS runner
 
+RUN groupadd --system nexus && useradd --system --gid nexus nexus
+
+RUN chown -R nexus:nexus /nexus
+
+## 필요한 파일 복사
+
+## non-root 유저로 전환
 # serve 설치 (정적 서버)
 RUN npm install -g serve
 
@@ -39,7 +46,8 @@ RUN npm install -g serve
 WORKDIR /app
 
 # 빌드 결과만 복사
-COPY --from=builder /nexus/apps/cross-sdk-js/examples/sdk-react/dist ./dist
+COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-react/dist ./dist
 
+USER nexus
 # 정적 파일 호스팅, 포트 3012
 CMD ["serve", "-s", "dist", "-l", "3012"]
