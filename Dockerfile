@@ -34,7 +34,7 @@ FROM node:20-alpine AS runner
 
 RUN groupadd --system nexus && useradd --system --gid nexus nexus
 
-RUN chown -R nexus:nexus /nexus
+RUN chown -R nexus:nexus /app
 
 ## 필요한 파일 복사
 
