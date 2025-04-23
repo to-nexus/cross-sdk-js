@@ -26,7 +26,9 @@ import { v4 as uuidv4 }from "uuid";
 // Your unique project id provided by Cross Team. If you don't have one, please contact us.
 const projectId = import.meta.env['VITE_PROJECT_ID']
 // Redirect URL to return to after wallet app interaction
-const redirectUrl = 'https://localhost:4173'
+const redirectUrl = window.location.href
+
+console.log(`redirectUrl: ${redirectUrl}`)
 // Initialize SDK here
 initCrossSdk(projectId, redirectUrl);
 
