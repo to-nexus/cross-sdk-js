@@ -47,6 +47,7 @@ RUN npm install -g serve
 
 # 빌드 결과만 복사
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-react/dist ./dist
+RUN chmod -R a-w ./dist
 
 USER nexus
 # 정적 파일 호스팅, 포트 3012
