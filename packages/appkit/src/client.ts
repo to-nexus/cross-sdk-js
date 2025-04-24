@@ -945,6 +945,9 @@ export class AppKit {
   private createClients() {
     this.connectionControllerClient = {
       connectWalletConnect: async () => {
+
+        console.log(`connectWalletConnect`)
+
         const adapter = this.getAdapter(ChainController.state.activeChain)
 
         if (!adapter) {
@@ -959,6 +962,9 @@ export class AppKit {
         await this.syncWalletConnectAccount()
       },
       connectExternal: async ({ id, info, type, provider, chain, caipNetwork }) => {
+
+        console.log(`connectExternal`)
+
         const activeChain = ChainController.state.activeChain as ChainNamespace
         const chainToUse = chain || activeChain
         const adapter = this.getAdapter(chainToUse)
