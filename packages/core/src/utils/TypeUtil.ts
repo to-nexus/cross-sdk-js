@@ -1008,7 +1008,8 @@ export interface SignEIP712Args {
   chainNamespace: ChainNamespace;
   chainId: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  abi: any;
+  name: string;
+  nonce: number;
   customData?: CustomData;
 }
 

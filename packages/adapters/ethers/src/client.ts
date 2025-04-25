@@ -134,7 +134,8 @@ export class EthersAdapter extends AdapterBlueprint {
           fromAddress: params.fromAddress,
           spenderAddress: params.spenderAddress,
           value: params.value,
-          abi: params.abi,
+          name: params.name,
+          nonce: params.nonce,
           chainNamespace: params.chainNamespace,
           chainId: params.chainId,
           customData: params.customData

@@ -479,7 +479,8 @@ export namespace AdapterBlueprint {
     fromAddress: `0x${string}`
     spenderAddress: `0x${string}`
     value: bigint
-    abi: any
+    name: string,
+    nonce: number,
     provider?: AppKitConnector['provider']
     chainNamespace: ChainNamespace
     chainId: string

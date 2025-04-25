@@ -14,7 +14,7 @@ import {
   getUniversalProvider
 } from '@to-nexus/sdk/react'
 
-import { Signature } from 'ethers'
+import { ethers, Signature } from 'ethers'
 
 import type { WriteContractArgs, SendTransactionArgs } from '@to-nexus/sdk/react'
 import { sampleErc20ABI } from '../contracts/sample-erc20';
@@ -116,21 +116,27 @@ export function ActionButtonList() {
       return
     }
 
-    const PERMIT_CONTRACT_ADDRESS = '0x88f8146EB4120dA51Fc978a22933CbeB71D8Bde6'
-    const PERMIT_SPENDER_ADDRESS = '0x920A31f0E48739C3FbB790D992b0690f7F5C42ea'
+    const PERMIT_CONTRACT_ADDRESS = '0x7aa0c7864455cf7a967409c158ae4cd41a2c5585'
+    const PERMIT_SPENDER_ADDRESS = '0xC87D72172cd8839DdB26a7478025883af783571e'
     const PERMIT_VALUE = 1000000000000000000n
     const PERMIT_ABI = sampleEIP712
+
+    const bnbRpcUrl = 'https://bsc-testnet.crosstoken.io/110ea3628b77f244e5dbab16790d81bba874b962';
+    const provider = new ethers.JsonRpcProvider(bnbRpcUrl);
+    const contract = new ethers.Contract(PERMIT_CONTRACT_ADDRESS, PERMIT_ABI, provider);
+    const name = contract['name'] ? await contract['name']() : '';
+    const nonce = contract['nonce'] ? await contract['nonce'](FROM_ADDRESS) : 0;
+    console.log(`handleSignEIP712 - name: ${name}, nonce: ${nonce}`);
 
     const resSignedEIP712 = await ConnectionController.signEIP712({
       contractAddress: PERMIT_CONTRACT_ADDRESS,
       fromAddress: FROM_ADDRESS,
       spenderAddress: PERMIT_SPENDER_ADDRESS,
       value: PERMIT_VALUE,
-      abi: PERMIT_ABI,
-      // chainNamespace: network.caipNetwork?.chainNamespace ?? 'eip155',
-      // chainId: network.caipNetwork?.id.toString() ?? '612044',
       chainNamespace: 'eip155',
       chainId: '97',
+      name,
+      nonce,
       customData: {
         metadata: "This is metadata for signed EIP712"
       }

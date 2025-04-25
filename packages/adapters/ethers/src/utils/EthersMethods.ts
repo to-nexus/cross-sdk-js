@@ -75,16 +75,10 @@ export const EthersMethods = {
     }
 
     try {
-      const { contractAddress, fromAddress, spenderAddress, value, abi, customData } = data
-      const browserProvider = new BrowserProvider(provider, "any")
-      const signer = new JsonRpcSigner(browserProvider, fromAddress)
-      const contract = new Contract(contractAddress, abi, signer)
-      if (!contract) {
-        throw new Error('Contract method is undefined')
-      }
+      const { contractAddress, fromAddress, spenderAddress, value, name, nonce, customData } = data
 
       const domain = {
-        name: contract['name'] ? await contract['name']() : '',
+        name,
         version: '1',
         chainId: data.chainId,
         verifyingContract: contractAddress
@@ -102,8 +96,6 @@ export const EthersMethods = {
         ],
       };
 
-      const nonce = contract['nonces'] ? await contract['nonces'](fromAddress) : 0
-      console.log(`signEIP712 - nonce: ${nonce}`)
       const deadline = Math.floor(Date.now() / 1000) + 60 * 60  // after 1 hour
 
       const message = {
