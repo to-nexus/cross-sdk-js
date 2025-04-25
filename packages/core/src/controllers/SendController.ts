@@ -23,6 +23,7 @@ export interface TxParams {
   sendTokenAmount: number
   gasPrice?: bigint
   decimals: string
+  data?: string
   customData?: CustomData
 }
 
@@ -273,7 +274,7 @@ export const SendController = {
         Number(params.decimals)
       )
 
-      const data = '0x'
+      const data = params.data as `0x${string}` ?? '0x'
       const customData = params.customData??undefined
     
       const resTx = await ConnectionController.sendTransaction({

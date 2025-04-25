@@ -127,6 +127,10 @@ export function ActionButtonList() {
       spenderAddress: PERMIT_SPENDER_ADDRESS,
       value: PERMIT_VALUE,
       abi: PERMIT_ABI,
+      // chainNamespace: network.caipNetwork?.chainNamespace ?? 'eip155',
+      // chainId: network.caipNetwork?.id.toString() ?? '612044',
+      chainNamespace: 'eip155',
+      chainId: '97',
       customData: {
         metadata: "This is metadata for signed EIP712"
       }
@@ -197,6 +201,7 @@ export function ActionButtonList() {
     }
 
     const resTx = await SendController.sendNativeToken({
+      data: '0x',
       receiverAddress: RECEIVER_ADDRESS,
       sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
       decimals: '18',

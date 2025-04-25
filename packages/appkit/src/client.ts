@@ -1048,10 +1048,10 @@ export class AppKit {
       },
       signEIP712: async (args: SignEIP712Args) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
+        
         const result = await adapter?.signEIP712({
           ...args,
-          caipNetwork: this.getCaipNetwork(),
-          provider: ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace),
+          provider: ProviderUtil.getProvider(args.chainNamespace)
         })
 
         return result?.signature || ''

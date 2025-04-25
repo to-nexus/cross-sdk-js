@@ -481,7 +481,8 @@ export namespace AdapterBlueprint {
     value: bigint
     abi: any
     provider?: AppKitConnector['provider']
-    caipNetwork?: CaipNetwork
+    chainNamespace: ChainNamespace
+    chainId: string
     customData?: CustomData
   } 
 

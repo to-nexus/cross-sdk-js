@@ -1005,6 +1005,8 @@ export interface SignEIP712Args {
   fromAddress: `0x${string}`;
   spenderAddress: `0x${string}`;
   value: bigint;
+  chainNamespace: ChainNamespace;
+  chainId: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abi: any;
   customData?: CustomData;

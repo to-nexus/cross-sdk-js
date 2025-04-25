@@ -135,10 +135,11 @@ export class EthersAdapter extends AdapterBlueprint {
           spenderAddress: params.spenderAddress,
           value: params.value,
           abi: params.abi,
+          chainNamespace: params.chainNamespace,
+          chainId: params.chainId,
           customData: params.customData
         },
-        params.provider as Provider,
-        Number(params.caipNetwork?.id)
+        params.provider as Provider
       )
 
       return { signature }
