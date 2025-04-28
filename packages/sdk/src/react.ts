@@ -27,46 +27,61 @@ const networks = [ {
 
 const ethersAdapter = new EthersAdapter()
 
+type Metadata = {
+  name: string
+  description: string
+  url: string
+  icons: string[]
+}
+
+const defaultMetadata: Metadata = {
+  name: 'Cross SDK',
+  description: 'Cross SDK for React',
+  url: 'https://to.nexus',
+  icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+}
+
 // Create modal
-const initCrossSdk = (projectId: string, redirectUrl?: string) => createAppKit({
-  adapters: [ethersAdapter],
-  networks: [crossTestnet, crossMainnet, ...networks],
-  metadata: {
-    name: 'Cross SDK',
-    description: 'Cross SDK for React',
-    url: 'https://to.nexus',
-    icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg'],
+const initCrossSdk = (projectId: string, redirectUrl?: string, metadata?: Metadata) => {
+  const mergedMetadata = {
+    ...defaultMetadata,
+    ...metadata,
     redirect: {
       universal: redirectUrl
     }
-  },
-  projectId,
-  themeMode: 'light',
-  features: {
-    swaps: false,
-    onramp: false,
-    receive: false,
-    send: false,
-    email: false,
-    emailShowWallets: false,
-    socials: false,
-    history: false,
-    analytics: false,
-    legalCheckbox: false
-  },
-  enableCoinbase: false,
-  customWallets: [
-    {
-      id: "cross_wallet",
-      name: "Cross Wallet",
-      image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-      mobile_link: "crossx://",
-      app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
-      play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet"
-    }
-  ],
-  allWallets: "HIDE"
-})
+  }
+  return createAppKit({
+    adapters: [ethersAdapter],
+    networks: [crossTestnet, crossMainnet, ...networks],
+    metadata: mergedMetadata,
+    projectId,
+    themeMode: 'light',
+    features: {
+      swaps: false,
+      onramp: false,
+      receive: false,
+      send: false,
+      email: false,
+      emailShowWallets: false,
+      socials: false,
+      history: false,
+      analytics: false,
+      legalCheckbox: false
+    },
+    enableCoinbase: false,
+    customWallets: [
+      {
+        id: 'cross_wallet',
+        name: 'Cross Wallet',
+        image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
+        mobile_link: 'crossx://',
+        app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
+        play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet'
+      }
+    ],
+    allWallets: 'HIDE'
+  })
+}
 
 export {
   initCrossSdk,
