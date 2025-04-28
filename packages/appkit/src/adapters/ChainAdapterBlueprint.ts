@@ -481,6 +481,7 @@ export namespace AdapterBlueprint {
     value: bigint
     name: string,
     nonce: number,
+    deadline: number,
     provider?: AppKitConnector['provider']
     chainNamespace: ChainNamespace
     chainId: string

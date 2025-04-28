@@ -126,6 +126,7 @@ export function ActionButtonList() {
     const contract = new ethers.Contract(PERMIT_CONTRACT_ADDRESS, PERMIT_ABI, provider);
     const name = contract['name'] ? await contract['name']() : '';
     const nonce = contract['nonce'] ? await contract['nonce'](FROM_ADDRESS) : 0;
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 60  // after 1 hour
     console.log(`handleSignEIP712 - name: ${name}, nonce: ${nonce}`);
 
     const resSignedEIP712 = await ConnectionController.signEIP712({
@@ -137,6 +138,7 @@ export function ActionButtonList() {
       chainId: '97',
       name,
       nonce,
+      deadline,
       customData: {
         metadata: "This is metadata for signed EIP712"
       }

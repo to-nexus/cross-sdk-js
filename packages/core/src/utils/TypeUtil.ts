@@ -1010,6 +1010,7 @@ export interface SignEIP712Args {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   name: string;
   nonce: number;
+  deadline: number;
   customData?: CustomData;
 }
 

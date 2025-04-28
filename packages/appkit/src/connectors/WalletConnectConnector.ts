@@ -40,8 +40,6 @@ export class WalletConnectConnector<Namespace extends ChainNamespace = ChainName
 
     const optionalNamespaces = WcHelpersUtil.createNamespaces(this.caipNetworks);
 
-    console.log(`optionalNamespaces`, JSON.stringify(optionalNamespaces, null, 2))
-
     if (!isAuthenticated) {
       await this.provider.connect({
         optionalNamespaces

@@ -75,7 +75,7 @@ export const EthersMethods = {
     }
 
     try {
-      const { contractAddress, fromAddress, spenderAddress, value, name, nonce, customData } = data
+      const { contractAddress, fromAddress, spenderAddress, value, name, nonce, deadline,customData } = data
 
       const domain = {
         name,
@@ -95,8 +95,6 @@ export const EthersMethods = {
             { name: "deadline", type: "uint256" },
         ],
       };
-
-      const deadline = Math.floor(Date.now() / 1000) + 60 * 60  // after 1 hour
 
       const message = {
         owner: fromAddress,
