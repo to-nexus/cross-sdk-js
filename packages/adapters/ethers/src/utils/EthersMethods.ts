@@ -184,7 +184,7 @@ export const EthersMethods = {
       params: [ hexSign, data.customData ]
     }) as `0x${string}`
 
-    return await pollingTx(hash, signer)
+    return await pollingTx(hash as `0x${string}`, signer)
   },
 
   writeContract: async (
@@ -217,8 +217,8 @@ export const EthersMethods = {
         method: 'eth_sendTransaction',
         params: [ hexSign, data.customData ]
       }) as `0x${string}`
-  
-      return await pollingTx(hash, signer)
+ 
+      return await pollingTx(hash as `0x${string}`, signer) 
     }
     throw new Error('Contract method is undefined')
   },
