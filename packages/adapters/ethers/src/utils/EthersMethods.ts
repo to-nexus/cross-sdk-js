@@ -165,6 +165,8 @@ export const EthersMethods = {
       to: data.to,
       value: data.value,
       data: data.data,
+      gasLimit: data.gas,
+      gasPrice: data.gasPrice,
       type: 0
     }
 
@@ -172,8 +174,9 @@ export const EthersMethods = {
     const signer = new JsonRpcSigner(browserProvider, address)
 
     const gasLimit = txParams.gasLimit ?? await browserProvider.estimateGas({ ...txParams, from: await signer.getAddress()});
+    const gasPrice = txParams.gasPrice ?? (await browserProvider.getFeeData()).gasPrice;
     const from = await signer.getAddress()
-    const txToSign = { ...txParams, from, gasLimit }
+    const txToSign = { ...txParams, from, gasLimit, gasPrice }
     const hexSign = browserProvider.getRpcTransaction(txToSign)
 
     const hash = await provider.request({
