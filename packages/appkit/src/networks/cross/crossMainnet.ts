@@ -7,14 +7,14 @@ export const crossMainnet = defineChain({
   nativeCurrency: { name: 'CROSS', symbol: 'CROSS', decimals: 18 },
   rpcUrls: {
     default: {
-      http: ['https://mainnet.crosstoken.io:22001'],
-    },
+      http: ['https://mainnet.crosstoken.io:22001']
+    }
   },
   blockExplorers: {
     default: {
       name: 'Blockscout',
-      url: 'https://explorer.crosstoken.io',
-    },
+      url: 'https://mainnet.crossscan.io'
+    }
   },
   testnet: true,
   chainNamespace: 'eip155',
