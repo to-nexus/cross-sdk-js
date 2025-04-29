@@ -1,5 +1,3 @@
-import UniversalProvider from '@to-nexus/universal-provider'
-
 import {
   type CaipAddress,
   type CaipNetwork,
@@ -19,6 +17,7 @@ import {
 } from '@to-nexus/appkit-core'
 import { PresetsUtil } from '@to-nexus/appkit-utils'
 import { W3mFrameProvider } from '@to-nexus/appkit-wallet'
+import UniversalProvider from '@to-nexus/universal-provider'
 
 import type { AppKit } from '../client.js'
 import { WalletConnectConnector } from '../connectors/WalletConnectConnector.js'
@@ -479,14 +478,14 @@ export namespace AdapterBlueprint {
     fromAddress: `0x${string}`
     spenderAddress: `0x${string}`
     value: bigint
-    name: string,
-    nonce: number,
-    deadline: number,
+    name: string
+    nonce: number
+    deadline: number
     provider?: AppKitConnector['provider']
     chainNamespace: ChainNamespace
     chainId: string
     customData?: CustomData
-  } 
+  }
 
   export type SignEIP712Result = {
     signature: string
@@ -577,8 +576,10 @@ export namespace AdapterBlueprint {
     to: string
     data: string
     value: bigint | number
-    gasPrice: bigint | number
+    gasPrice?: bigint | number
     gas?: bigint | number
+    maxFee?: bigint | number
+    maxPriorityFee?: bigint | number
     caipNetwork?: CaipNetwork
     provider?: AppKitConnector['provider']
     customData?: CustomData

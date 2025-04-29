@@ -1,17 +1,4 @@
 /* eslint-disable max-params */
-import {
-  BrowserProvider,
-  Contract,
-  InfuraProvider,
-  JsonRpcSigner,
-  ethers,
-  formatUnits,
-  hexlify,
-  isHexString,
-  parseUnits,
-  toUtf8Bytes,
-} from 'ethers'
-
 import { WcHelpersUtil } from '@to-nexus/appkit'
 import { type CaipNetwork, type CustomData, isReownName } from '@to-nexus/appkit-common'
 import type {
@@ -22,38 +9,61 @@ import type {
   SignEIP712Args,
   WriteContractArgs
 } from '@to-nexus/appkit-core'
+import {
+  BrowserProvider,
+  Contract,
+  InfuraProvider,
+  JsonRpcSigner,
+  ethers,
+  formatUnits,
+  hexlify,
+  isHexString,
+  parseUnits,
+  toUtf8Bytes
+} from 'ethers'
 import type { TransactionRequest } from 'ethers'
 import { getBigInt, toQuantity } from 'ethers/utils'
 
 async function pollingTx(hash: `0x${string}`, signer: JsonRpcSigner) {
-  return await (new Promise((resolve: (hash: `0x${string}`) => void, reject: (error: Error) => void) => {
-    console.log(`pollingTx with hash: ${hash}`)
-    const timeouts = [ 1000, 100 ];
+  return await new Promise(
+    (resolve: (hash: `0x${string}`) => void, reject: (error: Error) => void) => {
+      console.log(`pollingTx with hash: ${hash}`)
+      const timeouts = [1000, 100]
 
-    const checkTx = async () => {
+      const checkTx = async () => {
         try {
-            const tx = await signer.provider.getTransaction(hash);
+          const tx = await signer.provider.getTransaction(hash)
 
-            if (tx != null) {
-                console.log(`tx found: ${JSON.stringify(tx, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2)  }`)
-                resolve(hash as `0x${string}`);
-                return;
-            }
+          if (tx != null) {
+            console.log(
+              `tx found: ${JSON.stringify(tx, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)}`
+            )
+            resolve(hash)
 
+            return
+          }
         } catch (error) {
-            console.log(`pollingTx error: ${error} just return result with hash`)
-            resolve(hash as `0x${string}`)
+          console.log(`pollingTx error: ${error} just return result with hash`)
+          resolve(hash)
         }
 
         // Wait another 4 seconds
-        signer.provider._setTimeout(() => { checkTx(); }, timeouts.pop() || 4000);
-    };
-    checkTx();
-  }));
+        signer.provider._setTimeout(() => {
+          checkTx()
+        }, timeouts.pop() || 4000)
+      }
+      checkTx()
+    }
+  )
 }
 
 export const EthersMethods = {
-  signMessage: async (message: string, provider: Provider, address: string, customData?: CustomData) => {
+  signMessage: async (
+    message: string,
+    provider: Provider,
+    address: string,
+    customData?: CustomData
+  ) => {
     if (!provider) {
       throw new Error('signMessage - provider is undefined')
     }
@@ -66,16 +76,22 @@ export const EthersMethods = {
     return signature as `0x${string}`
   },
 
-  signEIP712: async (
-    data: SignEIP712Args,
-    provider: Provider
-  ) => {
+  signEIP712: async (data: SignEIP712Args, provider: Provider) => {
     if (!provider) {
       throw new Error('signEIP712 - provider is undefined')
     }
 
     try {
-      const { contractAddress, fromAddress, spenderAddress, value, name, nonce, deadline,customData } = data
+      const {
+        contractAddress,
+        fromAddress,
+        spenderAddress,
+        value,
+        name,
+        nonce,
+        deadline,
+        customData
+      } = data
 
       const domain = {
         name,
@@ -88,13 +104,13 @@ export const EthersMethods = {
 
       const types = {
         Permit: [
-            { name: "owner", type: "address" },
-            { name: "spender", type: "address" },
-            { name: "value", type: "uint256" },
-            { name: "nonce", type: "uint256" },
-            { name: "deadline", type: "uint256" },
-        ],
-      };
+          { name: 'owner', type: 'address' },
+          { name: 'spender', type: 'address' },
+          { name: 'value', type: 'uint256' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' }
+        ]
+      }
 
       const message = {
         owner: fromAddress,
@@ -108,7 +124,7 @@ export const EthersMethods = {
 
       const signature = await provider.request({
         method: 'eth_signTypedData_v4',
-        params: [{domain, types, message}, customData]
+        params: [{ domain, types, message }, customData]
       })
 
       return signature as `0x${string}`
@@ -161,28 +177,36 @@ export const EthersMethods = {
     if (data.chainNamespace && data.chainNamespace !== 'eip155') {
       throw new Error('sendTransaction - chainNamespace is not eip155')
     }
+
+    if (data) {
+      console.log(`sendTransaction - data: `, data)
+    }
     const txParams: TransactionRequest = {
       to: data.to,
       value: data.value,
       data: data.data,
       gasLimit: data.gas,
-      gasPrice: data.gasPrice,
+      ...(data.gasPrice && { gasPrice: data.gasPrice }),
+      ...(data.maxFee && { maxFeePerGas: data.maxFee }),
+      ...(data.maxPriorityFee && { maxPriorityFeePerGas: data.maxPriorityFee }),
       type: 0
     }
 
     const browserProvider = new BrowserProvider(provider, networkId)
     const signer = new JsonRpcSigner(browserProvider, address)
 
-    const gasLimit = txParams.gasLimit ?? await browserProvider.estimateGas({ ...txParams, from: await signer.getAddress()});
-    const gasPrice = txParams.gasPrice ?? (await browserProvider.getFeeData()).gasPrice;
+    /*
+     * Const gasLimit = txParams.gasLimit ?? await browserProvider.estimateGas({ ...txParams, from: await signer.getAddress()});
+     * const gasPrice = txParams.gasPrice ?? (await browserProvider.getFeeData()).gasPrice;
+     */
     const from = await signer.getAddress()
-    const txToSign = { ...txParams, from, gasLimit, gasPrice }
+    const txToSign = { ...txParams, from }
     const hexSign = browserProvider.getRpcTransaction(txToSign)
 
     const hash = await provider.request({
       method: 'eth_sendTransaction',
-      params: [ hexSign, data.customData ]
-    }) as `0x${string}`
+      params: [hexSign, data.customData]
+    })
 
     return await pollingTx(hash as `0x${string}`, signer)
   },
@@ -208,26 +232,25 @@ export const EthersMethods = {
     const method = contract[data.method]
     if (method) {
       const txContract = await method.populateTransaction(...data.args)
-      const gasLimit = await browserProvider.estimateGas({ ...txContract, from: await signer.getAddress()});
+      const gasLimit = await browserProvider.estimateGas({
+        ...txContract,
+        from: await signer.getAddress()
+      })
       const from = await signer.getAddress()
       const txToSign = { ...txContract, from, gasLimit }
       const hexSign = browserProvider.getRpcTransaction(txToSign)
 
       const hash = await provider.request({
         method: 'eth_sendTransaction',
-        params: [ hexSign, data.customData ]
-      }) as `0x${string}`
- 
-      return await pollingTx(hash as `0x${string}`, signer) 
+        params: [hexSign, data.customData]
+      })
+
+      return await pollingTx(hash as `0x${string}`, signer)
     }
     throw new Error('Contract method is undefined')
   },
 
-  readContract: async (
-    data: ReadContractArgs,
-    provider: Provider,
-    chainId: number
-  ) => {
+  readContract: async (data: ReadContractArgs, provider: Provider, chainId: number) => {
     if (!provider) {
       throw new Error('writeContract - provider is undefined')
     }
@@ -240,6 +263,7 @@ export const EthersMethods = {
     const method = contract[data.method]
     if (method) {
       const result = await method(...data.args)
+
       return result
     }
     throw new Error('Contract method is undefined')
@@ -287,5 +311,5 @@ export const EthersMethods = {
   },
 
   parseUnits,
-  formatUnits,
+  formatUnits
 }

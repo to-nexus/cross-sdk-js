@@ -1,5 +1,3 @@
-import type UniversalProvider from '@to-nexus/universal-provider'
-
 import type {
   AdapterType,
   AppKitNetwork,
@@ -13,6 +11,7 @@ import type {
   Transaction
 } from '@to-nexus/appkit-common'
 import type { W3mFrameProvider, W3mFrameTypes } from '@to-nexus/appkit-wallet'
+import type UniversalProvider from '@to-nexus/universal-provider'
 
 import type { AccountControllerState } from '../controllers/AccountController.js'
 import type { ConnectionControllerClient } from '../controllers/ConnectionController.js'
@@ -182,7 +181,6 @@ export interface ApiGetAnalyticsConfigResponse {
   isAnalyticsEnabled: boolean
 }
 
-
 export interface ApiBalanceResponse extends ApiBaseReponse {
   data: Balance[]
 }
@@ -191,7 +189,8 @@ export interface ApiGasPriceRequest {
   chainId: string
 }
 
-export interface ApiGasPriceResponse extends ApiBaseReponse { // CROSS api returns with code, message and data
+export interface ApiGasPriceResponse extends ApiBaseReponse {
+  // CROSS api returns with code, message and data
   data: {
     standard: string
     fast: string
@@ -199,9 +198,10 @@ export interface ApiGasPriceResponse extends ApiBaseReponse { // CROSS api retur
   }
 }
 
-export interface ApiBaseReponse { // CROSS api returns with code, message and data
-  code?: number,
-  message?: string,
+export interface ApiBaseReponse {
+  // CROSS api returns with code, message and data
+  code?: number
+  message?: string
   data?: any
 }
 
@@ -983,7 +983,9 @@ export type SendTransactionArgs =
       data: `0x${string}`
       value: bigint
       gas?: bigint
-      gasPrice: bigint
+      gasPrice?: bigint
+      maxFee?: bigint
+      maxPriorityFee?: bigint
       address: `0x${string}`
       customData?: CustomData
     }
@@ -1001,17 +1003,17 @@ export type EstimateGasTransactionArgs =
     }
 
 export interface SignEIP712Args {
-  contractAddress: `0x${string}`;
-  fromAddress: `0x${string}`;
-  spenderAddress: `0x${string}`;
-  value: bigint;
-  chainNamespace: ChainNamespace;
-  chainId: string;
+  contractAddress: `0x${string}`
+  fromAddress: `0x${string}`
+  spenderAddress: `0x${string}`
+  value: bigint
+  chainNamespace: ChainNamespace
+  chainId: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  name: string;
-  nonce: number;
-  deadline: number;
-  customData?: CustomData;
+  name: string
+  nonce: number
+  deadline: number
+  customData?: CustomData
 }
 
 export interface WriteContractArgs {
@@ -1200,7 +1202,7 @@ export type UseAppKitAccountReturn = {
     isSmartAccountDeployed: boolean
   }
   status: AccountControllerState['status']
-  balance?: AccountControllerState['balance'];
+  balance?: AccountControllerState['balance']
   balanceSymbol?: AccountControllerState['balanceSymbol']
   balanceLoading?: AccountControllerState['balanceLoading']
   tokenBalance?: AccountControllerState['tokenBalance']

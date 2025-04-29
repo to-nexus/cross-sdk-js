@@ -1,3 +1,26 @@
+import { AppKit, type AppKitOptions, WcHelpersUtil } from '@to-nexus/appkit'
+import type {
+  AppKitNetwork,
+  BaseNetwork,
+  CaipNetwork,
+  ChainNamespace
+} from '@to-nexus/appkit-common'
+import {
+  ConstantsUtil as CommonConstantsUtil,
+  NetworkUtil,
+  isReownName
+} from '@to-nexus/appkit-common'
+import { CoreHelperUtil, StorageUtil } from '@to-nexus/appkit-core'
+import {
+  type ConnectorType,
+  ConstantsUtil as CoreConstantsUtil,
+  type Provider
+} from '@to-nexus/appkit-core'
+import { CaipNetworksUtil, PresetsUtil } from '@to-nexus/appkit-utils'
+import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
+import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
+import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
+import type UniversalProvider from '@to-nexus/universal-provider'
 import {
   type Config,
   type Connector,
@@ -27,7 +50,6 @@ import {
   watchPendingTransactions
 } from '@wagmi/core'
 import { type Chain } from '@wagmi/core/chains'
-import type UniversalProvider from '@to-nexus/universal-provider'
 import {
   type GetEnsAddressReturnType,
   type Hex,
@@ -36,24 +58,6 @@ import {
   parseUnits
 } from 'viem'
 import { normalize } from 'viem/ens'
-
-import { AppKit, type AppKitOptions, WcHelpersUtil } from '@to-nexus/appkit'
-import type { AppKitNetwork, BaseNetwork, CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
-import {
-  ConstantsUtil as CommonConstantsUtil,
-  NetworkUtil,
-  isReownName
-} from '@to-nexus/appkit-common'
-import { CoreHelperUtil, StorageUtil } from '@to-nexus/appkit-core'
-import {
-  type ConnectorType,
-  ConstantsUtil as CoreConstantsUtil,
-  type Provider
-} from '@to-nexus/appkit-core'
-import { CaipNetworksUtil, PresetsUtil } from '@to-nexus/appkit-utils'
-import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
-import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
-import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
 
 import { authConnector } from './connectors/AuthConnector.js'
 import { walletConnect } from './connectors/UniversalConnector.js'
@@ -332,7 +336,6 @@ export class WagmiAdapter extends AdapterBlueprint {
   public async signEIP712(
     params: AdapterBlueprint.SignEIP712Params
   ): Promise<AdapterBlueprint.SignEIP712Result> {
-
     return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
   }
 
@@ -346,6 +349,8 @@ export class WagmiAdapter extends AdapterBlueprint {
       value: params.value as bigint,
       gas: params.gas as bigint,
       gasPrice: params.gasPrice as bigint,
+      maxFee: params.maxFee as bigint,
+      maxPriorityFee: params.maxPriorityFee as bigint,
       data: params.data as Hex,
       chainId,
       type: 'legacy' as const

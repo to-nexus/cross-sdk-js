@@ -1,6 +1,3 @@
-import UniversalProvider from '@to-nexus/universal-provider'
-import { InfuraProvider, JsonRpcProvider, Signature, formatEther } from 'ethers'
-
 import { type AppKitOptions, WcConstantsUtil } from '@to-nexus/appkit'
 import type { CaipNetwork } from '@to-nexus/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil, ParseUtil } from '@to-nexus/appkit-common'
@@ -19,6 +16,8 @@ import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
 import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
 import { ProviderUtil } from '@to-nexus/appkit/store'
+import UniversalProvider from '@to-nexus/universal-provider'
+import { InfuraProvider, JsonRpcProvider, Signature, formatEther } from 'ethers'
 
 import { EthersMethods } from './utils/EthersMethods.js'
 
@@ -116,7 +115,12 @@ export class EthersAdapter extends AdapterBlueprint {
       throw new Error('Provider is undefined')
     }
     try {
-      const signature = await EthersMethods.signMessage(message, provider as Provider, address, params.customData)
+      const signature = await EthersMethods.signMessage(
+        message,
+        provider as Provider,
+        address,
+        params.customData
+      )
 
       return { signature }
     } catch (error) {
@@ -146,7 +150,7 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error('EthersAdapter:signEIP712 failed: ' + error)
+      throw new Error(`EthersAdapter:signEIP712 failed: ${error}`)
     }
   }
 
@@ -164,6 +168,8 @@ export class EthersAdapter extends AdapterBlueprint {
         data: params.data as `0x${string}`,
         gas: params.gas as bigint,
         gasPrice: params.gasPrice as bigint,
+        maxFee: params.maxFee as bigint,
+        maxPriorityFee: params.maxPriorityFee as bigint,
         address: params.address,
         customData: params.customData
       },
@@ -208,10 +214,14 @@ export class EthersAdapter extends AdapterBlueprint {
     if (!provider) {
       throw new Error('Provider is undefined')
     }
-    const result = await EthersMethods.readContract(params, provider as Provider, Number(params.caipNetwork?.id))
-    return result;
+    const result = await EthersMethods.readContract(
+      params,
+      provider as Provider,
+      Number(params.caipNetwork?.id)
+    )
+
+    return result
   }
-  
 
   public async estimateGas(
     params: AdapterBlueprint.EstimateGasTransactionArgs
@@ -521,7 +531,9 @@ export class EthersAdapter extends AdapterBlueprint {
       const cachedBalance = StorageUtil.getNativeBalanceCacheForCaipAddress(caipAddress)
       if (cachedBalance) {
         if (params.ignoreCache) {
-          console.log(`found cached balance: ${cachedBalance.balance}, but proceed to getBalance by jsonRpcProvider`)
+          console.log(
+            `found cached balance: ${cachedBalance.balance}, but proceed to getBalance by jsonRpcProvider`
+          )
         } else {
           return { balance: cachedBalance.balance, symbol: cachedBalance.symbol }
         }
