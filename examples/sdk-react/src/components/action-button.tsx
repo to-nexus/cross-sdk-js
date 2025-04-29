@@ -359,7 +359,7 @@ export function ActionButtonList() {
         address,
         data,
         value: value ?? BigInt(0),
-        gas: BigInt(2000000000),
+        gas: BigInt(147726),
         gasPrice: BigInt(2000000000),
         customData
       })
@@ -387,8 +387,8 @@ export function ActionButtonList() {
         address,
         data,
         value: value ?? BigInt(0),
-        gas: BigInt(2000000000),
-        maxFee: BigInt(2000000000),
+        gas: BigInt(147726),
+        maxFee: BigInt(3200000000),
         maxPriorityFee: BigInt(2000000000),
         customData
       })
