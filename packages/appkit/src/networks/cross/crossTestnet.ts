@@ -7,14 +7,14 @@ export const crossTestnet = defineChain({
   nativeCurrency: { name: 'CROSS', symbol: 'CROSS', decimals: 18 },
   rpcUrls: {
     default: {
-      http: ['https://testnet.crosstoken.io:22001'],
-    },
+      http: ['https://testnet.crosstoken.io:22001']
+    }
   },
   blockExplorers: {
     default: {
       name: 'Blockscout',
-      url: 'https://testnet-explorer.crosstoken.io/',
-    },
+      url: 'https://testnet.crossscan.io/'
+    }
   },
   testnet: true,
   chainNamespace: 'eip155',
