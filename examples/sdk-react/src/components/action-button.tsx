@@ -416,7 +416,7 @@ export function ActionButtonList() {
         method: 'mint', // method to call on the contract
         abi: sampleErc721ABI, // abi of the contract
         chainNamespace: network?.caipNetwork?.chainNamespace,
-        type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+        type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY // default type is LEGACY
       }
 
       setContractArgs(buildArgs)
