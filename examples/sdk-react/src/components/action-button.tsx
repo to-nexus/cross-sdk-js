@@ -438,35 +438,6 @@ export function ActionButtonList() {
     accessUniversalProvider()
   }, [appKit])
 
-  async function handleTransfer1TokenWithLegacyFee() {
-    try {
-      const to = RECEIVER_ADDRESS
-      const address = AccountController.state.address as `0x${string}`
-      const value = ConnectionController.parseUnits(String(SEND_ERC20_AMOUNT), 18)
-
-      const data = '0x'
-      const customData = undefined
-
-      const resTx = await ConnectionController.sendTransaction({
-        chainNamespace: 'eip155',
-        to,
-        address,
-        data,
-        value: value ?? BigInt(0),
-        gas: BigInt(147726),
-        gasPrice: BigInt(2000000000),
-        customData,
-        type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
-      })
-
-      return resTx
-    } catch (error) {
-      // eslint-disable-next-line no-console
-
-      return null
-    }
-  }
-
   return (
     <div>
       <div className="action-button-list">
