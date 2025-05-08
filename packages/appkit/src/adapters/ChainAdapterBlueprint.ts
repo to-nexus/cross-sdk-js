@@ -583,6 +583,7 @@ export namespace AdapterBlueprint {
     caipNetwork?: CaipNetwork
     provider?: AppKitConnector['provider']
     customData?: CustomData
+    type?: number
   }
 
   export type SendTransactionResult = {
