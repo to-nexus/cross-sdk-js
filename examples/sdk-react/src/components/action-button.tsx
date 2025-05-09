@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import {
   AccountController,
   ConnectionController,
+  ConstantsUtil,
   SendController,
   UniversalProvider,
   crossMainnet,
@@ -16,7 +17,7 @@ import {
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
-import type { SendTransactionArgs, WriteContractArgs } from '@to-nexus/sdk/react'
+import type { WriteContractArgs } from '@to-nexus/sdk/react'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -193,7 +194,8 @@ export function ActionButtonList() {
           txTime: new Date().toISOString(),
           randomValue: uuidv4()
         }
-      }
+      },
+      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
 
     alert(`resTx: ${JSON.stringify(resTx)}`)
@@ -221,7 +223,8 @@ export function ActionButtonList() {
       customData: {
         metadata:
           'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
-      }
+      },
+      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
     alert(`resTx: ${JSON.stringify(resTx)}`)
   }
@@ -240,7 +243,96 @@ export function ActionButtonList() {
       decimals: '18',
       customData: {
         metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
-      }
+      },
+      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+    })
+    alert(`resTx: ${JSON.stringify(resTx)}`)
+    getBalanceOfERC20({ showResult: false })
+  }
+
+  // used for sending custom transaction
+  async function handleSendTransactionWithDynamicFee() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    if (!contractArgs) {
+      alert('no contract args set')
+      return
+    }
+
+    const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
+
+    const resTx = await ConnectionController.writeContract({
+      fromAddress,
+      contractAddress,
+      args,
+      method,
+      abi,
+      chainNamespace,
+      customData: {
+        metadata: {
+          activity: 'You are about to send custom transaction to the contract.',
+          currentFormat: 'This is a JSON formatted custom data.',
+          providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
+          txTime: new Date().toISOString(),
+          randomValue: uuidv4()
+        }
+      },
+      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+    })
+
+    alert(`resTx: ${JSON.stringify(resTx)}`)
+
+    // generate new tokenId for next NFT
+    const uuidHex = uuidv4().replace(/-/g, '')
+    const tokenId = BigInt(`0x${uuidHex}`).toString()
+    const newArgs = [FROM_ADDRESS as `0x${string}`, tokenId]
+
+    setContractArgs({ ...contractArgs, args: newArgs })
+  }
+
+  // used for sending CROSS
+  async function handleSendNativeWithDynamicFee() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    const resTx = await SendController.sendNativeToken({
+      data: '0x',
+      receiverAddress: RECEIVER_ADDRESS,
+      sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
+      decimals: '18',
+      customData: {
+        metadata:
+          'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+      },
+      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+    })
+    alert(`resTx: ${JSON.stringify(resTx)}`)
+  }
+
+  // used for sending any of game tokens
+  async function handleSendERC20TokenWithDynamicFee() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    const resTx = await SendController.sendERC20Token({
+      receiverAddress: RECEIVER_ADDRESS,
+      contractAddress: ERC20_CAIP_ADDRESS,
+      sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
+      decimals: '18',
+      gas: BigInt(147726), // optional (you can set this your calculated gas or skip it )
+      maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+      maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
+      customData: {
+        metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+      },
+      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
     alert(`resTx: ${JSON.stringify(resTx)}`)
     getBalanceOfERC20({ showResult: false })
@@ -328,7 +420,8 @@ export function ActionButtonList() {
         ],
         method: 'mint', // method to call on the contract
         abi: sampleErc721ABI, // abi of the contract
-        chainNamespace: network?.caipNetwork?.chainNamespace
+        chainNamespace: network?.caipNetwork?.chainNamespace,
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY // default type is LEGACY
       }
 
       setContractArgs(buildArgs)
@@ -350,63 +443,6 @@ export function ActionButtonList() {
     accessUniversalProvider()
   }, [appKit])
 
-  async function handleTransfer1TokenWithLegacyFee() {
-    try {
-      const to = RECEIVER_ADDRESS
-      const address = AccountController.state.address as `0x${string}`
-      const value = ConnectionController.parseUnits(String(SEND_ERC20_AMOUNT), 18)
-
-      const data = '0x'
-      const customData = undefined
-
-      const resTx = await ConnectionController.sendTransaction({
-        chainNamespace: 'eip155',
-        to,
-        address,
-        data,
-        value: value ?? BigInt(0),
-        gas: BigInt(147726),
-        gasPrice: BigInt(2000000000),
-        customData
-      })
-
-      return resTx
-    } catch (error) {
-      // eslint-disable-next-line no-console
-
-      return null
-    }
-  }
-
-  async function handleTransfer1TokenWithDynamicFee() {
-    try {
-      const to = RECEIVER_ADDRESS
-      const address = AccountController.state.address as `0x${string}`
-      const value = ConnectionController.parseUnits(String(SEND_ERC20_AMOUNT), 18)
-
-      const data = '0x'
-      const customData = undefined
-
-      const resTx = await ConnectionController.sendTransaction({
-        chainNamespace: 'eip155',
-        to,
-        address,
-        data,
-        value: value ?? BigInt(0),
-        gas: BigInt(147726),
-        maxFee: BigInt(3200000000),
-        maxPriorityFee: BigInt(2000000000),
-        customData
-      })
-
-      return resTx
-    } catch (error) {
-      // eslint-disable-next-line no-console
-
-      return null
-    }
-  }
-
   return (
     <div>
       <div className="action-button-list">
@@ -419,6 +455,11 @@ export function ActionButtonList() {
         <button onClick={handleSendNative}>Send 1 CROSS</button>
         <button onClick={handleSendERC20Token}>Send 1 ERC20</button>
         <button onClick={handleSendTransaction}>Send Custom Transaction</button>
+        <button onClick={handleSendNativeWithDynamicFee}>Send 1 CROSS with Dynamic Fee</button>
+        <button onClick={handleSendERC20TokenWithDynamicFee}>Send 1 ERC20 with Dynamic Fee</button>
+        <button onClick={handleSendTransactionWithDynamicFee}>
+          Send Custom Transaction with Dynamic Fee
+        </button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSignMessage}>Sign Message</button>
@@ -429,12 +470,6 @@ export function ActionButtonList() {
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>
         <button onClick={() => getBalanceOfERC20()}>Get Balance of ERC20</button>
         <button onClick={getBalanceOfNFT}>Get Balance of NFT</button>
-        <button onClick={handleTransfer1TokenWithLegacyFee}>
-          Test Legacy Fee with Transfer 1 Token
-        </button>
-        <button onClick={handleTransfer1TokenWithDynamicFee}>
-          Test Dynamic Fee with Transfer 1 Token
-        </button>
       </div>
     </div>
   )

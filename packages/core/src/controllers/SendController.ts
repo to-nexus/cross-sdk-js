@@ -1,30 +1,33 @@
-import { proxy, ref, subscribe as sub } from 'valtio/vanilla'
-import { subscribeKey as subKey } from 'valtio/vanilla/utils'
-
 import { type Balance, type CaipAddress, NumberUtil } from '@to-nexus/appkit-common'
 import { ContractUtil } from '@to-nexus/appkit-common'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
+import { proxy, ref, subscribe as sub } from 'valtio/vanilla'
+import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { SendApiUtil } from '../utils/SendApiUtil.js'
+import { type CustomData } from '../utils/TypeUtil.js'
 import { AccountController } from './AccountController.js'
 import { ChainController } from './ChainController.js'
 import { ConnectionController } from './ConnectionController.js'
 import { EventsController } from './EventsController.js'
 import { RouterController } from './RouterController.js'
 import { SnackController } from './SnackController.js'
-import type { CustomData } from '../utils/TypeUtil.js'
 
 // -- Types --------------------------------------------- //
 
 export interface TxParams {
   receiverAddress: string
   sendTokenAmount: number
-  gasPrice?: bigint
   decimals: string
   data?: string
   customData?: CustomData
+  type?: number
+  gas?: bigint
+  gasPrice?: bigint
+  maxFee?: bigint
+  maxPriorityFee?: bigint
 }
 
 export interface ContractWriteParams {
@@ -33,6 +36,11 @@ export interface ContractWriteParams {
   sendTokenAmount: number
   decimals: string
   customData?: CustomData
+  type?: number
+  gas?: bigint
+  gasPrice?: bigint
+  maxFee?: bigint
+  maxPriorityFee?: bigint
 }
 export interface SendControllerState {
   tokenBalances: Balance[]
@@ -170,10 +178,9 @@ export const SendController = {
     } else {
       console.log(`invalid token. not native nor erc20`)
     }
-
   },
 
-  // not used in the appkit.
+  // Not used in the appkit.
   async fetchTokenBalance(onError?: (error: unknown) => void): Promise<Balance[]> {
     state.loading = true
     const chainId = ChainController.state.activeCaipNetwork?.caipNetworkId
@@ -274,17 +281,30 @@ export const SendController = {
         Number(params.decimals)
       )
 
-      const data = params.data as `0x${string}` ?? '0x'
-      const customData = params.customData??undefined
-    
+      const data = (params.data as `0x${string}`) ?? '0x'
+      const customData = params.customData
+
+      const type = params.type ?? ConstantsUtil.TRANSACTION_TYPE.LEGACY
+
+      const gas = params.gas
+      // Legacy fee
+      const gasPrice = params.gasPrice
+      // Dynamic fee
+      const maxFee = params.maxFee
+      const maxPriorityFee = params.maxPriorityFee
+
       const resTx = await ConnectionController.sendTransaction({
         chainNamespace: 'eip155',
         to,
         address,
         data,
         value: value ?? BigInt(0),
-        gasPrice: params.gasPrice ?? BigInt(2000000000),
-        customData
+        gas,
+        gasPrice,
+        maxFee,
+        maxPriorityFee,
+        customData,
+        type
       })
 
       SnackController.showSuccess('Transaction started')
@@ -301,6 +321,7 @@ export const SendController = {
         }
       })
       this.resetSend()
+
       return resTx
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -320,6 +341,7 @@ export const SendController = {
         }
       })
       SnackController.showError('Something went wrong')
+
       return null
     }
   },
@@ -346,7 +368,16 @@ export const SendController = {
           params.contractAddress as CaipAddress
         ) as `0x${string}`
 
-        const customData = params.customData??undefined
+        const customData = params.customData
+
+        const type = params.type ?? ConstantsUtil.TRANSACTION_TYPE.LEGACY
+
+        const gas = params.gas
+        // Legacy fee
+        const gasPrice = params.gasPrice
+        // Dynamic fee
+        const maxFee = params.maxFee
+        const maxPriorityFee = params.maxPriorityFee
 
         const resTx = await ConnectionController.writeContract({
           fromAddress: AccountController.state.address as `0x${string}`,
@@ -355,7 +386,12 @@ export const SendController = {
           method: 'transfer',
           abi: ContractUtil.getERC20Abi(contractAddress),
           chainNamespace: 'eip155',
-          customData
+          customData,
+          type,
+          gas,
+          gasPrice,
+          maxFee,
+          maxPriorityFee
         })
 
         SnackController.showSuccess('Transaction started')
@@ -382,6 +418,7 @@ export const SendController = {
         }
       })
       SnackController.showError('Something went wrong')
+
       return null
     }
   },

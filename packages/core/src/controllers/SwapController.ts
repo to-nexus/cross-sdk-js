@@ -1,16 +1,15 @@
-import { proxy, subscribe as sub } from 'valtio/vanilla'
-import { subscribeKey as subKey } from 'valtio/vanilla/utils'
-
 import { type ChainNamespace, NumberUtil } from '@to-nexus/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
+import { proxy, subscribe as sub } from 'valtio/vanilla'
+import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
 import { SwapApiUtil } from '../utils/SwapApiUtil.js'
 import { SwapCalculationUtil } from '../utils/SwapCalculationUtil.js'
-import type { SwapTokenWithBalance } from '../utils/TypeUtil.js'
+import { type SwapTokenWithBalance } from '../utils/TypeUtil.js'
 import { AccountController } from './AccountController.js'
 import { AlertController } from './AlertController.js'
 import { BlockchainApiController } from './BlockchainApiController.js'
@@ -737,7 +736,8 @@ export const SwapController = {
         gas: data.gas,
         gasPrice: BigInt(data.gasPrice),
         value: data.value,
-        chainNamespace: 'eip155'
+        chainNamespace: 'eip155',
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
       })
 
       await this.swapTokens()
@@ -805,7 +805,8 @@ export const SwapController = {
         gas: data.gas,
         gasPrice: BigInt(data.gasPrice),
         value: data.value,
-        chainNamespace: 'eip155'
+        chainNamespace: 'eip155',
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
       })
 
       state.loadingTransaction = false

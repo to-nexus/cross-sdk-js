@@ -171,7 +171,8 @@ export class EthersAdapter extends AdapterBlueprint {
         maxFee: params.maxFee as bigint,
         maxPriorityFee: params.maxPriorityFee as bigint,
         address: params.address,
-        customData: params.customData
+        customData: params.customData,
+        type: params.type
       },
       params.provider as Provider,
       params.address,
@@ -197,7 +198,8 @@ export class EthersAdapter extends AdapterBlueprint {
         abi: params.abi,
         args: params.args,
         customData: params.customData,
-        chainNamespace: params.caipNetwork?.chainNamespace
+        chainNamespace: params.caipNetwork?.chainNamespace,
+        type: params.type
       },
       params.provider as Provider,
       address,

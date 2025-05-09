@@ -1,13 +1,14 @@
 /* eslint-disable max-params */
 import { WcHelpersUtil } from '@to-nexus/appkit'
 import { type CaipNetwork, type CustomData, isReownName } from '@to-nexus/appkit-common'
-import type {
-  EstimateGasTransactionArgs,
-  Provider,
-  ReadContractArgs,
-  SendTransactionArgs,
-  SignEIP712Args,
-  WriteContractArgs
+import {
+  ConstantsUtil,
+  type EstimateGasTransactionArgs,
+  type Provider,
+  type ReadContractArgs,
+  type SendTransactionArgs,
+  type SignEIP712Args,
+  type WriteContractArgs
 } from '@to-nexus/appkit-core'
 import {
   BrowserProvider,
@@ -177,29 +178,57 @@ export const EthersMethods = {
     if (data.chainNamespace && data.chainNamespace !== 'eip155') {
       throw new Error('sendTransaction - chainNamespace is not eip155')
     }
+    const type = data.type ?? ConstantsUtil.TRANSACTION_TYPE.LEGACY
+    if (
+      type !== ConstantsUtil.TRANSACTION_TYPE.LEGACY &&
+      type !== ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+    ) {
+      throw new Error('sendTransaction - invalid transaction type')
+    }
 
     if (data) {
       console.log(`sendTransaction - data: `, data)
     }
-    const txParams: TransactionRequest = {
+    let txParams: TransactionRequest = {
       to: data.to,
       value: data.value,
-      data: data.data,
-      gasLimit: data.gas,
-      ...(data.gasPrice && { gasPrice: data.gasPrice }),
-      ...(data.maxFee && { maxFeePerGas: data.maxFee }),
-      ...(data.maxPriorityFee && { maxPriorityFeePerGas: data.maxPriorityFee }),
-      type: 0
+      data: data.data
     }
 
     const browserProvider = new BrowserProvider(provider, networkId)
     const signer = new JsonRpcSigner(browserProvider, address)
-
-    /*
-     * Const gasLimit = txParams.gasLimit ?? await browserProvider.estimateGas({ ...txParams, from: await signer.getAddress()});
-     * const gasPrice = txParams.gasPrice ?? (await browserProvider.getFeeData()).gasPrice;
-     */
     const from = await signer.getAddress()
+
+    const gasLimit =
+      data.gas ??
+      (await browserProvider.estimateGas({ ...txParams, from: await signer.getAddress() }))
+
+    txParams = {
+      ...txParams,
+      gasLimit
+    }
+
+    if (type === ConstantsUtil.TRANSACTION_TYPE.LEGACY) {
+      const gasPrice =
+        data.gasPrice ?? (await browserProvider.getFeeData()).gasPrice ?? BigInt(2000000000)
+      txParams = {
+        ...txParams,
+        gasPrice
+      }
+    } else if (type === ConstantsUtil.TRANSACTION_TYPE.DYNAMIC) {
+      const maxFee =
+        data.maxFee ?? (await browserProvider.getFeeData()).maxFeePerGas ?? BigInt(3200000000)
+      const maxPriorityFee =
+        data.maxPriorityFee ??
+        (await browserProvider.getFeeData()).maxPriorityFeePerGas ??
+        BigInt(2000000000)
+      txParams = {
+        ...txParams,
+        maxFeePerGas: maxFee,
+        maxPriorityFeePerGas: maxPriorityFee
+      }
+    }
+
     const txToSign = { ...txParams, from }
     const hexSign = browserProvider.getRpcTransaction(txToSign)
 
@@ -223,21 +252,54 @@ export const EthersMethods = {
     if (!address) {
       throw new Error('writeContract - address is undefined')
     }
+    const type = data.type ?? ConstantsUtil.TRANSACTION_TYPE.LEGACY
+    if (
+      type !== ConstantsUtil.TRANSACTION_TYPE.LEGACY &&
+      type !== ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+    ) {
+      throw new Error('sendTransaction - invalid transaction type')
+    }
+
     const browserProvider = new BrowserProvider(provider, chainId)
     const signer = new JsonRpcSigner(browserProvider, address)
     const contract = new Contract(data.contractAddress, data.abi, signer)
     if (!contract || !data.method) {
       throw new Error('Contract method is undefined')
     }
+
     const method = contract[data.method]
     if (method) {
       const txContract = await method.populateTransaction(...data.args)
-      const gasLimit = await browserProvider.estimateGas({
-        ...txContract,
-        from: await signer.getAddress()
-      })
+      const gasLimit =
+        data.gas ??
+        (await browserProvider.estimateGas({
+          ...txContract,
+          from: await signer.getAddress()
+        }))
       const from = await signer.getAddress()
-      const txToSign = { ...txContract, from, gasLimit }
+      let txToSign = { ...txContract, from, gasLimit }
+
+      if (data.type === ConstantsUtil.TRANSACTION_TYPE.LEGACY) {
+        const gasPrice =
+          data.gasPrice ?? (await browserProvider.getFeeData()).gasPrice ?? BigInt(2000000000)
+        txToSign = {
+          ...txToSign,
+          gasPrice
+        }
+      } else if (data.type === ConstantsUtil.TRANSACTION_TYPE.DYNAMIC) {
+        const maxFee =
+          data.maxFee ?? (await browserProvider.getFeeData()).maxFeePerGas ?? BigInt(3200000000)
+        const maxPriorityFee =
+          data.maxPriorityFee ??
+          (await browserProvider.getFeeData()).maxPriorityFeePerGas ??
+          BigInt(2000000000)
+        txToSign = {
+          ...txToSign,
+          maxFeePerGas: maxFee,
+          maxPriorityFeePerGas: maxPriorityFee
+        }
+      }
+
       const hexSign = browserProvider.getRpcTransaction(txToSign)
 
       const hash = await provider.request({

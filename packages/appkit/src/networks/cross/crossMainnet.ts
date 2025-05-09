@@ -13,7 +13,7 @@ export const crossMainnet = defineChain({
   blockExplorers: {
     default: {
       name: 'Blockscout',
-      url: 'https://mainnet.crossscan.io'
+      url: 'https://www.crossscan.io'
     }
   },
   testnet: true,

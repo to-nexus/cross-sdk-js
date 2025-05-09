@@ -2,8 +2,7 @@ import type { ChainNamespace } from '@to-nexus/appkit-common'
 
 import type { DefaultAccountTypes, Features, SocialProvider } from './TypeUtil.js'
 
-const SECURE_SITE =
-  'https://secure.walletconnect.org'
+const SECURE_SITE = 'https://secure.walletconnect.org'
 
 export const ONRAMP_PROVIDERS = [
   {
@@ -247,5 +246,10 @@ export const ConstantsUtil = {
     eip155: 'smartAccount',
     polkadot: 'eoa',
     solana: 'eoa'
-  } as const satisfies DefaultAccountTypes
+  } as const satisfies DefaultAccountTypes,
+  TRANSACTION_TYPE: {
+    DYNAMIC: 2,
+    // ???: 1, accessList (not supported)
+    LEGACY: 0
+  } as const satisfies Record<string, number>
 }

@@ -976,6 +976,7 @@ export type WalletGetAssetsResponse = Record<
   }[]
 >
 export type AccountType = AccountTypeMap[ChainNamespace]
+
 export type SendTransactionArgs =
   | {
       chainNamespace?: undefined | 'eip155'
@@ -988,6 +989,7 @@ export type SendTransactionArgs =
       maxPriorityFee?: bigint
       address: `0x${string}`
       customData?: CustomData
+      type?: number
     }
   | { chainNamespace: 'solana'; to: string; value: number }
 
@@ -1025,6 +1027,11 @@ export interface WriteContractArgs {
   args: unknown[]
   chainNamespace: ChainNamespace
   customData?: CustomData
+  type?: number
+  gas?: bigint
+  gasPrice?: bigint
+  maxFee?: bigint
+  maxPriorityFee?: bigint
 }
 
 export interface ReadContractArgs {
