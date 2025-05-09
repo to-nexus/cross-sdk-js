@@ -737,7 +737,7 @@ export const SwapController = {
         gasPrice: BigInt(data.gasPrice),
         value: data.value,
         chainNamespace: 'eip155',
-        type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
       })
 
       await this.swapTokens()
@@ -806,7 +806,7 @@ export const SwapController = {
         gasPrice: BigInt(data.gasPrice),
         value: data.value,
         chainNamespace: 'eip155',
-        type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
       })
 
       state.loadingTransaction = false

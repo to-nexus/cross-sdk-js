@@ -282,16 +282,16 @@ export const SendController = {
       )
 
       const data = (params.data as `0x${string}`) ?? '0x'
-      const customData = params.customData ?? undefined
+      const customData = params.customData
 
-      const type = params.type ?? ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+      const type = params.type ?? ConstantsUtil.TRANSACTION_TYPE.LEGACY
 
-      const gas = params.gas ?? undefined
+      const gas = params.gas
       // Legacy fee
-      const gasPrice = params.gasPrice ?? undefined
+      const gasPrice = params.gasPrice
       // Dynamic fee
-      const maxFee = params.maxFee ?? undefined
-      const maxPriorityFee = params.maxPriorityFee ?? undefined
+      const maxFee = params.maxFee
+      const maxPriorityFee = params.maxPriorityFee
 
       const resTx = await ConnectionController.sendTransaction({
         chainNamespace: 'eip155',
@@ -368,16 +368,16 @@ export const SendController = {
           params.contractAddress as CaipAddress
         ) as `0x${string}`
 
-        const customData = params.customData ?? undefined
+        const customData = params.customData
 
-        const type = params.type ?? ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+        const type = params.type ?? ConstantsUtil.TRANSACTION_TYPE.LEGACY
 
-        const gas = params.gas ?? undefined
+        const gas = params.gas
         // Legacy fee
-        const gasPrice = params.gasPrice ?? undefined
+        const gasPrice = params.gasPrice
         // Dynamic fee
-        const maxFee = params.maxFee ?? undefined
-        const maxPriorityFee = params.maxPriorityFee ?? undefined
+        const maxFee = params.maxFee
+        const maxPriorityFee = params.maxPriorityFee
 
         const resTx = await ConnectionController.writeContract({
           fromAddress: AccountController.state.address as `0x${string}`,

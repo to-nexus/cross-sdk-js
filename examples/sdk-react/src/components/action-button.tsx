@@ -189,7 +189,7 @@ export function ActionButtonList() {
           randomValue: uuidv4()
         }
       },
-      type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
 
     alert(`resTx: ${JSON.stringify(resTx)}`)
@@ -218,7 +218,7 @@ export function ActionButtonList() {
         metadata:
           'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
       },
-      type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
     alert(`resTx: ${JSON.stringify(resTx)}`)
   }
@@ -238,7 +238,7 @@ export function ActionButtonList() {
       customData: {
         metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
       },
-      type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
     alert(`resTx: ${JSON.stringify(resTx)}`)
     getBalanceOfERC20({ showResult: false })
@@ -274,7 +274,7 @@ export function ActionButtonList() {
           randomValue: uuidv4()
         }
       },
-      type: ConstantsUtil.ENUM_TRANSACTION_TYPE.DYNAMIC
+      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
 
     alert(`resTx: ${JSON.stringify(resTx)}`)
@@ -303,7 +303,7 @@ export function ActionButtonList() {
         metadata:
           'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
       },
-      type: ConstantsUtil.ENUM_TRANSACTION_TYPE.DYNAMIC
+      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
     alert(`resTx: ${JSON.stringify(resTx)}`)
   }
@@ -315,19 +315,18 @@ export function ActionButtonList() {
       return
     }
 
-    // gas: BigInt(147726),
-    // maxFee: BigInt(3200000000),
-    // maxPriorityFee: BigInt(2000000000),
-
     const resTx = await SendController.sendERC20Token({
       receiverAddress: RECEIVER_ADDRESS,
       contractAddress: ERC20_CAIP_ADDRESS,
       sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
       decimals: '18',
+      gas: BigInt(147726), // optional (you can set this your calculated gas or skip it )
+      maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+      maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
       customData: {
         metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
       },
-      type: ConstantsUtil.ENUM_TRANSACTION_TYPE.DYNAMIC
+      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
     alert(`resTx: ${JSON.stringify(resTx)}`)
     getBalanceOfERC20({ showResult: false })
@@ -416,7 +415,7 @@ export function ActionButtonList() {
         method: 'mint', // method to call on the contract
         abi: sampleErc721ABI, // abi of the contract
         chainNamespace: network?.caipNetwork?.chainNamespace,
-        type: ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY // default type is LEGACY
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY // default type is LEGACY
       }
 
       setContractArgs(buildArgs)

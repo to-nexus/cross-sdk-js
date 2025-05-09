@@ -178,10 +178,10 @@ export const EthersMethods = {
     if (data.chainNamespace && data.chainNamespace !== 'eip155') {
       throw new Error('sendTransaction - chainNamespace is not eip155')
     }
-    const type = data.type ?? ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+    const type = data.type ?? ConstantsUtil.TRANSACTION_TYPE.LEGACY
     if (
-      type !== ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY &&
-      type !== ConstantsUtil.ENUM_TRANSACTION_TYPE.DYNAMIC
+      type !== ConstantsUtil.TRANSACTION_TYPE.LEGACY &&
+      type !== ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     ) {
       throw new Error('sendTransaction - invalid transaction type')
     }
@@ -208,14 +208,14 @@ export const EthersMethods = {
       gasLimit
     }
 
-    if (type === ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY) {
+    if (type === ConstantsUtil.TRANSACTION_TYPE.LEGACY) {
       const gasPrice =
         data.gasPrice ?? (await browserProvider.getFeeData()).gasPrice ?? BigInt(2000000000)
       txParams = {
         ...txParams,
         gasPrice
       }
-    } else if (type === ConstantsUtil.ENUM_TRANSACTION_TYPE.DYNAMIC) {
+    } else if (type === ConstantsUtil.TRANSACTION_TYPE.DYNAMIC) {
       const maxFee =
         data.maxFee ?? (await browserProvider.getFeeData()).maxFeePerGas ?? BigInt(3200000000)
       const maxPriorityFee =
@@ -252,10 +252,10 @@ export const EthersMethods = {
     if (!address) {
       throw new Error('writeContract - address is undefined')
     }
-    const type = data.type ?? ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY
+    const type = data.type ?? ConstantsUtil.TRANSACTION_TYPE.LEGACY
     if (
-      type !== ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY &&
-      type !== ConstantsUtil.ENUM_TRANSACTION_TYPE.DYNAMIC
+      type !== ConstantsUtil.TRANSACTION_TYPE.LEGACY &&
+      type !== ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     ) {
       throw new Error('sendTransaction - invalid transaction type')
     }
@@ -279,14 +279,14 @@ export const EthersMethods = {
       const from = await signer.getAddress()
       let txToSign = { ...txContract, from, gasLimit }
 
-      if (data.type === ConstantsUtil.ENUM_TRANSACTION_TYPE.LEGACY) {
+      if (data.type === ConstantsUtil.TRANSACTION_TYPE.LEGACY) {
         const gasPrice =
           data.gasPrice ?? (await browserProvider.getFeeData()).gasPrice ?? BigInt(2000000000)
         txToSign = {
           ...txToSign,
           gasPrice
         }
-      } else if (data.type === ConstantsUtil.ENUM_TRANSACTION_TYPE.DYNAMIC) {
+      } else if (data.type === ConstantsUtil.TRANSACTION_TYPE.DYNAMIC) {
         const maxFee =
           data.maxFee ?? (await browserProvider.getFeeData()).maxFeePerGas ?? BigInt(3200000000)
         const maxPriorityFee =

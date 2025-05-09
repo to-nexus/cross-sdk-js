@@ -247,7 +247,7 @@ export const ConstantsUtil = {
     polkadot: 'eoa',
     solana: 'eoa'
   } as const satisfies DefaultAccountTypes,
-  ENUM_TRANSACTION_TYPE: {
+  TRANSACTION_TYPE: {
     DYNAMIC: 2,
     // ???: 1, accessList (not supported)
     LEGACY: 0
