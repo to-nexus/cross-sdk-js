@@ -13,6 +13,7 @@ import {
   useAppKitAccount,
   useAppKitNetwork,
   useAppKitProvider,
+  useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
 import type { SendTransactionArgs, WriteContractArgs } from '@to-nexus/sdk/react'
@@ -40,7 +41,7 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
-
+  const { connect } = useAppKitWallet()
   // erc20 token contract address
   const ERC20_ADDRESS = '0x88f8146EB4120dA51Fc978a22933CbeB71D8Bde6'
   // define decimals of erc20 token (ERC20 standard is 18)
@@ -63,9 +64,14 @@ export function ActionButtonList() {
   // amount of cross to send
   const SEND_CROSS_AMOUNT = 1
 
-  // used for connecting wallet
+  // used for connecting wallet with wallet list
   function handleConnect() {
     appKit.connect()
+  }
+
+  // used for connecting cross wallet directly
+  function handleConnectWallet() {
+    connect('cross_wallet')
   }
 
   async function handleDisconnect() {
@@ -405,6 +411,7 @@ export function ActionButtonList() {
     <div>
       <div className="action-button-list">
         <button onClick={handleConnect}>{account?.isConnected ? 'Connected' : 'Connect'}</button>
+        <button onClick={handleConnectWallet}>{account?.isConnected ? 'CROSSx Connected' : 'Connect CROSSx'}</button>
         <button onClick={handleDisconnect}>Disconnect</button>
         <button onClick={handleSwitchNetwork}>Switch to Cross</button>
       </div>

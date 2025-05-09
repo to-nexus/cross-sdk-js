@@ -9,6 +9,7 @@ import {
   useAppKitNetwork,
   useAppKitState,
   useAppKitTheme,
+  useAppKitWallet,
   useDisconnect,
   useWalletInfo,
   getUniversalProvider
@@ -94,6 +95,7 @@ export {
   useAppKitNetwork,
   useDisconnect,
   useAppKitProvider,
+  useAppKitWallet,
   ConnectionController,
   SendController,
   AccountController,

@@ -110,6 +110,7 @@
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-utils": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
+    "@to-nexus/appkit-wallet-button": "workspace:*",
     "@walletconnect/types": "2.18.0",
     "@walletconnect/utils": "2.18.0",
     "bs58": "6.0.0",

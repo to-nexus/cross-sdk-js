@@ -61,3 +61,4 @@ export function useAppKitNetwork(): UseAppKitNetworkReturn {
 }
 
 export { useAppKitAccount } from '@to-nexus/appkit-core/react'
+export { useAppKitWallet } from '@to-nexus/appkit-wallet-button/react'
