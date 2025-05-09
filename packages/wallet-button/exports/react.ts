@@ -39,11 +39,11 @@ export function useAppKitWallet(parameters?: {
   const { onSuccess, onError } = parameters ?? {}
 
   // Prefetch wallet buttons
-  useEffect(() => {
-    if (!isWalletButtonReady) {
-      ApiController.fetchWalletButtons()
-    }
-  }, [isWalletButtonReady])
+  // useEffect(() => {
+  //   if (!isWalletButtonReady) {
+      // ApiController.fetchWalletButtons()
+    // }
+  // }, [isWalletButtonReady])
 
   useEffect(
     () =>
