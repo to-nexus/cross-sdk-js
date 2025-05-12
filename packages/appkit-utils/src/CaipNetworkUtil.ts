@@ -118,9 +118,10 @@ export const CaipNetworksUtil = {
   getDefaultRpcUrl(caipNetwork: AppKitNetwork, caipNetworkId: CaipNetworkId, projectId: string) {
     const defaultRpcUrl = caipNetwork.rpcUrls?.default?.http?.[0]
 
-    if (WC_HTTP_RPC_SUPPORTED_CHAINS.includes(caipNetworkId)) {
-      return getBlockchainApiRpcUrl(caipNetworkId, projectId)
-    }
+    // DO NOT USE WALLET CONNECT RPC URL
+    // if (WC_HTTP_RPC_SUPPORTED_CHAINS.includes(caipNetworkId)) {
+    //   return getBlockchainApiRpcUrl(caipNetworkId, projectId)
+    // }
 
     return defaultRpcUrl || ''
   },

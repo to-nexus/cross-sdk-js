@@ -8,7 +8,7 @@ import {
   UniversalProvider,
   crossMainnet,
   crossTestnet,
-  bsc,
+  bscMainnet,
   bscTestnet,
   getUniversalProvider,
   initCrossSdk,
@@ -94,16 +94,10 @@ export function ActionButtonList() {
 
   function handleSwitchNetworkBsc() {
     const targetNetwork =
-      import.meta.env['VITE_NODE_ENV'] === 'production' ? bsc : bscTestnet
+      import.meta.env['VITE_NODE_ENV'] === 'production' ? bscMainnet : bscTestnet
 
-    const bscNetwork = {
-      ...targetNetwork,
-      chainNamespace: 'eip155',
-      caipNetworkId: `eip155:${targetNetwork.id}`
-    }
-
-    switchNetwork(bscNetwork)
-    alert(`Current network: ${bscNetwork.caipNetworkId}`)
+    switchNetwork(targetNetwork)
+    alert(`Current network: ${targetNetwork.caipNetworkId}`)
   }
 
   // used for provider request

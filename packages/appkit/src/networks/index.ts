@@ -1,8 +1,9 @@
 // -- Networks ---------------------------------------------------------------
-export * from 'viem/chains'
+// export * from 'viem/chains'
 export * from './solana/index.js'
 export * from './bitcoin.js'
 export * from './cross/index.js'
+export * from './bsc/index.js'
 
 // -- Utils ------------------------------------------------------------------
 export * from './utils.js'
