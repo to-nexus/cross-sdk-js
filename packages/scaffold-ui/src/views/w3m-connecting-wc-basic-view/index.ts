@@ -1,8 +1,13 @@
+import {
+  ApiController,
+  CoreHelperUtil,
+  OptionsController,
+  StorageUtil
+} from '@to-nexus/appkit-core'
+import { customElement } from '@to-nexus/appkit-ui'
+
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
-
-import { ApiController, CoreHelperUtil, OptionsController, StorageUtil } from '@to-nexus/appkit-core'
-import { customElement } from '@to-nexus/appkit-ui'
 
 @customElement('w3m-connecting-wc-basic-view')
 export class W3mConnectingWcBasicView extends LitElement {
@@ -23,7 +28,7 @@ export class W3mConnectingWcBasicView extends LitElement {
         gap="xs"
         .margin=${['3xs', 's', 's', 's'] as const}
       >
-        ${showConnectors ? html`<w3m-connector-list></w3m-connector-list>` : null}
+        ${showConnectors ? html`<cro-connector-list></cro-connector-list>` : null}
         <w3m-all-wallets-widget></w3m-all-wallets-widget>
       </wui-flex>`
     }
