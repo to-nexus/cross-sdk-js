@@ -2247,7 +2247,7 @@ export class AppKit {
           import('@to-nexus/appkit-ui'),
           import('@to-nexus/appkit-scaffold-ui/w3m-modal')
         ])
-        const modal = document.createElement('w3m-modal')
+        const modal = document.createElement('cro-modal')
         if (!OptionsController.state.disableAppend && !OptionsController.state.enableEmbedded) {
           document.body.insertAdjacentElement('beforeend', modal)
         }

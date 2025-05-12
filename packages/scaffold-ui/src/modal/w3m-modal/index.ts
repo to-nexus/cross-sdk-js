@@ -22,7 +22,7 @@ import styles from './styles.js'
 // -- Helpers --------------------------------------------- //
 const SCROLL_LOCK = 'scroll-lock'
 
-@customElement('w3m-modal')
+@customElement('cro-modal')
 export class W3mModal extends LitElement {
   public static override styles = styles
 
@@ -173,7 +173,7 @@ export class W3mModal extends LitElement {
         overflow: hidden;
         overscroll-behavior: contain;
       }
-      w3m-modal {
+      cro-modal {
         pointer-events: auto;
       }
     `
@@ -277,6 +277,6 @@ export class W3mModal extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-modal': W3mModal
+    'cro-modal': W3mModal
   }
 }
