@@ -8,6 +8,8 @@ import {
   UniversalProvider,
   crossMainnet,
   crossTestnet,
+  bsc,
+  bscTestnet,
   getUniversalProvider,
   initCrossSdk,
   useAppKit,
@@ -88,6 +90,20 @@ export function ActionButtonList() {
       import.meta.env['VITE_NODE_ENV'] === 'production' ? crossMainnet : crossTestnet
     switchNetwork(targetNetwork)
     alert(`Current network: ${targetNetwork.caipNetworkId}`)
+  }
+
+  function handleSwitchNetworkBsc() {
+    const targetNetwork =
+      import.meta.env['VITE_NODE_ENV'] === 'production' ? bsc : bscTestnet
+
+    const bscNetwork = {
+      ...targetNetwork,
+      chainNamespace: 'eip155',
+      caipNetworkId: `eip155:${targetNetwork.id}`
+    }
+
+    switchNetwork(bscNetwork)
+    alert(`Current network: ${bscNetwork.caipNetworkId}`)
   }
 
   // used for provider request
@@ -450,6 +466,7 @@ export function ActionButtonList() {
         <button onClick={handleConnectWallet}>{account?.isConnected ? 'CROSSx Connected' : 'Connect CROSSx'}</button>
         <button onClick={handleDisconnect}>Disconnect</button>
         <button onClick={handleSwitchNetwork}>Switch to Cross</button>
+        <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSendNative}>Send 1 CROSS</button>

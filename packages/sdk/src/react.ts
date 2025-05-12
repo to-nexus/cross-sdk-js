@@ -5,7 +5,7 @@ import {
   ConstantsUtil,
   SendController
 } from '@to-nexus/appkit-core'
-import { crossMainnet, crossTestnet } from '@to-nexus/appkit/networks'
+import { crossMainnet, crossTestnet, bsc, bscTestnet } from '@to-nexus/appkit/networks'
 import {
   createAppKit,
   getUniversalProvider,
@@ -61,7 +61,7 @@ const initCrossSdk = (projectId: string, redirectUrl?: string, metadata?: Metada
 
   return createAppKit({
     adapters: [ethersAdapter],
-    networks: [crossTestnet, crossMainnet, ...networks],
+    networks: [crossTestnet, crossMainnet, bscTestnet, bsc, ...networks],
     metadata: mergedMetadata,
     projectId,
     themeMode: 'light',
@@ -109,6 +109,8 @@ export {
   AccountController,
   crossMainnet,
   crossTestnet,
+  bsc,
+  bscTestnet,
   UniversalProvider,
   getUniversalProvider,
   ConstantsUtil
