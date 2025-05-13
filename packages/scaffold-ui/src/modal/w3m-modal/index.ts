@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { type CaipAddress, type CaipNetwork, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ApiController,
@@ -16,6 +12,10 @@ import {
   ThemeController
 } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement, initializeTheming } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
@@ -121,7 +121,7 @@ export class W3mModal extends LitElement {
       data-testid="w3m-modal-card"
     >
       <w3m-header></w3m-header>
-      <w3m-router></w3m-router>
+      <cro-router></cro-router>
       <w3m-snackbar></w3m-snackbar>
       <w3m-alertbar></w3m-alertbar>
     </wui-card>`

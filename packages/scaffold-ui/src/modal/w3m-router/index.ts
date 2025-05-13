@@ -1,14 +1,14 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import type { RouterControllerState } from '@to-nexus/appkit-core'
 import { RouterController, TooltipController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import { ConstantsUtil } from '../../utils/ConstantsUtil.js'
 import styles from './styles.js'
 
-@customElement('w3m-router')
+@customElement('cro-router')
 export class W3mRouter extends LitElement {
   public static override styles = styles
 
@@ -196,6 +196,6 @@ export class W3mRouter extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-router': W3mRouter
+    'cro-router': W3mRouter
   }
 }
