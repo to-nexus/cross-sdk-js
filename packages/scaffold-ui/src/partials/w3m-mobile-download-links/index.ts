@@ -1,13 +1,13 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-
 import type { WcWallet } from '@to-nexus/appkit-core'
 import { CoreHelperUtil, RouterController } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-mobile-download-links')
+@customElement('cro-mobile-download-links')
 export class W3mMobileDownloadLinks extends LitElement {
   public static override styles = [styles]
 
@@ -100,6 +100,6 @@ export class W3mMobileDownloadLinks extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-mobile-download-links': W3mMobileDownloadLinks
+    'cro-mobile-download-links': W3mMobileDownloadLinks
   }
 }

@@ -1,8 +1,8 @@
-import { LitElement, html } from 'lit'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { AssetUtil, EventsController, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 @customElement('w3m-connecting-wc-unsupported')
 export class W3mConnectingWcUnsupported extends LitElement {
@@ -38,7 +38,7 @@ export class W3mConnectingWcUnsupported extends LitElement {
         <wui-text variant="paragraph-500" color="fg-100">Not Detected</wui-text>
       </wui-flex>
 
-      <w3m-mobile-download-links .wallet=${this.wallet}></w3m-mobile-download-links>
+      <cro-mobile-download-links .wallet=${this.wallet}></cro-mobile-download-links>
     `
   }
 }

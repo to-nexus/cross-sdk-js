@@ -1,6 +1,3 @@
-import { html } from 'lit'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AssetUtil,
   ConnectionController,
@@ -9,10 +6,13 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { html } from 'lit'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
 import styles from './styles.js'
 
-@customElement('w3m-connecting-wc-qrcode')
+@customElement('cro-connecting-wc-qrcode')
 export class W3mConnectingWcQrcode extends W3mConnectingWidget {
   public static override styles = styles
 
@@ -51,7 +51,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
         </wui-text>
         ${this.copyTemplate()}
       </wui-flex>
-      <w3m-mobile-download-links .wallet=${this.wallet}></w3m-mobile-download-links>
+      <cro-mobile-download-links .wallet=${this.wallet}></cro-mobile-download-links>
     `
   }
 
@@ -71,7 +71,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     }
 
     const size = this.getBoundingClientRect().width - 40
-    const alt = this.wallet ? this.wallet.name : "Cross Wallet"
+    const alt = this.wallet ? this.wallet.name : 'Cross Wallet'
     ConnectionController.setWcLinking(undefined)
     ConnectionController.setRecentWallet(this.wallet)
 
@@ -107,6 +107,6 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-wc-qrcode': W3mConnectingWcQrcode
+    'cro-connecting-wc-qrcode': W3mConnectingWcQrcode
   }
 }

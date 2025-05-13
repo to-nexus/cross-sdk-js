@@ -76,11 +76,11 @@ export class W3mRouter extends LitElement {
       case 'ChooseAccountName':
         return html`<w3m-choose-account-name-view></w3m-choose-account-name-view>`
       case 'Connect':
-        return html`<w3m-connect-view></w3m-connect-view>`
+        return html`<cro-connect-view></cro-connect-view>`
       case 'Create':
-        return html`<w3m-connect-view walletGuide="explore"></w3m-connect-view>`
+        return html`<cro-connect-view walletGuide="explore"></cro-connect-view>`
       case 'ConnectingWalletConnect':
-        return html`<w3m-connecting-wc-view></w3m-connecting-wc-view>`
+        return html`<cro-connecting-wc-view></cro-connecting-wc-view>`
       case 'ConnectingWalletConnectBasic':
         return html`<w3m-connecting-wc-basic-view></w3m-connecting-wc-basic-view>`
       case 'ConnectingExternal':
@@ -168,7 +168,7 @@ export class W3mRouter extends LitElement {
       case 'SIWXSignMessage':
         return html`<w3m-siwx-sign-message-view></w3m-siwx-sign-message-view>`
       default:
-        return html`<w3m-connect-view></w3m-connect-view>`
+        return html`<cro-connect-view></cro-connect-view>`
     }
   }
 

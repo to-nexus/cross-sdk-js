@@ -1,8 +1,8 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { AlertController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
@@ -30,7 +30,7 @@ export const presets = {
   }
 } as const
 
-@customElement('w3m-alertbar')
+@customElement('cro-alertbar')
 export class W3mAlertBar extends LitElement {
   public static override styles = styles
 
@@ -104,6 +104,6 @@ export class W3mAlertBar extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-alertbar': W3mAlertBar
+    'cro-alertbar': W3mAlertBar
   }
 }

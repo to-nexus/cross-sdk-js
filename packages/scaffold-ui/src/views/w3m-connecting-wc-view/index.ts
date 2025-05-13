@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import type { BaseError, Platform } from '@to-nexus/appkit-core'
 import {
   ChainController,
@@ -16,7 +13,10 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-connecting-wc-view')
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
+@customElement('cro-connecting-wc-view')
 export class W3mConnectingWcView extends LitElement {
   // -- Members ------------------------------------------- //
   private interval?: ReturnType<typeof setInterval> = undefined
@@ -171,7 +171,7 @@ export class W3mConnectingWcView extends LitElement {
           </w3m-connecting-wc-mobile>
         `
       case 'qrcode':
-        return html`<w3m-connecting-wc-qrcode></w3m-connecting-wc-qrcode>`
+        return html`<cro-connecting-wc-qrcode></cro-connecting-wc-qrcode>`
       default:
         return html`<w3m-connecting-wc-unsupported></w3m-connecting-wc-unsupported>`
     }
@@ -213,6 +213,6 @@ export class W3mConnectingWcView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-wc-view': W3mConnectingWcView
+    'cro-connecting-wc-view': W3mConnectingWcView
   }
 }

@@ -120,10 +120,10 @@ export class W3mModal extends LitElement {
       tabindex="0"
       data-testid="w3m-modal-card"
     >
-      <w3m-header></w3m-header>
+      <cro-header></cro-header>
       <cro-router></cro-router>
-      <w3m-snackbar></w3m-snackbar>
-      <w3m-alertbar></w3m-alertbar>
+      <cro-snackbar></cro-snackbar>
+      <cro-alertbar></cro-alertbar>
     </wui-card>`
   }
 

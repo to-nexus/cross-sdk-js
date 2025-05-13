@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AccountController,
   AssetController,
@@ -16,6 +12,10 @@ import {
   SIWXUtil
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 import { ConstantsUtil } from '../../utils/ConstantsUtil.js'
 import styles from './styles.js'
@@ -93,7 +93,7 @@ function headings() {
   }
 }
 
-@customElement('w3m-header')
+@customElement('cro-header')
 export class W3mHeader extends LitElement {
   public static override styles = styles
 
@@ -330,6 +330,6 @@ export class W3mHeader extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-header': W3mHeader
+    'cro-header': W3mHeader
   }
 }

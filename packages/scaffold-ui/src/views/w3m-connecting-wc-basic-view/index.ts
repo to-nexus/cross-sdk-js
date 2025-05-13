@@ -34,7 +34,7 @@ export class W3mConnectingWcBasicView extends LitElement {
     }
 
     return html`<wui-flex flexDirection="column" .padding=${['0', '0', 'l', '0'] as const}>
-      <w3m-connecting-wc-view></w3m-connecting-wc-view>
+      <cro-connecting-wc-view></cro-connecting-wc-view>
       <wui-flex flexDirection="column" .padding=${['0', 'm', '0', 'm'] as const}>
         <w3m-all-wallets-widget></w3m-all-wallets-widget> </wui-flex
     ></wui-flex>`

@@ -1,9 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-import { state } from 'lit/decorators/state.js'
-import { classMap } from 'lit/directives/class-map.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ChainController,
@@ -19,13 +13,19 @@ import {
 import { MathUtil, customElement } from '@to-nexus/appkit-ui'
 import { ConstantsUtil as AppKitConstantsUtil } from '@to-nexus/appkit-utils'
 
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
+import { state } from 'lit/decorators/state.js'
+import { classMap } from 'lit/directives/class-map.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import { WalletUtil } from '../../utils/WalletUtil.js'
 import styles from './styles.js'
 
 // -- Constants ----------------------------------------- //
 const SCROLL_THRESHOLD = 470
 
-@customElement('w3m-connect-view')
+@customElement('cro-connect-view')
 export class W3mConnectView extends LitElement {
   public static override styles = styles
 
@@ -403,6 +403,6 @@ export class W3mConnectView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connect-view': W3mConnectView
+    'cro-connect-view': W3mConnectView
   }
 }

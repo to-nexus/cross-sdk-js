@@ -1,8 +1,8 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { SnackController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
@@ -21,7 +21,7 @@ const presets = {
   }
 } as const
 
-@customElement('w3m-snackbar')
+@customElement('cro-snackbar')
 export class W3mSnackBar extends LitElement {
   public static override styles = styles
 
@@ -107,6 +107,6 @@ export class W3mSnackBar extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-snackbar': W3mSnackBar
+    'cro-snackbar': W3mSnackBar
   }
 }
