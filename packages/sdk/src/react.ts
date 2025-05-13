@@ -3,9 +3,10 @@ import {
   AccountController,
   ConnectionController,
   ConstantsUtil,
-  SendController
+  SendController,
+  type ThemeMode
 } from '@to-nexus/appkit-core'
-import { crossMainnet, crossTestnet, bscMainnet, bscTestnet } from '@to-nexus/appkit/networks'
+import { bscMainnet, bscTestnet, crossMainnet, crossTestnet } from '@to-nexus/appkit/networks'
 import {
   createAppKit,
   getUniversalProvider,
@@ -35,7 +36,7 @@ const networks = [
 
 const ethersAdapter = new EthersAdapter()
 
-type Metadata = {
+export type Metadata = {
   name: string
   description: string
   url: string
@@ -49,8 +50,25 @@ const defaultMetadata: Metadata = {
   icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
 }
 
+export type CrossSdkParams = {
+  projectId: string
+  redirectUrl?: string
+  metadata?: Metadata
+  themeMode?: ThemeMode
+}
+
+const initCrossSdkWithParams = (params: CrossSdkParams) => {
+  const { projectId, redirectUrl, metadata, themeMode } = params
+  initCrossSdk(projectId, redirectUrl, metadata, themeMode)
+}
+
 // Create modal
-const initCrossSdk = (projectId: string, redirectUrl?: string, metadata?: Metadata) => {
+const initCrossSdk = (
+  projectId: string,
+  redirectUrl?: string,
+  metadata?: Metadata,
+  themeMode?: ThemeMode
+) => {
   const mergedMetadata = {
     ...defaultMetadata,
     ...metadata,
@@ -64,7 +82,7 @@ const initCrossSdk = (projectId: string, redirectUrl?: string, metadata?: Metada
     networks: [crossTestnet, crossMainnet, bscTestnet, bscMainnet, ...networks],
     metadata: mergedMetadata,
     projectId,
-    themeMode: 'light',
+    themeMode: themeMode || 'light',
     features: {
       swaps: false,
       onramp: false,
@@ -93,6 +111,7 @@ const initCrossSdk = (projectId: string, redirectUrl?: string, metadata?: Metada
 }
 
 export {
+  initCrossSdkWithParams,
   initCrossSdk,
   useAppKit,
   useAppKitState,

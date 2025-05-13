@@ -6,12 +6,13 @@ import {
   ConstantsUtil,
   SendController,
   UniversalProvider,
-  crossMainnet,
-  crossTestnet,
   bscMainnet,
   bscTestnet,
+  crossMainnet,
+  crossTestnet,
   getUniversalProvider,
   initCrossSdk,
+  initCrossSdkWithParams,
   useAppKit,
   useAppKitAccount,
   useAppKitNetwork,
@@ -34,6 +35,17 @@ const redirectUrl = window.location.href
 
 console.log(`redirectUrl: ${redirectUrl}`)
 // Initialize SDK here
+// initCrossSdkWithParams({
+//   projectId,
+//   redirectUrl,
+//   metadata: {
+//     name: 'Cross SDK',
+//     description: 'Cross SDK for React',
+//     url: 'https://to.nexus',
+//     icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+//   },
+//   themeMode: 'light'
+// })
 initCrossSdk(projectId, redirectUrl)
 
 export function ActionButtonList() {
@@ -457,7 +469,9 @@ export function ActionButtonList() {
     <div>
       <div className="action-button-list">
         <button onClick={handleConnect}>{account?.isConnected ? 'Connected' : 'Connect'}</button>
-        <button onClick={handleConnectWallet}>{account?.isConnected ? 'CROSSx Connected' : 'Connect CROSSx'}</button>
+        <button onClick={handleConnectWallet}>
+          {account?.isConnected ? 'CROSSx Connected' : 'Connect CROSSx'}
+        </button>
         <button onClick={handleDisconnect}>Disconnect</button>
         <button onClick={handleSwitchNetwork}>Switch to Cross</button>
         <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
