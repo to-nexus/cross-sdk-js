@@ -146,7 +146,7 @@ export class W3mAccountDefaultWidget extends LitElement {
 
     return html`
       <wui-list-item
-        data-testid="w3m-account-default-onramp-button"
+        data-testid="cro-account-default-onramp-button"
         iconVariant="blue"
         icon="card"
         ?chevron=${true}
@@ -265,7 +265,7 @@ export class W3mAccountDefaultWidget extends LitElement {
         label="Upgrade your wallet"
         description="Transition to a self-custodial wallet"
         icon="wallet"
-        data-testid="w3m-wallet-upgrade-card"
+        data-testid="cro-wallet-upgrade-card"
       ></wui-notice-card>
     `
   }

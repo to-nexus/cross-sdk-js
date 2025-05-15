@@ -15,7 +15,7 @@ export class W3mUpgradeWalletView extends LitElement {
           variant="fill"
           href=${ConstantsUtil.SECURE_SITE_DASHBOARD}
           imageSrc=${ConstantsUtil.SECURE_SITE_FAVICON}
-          data-testid="w3m-secure-website-button"
+          data-testid="cro-secure-website-button"
         >
         </wui-chip>
         <wui-text variant="small-400" color="fg-200">

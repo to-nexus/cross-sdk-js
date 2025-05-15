@@ -124,7 +124,7 @@ export class W3mConnectView extends LitElement {
       <wui-flex flexDirection="column">
         ${this.legalCheckboxTemplate()}
         <wui-flex
-          data-testid="w3m-connect-scroll-view"
+          data-testid="cro-connect-scroll-view"
           flexDirection="column"
           class=${classMap(classes)}
         >
@@ -236,7 +236,7 @@ export class W3mConnectView extends LitElement {
 
         return this.isAuthEnabled && this.isEmailEnabled && !isNextMethodSocial && nextEnabledMethod
           ? html`<wui-separator
-              data-testid="w3m-email-login-or-separator"
+              data-testid="cro-email-login-or-separator"
               text="or"
             ></wui-separator>`
           : null
@@ -297,7 +297,7 @@ export class W3mConnectView extends LitElement {
 
     if (hasOtherMethods && shouldCollapseWallets) {
       return html`<wui-list-button
-        data-testid="w3m-collapse-wallets-button"
+        data-testid="cro-collapse-wallets-button"
         tabIdx=${ifDefined(tabIndex)}
         @click=${this.onContinueWalletClick.bind(this)}
         text="Continue with a wallet"

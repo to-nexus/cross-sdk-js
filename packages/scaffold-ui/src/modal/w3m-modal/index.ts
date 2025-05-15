@@ -102,7 +102,7 @@ export class W3mModal extends LitElement {
 
     return this.open
       ? html`
-          <wui-flex @click=${this.onOverlayClick.bind(this)} data-testid="w3m-modal-overlay">
+          <wui-flex @click=${this.onOverlayClick.bind(this)} data-testid="cro-modal-overlay">
             ${this.contentTemplate()}
           </wui-flex>
           <cro-tooltip></cro-tooltip>
@@ -118,7 +118,7 @@ export class W3mModal extends LitElement {
       role="alertdialog"
       aria-modal="true"
       tabindex="0"
-      data-testid="w3m-modal-card"
+      data-testid="cro-modal-card"
     >
       <cro-header></cro-header>
       <cro-router></cro-router>

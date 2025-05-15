@@ -96,7 +96,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
       .padding=${['0', 'xl', 'm', 'xl'] as const}
       alignItems="center"
       gap="m"
-      data-testid="w3m-account-wallet-features-widget"
+      data-testid="cro-account-wallet-features-widget"
     >
       ${this.network && html`<wui-network-icon .network=${this.network}></wui-network-icon>`}
       <wui-profile-button
@@ -106,7 +106,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
         icon="chevronBottom"
         avatarSrc=${ifDefined(this.profileImage ? this.profileImage : undefined)}
         profileName=${ifDefined(this.profileName ?? undefined)}
-        data-testid="w3m-profile-button"
+        data-testid="cro-profile-button"
       ></wui-profile-button>
 
       ${this.tokenBalanceTemplate()} ${this.orderedWalletFeatures()}

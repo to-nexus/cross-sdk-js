@@ -71,7 +71,7 @@ export class W3mSwitchActiveChainView extends LitElement {
             need to connect with a different wallet.
           </wui-text>
           <wui-button
-            data-testid="w3m-switch-active-chain-button"
+            data-testid="cro-switch-active-chain-button"
             size="md"
             @click=${this.switchActiveChain.bind(this)}
             >Switch</wui-button

@@ -54,7 +54,7 @@ export class W3mAccountAuthButton extends LitElement {
         iconVariant="overlay"
         icon=${this.socialProvider ?? 'mail'}
         iconSize=${this.socialProvider ? 'xxl' : 'sm'}
-        data-testid="w3m-account-email-update"
+        data-testid="cro-account-email-update"
         ?chevron=${!this.socialProvider}
         @click=${() => {
           this.onGoToUpdateEmail(email, this.socialProvider)

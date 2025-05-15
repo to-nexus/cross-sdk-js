@@ -201,7 +201,7 @@ export class W3mAccountSettingsView extends LitElement {
         label="Upgrade your wallet"
         description="Transition to a self-custodial wallet"
         icon="wallet"
-        data-testid="w3m-wallet-upgrade-card"
+        data-testid="cro-wallet-upgrade-card"
       ></wui-notice-card>
     `
   }
