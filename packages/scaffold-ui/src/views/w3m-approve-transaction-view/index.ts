@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { getW3mThemeVariables } from '@to-nexus/appkit-common'
 import {
   ConnectorController,
@@ -10,6 +7,9 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
 // -- Variables ------------------------------------------- //
@@ -17,7 +17,7 @@ const PAGE_HEIGHT = 600
 const PAGE_WIDTH = 360
 const HEADER_HEIGHT = 64
 
-@customElement('w3m-approve-transaction-view')
+@customElement('cro-approve-transaction-view')
 export class W3mApproveTransactionView extends LitElement {
   public static override styles = styles
 
@@ -123,6 +123,6 @@ export class W3mApproveTransactionView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-approve-transaction-view': W3mApproveTransactionView
+    'cro-approve-transaction-view': W3mApproveTransactionView
   }
 }

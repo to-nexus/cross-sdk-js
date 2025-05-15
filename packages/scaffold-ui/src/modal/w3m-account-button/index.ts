@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AccountController,
   AssetController,
@@ -13,6 +9,10 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 import type { WuiAccountButton } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 class W3mAccountButtonBase extends LitElement {
   // -- Members ------------------------------------------- //
@@ -120,7 +120,7 @@ class W3mAccountButtonBase extends LitElement {
   }
 }
 
-@customElement('w3m-account-button')
+@customElement('cro-account-button')
 export class W3mAccountButton extends W3mAccountButtonBase {}
 
 @customElement('appkit-account-button')
@@ -128,7 +128,7 @@ export class AppKitAccountButton extends W3mAccountButtonBase {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-button': W3mAccountButton
+    'cro-account-button': W3mAccountButton
     'appkit-account-button': AppKitAccountButton
   }
 }

@@ -1,8 +1,4 @@
 /* eslint-disable max-depth */
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AccountController,
   ChainController,
@@ -18,10 +14,14 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import { ConstantsUtil } from '../../utils/ConstantsUtil.js'
 import styles from './styles.js'
 
-@customElement('w3m-connecting-social-view')
+@customElement('cro-connecting-social-view')
 export class W3mConnectingSocialView extends LitElement {
   public static override styles = styles
 
@@ -209,6 +209,6 @@ export class W3mConnectingSocialView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-social-view': W3mConnectingSocialView
+    'cro-connecting-social-view': W3mConnectingSocialView
   }
 }

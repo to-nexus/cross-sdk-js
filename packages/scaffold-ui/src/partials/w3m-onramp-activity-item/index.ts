@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-
 import { ApiController } from '@to-nexus/appkit-core'
 import { type ColorType, customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-onramp-activity-item')
+@customElement('cro-onramp-activity-item')
 export class W3mOnRampActivityItem extends LitElement {
   public static override styles = [styles]
 
@@ -108,6 +108,6 @@ export class W3mOnRampActivityItem extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-onramp-activity-item': W3mOnRampActivityItem
+    'cro-onramp-activity-item': W3mOnRampActivityItem
   }
 }

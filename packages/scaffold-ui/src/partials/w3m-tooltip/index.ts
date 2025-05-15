@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { TooltipController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-tooltip')
+@customElement('cro-tooltip')
 export class W3mTooltip extends LitElement {
   public static override styles = [styles]
 
@@ -65,6 +65,6 @@ export class W3mTooltip extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-tooltip': W3mTooltip
+    'cro-tooltip': W3mTooltip
   }
 }

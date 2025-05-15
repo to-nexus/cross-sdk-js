@@ -1,11 +1,11 @@
-import { LitElement, html } from 'lit'
-
 import { AccountController, OptionsController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+
 import styles from './styles.js'
 
-@customElement('w3m-connecting-siwe')
+@customElement('cro-connecting-siwe')
 export class W3mConnectingSiwe extends LitElement {
   public static override styles = styles
 
@@ -49,6 +49,6 @@ export class W3mConnectingSiwe extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-siwe': W3mConnectingSiwe
+    'cro-connecting-siwe': W3mConnectingSiwe
   }
 }

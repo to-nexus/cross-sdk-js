@@ -1,9 +1,9 @@
-import { LitElement, html } from 'lit'
-
 import { ConstantsUtil } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-upgrade-wallet-view')
+import { LitElement, html } from 'lit'
+
+@customElement('cro-upgrade-wallet-view')
 export class W3mUpgradeWalletView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -28,6 +28,6 @@ export class W3mUpgradeWalletView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-upgrade-wallet-view': W3mUpgradeWalletView
+    'cro-upgrade-wallet-view': W3mUpgradeWalletView
   }
 }

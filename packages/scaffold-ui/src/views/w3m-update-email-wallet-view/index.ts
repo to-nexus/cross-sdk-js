@@ -1,15 +1,15 @@
+import { ConnectorController } from '@to-nexus/appkit-core'
+import { EventsController, RouterController, SnackController } from '@to-nexus/appkit-core'
+import { customElement } from '@to-nexus/appkit-ui'
+
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { createRef, ref } from 'lit/directives/ref.js'
 import type { Ref } from 'lit/directives/ref.js'
 
-import { ConnectorController } from '@to-nexus/appkit-core'
-import { EventsController, RouterController, SnackController } from '@to-nexus/appkit-core'
-import { customElement } from '@to-nexus/appkit-ui'
-
 import styles from './styles.js'
 
-@customElement('w3m-update-email-wallet-view')
+@customElement('cro-update-email-wallet-view')
 export class W3mUpdateEmailWalletView extends LitElement {
   public static override styles = styles
 
@@ -109,6 +109,6 @@ export class W3mUpdateEmailWalletView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-update-email-wallet-view': W3mUpdateEmailWalletView
+    'cro-update-email-wallet-view': W3mUpdateEmailWalletView
   }
 }

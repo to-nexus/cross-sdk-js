@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { type ChainNamespace, ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -21,7 +17,11 @@ import {
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
-@customElement('w3m-account-settings-view')
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
+@customElement('cro-account-settings-view')
 export class W3mAccountSettingsView extends LitElement {
   // -- Members -------------------------------------------- //
   private usubscribe: (() => void)[] = []
@@ -81,7 +81,7 @@ export class W3mAccountSettingsView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.address) {
-      throw new Error('w3m-account-settings-view: No account provided')
+      throw new Error('cro-account-settings-view: No account provided')
     }
 
     const networkImage = this.networkImages[this.network?.assets?.imageId ?? '']
@@ -121,7 +121,7 @@ export class W3mAccountSettingsView extends LitElement {
       <wui-flex flexDirection="column" gap="m">
         <wui-flex flexDirection="column" gap="xs" .padding=${['0', 'l', 'm', 'l'] as const}>
           ${this.authCardTemplate()}
-          <w3m-account-auth-button></w3m-account-auth-button>
+          <cro-account-auth-button></cro-account-auth-button>
           <wui-list-item
             .variant=${networkImage ? 'image' : 'icon'}
             iconVariant="overlay"
@@ -323,6 +323,6 @@ export class W3mAccountSettingsView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-settings-view': W3mAccountSettingsView
+    'cro-account-settings-view': W3mAccountSettingsView
   }
 }

@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { type ChainNamespace, ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ChainController,
@@ -11,7 +8,10 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-account-auth-button')
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
+@customElement('cro-account-auth-button')
 export class W3mAccountAuthButton extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -87,6 +87,6 @@ export class W3mAccountAuthButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-auth-button': W3mAccountAuthButton
+    'cro-account-auth-button': W3mAccountAuthButton
   }
 }

@@ -1,21 +1,21 @@
-import { LitElement, html } from 'lit'
-
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('w3m-account-activity-widget')
+@customElement('cro-account-activity-widget')
 export class W3mAccountActivityWidget extends LitElement {
   public static override styles = styles
 
   // -- Render -------------------------------------------- //
   public override render() {
-    return html`<w3m-activity-list page="account"></w3m-activity-list>`
+    return html`<cro-activity-list page="account"></cro-activity-list>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-activity-widget': W3mAccountActivityWidget
+    'cro-account-activity-widget': W3mAccountActivityWidget
   }
 }

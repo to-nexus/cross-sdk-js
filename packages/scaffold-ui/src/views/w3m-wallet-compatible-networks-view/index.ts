@@ -1,14 +1,19 @@
+import {
+  AccountController,
+  AssetUtil,
+  ChainController,
+  CoreHelperUtil
+} from '@to-nexus/appkit-core'
+import { customElement } from '@to-nexus/appkit-ui'
+import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
+
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { AccountController, AssetUtil, ChainController, CoreHelperUtil } from '@to-nexus/appkit-core'
-import { customElement } from '@to-nexus/appkit-ui'
-import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
-
 import styles from './styles.js'
 
-@customElement('w3m-wallet-compatible-networks-view')
+@customElement('cro-wallet-compatible-networks-view')
 export class W3mWalletCompatibleNetworksView extends LitElement {
   public static override styles = styles
 
@@ -84,6 +89,6 @@ export class W3mWalletCompatibleNetworksView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-wallet-compatible-networks-view': W3mWalletCompatibleNetworksView
+    'cro-wallet-compatible-networks-view': W3mWalletCompatibleNetworksView
   }
 }

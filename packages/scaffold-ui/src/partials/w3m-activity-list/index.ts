@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-
 import { DateUtil } from '@to-nexus/appkit-common'
 import type { Transaction, TransactionImage } from '@to-nexus/appkit-common'
 import {
@@ -16,13 +13,16 @@ import { TransactionUtil, customElement } from '@to-nexus/appkit-ui'
 import type { TransactionType } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
 // -- Helpers --------------------------------------------- //
 const PAGINATOR_ID = 'last-transaction'
 const LOADING_ITEM_COUNT = 7
 
-@customElement('w3m-activity-list')
+@customElement('cro-activity-list')
 export class W3mActivityList extends LitElement {
   public static override styles = styles
 
@@ -360,6 +360,6 @@ export class W3mActivityList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-activity-list': W3mActivityList
+    'cro-activity-list': W3mActivityList
   }
 }

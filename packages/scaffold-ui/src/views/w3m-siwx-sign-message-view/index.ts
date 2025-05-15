@@ -1,10 +1,10 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { OptionsController, SIWXUtil } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-siwx-sign-message-view')
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
+@customElement('cro-siwx-sign-message-view')
 export class W3mSIWXSignMessageView extends LitElement {
   // -- Members ------------------------------------------- //
   private readonly dappName = OptionsController.state.metadata?.name
@@ -17,7 +17,7 @@ export class W3mSIWXSignMessageView extends LitElement {
   public override render() {
     return html`
       <wui-flex justifyContent="center" .padding=${['2xl', '0', 'xxl', '0'] as const}>
-        <w3m-siwx-sign-message-thumbnails></w3m-siwx-sign-message-thumbnails>
+        <cro-siwx-sign-message-thumbnails></cro-siwx-sign-message-thumbnails>
       </wui-flex>
       <wui-flex
         .padding=${['0', '4xl', 'l', '4xl'] as const}
@@ -46,7 +46,7 @@ export class W3mSIWXSignMessageView extends LitElement {
           variant="neutral"
           ?loading=${this.isCancelling}
           @click=${this.onCancel.bind(this)}
-          data-testid="w3m-connecting-siwe-cancel"
+          data-testid="cro-connecting-siwe-cancel"
         >
           ${this.isCancelling ? 'Cancelling...' : 'Cancel'}
         </wui-button>
@@ -57,7 +57,7 @@ export class W3mSIWXSignMessageView extends LitElement {
           variant="main"
           @click=${this.onSign.bind(this)}
           ?loading=${this.isSigning}
-          data-testid="w3m-connecting-siwe-sign"
+          data-testid="cro-connecting-siwe-sign"
         >
           ${this.isSigning ? 'Signing...' : 'Sign'}
         </wui-button>
@@ -79,6 +79,6 @@ export class W3mSIWXSignMessageView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-siwx-sign-message-view': W3mSIWXSignMessageView
+    'cro-siwx-sign-message-view': W3mSIWXSignMessageView
   }
 }

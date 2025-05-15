@@ -9,12 +9,12 @@ import { customElement } from '@to-nexus/appkit-ui'
 
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
 
-@customElement('w3m-connecting-wc-browser')
+@customElement('cro-connecting-wc-browser')
 export class W3mConnectingWcBrowser extends W3mConnectingWidget {
   public constructor() {
     super()
     if (!this.wallet) {
-      throw new Error('w3m-connecting-wc-browser: No wallet provided')
+      throw new Error('cro-connecting-wc-browser: No wallet provided')
     }
     this.onConnect = this.onConnectProxy.bind(this)
     this.onAutoConnect = this.onConnectProxy.bind(this)
@@ -41,7 +41,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
       if (connector) {
         await ConnectionController.connectExternal(connector, connector.chain)
       } else {
-        throw new Error('w3m-connecting-wc-browser: No connector found')
+        throw new Error('cro-connecting-wc-browser: No connector found')
       }
 
       ModalController.close()
@@ -64,6 +64,6 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-wc-browser': W3mConnectingWcBrowser
+    'cro-connecting-wc-browser': W3mConnectingWcBrowser
   }
 }

@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-
 import { type SwapInputTarget } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-swap-input-skeleton')
+@customElement('cro-swap-input-skeleton')
 export class W3mSwapInputSkeleton extends LitElement {
   public static override styles = [styles]
 
@@ -50,6 +50,6 @@ export class W3mSwapInputSkeleton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-swap-input-skeleton': W3mSwapInputSkeleton
+    'cro-swap-input-skeleton': W3mSwapInputSkeleton
   }
 }

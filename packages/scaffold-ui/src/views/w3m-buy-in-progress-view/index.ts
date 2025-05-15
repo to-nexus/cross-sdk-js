@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AccountController,
   BlockchainApiController,
@@ -14,9 +10,13 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-buy-in-progress-view')
+@customElement('cro-buy-in-progress-view')
 export class W3mBuyInProgressView extends LitElement {
   public static override styles = styles
 
@@ -228,6 +228,6 @@ export class W3mBuyInProgressView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-buy-in-progress-view': W3mBuyInProgressView
+    'cro-buy-in-progress-view': W3mBuyInProgressView
   }
 }

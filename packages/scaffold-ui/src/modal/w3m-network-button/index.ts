@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AssetController,
   AssetUtil,
@@ -12,6 +8,10 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 import type { WuiNetworkButton } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
@@ -117,7 +117,7 @@ class W3mNetworkButtonBase extends LitElement {
   }
 }
 
-@customElement('w3m-network-button')
+@customElement('cro-network-button')
 export class W3mNetworkButton extends W3mNetworkButtonBase {}
 
 @customElement('appkit-network-button')
@@ -125,7 +125,7 @@ export class AppKitNetworkButton extends W3mNetworkButtonBase {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-network-button': W3mNetworkButton
+    'cro-network-button': W3mNetworkButton
     'appkit-network-button': AppKitNetworkButton
   }
 }

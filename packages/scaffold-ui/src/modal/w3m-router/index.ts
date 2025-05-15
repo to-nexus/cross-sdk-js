@@ -64,17 +64,17 @@ export class W3mRouter extends LitElement {
   private viewTemplate() {
     switch (this.view) {
       case 'AccountSettings':
-        return html`<w3m-account-settings-view></w3m-account-settings-view>`
+        return html`<cro-account-settings-view></cro-account-settings-view>`
       case 'Account':
-        return html`<w3m-account-view></w3m-account-view>`
+        return html`<cro-account-view></cro-account-view>`
       case 'AllWallets':
-        return html`<w3m-all-wallets-view></w3m-all-wallets-view>`
+        return html`<cro-all-wallets-view></cro-all-wallets-view>`
       case 'ApproveTransaction':
-        return html`<w3m-approve-transaction-view></w3m-approve-transaction-view>`
+        return html`<cro-approve-transaction-view></cro-approve-transaction-view>`
       case 'BuyInProgress':
-        return html`<w3m-buy-in-progress-view></w3m-buy-in-progress-view>`
+        return html`<cro-buy-in-progress-view></cro-buy-in-progress-view>`
       case 'ChooseAccountName':
-        return html`<w3m-choose-account-name-view></w3m-choose-account-name-view>`
+        return html`<cro-choose-account-name-view></cro-choose-account-name-view>`
       case 'Connect':
         return html`<cro-connect-view></cro-connect-view>`
       case 'Create':
@@ -82,91 +82,91 @@ export class W3mRouter extends LitElement {
       case 'ConnectingWalletConnect':
         return html`<cro-connecting-wc-view></cro-connecting-wc-view>`
       case 'ConnectingWalletConnectBasic':
-        return html`<w3m-connecting-wc-basic-view></w3m-connecting-wc-basic-view>`
+        return html`<cro-connecting-wc-basic-view></cro-connecting-wc-basic-view>`
       case 'ConnectingExternal':
-        return html`<w3m-connecting-external-view></w3m-connecting-external-view>`
+        return html`<cro-connecting-external-view></cro-connecting-external-view>`
       case 'ConnectingSiwe':
-        return html`<w3m-connecting-siwe-view></w3m-connecting-siwe-view>`
+        return html`<cro-connecting-siwe-view></cro-connecting-siwe-view>`
       case 'ConnectWallets':
-        return html`<w3m-connect-wallets-view></w3m-connect-wallets-view>`
+        return html`<cro-connect-wallets-view></cro-connect-wallets-view>`
       case 'ConnectSocials':
-        return html`<w3m-connect-socials-view></w3m-connect-socials-view>`
+        return html`<cro-connect-socials-view></cro-connect-socials-view>`
       case 'ConnectingSocial':
-        return html`<w3m-connecting-social-view></w3m-connecting-social-view>`
+        return html`<cro-connecting-social-view></cro-connecting-social-view>`
       case 'Downloads':
-        return html`<w3m-downloads-view></w3m-downloads-view>`
+        return html`<cro-downloads-view></cro-downloads-view>`
       case 'EmailVerifyOtp':
-        return html`<w3m-email-verify-otp-view></w3m-email-verify-otp-view>`
+        return html`<cro-email-verify-otp-view></cro-email-verify-otp-view>`
       case 'EmailVerifyDevice':
-        return html`<w3m-email-verify-device-view></w3m-email-verify-device-view>`
+        return html`<cro-email-verify-device-view></cro-email-verify-device-view>`
       case 'GetWallet':
-        return html`<w3m-get-wallet-view></w3m-get-wallet-view>`
+        return html`<cro-get-wallet-view></cro-get-wallet-view>`
       case 'Networks':
         return html`<cro-networks-view></cro-networks-view>`
       case 'SwitchNetwork':
-        return html`<w3m-network-switch-view></w3m-network-switch-view>`
+        return html`<cro-network-switch-view></cro-network-switch-view>`
       case 'Profile':
-        return html`<w3m-profile-view></w3m-profile-view>`
+        return html`<cro-profile-view></cro-profile-view>`
       case 'SwitchAddress':
-        return html`<w3m-switch-address-view></w3m-switch-address-view>`
+        return html`<cro-switch-address-view></cro-switch-address-view>`
       case 'Transactions':
-        return html`<w3m-transactions-view></w3m-transactions-view>`
+        return html`<cro-transactions-view></cro-transactions-view>`
       case 'OnRampProviders':
         return html`<w3m-onramp-providers-view></w3m-onramp-providers-view>`
       case 'OnRampActivity':
-        return html`<w3m-onramp-activity-view></w3m-onramp-activity-view>`
+        return html`<cro-onramp-activity-view></cro-onramp-activity-view>`
       case 'OnRampTokenSelect':
-        return html`<w3m-onramp-token-select-view></w3m-onramp-token-select-view>`
+        return html`<cro-onramp-token-select-view></cro-onramp-token-select-view>`
       case 'OnRampFiatSelect':
-        return html`<w3m-onramp-fiat-select-view></w3m-onramp-fiat-select-view>`
+        return html`<cro-onramp-fiat-select-view></cro-onramp-fiat-select-view>`
       case 'UpgradeEmailWallet':
-        return html`<w3m-upgrade-wallet-view></w3m-upgrade-wallet-view>`
+        return html`<cro-upgrade-wallet-view></cro-upgrade-wallet-view>`
       case 'UpdateEmailWallet':
-        return html`<w3m-update-email-wallet-view></w3m-update-email-wallet-view>`
+        return html`<cro-update-email-wallet-view></cro-update-email-wallet-view>`
       case 'UpdateEmailPrimaryOtp':
-        return html`<w3m-update-email-primary-otp-view></w3m-update-email-primary-otp-view>`
+        return html`<cro-update-email-primary-otp-view></cro-update-email-primary-otp-view>`
       case 'UpdateEmailSecondaryOtp':
-        return html`<w3m-update-email-secondary-otp-view></w3m-update-email-secondary-otp-view>`
+        return html`<cro-update-email-secondary-otp-view></cro-update-email-secondary-otp-view>`
       case 'UnsupportedChain':
-        return html`<w3m-unsupported-chain-view></w3m-unsupported-chain-view>`
+        return html`<cro-unsupported-chain-view></cro-unsupported-chain-view>`
       case 'Swap':
-        return html`<w3m-swap-view></w3m-swap-view>`
+        return html`<cro-swap-view></cro-swap-view>`
       case 'SwapSelectToken':
-        return html`<w3m-swap-select-token-view></w3m-swap-select-token-view>`
+        return html`<cro-swap-select-token-view></cro-swap-select-token-view>`
       case 'SwapPreview':
-        return html`<w3m-swap-preview-view></w3m-swap-preview-view>`
+        return html`<cro-swap-preview-view></cro-swap-preview-view>`
       case 'WalletSend':
-        return html`<w3m-wallet-send-view></w3m-wallet-send-view>`
+        return html`<cro-wallet-send-view></cro-wallet-send-view>`
       case 'WalletSendSelectToken':
-        return html`<w3m-wallet-send-select-token-view></w3m-wallet-send-select-token-view>`
+        return html`<cro-wallet-send-select-token-view></cro-wallet-send-select-token-view>`
       case 'WalletSendPreview':
-        return html`<w3m-wallet-send-preview-view></w3m-wallet-send-preview-view>`
+        return html`<cro-wallet-send-preview-view></cro-wallet-send-preview-view>`
       case 'WhatIsABuy':
-        return html`<w3m-what-is-a-buy-view></w3m-what-is-a-buy-view>`
+        return html`<cro-what-is-a-buy-view></cro-what-is-a-buy-view>`
       case 'WalletReceive':
-        return html`<w3m-wallet-receive-view></w3m-wallet-receive-view>`
+        return html`<cro-wallet-receive-view></cro-wallet-receive-view>`
       case 'WalletCompatibleNetworks':
-        return html`<w3m-wallet-compatible-networks-view></w3m-wallet-compatible-networks-view>`
+        return html`<cro-wallet-compatible-networks-view></cro-wallet-compatible-networks-view>`
       case 'WhatIsAWallet':
-        return html`<w3m-what-is-a-wallet-view></w3m-what-is-a-wallet-view>`
+        return html`<cro-what-is-a-wallet-view></cro-what-is-a-wallet-view>`
       case 'ConnectingMultiChain':
-        return html`<w3m-connecting-multi-chain-view></w3m-connecting-multi-chain-view>`
+        return html`<cro-connecting-multi-chain-view></cro-connecting-multi-chain-view>`
       case 'WhatIsANetwork':
-        return html`<w3m-what-is-a-network-view></w3m-what-is-a-network-view>`
+        return html`<cro-what-is-a-network-view></cro-what-is-a-network-view>`
       case 'ConnectingFarcaster':
-        return html`<w3m-connecting-farcaster-view></w3m-connecting-farcaster-view>`
+        return html`<cro-connecting-farcaster-view></cro-connecting-farcaster-view>`
       case 'SwitchActiveChain':
-        return html`<w3m-switch-active-chain-view></w3m-switch-active-chain-view>`
+        return html`<cro-switch-active-chain-view></cro-switch-active-chain-view>`
       case 'RegisterAccountName':
-        return html`<w3m-register-account-name-view></w3m-register-account-name-view>`
+        return html`<cro-register-account-name-view></cro-register-account-name-view>`
       case 'RegisterAccountNameSuccess':
-        return html`<w3m-register-account-name-success-view></w3m-register-account-name-success-view>`
+        return html`<cro-register-account-name-success-view></cro-register-account-name-success-view>`
       case 'SmartSessionCreated':
-        return html`<w3m-smart-session-created-view></w3m-smart-session-created-view>`
+        return html`<cro-smart-session-created-view></cro-smart-session-created-view>`
       case 'SmartSessionList':
-        return html`<w3m-smart-session-list-view></w3m-smart-session-list-view>`
+        return html`<cro-smart-session-list-view></cro-smart-session-list-view>`
       case 'SIWXSignMessage':
-        return html`<w3m-siwx-sign-message-view></w3m-siwx-sign-message-view>`
+        return html`<cro-siwx-sign-message-view></cro-siwx-sign-message-view>`
       default:
         return html`<cro-connect-view></cro-connect-view>`
     }

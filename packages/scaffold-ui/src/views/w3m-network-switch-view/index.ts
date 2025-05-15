@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { type ChainNamespace, ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AssetUtil,
@@ -12,9 +8,13 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-network-switch-view')
+@customElement('cro-network-switch-view')
 export class W3mNetworkSwitchView extends LitElement {
   public static override styles = styles
 
@@ -43,7 +43,7 @@ export class W3mNetworkSwitchView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.network) {
-      throw new Error('w3m-network-switch-view: No network provided')
+      throw new Error('cro-network-switch-view: No network provided')
     }
 
     this.onShowRetry()
@@ -146,6 +146,6 @@ export class W3mNetworkSwitchView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-network-switch-view': W3mNetworkSwitchView
+    'cro-network-switch-view': W3mNetworkSwitchView
   }
 }

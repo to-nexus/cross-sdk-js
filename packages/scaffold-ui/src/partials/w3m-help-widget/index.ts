@@ -1,8 +1,8 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-
 import type { VisualType } from '@to-nexus/appkit-ui'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
 
 type Data = {
   images: VisualType[]
@@ -10,7 +10,7 @@ type Data = {
   text: string
 }
 
-@customElement('w3m-help-widget')
+@customElement('cro-help-widget')
 export class W3mHelpWidget extends LitElement {
   // -- State & Properties -------------------------------- //
   @property({ type: Array }) public data: Data[] = []
@@ -41,6 +41,6 @@ export class W3mHelpWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-help-widget': W3mHelpWidget
+    'cro-help-widget': W3mHelpWidget
   }
 }

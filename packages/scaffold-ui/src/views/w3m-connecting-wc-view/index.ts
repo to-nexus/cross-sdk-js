@@ -59,7 +59,7 @@ export class W3mConnectingWcView extends LitElement {
     if (this.platform === 'browser') {
       /*
        * If the platform is browser it means the user is using a browser wallet,
-       * in this case the connection is handled in w3m-connecting-wc-browser component.
+       * in this case the connection is handled in cro-connecting-wc-browser component.
        */
       return
     }
@@ -157,23 +157,23 @@ export class W3mConnectingWcView extends LitElement {
     console.log('this.platform', this.platform)
     switch (this.platform) {
       case 'browser':
-        return html`<w3m-connecting-wc-browser></w3m-connecting-wc-browser>`
+        return html`<cro-connecting-wc-browser></cro-connecting-wc-browser>`
       case 'web':
-        return html`<w3m-connecting-wc-web></w3m-connecting-wc-web>`
+        return html`<cro-connecting-wc-web></cro-connecting-wc-web>`
       case 'desktop':
         return html`
-          <w3m-connecting-wc-desktop .onRetry=${() => this.initializeConnection(true)}>
-          </w3m-connecting-wc-desktop>
+          <cro-connecting-wc-desktop .onRetry=${() => this.initializeConnection(true)}>
+          </cro-connecting-wc-desktop>
         `
       case 'mobile':
         return html`
-          <w3m-connecting-wc-mobile isMobile .onRetry=${() => this.initializeConnection(true)}>
-          </w3m-connecting-wc-mobile>
+          <cro-connecting-wc-mobile isMobile .onRetry=${() => this.initializeConnection(true)}>
+          </cro-connecting-wc-mobile>
         `
       case 'qrcode':
         return html`<cro-connecting-wc-qrcode></cro-connecting-wc-qrcode>`
       default:
-        return html`<w3m-connecting-wc-unsupported></w3m-connecting-wc-unsupported>`
+        return html`<cro-connecting-wc-unsupported></cro-connecting-wc-unsupported>`
     }
   }
 
@@ -185,11 +185,11 @@ export class W3mConnectingWcView extends LitElement {
     }
 
     return html`
-      <w3m-connecting-header
+      <cro-connecting-header
         .platforms=${this.platforms}
         .onSelectPlatfrom=${this.onSelectPlatform.bind(this)}
       >
-      </w3m-connecting-header>
+      </cro-connecting-header>
     `
   }
 

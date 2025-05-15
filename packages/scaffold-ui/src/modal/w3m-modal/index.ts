@@ -97,7 +97,7 @@ export class W3mModal extends LitElement {
 
     if (this.enableEmbedded) {
       return html`${this.contentTemplate()}
-        <w3m-tooltip></w3m-tooltip> `
+        <cro-tooltip></cro-tooltip> `
     }
 
     return this.open
@@ -105,7 +105,7 @@ export class W3mModal extends LitElement {
           <wui-flex @click=${this.onOverlayClick.bind(this)} data-testid="w3m-modal-overlay">
             ${this.contentTemplate()}
           </wui-flex>
-          <w3m-tooltip></w3m-tooltip>
+          <cro-tooltip></cro-tooltip>
         `
       : null
   }

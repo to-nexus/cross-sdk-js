@@ -1,16 +1,16 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-
 import { NumberUtil } from '@to-nexus/appkit-common'
 import { ChainController, ConstantsUtil, SwapController } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
 // -- Constants ----------------------------------------- //
 const slippageRate = ConstantsUtil.CONVERT_SLIPPAGE_TOLERANCE
 
-@customElement('w3m-swap-details')
+@customElement('cro-swap-details')
 export class WuiSwapDetails extends LitElement {
   public static override styles = [styles]
 
@@ -109,11 +109,11 @@ export class WuiSwapDetails extends LitElement {
                         <wui-text class="details-row-title" variant="small-400" color="fg-150">
                           Network cost
                         </wui-text>
-                        <w3m-tooltip-trigger
+                        <cro-tooltip-trigger
                           text=${`Network cost is paid in ${this.networkTokenSymbol} on the ${this.networkName} network in order to execute transaction.`}
                         >
                           <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
-                        </w3m-tooltip-trigger>
+                        </cro-tooltip-trigger>
                       </wui-flex>
                       <wui-text variant="small-400" color="fg-100">
                         $${UiHelperUtil.formatNumberToLocalString(this.gasPriceInUSD, 3)}
@@ -131,11 +131,11 @@ export class WuiSwapDetails extends LitElement {
                             <wui-text class="details-row-title" variant="small-400" color="fg-150">
                               Price impact
                             </wui-text>
-                            <w3m-tooltip-trigger
+                            <cro-tooltip-trigger
                               text="Price impact reflects the change in market price due to your trade"
                             >
                               <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
-                            </w3m-tooltip-trigger>
+                            </cro-tooltip-trigger>
                           </wui-flex>
                           <wui-flex>
                             <wui-text variant="small-400" color="fg-200">
@@ -156,7 +156,7 @@ export class WuiSwapDetails extends LitElement {
                             <wui-text class="details-row-title" variant="small-400" color="fg-150">
                               Max. slippage
                             </wui-text>
-                            <w3m-tooltip-trigger
+                            <cro-tooltip-trigger
                               text=${`Max slippage sets the minimum amount you must receive for the transaction to proceed. ${
                                 minReceivedAmount
                                   ? `Transaction will be reversed if you receive less than ${UiHelperUtil.formatNumberToLocalString(
@@ -167,7 +167,7 @@ export class WuiSwapDetails extends LitElement {
                               }`}
                             >
                               <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
-                            </w3m-tooltip-trigger>
+                            </cro-tooltip-trigger>
                           </wui-flex>
                           <wui-flex>
                             <wui-text variant="small-400" color="fg-200">

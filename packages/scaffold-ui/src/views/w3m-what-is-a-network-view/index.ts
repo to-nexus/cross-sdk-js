@@ -1,7 +1,7 @@
-import { LitElement, html } from 'lit'
-
 import { CoreHelperUtil } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
 
 const data = [
   {
@@ -16,7 +16,7 @@ const data = [
   }
 ] as const
 
-@customElement('w3m-what-is-a-network-view')
+@customElement('cro-what-is-a-network-view')
 export class W3mWhatIsANetworkView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -27,7 +27,7 @@ export class W3mWhatIsANetworkView extends LitElement {
         alignItems="center"
         gap="xl"
       >
-        <w3m-help-widget .data=${data}></w3m-help-widget>
+        <cro-help-widget .data=${data}></cro-help-widget>
         <wui-button
           variant="main"
           size="md"
@@ -45,6 +45,6 @@ export class W3mWhatIsANetworkView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-what-is-a-network-view': W3mWhatIsANetworkView
+    'cro-what-is-a-network-view': W3mWhatIsANetworkView
   }
 }

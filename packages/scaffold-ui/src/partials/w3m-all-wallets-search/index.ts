@@ -1,9 +1,9 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-
 import type { BadgeType, WcWallet } from '@to-nexus/appkit-core'
 import { ApiController, ConnectorController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
 import styles from './styles.js'
@@ -81,11 +81,11 @@ export class W3mAllWalletsSearch extends LitElement {
       >
         ${wallets.map(
           wallet => html`
-            <w3m-all-wallets-list-item
+            <cro-all-wallets-list-item
               @click=${() => this.onConnectWallet(wallet)}
               .wallet=${wallet}
               data-testid="wallet-search-item-${wallet.id}"
-            ></w3m-all-wallets-list-item>
+            ></cro-all-wallets-list-item>
           `
         )}
       </wui-grid>

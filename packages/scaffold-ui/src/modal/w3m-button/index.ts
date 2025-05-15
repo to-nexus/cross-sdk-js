@@ -1,9 +1,9 @@
+import { ChainController, ModalController } from '@to-nexus/appkit-core'
+import { customElement } from '@to-nexus/appkit-ui'
+
 import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
-
-import { ChainController, ModalController } from '@to-nexus/appkit-core'
-import { customElement } from '@to-nexus/appkit-ui'
 
 import type { W3mAccountButton } from '../w3m-account-button/index.js'
 import type { W3mConnectButton } from '../w3m-connect-button/index.js'
@@ -68,7 +68,7 @@ class W3mButtonBase extends LitElement {
   }
 }
 
-@customElement('w3m-button')
+@customElement('cro-button')
 export class W3mButton extends W3mButtonBase {}
 
 @customElement('appkit-button')
@@ -76,7 +76,7 @@ export class AppKitButton extends W3mButtonBase {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-button': W3mButton
+    'cro-button': W3mButton
     'appkit-button': AppKitButton
   }
 }

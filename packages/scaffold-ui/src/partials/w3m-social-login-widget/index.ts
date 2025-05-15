@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   ConstantsUtil as CommonConstantsUtil,
   SafeLocalStorage,
@@ -23,12 +19,16 @@ import {
 import { customElement } from '@to-nexus/appkit-ui'
 import { SocialProviderEnum } from '@to-nexus/appkit-utils'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
 const MAX_TOP_VIEW = 2
 const MAXIMUM_LENGTH = 6
 
-@customElement('w3m-social-login-widget')
+@customElement('cro-social-login-widget')
 export class W3mSocialLoginWidget extends LitElement {
   public static override styles = styles
 
@@ -70,7 +70,7 @@ export class W3mSocialLoginWidget extends LitElement {
         class="container"
         flexDirection="column"
         gap="xs"
-        data-testid="w3m-social-login-widget"
+        data-testid="cro-social-login-widget"
       >
         ${this.topViewTemplate()}${this.bottomViewTemplate()}
       </wui-flex>
@@ -282,6 +282,6 @@ export class W3mSocialLoginWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-social-login-widget': W3mSocialLoginWidget
+    'cro-social-login-widget': W3mSocialLoginWidget
   }
 }

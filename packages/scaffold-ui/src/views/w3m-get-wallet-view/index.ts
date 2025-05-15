@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { ApiController, AssetUtil, CoreHelperUtil, OptionsController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 const EXPLORER = 'https://walletconnect.com/explorer'
 
-@customElement('w3m-get-wallet-view')
+@customElement('cro-get-wallet-view')
 export class W3mGetWalletView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -49,6 +49,6 @@ export class W3mGetWalletView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-get-wallet-view': W3mGetWalletView
+    'cro-get-wallet-view': W3mGetWalletView
   }
 }

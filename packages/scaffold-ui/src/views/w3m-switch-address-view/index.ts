@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import type { CaipAddress, ChainNamespace } from '@to-nexus/appkit-common'
 import { ConstantsUtil } from '@to-nexus/appkit-common'
 import {
@@ -15,9 +11,13 @@ import {
 } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-switch-address-view')
+@customElement('cro-switch-address-view')
 export class W3mSwitchAddressView extends LitElement {
   public static override styles = styles
   // -- Members ------------------------------------------- //
@@ -43,16 +43,14 @@ export class W3mSwitchAddressView extends LitElement {
   public override connectedCallback() {
     super.connectedCallback()
     this.allAccounts.forEach(account => {
-      ApiController.getBalance(account.address, this.caipNetwork?.caipNetworkId).then(
-        response => {
-          let total = this.balances[account.address] || 0
-          if (response.length > 0) {
-            total = response.reduce((acc, balance) => acc + (balance?.value || 0), 0)
-          }
-          this.balances[account.address] = total
-          this.requestUpdate()
+      ApiController.getBalance(account.address, this.caipNetwork?.caipNetworkId).then(response => {
+        let total = this.balances[account.address] || 0
+        if (response.length > 0) {
+          total = response.reduce((acc, balance) => acc + (balance?.value || 0), 0)
         }
-      )
+        this.balances[account.address] = total
+        this.requestUpdate()
+      })
     })
   }
 
@@ -154,6 +152,6 @@ export class W3mSwitchAddressView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-switch-address-view': W3mSwitchAddressView
+    'cro-switch-address-view': W3mSwitchAddressView
   }
 }

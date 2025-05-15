@@ -41,9 +41,9 @@ export class W3mConnectorList extends LitElement {
     return html`
       <wui-flex flexDirection="column" gap="xs">
         ${custom?.length
-          ? html`<w3m-connect-custom-widget
+          ? html`<cro-connect-custom-widget
               tabIdx=${ifDefined(this.tabIdx)}
-            ></w3m-connect-custom-widget>`
+            ></cro-connect-custom-widget>`
           : null}
       </wui-flex>
     `

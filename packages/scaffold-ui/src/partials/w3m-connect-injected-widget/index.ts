@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import type { Connector } from '@to-nexus/appkit-core'
 import {
   ApiController,
@@ -13,7 +9,11 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-connect-injected-widget')
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
+@customElement('cro-connect-injected-widget')
 export class W3mConnectInjectedWidget extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -97,6 +97,6 @@ export class W3mConnectInjectedWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connect-injected-widget': W3mConnectInjectedWidget
+    'cro-connect-injected-widget': W3mConnectInjectedWidget
   }
 }

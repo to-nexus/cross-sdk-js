@@ -1,13 +1,13 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { AccountController, EventsController, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-account-tokens-widget')
+@customElement('cro-account-tokens-widget')
 export class W3mAccountTokensWidget extends LitElement {
   public static override styles = styles
 
@@ -101,6 +101,6 @@ export class W3mAccountTokensWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-tokens-widget': W3mAccountTokensWidget
+    'cro-account-tokens-widget': W3mAccountTokensWidget
   }
 }

@@ -8,7 +8,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
 
-@customElement('w3m-connecting-wc-mobile')
+@customElement('cro-connecting-wc-mobile')
 export class W3mConnectingWcMobile extends W3mConnectingWidget {
   private btnLabelTimeout?: ReturnType<typeof setTimeout> = undefined
   private labelTimeout?: ReturnType<typeof setTimeout> = undefined
@@ -16,7 +16,7 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
   public constructor() {
     super()
     if (!this.wallet) {
-      throw new Error('w3m-connecting-wc-mobile: No wallet provided')
+      throw new Error('cro-connecting-wc-mobile: No wallet provided')
     }
     this.secondaryBtnLabel = undefined
     this.secondaryLabel = ConstantsUtil.CONNECT_LABELS.MOBILE
@@ -98,6 +98,6 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-wc-mobile': W3mConnectingWcMobile
+    'cro-connecting-wc-mobile': W3mConnectingWcMobile
   }
 }

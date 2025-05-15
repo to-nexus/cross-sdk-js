@@ -1,13 +1,13 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { ConstantsUtil } from '@to-nexus/appkit-common'
 import type { Connector } from '@to-nexus/appkit-core'
 import { AssetUtil, ConnectorController, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-connect-external-widget')
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
+@customElement('cro-connect-external-widget')
 export class W3mConnectExternalWidget extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -68,6 +68,6 @@ export class W3mConnectExternalWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connect-external-widget': W3mConnectExternalWidget
+    'cro-connect-external-widget': W3mConnectExternalWidget
   }
 }

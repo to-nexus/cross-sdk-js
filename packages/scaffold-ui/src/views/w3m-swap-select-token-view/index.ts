@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { RouterController, SwapController, type SwapTokenWithBalance } from '@to-nexus/appkit-core'
 import { MathUtil, customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-swap-select-token-view')
+@customElement('cro-swap-select-token-view')
 export class W3mSwapSelectTokenView extends LitElement {
   public static override styles = styles
 
@@ -256,6 +256,6 @@ export class W3mSwapSelectTokenView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-swap-select-token-view': W3mSwapSelectTokenView
+    'cro-swap-select-token-view': W3mSwapSelectTokenView
   }
 }

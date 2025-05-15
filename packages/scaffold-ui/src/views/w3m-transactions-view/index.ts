@@ -1,10 +1,10 @@
-import { LitElement, html } from 'lit'
-
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('w3m-transactions-view')
+@customElement('cro-transactions-view')
 export class W3mTransactionsView extends LitElement {
   public static override styles = styles
 
@@ -12,7 +12,7 @@ export class W3mTransactionsView extends LitElement {
   public override render() {
     return html`
       <wui-flex flexDirection="column" .padding=${['0', 'm', 'm', 'm']} gap="s">
-        <w3m-activity-list page="activity"></w3m-activity-list>
+        <cro-activity-list page="activity"></cro-activity-list>
       </wui-flex>
     `
   }
@@ -20,6 +20,6 @@ export class W3mTransactionsView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-transactions-view': W3mTransactionsView
+    'cro-transactions-view': W3mTransactionsView
   }
 }

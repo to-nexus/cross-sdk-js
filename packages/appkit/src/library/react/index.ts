@@ -1,7 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 
-import { useSnapshot } from 'valtio'
-
 import type { ChainNamespace } from '@to-nexus/appkit-common'
 import type {
   AppKitAccountButton,
@@ -13,6 +11,7 @@ import type {
   W3mConnectButton,
   W3mNetworkButton
 } from '@to-nexus/appkit-scaffold-ui'
+import { useSnapshot } from 'valtio'
 
 import type { AppKit } from '../../../src/client.js'
 import { ProviderUtil } from '../../store/ProviderUtil.js'
@@ -50,10 +49,10 @@ declare module 'react' {
       'appkit-connect-button': Pick<AppKitConnectButton, 'size' | 'label' | 'loadingLabel'>
       'appkit-account-button': Pick<AppKitAccountButton, 'disabled' | 'balance'>
       'appkit-network-button': Pick<AppKitNetworkButton, 'disabled'>
-      'w3m-connect-button': Pick<W3mConnectButton, 'size' | 'label' | 'loadingLabel'>
-      'w3m-account-button': Pick<W3mAccountButton, 'disabled' | 'balance'>
-      'w3m-button': Pick<W3mButton, 'size' | 'label' | 'loadingLabel' | 'disabled' | 'balance'>
-      'w3m-network-button': Pick<W3mNetworkButton, 'disabled'>
+      'cro-connect-button': Pick<W3mConnectButton, 'size' | 'label' | 'loadingLabel'>
+      'cro-account-button': Pick<W3mAccountButton, 'disabled' | 'balance'>
+      'cro-button': Pick<W3mButton, 'size' | 'label' | 'loadingLabel' | 'disabled' | 'balance'>
+      'cro-network-button': Pick<W3mNetworkButton, 'disabled'>
     }
   }
 }
@@ -133,8 +132,7 @@ export function useAppKit() {
   }
 
   async function connect() {
-    if (modal?.getIsConnectedState())
-      return
+    if (modal?.getIsConnectedState()) return
 
     await modal?.open()
   }

@@ -1,13 +1,13 @@
+import { OptionsController } from '@to-nexus/appkit-core'
+import { customElement } from '@to-nexus/appkit-ui'
+
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { OptionsController } from '@to-nexus/appkit-core'
-import { customElement } from '@to-nexus/appkit-ui'
-
 import styles from './styles.js'
 
-@customElement('w3m-connect-wallets-view')
+@customElement('cro-connect-wallets-view')
 export class W3mConnectWalletsView extends LitElement {
   public static override styles = styles
 
@@ -27,16 +27,16 @@ export class W3mConnectWalletsView extends LitElement {
     const tabIndex = disabled ? -1 : undefined
 
     return html`
-      <w3m-legal-checkbox @checkboxChange=${this.onCheckboxChange.bind(this)}></w3m-legal-checkbox>
+      <cro-legal-checkbox @checkboxChange=${this.onCheckboxChange.bind(this)}></cro-legal-checkbox>
       <wui-flex
         flexDirection="column"
         .padding=${showLegalCheckbox ? ['0', 's', 's', 's'] : 's'}
         gap="xs"
         class=${ifDefined(disabled ? 'disabled' : undefined)}
       >
-        <w3m-wallet-login-list tabIdx=${ifDefined(tabIndex)}></w3m-wallet-login-list>
+        <cro-wallet-login-list tabIdx=${ifDefined(tabIndex)}></cro-wallet-login-list>
       </wui-flex>
-      <w3m-legal-footer></w3m-legal-footer>
+      <cro-legal-footer></cro-legal-footer>
     `
   }
 
@@ -48,6 +48,6 @@ export class W3mConnectWalletsView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connect-wallets-view': W3mConnectWalletsView
+    'cro-connect-wallets-view': W3mConnectWalletsView
   }
 }

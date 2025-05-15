@@ -3,12 +3,12 @@ import { customElement } from '@to-nexus/appkit-ui'
 
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
 
-@customElement('w3m-connecting-wc-desktop')
+@customElement('cro-connecting-wc-desktop')
 export class W3mConnectingWcDesktop extends W3mConnectingWidget {
   public constructor() {
     super()
     if (!this.wallet) {
-      throw new Error('w3m-connecting-wc-desktop: No wallet provided')
+      throw new Error('cro-connecting-wc-desktop: No wallet provided')
     }
     this.onConnect = this.onConnectProxy.bind(this)
     this.onRender = this.onRenderProxy.bind(this)
@@ -45,6 +45,6 @@ export class W3mConnectingWcDesktop extends W3mConnectingWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-wc-desktop': W3mConnectingWcDesktop
+    'cro-connecting-wc-desktop': W3mConnectingWcDesktop
   }
 }

@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { type Ref, createRef, ref } from 'lit/directives/ref.js'
-
 import { ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -13,9 +9,13 @@ import {
 import { customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { type Ref, createRef, ref } from 'lit/directives/ref.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-register-account-name-view')
+@customElement('cro-register-account-name-view')
 export class W3mRegisterAccountNameView extends LitElement {
   public static override styles = styles
 
@@ -245,6 +245,6 @@ export class W3mRegisterAccountNameView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-register-account-name-view': W3mRegisterAccountNameView
+    'cro-register-account-name-view': W3mRegisterAccountNameView
   }
 }

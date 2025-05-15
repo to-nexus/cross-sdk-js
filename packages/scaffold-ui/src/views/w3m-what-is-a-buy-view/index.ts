@@ -1,9 +1,9 @@
-import { LitElement, html } from 'lit'
-
 import { RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-what-is-a-buy-view')
+import { LitElement, html } from 'lit'
+
+@customElement('cro-what-is-a-buy-view')
 export class W3mWhatIsABuyView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -35,6 +35,6 @@ export class W3mWhatIsABuyView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-what-is-a-buy-view': W3mWhatIsABuyView
+    'cro-what-is-a-buy-view': W3mWhatIsABuyView
   }
 }

@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import type { CaipNetwork } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -18,9 +14,13 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-unsupported-chain-view')
+@customElement('cro-unsupported-chain-view')
 export class W3mUnsupportedChainView extends LitElement {
   public static override styles = styles
 
@@ -166,6 +166,6 @@ export class W3mUnsupportedChainView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-unsupported-chain-view': W3mUnsupportedChainView
+    'cro-unsupported-chain-view': W3mUnsupportedChainView
   }
 }

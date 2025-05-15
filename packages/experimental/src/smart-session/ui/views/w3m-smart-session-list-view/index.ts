@@ -1,9 +1,9 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { DateUtil } from '@to-nexus/appkit-common'
 import { CoreHelperUtil } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
 
 import { SmartSessionsController } from '../../../controllers/SmartSessionsController.js'
 import type { SmartSession } from '../../../utils/TypeUtils.js'
@@ -14,7 +14,7 @@ const TABS_PADDING = 48
 const MODAL_MOBILE_VIEW_PX = 430
 const SMART_SESSION_TABS = [{ label: 'Active' }, { label: 'Expired' }, { label: 'Revoked' }]
 
-@customElement('w3m-smart-session-list-view')
+@customElement('cro-smart-session-list-view')
 export class W3mSmartSessionListView extends LitElement {
   public static override styles = styles
 
@@ -259,6 +259,6 @@ export class W3mSmartSessionListView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-smart-session-list-view': W3mSmartSessionListView
+    'cro-smart-session-list-view': W3mSmartSessionListView
   }
 }

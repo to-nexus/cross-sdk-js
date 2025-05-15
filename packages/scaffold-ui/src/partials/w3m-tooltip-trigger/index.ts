@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-
 import { ModalController, RouterController, TooltipController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-tooltip-trigger')
+@customElement('cro-tooltip-trigger')
 export class WuiTooltipTrigger extends LitElement {
   public static override styles = [styles]
 
@@ -83,6 +83,6 @@ export class WuiTooltipTrigger extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-tooltip-trigger': WuiTooltipTrigger
+    'cro-tooltip-trigger': WuiTooltipTrigger
   }
 }

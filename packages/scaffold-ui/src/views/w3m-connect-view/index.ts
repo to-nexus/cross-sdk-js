@@ -142,11 +142,11 @@ export class W3mConnectView extends LitElement {
             ${this.renderConnectMethod(tabIndex)}
           </wui-flex>
         </wui-flex>
-        <w3m-legal-footer></w3m-legal-footer>
+        <cro-legal-footer></cro-legal-footer>
       </wui-flex>
     `
 
-    // hide guideTemplate before <w3m-legal-footer />
+    // hide guideTemplate before <cro-legal-footer />
     // ${this.guideTemplate(isDisabled)}
   }
 
@@ -258,10 +258,10 @@ export class W3mConnectView extends LitElement {
       return null
     }
 
-    return html`<w3m-email-login-widget
+    return html`<cro-email-login-widget
       walletGuide=${this.walletGuide}
       tabIdx=${ifDefined(tabIndex)}
-    ></w3m-email-login-widget>`
+    ></cro-email-login-widget>`
   }
 
   private socialListTemplate(tabIndex?: number) {
@@ -269,10 +269,10 @@ export class W3mConnectView extends LitElement {
       return null
     }
 
-    return html`<w3m-social-login-widget
+    return html`<cro-social-login-widget
       walletGuide=${this.walletGuide}
       tabIdx=${ifDefined(tabIndex)}
-    ></w3m-social-login-widget>`
+    ></cro-social-login-widget>`
   }
 
   private walletListTemplate(tabIndex?: number) {
@@ -304,7 +304,7 @@ export class W3mConnectView extends LitElement {
       ></wui-list-button>`
     }
 
-    return html`<w3m-wallet-login-list tabIdx=${ifDefined(tabIndex)}></w3m-wallet-login-list>`
+    return html`<cro-wallet-login-list tabIdx=${ifDefined(tabIndex)}></cro-wallet-login-list>`
   }
 
   private guideTemplate(disabled = false) {
@@ -330,10 +330,10 @@ export class W3mConnectView extends LitElement {
         ? html`<wui-separator data-testid="wui-separator" id="explore" text="or"></wui-separator>`
         : null}
       <wui-flex flexDirection="column" .padding=${['s', '0', 'xl', '0']} class=${classMap(classes)}>
-        <w3m-wallet-guide
+        <cro-wallet-guide
           tabIdx=${ifDefined(tabIndex)}
           walletGuide=${this.walletGuide}
-        ></w3m-wallet-guide>
+        ></cro-wallet-guide>
       </wui-flex>
     `
   }
@@ -343,10 +343,10 @@ export class W3mConnectView extends LitElement {
       return null
     }
 
-    return html`<w3m-legal-checkbox
+    return html`<cro-legal-checkbox
       @checkboxChange=${this.onCheckboxChange.bind(this)}
-      data-testid="w3m-legal-checkbox"
-    ></w3m-legal-checkbox>`
+      data-testid="cro-legal-checkbox"
+    ></cro-legal-checkbox>`
   }
 
   private handleConnectListScroll() {
