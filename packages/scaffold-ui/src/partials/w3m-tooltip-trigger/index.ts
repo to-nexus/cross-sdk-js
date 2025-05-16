@@ -6,7 +6,7 @@ import { property, state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-tooltip-trigger')
+@customElement('cross-w3m-tooltip-trigger')
 export class WuiTooltipTrigger extends LitElement {
   public static override styles = [styles]
 
@@ -83,6 +83,6 @@ export class WuiTooltipTrigger extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-tooltip-trigger': WuiTooltipTrigger
+    'cross-w3m-tooltip-trigger': WuiTooltipTrigger
   }
 }

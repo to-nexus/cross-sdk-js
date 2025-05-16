@@ -30,7 +30,7 @@ export const presets = {
   }
 } as const
 
-@customElement('cro-alertbar')
+@customElement('cross-w3m-alertbar')
 export class W3mAlertBar extends LitElement {
   public static override styles = styles
 
@@ -104,6 +104,6 @@ export class W3mAlertBar extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-alertbar': W3mAlertBar
+    'cross-w3m-alertbar': W3mAlertBar
   }
 }

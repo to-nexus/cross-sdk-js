@@ -62,7 +62,7 @@ class W3mConnectButtonBase extends LitElement {
   }
 }
 
-@customElement('cro-connect-button')
+@customElement('cross-w3m-connect-button')
 export class W3mConnectButton extends W3mConnectButtonBase {}
 
 @customElement('appkit-connect-button')
@@ -70,7 +70,7 @@ export class AppKitConnectButton extends W3mConnectButtonBase {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connect-button': W3mConnectButton
+    'cross-w3m-connect-button': W3mConnectButton
     'appkit-connect-button': AppKitConnectButton
   }
 }

@@ -17,7 +17,7 @@ const PAGE_HEIGHT = 600
 const PAGE_WIDTH = 360
 const HEADER_HEIGHT = 64
 
-@customElement('cro-approve-transaction-view')
+@customElement('cross-w3m-approve-transaction-view')
 export class W3mApproveTransactionView extends LitElement {
   public static override styles = styles
 
@@ -123,6 +123,6 @@ export class W3mApproveTransactionView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-approve-transaction-view': W3mApproveTransactionView
+    'cross-w3m-approve-transaction-view': W3mApproveTransactionView
   }
 }

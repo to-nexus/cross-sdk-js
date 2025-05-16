@@ -20,7 +20,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-unsupported-chain-view')
+@customElement('cross-w3m-unsupported-chain-view')
 export class W3mUnsupportedChainView extends LitElement {
   public static override styles = styles
 
@@ -166,6 +166,6 @@ export class W3mUnsupportedChainView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-unsupported-chain-view': W3mUnsupportedChainView
+    'cross-w3m-unsupported-chain-view': W3mUnsupportedChainView
   }
 }

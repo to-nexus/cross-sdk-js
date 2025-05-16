@@ -12,7 +12,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
 import styles from './styles.js'
 
-@customElement('cro-connecting-wc-qrcode')
+@customElement('cross-w3m-connecting-wc-qrcode')
 export class W3mConnectingWcQrcode extends W3mConnectingWidget {
   public static override styles = styles
 
@@ -51,7 +51,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
         </wui-text>
         ${this.copyTemplate()}
       </wui-flex>
-      <cro-mobile-download-links .wallet=${this.wallet}></cro-mobile-download-links>
+      <cross-w3m-mobile-download-links .wallet=${this.wallet}></cross-w3m-mobile-download-links>
     `
   }
 
@@ -107,6 +107,6 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-wc-qrcode': W3mConnectingWcQrcode
+    'cross-w3m-connecting-wc-qrcode': W3mConnectingWcQrcode
   }
 }

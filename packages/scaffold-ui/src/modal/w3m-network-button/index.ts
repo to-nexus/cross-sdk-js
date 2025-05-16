@@ -80,7 +80,7 @@ class W3mNetworkButtonBase extends LitElement {
         .isUnsupportedChain=${OptionsController.state.allowUnsupportedChain ? false : !isSupported}
         imageSrc=${ifDefined(this.networkImage)}
         @click=${this.onClick.bind(this)}
-        data-testid="cro-network-button"
+        data-testid="cross-w3m-network-button"
       >
         ${this.getLabel()}
         <slot></slot>
@@ -117,7 +117,7 @@ class W3mNetworkButtonBase extends LitElement {
   }
 }
 
-@customElement('cro-network-button')
+@customElement('cross-w3m-network-button')
 export class W3mNetworkButton extends W3mNetworkButtonBase {}
 
 @customElement('appkit-network-button')
@@ -125,7 +125,7 @@ export class AppKitNetworkButton extends W3mNetworkButtonBase {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-network-button': W3mNetworkButton
+    'cross-w3m-network-button': W3mNetworkButton
     'appkit-network-button': AppKitNetworkButton
   }
 }

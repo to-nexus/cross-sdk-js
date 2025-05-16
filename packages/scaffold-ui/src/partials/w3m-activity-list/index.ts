@@ -22,7 +22,7 @@ import styles from './styles.js'
 const PAGINATOR_ID = 'last-transaction'
 const LOADING_ITEM_COUNT = 7
 
-@customElement('cro-activity-list')
+@customElement('cross-w3m-activity-list')
 export class W3mActivityList extends LitElement {
   public static override styles = styles
 
@@ -360,6 +360,6 @@ export class W3mActivityList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-activity-list': W3mActivityList
+    'cross-w3m-activity-list': W3mActivityList
   }
 }

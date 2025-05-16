@@ -68,7 +68,7 @@ class W3mButtonBase extends LitElement {
   }
 }
 
-@customElement('cro-button')
+@customElement('cross-w3m-button')
 export class W3mButton extends W3mButtonBase {}
 
 @customElement('appkit-button')
@@ -76,7 +76,7 @@ export class AppKitButton extends W3mButtonBase {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-button': W3mButton
+    'cross-w3m-button': W3mButton
     'appkit-button': AppKitButton
   }
 }

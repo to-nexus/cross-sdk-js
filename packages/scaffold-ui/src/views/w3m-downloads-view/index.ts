@@ -3,7 +3,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 
 import { LitElement, html } from 'lit'
 
-@customElement('cro-downloads-view')
+@customElement('cross-w3m-downloads-view')
 export class W3mDownloadsView extends LitElement {
   // -- Members ------------------------------------------- //
   private wallet = RouterController.state.data?.wallet
@@ -11,7 +11,7 @@ export class W3mDownloadsView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.wallet) {
-      throw new Error('cro-downloads-view')
+      throw new Error('cross-w3m-downloads-view')
     }
 
     return html`
@@ -116,6 +116,6 @@ export class W3mDownloadsView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-downloads-view': W3mDownloadsView
+    'cross-w3m-downloads-view': W3mDownloadsView
   }
 }

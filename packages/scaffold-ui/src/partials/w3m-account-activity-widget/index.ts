@@ -4,18 +4,18 @@ import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('cro-account-activity-widget')
+@customElement('cross-w3m-account-activity-widget')
 export class W3mAccountActivityWidget extends LitElement {
   public static override styles = styles
 
   // -- Render -------------------------------------------- //
   public override render() {
-    return html`<cro-activity-list page="account"></cro-activity-list>`
+    return html`<cross-w3m-activity-list page="account"></cross-w3m-activity-list>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-account-activity-widget': W3mAccountActivityWidget
+    'cross-w3m-account-activity-widget': W3mAccountActivityWidget
   }
 }

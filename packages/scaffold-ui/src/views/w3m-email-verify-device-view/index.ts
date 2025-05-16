@@ -11,7 +11,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-email-verify-device-view')
+@customElement('cross-w3m-email-verify-device-view')
 export class W3mEmailVerifyDeviceView extends LitElement {
   public static override styles = styles
 
@@ -31,10 +31,10 @@ export class W3mEmailVerifyDeviceView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.email) {
-      throw new Error('cro-email-verify-device-view: No email provided')
+      throw new Error('cross-w3m-email-verify-device-view: No email provided')
     }
     if (!this.authConnector) {
-      throw new Error('cro-email-verify-device-view: No auth connector provided')
+      throw new Error('cross-w3m-email-verify-device-view: No auth connector provided')
     }
 
     return html`
@@ -96,7 +96,7 @@ export class W3mEmailVerifyDeviceView extends LitElement {
     try {
       if (!this.loading) {
         if (!this.authConnector || !this.email) {
-          throw new Error('cro-email-login-widget: Unable to resend email')
+          throw new Error('cross-w3m-email-login-widget: Unable to resend email')
         }
         this.loading = true
         await this.authConnector.provider.connectEmail({ email: this.email })
@@ -113,6 +113,6 @@ export class W3mEmailVerifyDeviceView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-email-verify-device-view': W3mEmailVerifyDeviceView
+    'cross-w3m-email-verify-device-view': W3mEmailVerifyDeviceView
   }
 }

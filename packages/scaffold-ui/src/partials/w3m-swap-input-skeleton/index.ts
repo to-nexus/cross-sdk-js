@@ -6,7 +6,7 @@ import { property } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-swap-input-skeleton')
+@customElement('cross-w3m-swap-input-skeleton')
 export class W3mSwapInputSkeleton extends LitElement {
   public static override styles = [styles]
 
@@ -50,6 +50,6 @@ export class W3mSwapInputSkeleton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-swap-input-skeleton': W3mSwapInputSkeleton
+    'cross-w3m-swap-input-skeleton': W3mSwapInputSkeleton
   }
 }

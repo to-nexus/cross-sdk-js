@@ -25,7 +25,7 @@ const TABS = 3
 const TABS_PADDING = 48
 const MODAL_MOBILE_VIEW_PX = 430
 
-@customElement('cro-account-wallet-features-widget')
+@customElement('cross-w3m-account-wallet-features-widget')
 export class W3mAccountWalletFeaturesWidget extends LitElement {
   public static override styles = styles
 
@@ -88,7 +88,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.address) {
-      throw new Error('cro-account-view: No account provided')
+      throw new Error('cross-w3m-account-view: No account provided')
     }
 
     return html`<wui-flex
@@ -96,7 +96,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
       .padding=${['0', 'xl', 'm', 'xl'] as const}
       alignItems="center"
       gap="m"
-      data-testid="cro-account-wallet-features-widget"
+      data-testid="cross-w3m-account-wallet-features-widget"
     >
       ${this.network && html`<wui-network-icon .network=${this.network}></wui-network-icon>`}
       <wui-profile-button
@@ -106,7 +106,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
         icon="chevronBottom"
         avatarSrc=${ifDefined(this.profileImage ? this.profileImage : undefined)}
         profileName=${ifDefined(this.profileName ?? undefined)}
-        data-testid="cro-profile-button"
+        data-testid="cross-w3m-profile-button"
       ></wui-profile-button>
 
       ${this.tokenBalanceTemplate()} ${this.orderedWalletFeatures()}
@@ -159,13 +159,13 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
     }
 
     return html`
-      <cro-tooltip-trigger text="Buy">
+      <cross-w3m-tooltip-trigger text="Buy">
         <wui-icon-button
           data-testid="wallet-features-onramp-button"
           @click=${this.onBuyClick.bind(this)}
           icon="card"
         ></wui-icon-button>
-      </cro-tooltip-trigger>
+      </cross-w3m-tooltip-trigger>
     `
   }
 
@@ -178,14 +178,14 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
     }
 
     return html`
-      <cro-tooltip-trigger text="Swap">
+      <cross-w3m-tooltip-trigger text="Swap">
         <wui-icon-button
           data-testid="wallet-features-swaps-button"
           @click=${this.onSwapClick.bind(this)}
           icon="recycleHorizontal"
         >
         </wui-icon-button>
-      </cro-tooltip-trigger>
+      </cross-w3m-tooltip-trigger>
     `
   }
 
@@ -197,14 +197,14 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
     }
 
     return html`
-      <cro-tooltip-trigger text="Receive">
+      <cross-w3m-tooltip-trigger text="Receive">
         <wui-icon-button
           data-testid="wallet-features-receive-button"
           @click=${this.onReceiveClick.bind(this)}
           icon="arrowBottomCircle"
         >
         </wui-icon-button>
-      </cro-tooltip-trigger>
+      </cross-w3m-tooltip-trigger>
     `
   }
 
@@ -217,13 +217,13 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
     }
 
     return html`
-      <cro-tooltip-trigger text="Send">
+      <cross-w3m-tooltip-trigger text="Send">
         <wui-icon-button
           data-testid="wallet-features-send-button"
           @click=${this.onSendClick.bind(this)}
           icon="send"
         ></wui-icon-button>
-      </cro-tooltip-trigger>
+      </cross-w3m-tooltip-trigger>
     `
   }
 
@@ -246,16 +246,16 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
   private listContentTemplate() {
     if (this.currentTab === 0) {
-      return html`<cro-account-tokens-widget></cro-account-tokens-widget>`
+      return html`<cross-w3m-account-tokens-widget></cross-w3m-account-tokens-widget>`
     }
     if (this.currentTab === 1) {
-      return html`<cro-account-nfts-widget></cro-account-nfts-widget>`
+      return html`<cross-w3m-account-nfts-widget></cross-w3m-account-nfts-widget>`
     }
     if (this.currentTab === 2) {
-      return html`<cro-account-activity-widget></cro-account-activity-widget>`
+      return html`<cross-w3m-account-activity-widget></cross-w3m-account-activity-widget>`
     }
 
-    return html`<cro-account-tokens-widget></cro-account-tokens-widget>`
+    return html`<cross-w3m-account-tokens-widget></cross-w3m-account-tokens-widget>`
   }
 
   private tokenBalanceTemplate() {
@@ -331,6 +331,6 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-account-wallet-features-widget': W3mAccountWalletFeaturesWidget
+    'cross-w3m-account-wallet-features-widget': W3mAccountWalletFeaturesWidget
   }
 }

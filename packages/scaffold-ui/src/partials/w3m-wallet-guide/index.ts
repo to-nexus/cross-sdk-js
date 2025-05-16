@@ -7,7 +7,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-wallet-guide')
+@customElement('cross-w3m-wallet-guide')
 export class W3mWalletGuide extends LitElement {
   public static override styles = styles
 
@@ -25,7 +25,7 @@ export class W3mWalletGuide extends LitElement {
           alignItems="center"
           justifyContent="center"
           rowGap="xs"
-          data-testid="cro-wallet-guide-explore"
+          data-testid="cross-w3m-wallet-guide-explore"
         >
           <wui-text variant="small-400" color="fg-200" align="center">
             Looking for a self-custody wallet?
@@ -51,7 +51,7 @@ export class W3mWalletGuide extends LitElement {
             >Haven't got a wallet?</wui-text
           >
           <wui-link
-            data-testid="cro-wallet-guide-get-started"
+            data-testid="cross-w3m-wallet-guide-get-started"
             color="blue-100"
             class="get-started-link"
             @click=${this.onGetStarted}
@@ -70,6 +70,6 @@ export class W3mWalletGuide extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-wallet-guide': W3mWalletGuide
+    'cross-w3m-wallet-guide': W3mWalletGuide
   }
 }

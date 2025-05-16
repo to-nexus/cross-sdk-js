@@ -5,7 +5,7 @@ import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('cro-siwx-sign-message-thumbnails')
+@customElement('cross-w3m-siwx-sign-message-thumbnails')
 export class W3mSIWXSignMessageThumbnails extends LitElement {
   public static override styles = styles
 
@@ -49,6 +49,6 @@ export class W3mSIWXSignMessageThumbnails extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-siwx-sign-message-thumbnails': W3mSIWXSignMessageThumbnails
+    'cross-w3m-siwx-sign-message-thumbnails': W3mSIWXSignMessageThumbnails
   }
 }

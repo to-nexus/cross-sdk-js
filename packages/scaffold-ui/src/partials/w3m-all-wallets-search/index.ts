@@ -81,11 +81,11 @@ export class W3mAllWalletsSearch extends LitElement {
       >
         ${wallets.map(
           wallet => html`
-            <cro-all-wallets-list-item
+            <cross-w3m-all-wallets-list-item
               @click=${() => this.onConnectWallet(wallet)}
               .wallet=${wallet}
               data-testid="wallet-search-item-${wallet.id}"
-            ></cro-all-wallets-list-item>
+            ></cross-w3m-all-wallets-list-item>
           `
         )}
       </wui-grid>

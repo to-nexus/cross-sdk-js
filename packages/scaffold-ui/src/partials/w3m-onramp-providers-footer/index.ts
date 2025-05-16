@@ -11,7 +11,7 @@ import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('cro-onramp-providers-footer')
+@customElement('cross-w3m-onramp-providers-footer')
 export class W3mOnRampProvidersFooter extends LitElement {
   public static override styles = [styles]
 
@@ -65,6 +65,6 @@ export class W3mOnRampProvidersFooter extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-onramp-providers-footer': W3mOnRampProvidersFooter
+    'cross-w3m-onramp-providers-footer': W3mOnRampProvidersFooter
   }
 }

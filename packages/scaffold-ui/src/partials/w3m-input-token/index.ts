@@ -8,7 +8,7 @@ import { property } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-input-token')
+@customElement('cross-w3m-input-token')
 export class W3mInputToken extends LitElement {
   public static override styles = styles
 
@@ -142,6 +142,6 @@ export class W3mInputToken extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-input-token': W3mInputToken
+    'cross-w3m-input-token': W3mInputToken
   }
 }

@@ -18,7 +18,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-swap-view')
+@customElement('cross-w3m-swap-view')
 export class W3mSwapView extends LitElement {
   public static override styles = styles
 
@@ -172,8 +172,8 @@ export class W3mSwapView extends LitElement {
     return html`
       <wui-flex flexDirection="column" gap="l">
         <wui-flex flexDirection="column" alignItems="center" gap="xs" class="swap-inputs-container">
-          <cro-swap-input-skeleton target="sourceToken"></cro-swap-input-skeleton>
-          <cro-swap-input-skeleton target="toToken"></cro-swap-input-skeleton>
+          <cross-w3m-swap-input-skeleton target="sourceToken"></cross-w3m-swap-input-skeleton>
+          <cross-w3m-swap-input-skeleton target="toToken"></cross-w3m-swap-input-skeleton>
           ${this.templateReplaceTokensButton()}
         </wui-flex>
         ${this.templateActionButton()}
@@ -189,7 +189,7 @@ export class W3mSwapView extends LitElement {
     const price = target === 'toToken' ? this.toTokenPriceInUSD : this.sourceTokenPriceInUSD
     const marketValue = NumberUtil.parseLocalStringToNumber(amount) * price
 
-    return html`<cro-swap-input
+    return html`<cross-w3m-swap-input
       .value=${target === 'toToken' ? this.toTokenAmount : this.sourceTokenAmount}
       .disabled=${target === 'toToken'}
       .onSetAmount=${this.handleChangeAmount.bind(this)}
@@ -199,7 +199,7 @@ export class W3mSwapView extends LitElement {
       .price=${myToken?.price}
       .marketValue=${marketValue}
       .onSetMaxValue=${this.onSetMaxValue.bind(this)}
-    ></cro-swap-input>`
+    ></cross-w3m-swap-input>`
   }
 
   private onSetMaxValue(target: SwapInputTarget, balance: string | undefined) {
@@ -236,7 +236,7 @@ export class W3mSwapView extends LitElement {
       return null
     }
 
-    return html`<cro-swap-details .detailsOpen=${this.detailsOpen}></cro-swap-details>`
+    return html`<cross-w3m-swap-details .detailsOpen=${this.detailsOpen}></cross-w3m-swap-details>`
   }
 
   private handleChangeAmount(target: SwapInputTarget, value: string) {
@@ -306,6 +306,6 @@ export class W3mSwapView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-swap-view': W3mSwapView
+    'cross-w3m-swap-view': W3mSwapView
   }
 }

@@ -23,7 +23,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-account-default-widget')
+@customElement('cross-w3m-account-default-widget')
 export class W3mAccountDefaultWidget extends LitElement {
   public static override styles = styles
 
@@ -113,7 +113,7 @@ export class W3mAccountDefaultWidget extends LitElement {
       </wui-flex>
 
       <wui-flex flexDirection="column" gap="xs" .padding=${['0', 's', 's', 's'] as const}>
-        ${this.authCardTemplate()} <cro-account-auth-button></cro-account-auth-button>
+        ${this.authCardTemplate()} <cross-w3m-account-auth-button></cross-w3m-account-auth-button>
         ${this.orderedFeaturesTemplate()} ${this.activityTemplate()}
         <wui-list-item
           variant="icon"
@@ -146,7 +146,7 @@ export class W3mAccountDefaultWidget extends LitElement {
 
     return html`
       <wui-list-item
-        data-testid="cro-account-default-onramp-button"
+        data-testid="cross-w3m-account-default-onramp-button"
         iconVariant="blue"
         icon="card"
         ?chevron=${true}
@@ -265,7 +265,7 @@ export class W3mAccountDefaultWidget extends LitElement {
         label="Upgrade your wallet"
         description="Transition to a self-custodial wallet"
         icon="wallet"
-        data-testid="cro-wallet-upgrade-card"
+        data-testid="cross-w3m-wallet-upgrade-card"
       ></wui-notice-card>
     `
   }
@@ -339,7 +339,7 @@ export class W3mAccountDefaultWidget extends LitElement {
 
   private multiAccountTemplate() {
     if (!this.address) {
-      throw new Error('cro-account-view: No account provided')
+      throw new Error('cross-w3m-account-view: No account provided')
     }
 
     const account = this.allAccounts.find(acc => acc.address === this.address)
@@ -451,6 +451,6 @@ export class W3mAccountDefaultWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-account-default-widget': W3mAccountDefaultWidget
+    'cross-w3m-account-default-widget': W3mAccountDefaultWidget
   }
 }

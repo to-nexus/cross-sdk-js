@@ -7,7 +7,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-onramp-provider-item')
+@customElement('cross-w3m-onramp-provider-item')
 export class W3mOnRampProviderItem extends LitElement {
   public static override styles = [styles]
 
@@ -75,6 +75,6 @@ export class W3mOnRampProviderItem extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-onramp-provider-item': W3mOnRampProviderItem
+    'cross-w3m-onramp-provider-item': W3mOnRampProviderItem
   }
 }

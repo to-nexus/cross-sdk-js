@@ -8,7 +8,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
 
-@customElement('cro-connect-featured-widget')
+@customElement('cross-w3m-connect-featured-widget')
 export class W3mConnectFeaturedWidget extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -57,6 +57,6 @@ export class W3mConnectFeaturedWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connect-featured-widget': W3mConnectFeaturedWidget
+    'cross-w3m-connect-featured-widget': W3mConnectFeaturedWidget
   }
 }

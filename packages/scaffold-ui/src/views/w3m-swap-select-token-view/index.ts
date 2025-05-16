@@ -6,7 +6,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-swap-select-token-view')
+@customElement('cross-w3m-swap-select-token-view')
 export class W3mSwapSelectTokenView extends LitElement {
   public static override styles = styles
 
@@ -256,6 +256,6 @@ export class W3mSwapSelectTokenView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-swap-select-token-view': W3mSwapSelectTokenView
+    'cross-w3m-swap-select-token-view': W3mSwapSelectTokenView
   }
 }

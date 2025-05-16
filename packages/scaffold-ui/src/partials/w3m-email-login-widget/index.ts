@@ -16,7 +16,7 @@ import type { Ref } from 'lit/directives/ref.js'
 
 import styles from './styles.js'
 
-@customElement('cro-email-login-widget')
+@customElement('cross-w3m-email-login-widget')
 export class W3mEmailLoginWidget extends LitElement {
   public static override styles = styles
 
@@ -129,7 +129,7 @@ export class W3mEmailLoginWidget extends LitElement {
       const authConnector = ConnectorController.getAuthConnector()
 
       if (!authConnector) {
-        throw new Error('cro-email-login-widget: Auth connector not found')
+        throw new Error('cross-w3m-email-login-widget: Auth connector not found')
       }
       const { action } = await authConnector.provider.connectEmail({ email: this.email })
       EventsController.sendEvent({ type: 'track', event: 'EMAIL_SUBMITTED' })
@@ -166,6 +166,6 @@ export class W3mEmailLoginWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-email-login-widget': W3mEmailLoginWidget
+    'cross-w3m-email-login-widget': W3mEmailLoginWidget
   }
 }

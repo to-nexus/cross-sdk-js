@@ -13,7 +13,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-onramp-fiat-select-view')
+@customElement('cross-w3m-onramp-fiat-select-view')
 export class W3mOnrampFiatSelectView extends LitElement {
   public static override styles = styles
 
@@ -55,7 +55,9 @@ export class W3mOnrampFiatSelectView extends LitElement {
     const disabled = showLegalCheckbox && !this.checked
 
     return html`
-      <cro-legal-checkbox @checkboxChange=${this.onCheckboxChange.bind(this)}></cro-legal-checkbox>
+      <cross-w3m-legal-checkbox
+        @checkboxChange=${this.onCheckboxChange.bind(this)}
+      ></cross-w3m-legal-checkbox>
       <wui-flex
         flexDirection="column"
         .padding=${['0', 's', 's', 's']}
@@ -64,7 +66,7 @@ export class W3mOnrampFiatSelectView extends LitElement {
       >
         ${this.currenciesTemplate(disabled)}
       </wui-flex>
-      <cro-legal-footer></cro-legal-footer>
+      <cross-w3m-legal-footer></cross-w3m-legal-footer>
     `
   }
 
@@ -101,6 +103,6 @@ export class W3mOnrampFiatSelectView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-onramp-fiat-select-view': W3mOnrampFiatSelectView
+    'cross-w3m-onramp-fiat-select-view': W3mOnrampFiatSelectView
   }
 }

@@ -6,7 +6,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 const EXPLORER = 'https://walletconnect.com/explorer'
 
-@customElement('cro-get-wallet-view')
+@customElement('cross-w3m-get-wallet-view')
 export class W3mGetWalletView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -49,6 +49,6 @@ export class W3mGetWalletView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-get-wallet-view': W3mGetWalletView
+    'cross-w3m-get-wallet-view': W3mGetWalletView
   }
 }

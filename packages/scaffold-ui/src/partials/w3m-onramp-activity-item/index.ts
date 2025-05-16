@@ -6,7 +6,7 @@ import { property } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-onramp-activity-item')
+@customElement('cross-w3m-onramp-activity-item')
 export class W3mOnRampActivityItem extends LitElement {
   public static override styles = [styles]
 
@@ -108,6 +108,6 @@ export class W3mOnRampActivityItem extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-onramp-activity-item': W3mOnRampActivityItem
+    'cross-w3m-onramp-activity-item': W3mOnRampActivityItem
   }
 }

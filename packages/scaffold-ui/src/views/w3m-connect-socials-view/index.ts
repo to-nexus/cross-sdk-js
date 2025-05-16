@@ -7,7 +7,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-connect-socials-view')
+@customElement('cross-w3m-connect-socials-view')
 export class W3mConnectSocialsView extends LitElement {
   public static override styles = styles
 
@@ -27,16 +27,18 @@ export class W3mConnectSocialsView extends LitElement {
     const tabIndex = disabled ? -1 : undefined
 
     return html`
-      <cro-legal-checkbox @checkboxChange=${this.onCheckboxChange.bind(this)}></cro-legal-checkbox>
+      <cross-w3m-legal-checkbox
+        @checkboxChange=${this.onCheckboxChange.bind(this)}
+      ></cross-w3m-legal-checkbox>
       <wui-flex
         flexDirection="column"
         .padding=${showLegalCheckbox ? ['0', 's', 's', 's'] : 's'}
         gap="xs"
         class=${ifDefined(disabled ? 'disabled' : undefined)}
       >
-        <cro-social-login-list tabIdx=${ifDefined(tabIndex)}></cro-social-login-list>
+        <cross-w3m-social-login-list tabIdx=${ifDefined(tabIndex)}></cross-w3m-social-login-list>
       </wui-flex>
-      <cro-legal-footer></cro-legal-footer>
+      <cross-w3m-legal-footer></cross-w3m-legal-footer>
     `
   }
 
@@ -48,6 +50,6 @@ export class W3mConnectSocialsView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connect-socials-view': W3mConnectSocialsView
+    'cross-w3m-connect-socials-view': W3mConnectSocialsView
   }
 }

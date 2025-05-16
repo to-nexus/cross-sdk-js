@@ -7,7 +7,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-@customElement('cro-connect-external-widget')
+@customElement('cross-w3m-connect-external-widget')
 export class W3mConnectExternalWidget extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -68,6 +68,6 @@ export class W3mConnectExternalWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connect-external-widget': W3mConnectExternalWidget
+    'cross-w3m-connect-external-widget': W3mConnectExternalWidget
   }
 }

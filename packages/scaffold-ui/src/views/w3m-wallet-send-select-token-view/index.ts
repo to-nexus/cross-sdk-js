@@ -12,7 +12,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-wallet-send-select-token-view')
+@customElement('cross-w3m-wallet-send-select-token-view')
 export class W3mSendSelectTokenView extends LitElement {
   public static override styles = styles
 
@@ -158,6 +158,6 @@ export class W3mSendSelectTokenView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-wallet-send-select-token-view': W3mSendSelectTokenView
+    'cross-w3m-wallet-send-select-token-view': W3mSendSelectTokenView
   }
 }

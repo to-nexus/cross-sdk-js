@@ -156,7 +156,7 @@ export class W3mConnectingWidget extends LitElement {
                   size="md"
                   ?disabled=${this.isRetrying || (!this.error && this.buffering)}
                   @click=${this.onTryAgain.bind(this)}
-                  data-testid="cro-connecting-widget-secondary-button"
+                  data-testid="cross-w3m-connecting-widget-secondary-button"
                 >
                   <wui-icon
                     color="inherit"
@@ -183,7 +183,7 @@ export class W3mConnectingWidget extends LitElement {
           : null
       }
 
-      <cro-mobile-download-links .wallet=${this.wallet}></w3m-mobile-download-links>
+      <cross-w3m-mobile-download-links .wallet=${this.wallet}></w3m-mobile-download-links>
     `
   }
 

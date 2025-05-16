@@ -19,7 +19,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-social-login-list')
+@customElement('cross-w3m-social-login-list')
 export class W3mSocialLoginList extends LitElement {
   public static override styles = styles
 
@@ -142,6 +142,6 @@ export class W3mSocialLoginList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-social-login-list': W3mSocialLoginList
+    'cross-w3m-social-login-list': W3mSocialLoginList
   }
 }

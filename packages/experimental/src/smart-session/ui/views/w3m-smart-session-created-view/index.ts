@@ -6,7 +6,7 @@ import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('cro-smart-session-created-view')
+@customElement('cross-w3m-smart-session-created-view')
 export class W3mSmartSessionCreatedView extends LitElement {
   public static override styles = styles
 
@@ -79,6 +79,6 @@ export class W3mSmartSessionCreatedView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-smart-session-created-view': W3mSmartSessionCreatedView
+    'cross-w3m-smart-session-created-view': W3mSmartSessionCreatedView
   }
 }

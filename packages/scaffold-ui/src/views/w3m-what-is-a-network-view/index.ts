@@ -16,7 +16,7 @@ const data = [
   }
 ] as const
 
-@customElement('cro-what-is-a-network-view')
+@customElement('cross-w3m-what-is-a-network-view')
 export class W3mWhatIsANetworkView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -27,7 +27,7 @@ export class W3mWhatIsANetworkView extends LitElement {
         alignItems="center"
         gap="xl"
       >
-        <cro-help-widget .data=${data}></cro-help-widget>
+        <cross-w3m-help-widget .data=${data}></cross-w3m-help-widget>
         <wui-button
           variant="main"
           size="md"
@@ -45,6 +45,6 @@ export class W3mWhatIsANetworkView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-what-is-a-network-view': W3mWhatIsANetworkView
+    'cross-w3m-what-is-a-network-view': W3mWhatIsANetworkView
   }
 }

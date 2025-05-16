@@ -28,7 +28,7 @@ import styles from './styles.js'
 const MAX_TOP_VIEW = 2
 const MAXIMUM_LENGTH = 6
 
-@customElement('cro-social-login-widget')
+@customElement('cross-w3m-social-login-widget')
 export class W3mSocialLoginWidget extends LitElement {
   public static override styles = styles
 
@@ -70,7 +70,7 @@ export class W3mSocialLoginWidget extends LitElement {
         class="container"
         flexDirection="column"
         gap="xs"
-        data-testid="cro-social-login-widget"
+        data-testid="cross-w3m-social-login-widget"
       >
         ${this.topViewTemplate()}${this.bottomViewTemplate()}
       </wui-flex>
@@ -282,6 +282,6 @@ export class W3mSocialLoginWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-social-login-widget': W3mSocialLoginWidget
+    'cross-w3m-social-login-widget': W3mSocialLoginWidget
   }
 }

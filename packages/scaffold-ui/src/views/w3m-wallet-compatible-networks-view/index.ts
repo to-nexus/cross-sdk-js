@@ -13,7 +13,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-wallet-compatible-networks-view')
+@customElement('cross-w3m-wallet-compatible-networks-view')
 export class W3mWalletCompatibleNetworksView extends LitElement {
   public static override styles = styles
 
@@ -89,6 +89,6 @@ export class W3mWalletCompatibleNetworksView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-wallet-compatible-networks-view': W3mWalletCompatibleNetworksView
+    'cross-w3m-wallet-compatible-networks-view': W3mWalletCompatibleNetworksView
   }
 }

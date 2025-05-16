@@ -14,7 +14,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-network-switch-view')
+@customElement('cross-w3m-network-switch-view')
 export class W3mNetworkSwitchView extends LitElement {
   public static override styles = styles
 
@@ -43,7 +43,7 @@ export class W3mNetworkSwitchView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.network) {
-      throw new Error('cro-network-switch-view: No network provided')
+      throw new Error('cross-w3m-network-switch-view: No network provided')
     }
 
     this.onShowRetry()
@@ -146,6 +146,6 @@ export class W3mNetworkSwitchView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-network-switch-view': W3mNetworkSwitchView
+    'cross-w3m-network-switch-view': W3mNetworkSwitchView
   }
 }

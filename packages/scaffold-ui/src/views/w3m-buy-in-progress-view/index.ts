@@ -16,7 +16,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-buy-in-progress-view')
+@customElement('cross-w3m-buy-in-progress-view')
 export class W3mBuyInProgressView extends LitElement {
   public static override styles = styles
 
@@ -228,6 +228,6 @@ export class W3mBuyInProgressView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-buy-in-progress-view': W3mBuyInProgressView
+    'cross-w3m-buy-in-progress-view': W3mBuyInProgressView
   }
 }

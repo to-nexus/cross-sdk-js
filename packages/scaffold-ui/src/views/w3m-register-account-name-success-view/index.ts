@@ -6,7 +6,7 @@ import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('cro-register-account-name-success-view')
+@customElement('cross-w3m-register-account-name-success-view')
 export class W3mRegisterAccountNameSuccess extends LitElement {
   public static override styles = styles
 
@@ -79,6 +79,6 @@ export class W3mRegisterAccountNameSuccess extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-register-account-name-success-view': W3mRegisterAccountNameSuccess
+    'cross-w3m-register-account-name-success-view': W3mRegisterAccountNameSuccess
   }
 }

@@ -3,12 +3,12 @@ import { customElement } from '@to-nexus/appkit-ui'
 
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
 
-@customElement('cro-connecting-wc-web')
+@customElement('cross-w3m-connecting-wc-web')
 export class W3mConnectingWcWeb extends W3mConnectingWidget {
   public constructor() {
     super()
     if (!this.wallet) {
-      throw new Error('cro-connecting-wc-web: No wallet provided')
+      throw new Error('cross-w3m-connecting-wc-web: No wallet provided')
     }
     this.onConnect = this.onConnectProxy.bind(this)
     this.secondaryBtnLabel = 'Open'
@@ -40,6 +40,6 @@ export class W3mConnectingWcWeb extends W3mConnectingWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-wc-web': W3mConnectingWcWeb
+    'cross-w3m-connecting-wc-web': W3mConnectingWcWeb
   }
 }

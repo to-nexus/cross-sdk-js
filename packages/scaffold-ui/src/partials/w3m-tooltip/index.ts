@@ -6,7 +6,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-tooltip')
+@customElement('cross-w3m-tooltip')
 export class W3mTooltip extends LitElement {
   public static override styles = [styles]
 
@@ -65,6 +65,6 @@ export class W3mTooltip extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-tooltip': W3mTooltip
+    'cross-w3m-tooltip': W3mTooltip
   }
 }

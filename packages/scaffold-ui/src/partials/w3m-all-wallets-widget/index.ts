@@ -12,7 +12,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-@customElement('cro-all-wallets-widget')
+@customElement('cross-w3m-all-wallets-widget')
 export class W3mAllWalletsWidget extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -75,6 +75,6 @@ export class W3mAllWalletsWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-all-wallets-widget': W3mAllWalletsWidget
+    'cross-w3m-all-wallets-widget': W3mAllWalletsWidget
   }
 }

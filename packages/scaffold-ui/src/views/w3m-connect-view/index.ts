@@ -25,7 +25,7 @@ import styles from './styles.js'
 // -- Constants ----------------------------------------- //
 const SCROLL_THRESHOLD = 470
 
-@customElement('cro-connect-view')
+@customElement('cross-w3m-connect-view')
 export class W3mConnectView extends LitElement {
   public static override styles = styles
 
@@ -124,7 +124,7 @@ export class W3mConnectView extends LitElement {
       <wui-flex flexDirection="column">
         ${this.legalCheckboxTemplate()}
         <wui-flex
-          data-testid="cro-connect-scroll-view"
+          data-testid="cross-w3m-connect-scroll-view"
           flexDirection="column"
           class=${classMap(classes)}
         >
@@ -142,11 +142,11 @@ export class W3mConnectView extends LitElement {
             ${this.renderConnectMethod(tabIndex)}
           </wui-flex>
         </wui-flex>
-        <cro-legal-footer></cro-legal-footer>
+        <cross-w3m-legal-footer></cross-w3m-legal-footer>
       </wui-flex>
     `
 
-    // hide guideTemplate before <cro-legal-footer />
+    // hide guideTemplate before <cross-w3m-legal-footer />
     // ${this.guideTemplate(isDisabled)}
   }
 
@@ -236,7 +236,7 @@ export class W3mConnectView extends LitElement {
 
         return this.isAuthEnabled && this.isEmailEnabled && !isNextMethodSocial && nextEnabledMethod
           ? html`<wui-separator
-              data-testid="cro-email-login-or-separator"
+              data-testid="cross-w3m-email-login-or-separator"
               text="or"
             ></wui-separator>`
           : null
@@ -258,10 +258,10 @@ export class W3mConnectView extends LitElement {
       return null
     }
 
-    return html`<cro-email-login-widget
+    return html`<cross-w3m-email-login-widget
       walletGuide=${this.walletGuide}
       tabIdx=${ifDefined(tabIndex)}
-    ></cro-email-login-widget>`
+    ></cross-w3m-email-login-widget>`
   }
 
   private socialListTemplate(tabIndex?: number) {
@@ -269,10 +269,10 @@ export class W3mConnectView extends LitElement {
       return null
     }
 
-    return html`<cro-social-login-widget
+    return html`<cross-w3m-social-login-widget
       walletGuide=${this.walletGuide}
       tabIdx=${ifDefined(tabIndex)}
-    ></cro-social-login-widget>`
+    ></cross-w3m-social-login-widget>`
   }
 
   private walletListTemplate(tabIndex?: number) {
@@ -297,14 +297,16 @@ export class W3mConnectView extends LitElement {
 
     if (hasOtherMethods && shouldCollapseWallets) {
       return html`<wui-list-button
-        data-testid="cro-collapse-wallets-button"
+        data-testid="cross-w3m-collapse-wallets-button"
         tabIdx=${ifDefined(tabIndex)}
         @click=${this.onContinueWalletClick.bind(this)}
         text="Continue with a wallet"
       ></wui-list-button>`
     }
 
-    return html`<cro-wallet-login-list tabIdx=${ifDefined(tabIndex)}></cro-wallet-login-list>`
+    return html`<cross-w3m-wallet-login-list
+      tabIdx=${ifDefined(tabIndex)}
+    ></cross-w3m-wallet-login-list>`
   }
 
   private guideTemplate(disabled = false) {
@@ -330,10 +332,10 @@ export class W3mConnectView extends LitElement {
         ? html`<wui-separator data-testid="wui-separator" id="explore" text="or"></wui-separator>`
         : null}
       <wui-flex flexDirection="column" .padding=${['s', '0', 'xl', '0']} class=${classMap(classes)}>
-        <cro-wallet-guide
+        <cross-w3m-wallet-guide
           tabIdx=${ifDefined(tabIndex)}
           walletGuide=${this.walletGuide}
-        ></cro-wallet-guide>
+        ></cross-w3m-wallet-guide>
       </wui-flex>
     `
   }
@@ -343,10 +345,10 @@ export class W3mConnectView extends LitElement {
       return null
     }
 
-    return html`<cro-legal-checkbox
+    return html`<cross-w3m-legal-checkbox
       @checkboxChange=${this.onCheckboxChange.bind(this)}
-      data-testid="cro-legal-checkbox"
-    ></cro-legal-checkbox>`
+      data-testid="cross-w3m-legal-checkbox"
+    ></cross-w3m-legal-checkbox>`
   }
 
   private handleConnectListScroll() {
@@ -403,6 +405,6 @@ export class W3mConnectView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connect-view': W3mConnectView
+    'cross-w3m-connect-view': W3mConnectView
   }
 }

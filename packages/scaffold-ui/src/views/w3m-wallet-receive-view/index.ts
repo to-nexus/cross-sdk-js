@@ -16,7 +16,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-wallet-receive-view')
+@customElement('cross-w3m-wallet-receive-view')
 export class W3mWalletReceiveView extends LitElement {
   public static override styles = styles
 
@@ -61,7 +61,7 @@ export class W3mWalletReceiveView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.address) {
-      throw new Error('cro-wallet-receive-view: No account provided')
+      throw new Error('cross-w3m-wallet-receive-view: No account provided')
     }
 
     const networkImage = AssetUtil.getNetworkImage(this.network)
@@ -157,6 +157,6 @@ export class W3mWalletReceiveView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-wallet-receive-view': W3mWalletReceiveView
+    'cross-w3m-wallet-receive-view': W3mWalletReceiveView
   }
 }

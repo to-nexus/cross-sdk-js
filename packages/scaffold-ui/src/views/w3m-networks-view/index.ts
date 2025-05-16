@@ -18,7 +18,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-networks-view')
+@customElement('cross-w3m-networks-view')
 export class W3mNetworksView extends LitElement {
   public static override styles = styles
   // -- Members ------------------------------------------- //
@@ -204,6 +204,6 @@ export class W3mNetworksView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-networks-view': W3mNetworksView
+    'cross-w3m-networks-view': W3mNetworksView
   }
 }

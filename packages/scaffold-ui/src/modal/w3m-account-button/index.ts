@@ -120,7 +120,7 @@ class W3mAccountButtonBase extends LitElement {
   }
 }
 
-@customElement('cro-account-button')
+@customElement('cross-w3m-account-button')
 export class W3mAccountButton extends W3mAccountButtonBase {}
 
 @customElement('appkit-account-button')
@@ -128,7 +128,7 @@ export class AppKitAccountButton extends W3mAccountButtonBase {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-account-button': W3mAccountButton
+    'cross-w3m-account-button': W3mAccountButton
     'appkit-account-button': AppKitAccountButton
   }
 }

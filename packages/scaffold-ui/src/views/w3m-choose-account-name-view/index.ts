@@ -13,7 +13,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-choose-account-name-view')
+@customElement('cross-w3m-choose-account-name-view')
 export class W3mChooseAccountNameView extends LitElement {
   public static override styles = styles
 
@@ -104,6 +104,6 @@ export class W3mChooseAccountNameView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-choose-account-name-view': W3mChooseAccountNameView
+    'cross-w3m-choose-account-name-view': W3mChooseAccountNameView
   }
 }

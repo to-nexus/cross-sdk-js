@@ -5,7 +5,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 
-@customElement('cro-connecting-header')
+@customElement('cross-w3m-connecting-header')
 export class W3mConnectingHeader extends LitElement {
   // -- Members ------------------------------------------- //
   private platformTabs: Platform[] = []
@@ -78,6 +78,6 @@ export class W3mConnectingHeader extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-header': W3mConnectingHeader
+    'cross-w3m-connecting-header': W3mConnectingHeader
   }
 }

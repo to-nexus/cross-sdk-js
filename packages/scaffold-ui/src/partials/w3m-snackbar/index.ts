@@ -21,7 +21,7 @@ const presets = {
   }
 } as const
 
-@customElement('cro-snackbar')
+@customElement('cross-w3m-snackbar')
 export class W3mSnackBar extends LitElement {
   public static override styles = styles
 
@@ -107,6 +107,6 @@ export class W3mSnackBar extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-snackbar': W3mSnackBar
+    'cross-w3m-snackbar': W3mSnackBar
   }
 }

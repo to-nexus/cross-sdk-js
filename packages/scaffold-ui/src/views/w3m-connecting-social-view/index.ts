@@ -21,7 +21,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 import { ConstantsUtil } from '../../utils/ConstantsUtil.js'
 import styles from './styles.js'
 
-@customElement('cro-connecting-social-view')
+@customElement('cross-w3m-connecting-social-view')
 export class W3mConnectingSocialView extends LitElement {
   public static override styles = styles
 
@@ -209,6 +209,6 @@ export class W3mConnectingSocialView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-social-view': W3mConnectingSocialView
+    'cross-w3m-connecting-social-view': W3mConnectingSocialView
   }
 }

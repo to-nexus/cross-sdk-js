@@ -16,7 +16,7 @@ import { state } from 'lit/decorators.js'
 
 import { SIWEController } from '../../../core/controller/SIWEController.js'
 
-@customElement('cro-connecting-siwe-view')
+@customElement('cross-w3m-connecting-siwe-view')
 export class W3mConnectingSiweView extends LitElement {
   // -- Members ------------------------------------------- //
   private readonly dappName = OptionsController.state.metadata?.name
@@ -29,7 +29,7 @@ export class W3mConnectingSiweView extends LitElement {
   public override render() {
     return html`
       <wui-flex justifyContent="center" .padding=${['2xl', '0', 'xxl', '0'] as const}>
-        <cro-connecting-siwe></cro-connecting-siwe>
+        <cross-w3m-connecting-siwe></cross-w3m-connecting-siwe>
       </wui-flex>
       <wui-flex
         .padding=${['0', '4xl', 'l', '4xl'] as const}
@@ -58,7 +58,7 @@ export class W3mConnectingSiweView extends LitElement {
           variant="neutral"
           ?loading=${this.isCancelling}
           @click=${this.onCancel.bind(this)}
-          data-testid="cro-connecting-siwe-cancel"
+          data-testid="cross-w3m-connecting-siwe-cancel"
         >
           Cancel
         </wui-button>
@@ -69,7 +69,7 @@ export class W3mConnectingSiweView extends LitElement {
           variant="main"
           @click=${this.onSign.bind(this)}
           ?loading=${this.isSigning}
-          data-testid="cro-connecting-siwe-sign"
+          data-testid="cross-w3m-connecting-siwe-sign"
         >
           ${this.isSigning ? 'Signing...' : 'Sign'}
         </wui-button>
@@ -154,6 +154,6 @@ export class W3mConnectingSiweView extends LitElement {
 }
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-siwe-view': W3mConnectingSiweView
+    'cross-w3m-connecting-siwe-view': W3mConnectingSiweView
   }
 }

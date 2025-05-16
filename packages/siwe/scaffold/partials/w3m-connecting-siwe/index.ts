@@ -5,7 +5,7 @@ import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('cro-connecting-siwe')
+@customElement('cross-w3m-connecting-siwe')
 export class W3mConnectingSiwe extends LitElement {
   public static override styles = styles
 
@@ -49,6 +49,6 @@ export class W3mConnectingSiwe extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-siwe': W3mConnectingSiwe
+    'cross-w3m-connecting-siwe': W3mConnectingSiwe
   }
 }

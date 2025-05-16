@@ -10,7 +10,7 @@ import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-@customElement('cro-all-wallets-view')
+@customElement('cross-w3m-all-wallets-view')
 export class W3mAllWalletsView extends LitElement {
   // -- State & Properties -------------------------------- //
   @state() private search = ''
@@ -36,7 +36,9 @@ export class W3mAllWalletsView extends LitElement {
             query=${this.search}
             badge=${ifDefined(this.badge)}
           ></w3m-all-wallets-search>`
-        : html`<cro-all-wallets-list badge=${ifDefined(this.badge)}></cro-all-wallets-list>`}
+        : html`<cross-w3m-all-wallets-list
+            badge=${ifDefined(this.badge)}
+          ></cross-w3m-all-wallets-list>`}
     `
   }
 
@@ -90,6 +92,6 @@ export class W3mAllWalletsView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-all-wallets-view': W3mAllWalletsView
+    'cross-w3m-all-wallets-view': W3mAllWalletsView
   }
 }

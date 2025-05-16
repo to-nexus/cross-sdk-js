@@ -7,7 +7,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-connect-wallets-view')
+@customElement('cross-w3m-connect-wallets-view')
 export class W3mConnectWalletsView extends LitElement {
   public static override styles = styles
 
@@ -27,16 +27,18 @@ export class W3mConnectWalletsView extends LitElement {
     const tabIndex = disabled ? -1 : undefined
 
     return html`
-      <cro-legal-checkbox @checkboxChange=${this.onCheckboxChange.bind(this)}></cro-legal-checkbox>
+      <cross-w3m-legal-checkbox
+        @checkboxChange=${this.onCheckboxChange.bind(this)}
+      ></cross-w3m-legal-checkbox>
       <wui-flex
         flexDirection="column"
         .padding=${showLegalCheckbox ? ['0', 's', 's', 's'] : 's'}
         gap="xs"
         class=${ifDefined(disabled ? 'disabled' : undefined)}
       >
-        <cro-wallet-login-list tabIdx=${ifDefined(tabIndex)}></cro-wallet-login-list>
+        <cross-w3m-wallet-login-list tabIdx=${ifDefined(tabIndex)}></cross-w3m-wallet-login-list>
       </wui-flex>
-      <cro-legal-footer></cro-legal-footer>
+      <cross-w3m-legal-footer></cross-w3m-legal-footer>
     `
   }
 
@@ -48,6 +50,6 @@ export class W3mConnectWalletsView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connect-wallets-view': W3mConnectWalletsView
+    'cross-w3m-connect-wallets-view': W3mConnectWalletsView
   }
 }

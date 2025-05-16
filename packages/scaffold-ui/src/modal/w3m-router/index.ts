@@ -8,7 +8,7 @@ import { state } from 'lit/decorators.js'
 import { ConstantsUtil } from '../../utils/ConstantsUtil.js'
 import styles from './styles.js'
 
-@customElement('cro-router')
+@customElement('cross-w3m-router')
 export class W3mRouter extends LitElement {
   public static override styles = styles
 
@@ -64,111 +64,111 @@ export class W3mRouter extends LitElement {
   private viewTemplate() {
     switch (this.view) {
       case 'AccountSettings':
-        return html`<cro-account-settings-view></cro-account-settings-view>`
+        return html`<cross-w3m-account-settings-view></cross-w3m-account-settings-view>`
       case 'Account':
-        return html`<cro-account-view></cro-account-view>`
+        return html`<cross-w3m-account-view></cross-w3m-account-view>`
       case 'AllWallets':
-        return html`<cro-all-wallets-view></cro-all-wallets-view>`
+        return html`<cross-w3m-all-wallets-view></cross-w3m-all-wallets-view>`
       case 'ApproveTransaction':
-        return html`<cro-approve-transaction-view></cro-approve-transaction-view>`
+        return html`<cross-w3m-approve-transaction-view></cross-w3m-approve-transaction-view>`
       case 'BuyInProgress':
-        return html`<cro-buy-in-progress-view></cro-buy-in-progress-view>`
+        return html`<cross-w3m-buy-in-progress-view></cross-w3m-buy-in-progress-view>`
       case 'ChooseAccountName':
-        return html`<cro-choose-account-name-view></cro-choose-account-name-view>`
+        return html`<cross-w3m-choose-account-name-view></cross-w3m-choose-account-name-view>`
       case 'Connect':
-        return html`<cro-connect-view></cro-connect-view>`
+        return html`<cross-w3m-connect-view></cross-w3m-connect-view>`
       case 'Create':
-        return html`<cro-connect-view walletGuide="explore"></cro-connect-view>`
+        return html`<cross-w3m-connect-view walletGuide="explore"></cross-w3m-connect-view>`
       case 'ConnectingWalletConnect':
-        return html`<cro-connecting-wc-view></cro-connecting-wc-view>`
+        return html`<cross-w3m-connecting-wc-view></cross-w3m-connecting-wc-view>`
       case 'ConnectingWalletConnectBasic':
-        return html`<cro-connecting-wc-basic-view></cro-connecting-wc-basic-view>`
+        return html`<cross-w3m-connecting-wc-basic-view></cross-w3m-connecting-wc-basic-view>`
       case 'ConnectingExternal':
-        return html`<cro-connecting-external-view></cro-connecting-external-view>`
+        return html`<cross-w3m-connecting-external-view></cross-w3m-connecting-external-view>`
       case 'ConnectingSiwe':
-        return html`<cro-connecting-siwe-view></cro-connecting-siwe-view>`
+        return html`<cross-w3m-connecting-siwe-view></cross-w3m-connecting-siwe-view>`
       case 'ConnectWallets':
-        return html`<cro-connect-wallets-view></cro-connect-wallets-view>`
+        return html`<cross-w3m-connect-wallets-view></cross-w3m-connect-wallets-view>`
       case 'ConnectSocials':
-        return html`<cro-connect-socials-view></cro-connect-socials-view>`
+        return html`<cross-w3m-connect-socials-view></cross-w3m-connect-socials-view>`
       case 'ConnectingSocial':
-        return html`<cro-connecting-social-view></cro-connecting-social-view>`
+        return html`<cross-w3m-connecting-social-view></cross-w3m-connecting-social-view>`
       case 'Downloads':
-        return html`<cro-downloads-view></cro-downloads-view>`
+        return html`<cross-w3m-downloads-view></cross-w3m-downloads-view>`
       case 'EmailVerifyOtp':
-        return html`<cro-email-verify-otp-view></cro-email-verify-otp-view>`
+        return html`<cross-w3m-email-verify-otp-view></cross-w3m-email-verify-otp-view>`
       case 'EmailVerifyDevice':
-        return html`<cro-email-verify-device-view></cro-email-verify-device-view>`
+        return html`<cross-w3m-email-verify-device-view></cross-w3m-email-verify-device-view>`
       case 'GetWallet':
-        return html`<cro-get-wallet-view></cro-get-wallet-view>`
+        return html`<cross-w3m-get-wallet-view></cross-w3m-get-wallet-view>`
       case 'Networks':
-        return html`<cro-networks-view></cro-networks-view>`
+        return html`<cross-w3m-networks-view></cross-w3m-networks-view>`
       case 'SwitchNetwork':
-        return html`<cro-network-switch-view></cro-network-switch-view>`
+        return html`<cross-w3m-network-switch-view></cross-w3m-network-switch-view>`
       case 'Profile':
-        return html`<cro-profile-view></cro-profile-view>`
+        return html`<cross-w3m-profile-view></cross-w3m-profile-view>`
       case 'SwitchAddress':
-        return html`<cro-switch-address-view></cro-switch-address-view>`
+        return html`<cross-w3m-switch-address-view></cross-w3m-switch-address-view>`
       case 'Transactions':
-        return html`<cro-transactions-view></cro-transactions-view>`
+        return html`<cross-w3m-transactions-view></cross-w3m-transactions-view>`
       case 'OnRampProviders':
         return html`<w3m-onramp-providers-view></w3m-onramp-providers-view>`
       case 'OnRampActivity':
-        return html`<cro-onramp-activity-view></cro-onramp-activity-view>`
+        return html`<cross-w3m-onramp-activity-view></cross-w3m-onramp-activity-view>`
       case 'OnRampTokenSelect':
-        return html`<cro-onramp-token-select-view></cro-onramp-token-select-view>`
+        return html`<cross-w3m-onramp-token-select-view></cross-w3m-onramp-token-select-view>`
       case 'OnRampFiatSelect':
-        return html`<cro-onramp-fiat-select-view></cro-onramp-fiat-select-view>`
+        return html`<cross-w3m-onramp-fiat-select-view></cross-w3m-onramp-fiat-select-view>`
       case 'UpgradeEmailWallet':
-        return html`<cro-upgrade-wallet-view></cro-upgrade-wallet-view>`
+        return html`<cross-w3m-upgrade-wallet-view></cross-w3m-upgrade-wallet-view>`
       case 'UpdateEmailWallet':
-        return html`<cro-update-email-wallet-view></cro-update-email-wallet-view>`
+        return html`<cross-w3m-update-email-wallet-view></cross-w3m-update-email-wallet-view>`
       case 'UpdateEmailPrimaryOtp':
-        return html`<cro-update-email-primary-otp-view></cro-update-email-primary-otp-view>`
+        return html`<cross-w3m-update-email-primary-otp-view></cross-w3m-update-email-primary-otp-view>`
       case 'UpdateEmailSecondaryOtp':
-        return html`<cro-update-email-secondary-otp-view></cro-update-email-secondary-otp-view>`
+        return html`<cross-w3m-update-email-secondary-otp-view></cross-w3m-update-email-secondary-otp-view>`
       case 'UnsupportedChain':
-        return html`<cro-unsupported-chain-view></cro-unsupported-chain-view>`
+        return html`<cross-w3m-unsupported-chain-view></cross-w3m-unsupported-chain-view>`
       case 'Swap':
-        return html`<cro-swap-view></cro-swap-view>`
+        return html`<cross-w3m-swap-view></cross-w3m-swap-view>`
       case 'SwapSelectToken':
-        return html`<cro-swap-select-token-view></cro-swap-select-token-view>`
+        return html`<cross-w3m-swap-select-token-view></cross-w3m-swap-select-token-view>`
       case 'SwapPreview':
-        return html`<cro-swap-preview-view></cro-swap-preview-view>`
+        return html`<cross-w3m-swap-preview-view></cross-w3m-swap-preview-view>`
       case 'WalletSend':
-        return html`<cro-wallet-send-view></cro-wallet-send-view>`
+        return html`<cross-w3m-wallet-send-view></cross-w3m-wallet-send-view>`
       case 'WalletSendSelectToken':
-        return html`<cro-wallet-send-select-token-view></cro-wallet-send-select-token-view>`
+        return html`<cross-w3m-wallet-send-select-token-view></cross-w3m-wallet-send-select-token-view>`
       case 'WalletSendPreview':
-        return html`<cro-wallet-send-preview-view></cro-wallet-send-preview-view>`
+        return html`<cross-w3m-wallet-send-preview-view></cross-w3m-wallet-send-preview-view>`
       case 'WhatIsABuy':
-        return html`<cro-what-is-a-buy-view></cro-what-is-a-buy-view>`
+        return html`<cross-w3m-what-is-a-buy-view></cross-w3m-what-is-a-buy-view>`
       case 'WalletReceive':
-        return html`<cro-wallet-receive-view></cro-wallet-receive-view>`
+        return html`<cross-w3m-wallet-receive-view></cross-w3m-wallet-receive-view>`
       case 'WalletCompatibleNetworks':
-        return html`<cro-wallet-compatible-networks-view></cro-wallet-compatible-networks-view>`
+        return html`<cross-w3m-wallet-compatible-networks-view></cross-w3m-wallet-compatible-networks-view>`
       case 'WhatIsAWallet':
-        return html`<cro-what-is-a-wallet-view></cro-what-is-a-wallet-view>`
+        return html`<cross-w3m-what-is-a-wallet-view></cross-w3m-what-is-a-wallet-view>`
       case 'ConnectingMultiChain':
-        return html`<cro-connecting-multi-chain-view></cro-connecting-multi-chain-view>`
+        return html`<cross-w3m-connecting-multi-chain-view></cross-w3m-connecting-multi-chain-view>`
       case 'WhatIsANetwork':
-        return html`<cro-what-is-a-network-view></cro-what-is-a-network-view>`
+        return html`<cross-w3m-what-is-a-network-view></cross-w3m-what-is-a-network-view>`
       case 'ConnectingFarcaster':
-        return html`<cro-connecting-farcaster-view></cro-connecting-farcaster-view>`
+        return html`<cross-w3m-connecting-farcaster-view></cross-w3m-connecting-farcaster-view>`
       case 'SwitchActiveChain':
-        return html`<cro-switch-active-chain-view></cro-switch-active-chain-view>`
+        return html`<cross-w3m-switch-active-chain-view></cross-w3m-switch-active-chain-view>`
       case 'RegisterAccountName':
-        return html`<cro-register-account-name-view></cro-register-account-name-view>`
+        return html`<cross-w3m-register-account-name-view></cross-w3m-register-account-name-view>`
       case 'RegisterAccountNameSuccess':
-        return html`<cro-register-account-name-success-view></cro-register-account-name-success-view>`
+        return html`<cross-w3m-register-account-name-success-view></cross-w3m-register-account-name-success-view>`
       case 'SmartSessionCreated':
-        return html`<cro-smart-session-created-view></cro-smart-session-created-view>`
+        return html`<cross-w3m-smart-session-created-view></cross-w3m-smart-session-created-view>`
       case 'SmartSessionList':
-        return html`<cro-smart-session-list-view></cro-smart-session-list-view>`
+        return html`<cross-w3m-smart-session-list-view></cross-w3m-smart-session-list-view>`
       case 'SIWXSignMessage':
-        return html`<cro-siwx-sign-message-view></cro-siwx-sign-message-view>`
+        return html`<cross-w3m-siwx-sign-message-view></cross-w3m-siwx-sign-message-view>`
       default:
-        return html`<cro-connect-view></cro-connect-view>`
+        return html`<cross-w3m-connect-view></cross-w3m-connect-view>`
     }
   }
 
@@ -196,6 +196,6 @@ export class W3mRouter extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-router': W3mRouter
+    'cross-w3m-router': W3mRouter
   }
 }

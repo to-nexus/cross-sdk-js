@@ -14,7 +14,7 @@ import styles from './styles.js'
 
 const MINIMUM_USD_VALUE_TO_CONVERT = 0.00005
 
-@customElement('cro-swap-input')
+@customElement('cross-w3m-swap-input')
 export class W3mSwapInput extends LitElement {
   public static override styles = [styles]
 
@@ -184,6 +184,6 @@ export class W3mSwapInput extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-swap-input': W3mSwapInput
+    'cross-w3m-swap-input': W3mSwapInput
   }
 }

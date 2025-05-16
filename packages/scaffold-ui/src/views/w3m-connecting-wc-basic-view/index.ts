@@ -9,7 +9,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-@customElement('cro-connecting-wc-basic-view')
+@customElement('cross-w3m-connecting-wc-basic-view')
 export class W3mConnectingWcBasicView extends LitElement {
   @state() private isMobile = CoreHelperUtil.isMobile()
 
@@ -28,20 +28,20 @@ export class W3mConnectingWcBasicView extends LitElement {
         gap="xs"
         .margin=${['3xs', 's', 's', 's'] as const}
       >
-        ${showConnectors ? html`<cro-connector-list></cro-connector-list>` : null}
-        <cro-all-wallets-widget></cro-all-wallets-widget>
+        ${showConnectors ? html`<cross-w3m-connector-list></cross-w3m-connector-list>` : null}
+        <cross-w3m-all-wallets-widget></cross-w3m-all-wallets-widget>
       </wui-flex>`
     }
 
     return html`<wui-flex flexDirection="column" .padding=${['0', '0', 'l', '0'] as const}>
-      <cro-connecting-wc-view></cro-connecting-wc-view>
+      <cross-w3m-connecting-wc-view></cross-w3m-connecting-wc-view>
       <wui-flex flexDirection="column" .padding=${['0', 'm', '0', 'm'] as const}>
-        <cro-all-wallets-widget></cro-all-wallets-widget> </wui-flex
+        <cross-w3m-all-wallets-widget></cross-w3m-all-wallets-widget> </wui-flex
     ></wui-flex>`
   }
 }
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-wc-basic-view': W3mConnectingWcBasicView
+    'cross-w3m-connecting-wc-basic-view': W3mConnectingWcBasicView
   }
 }

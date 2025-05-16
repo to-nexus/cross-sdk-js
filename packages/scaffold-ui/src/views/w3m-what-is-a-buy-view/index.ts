@@ -3,7 +3,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 
 import { LitElement, html } from 'lit'
 
-@customElement('cro-what-is-a-buy-view')
+@customElement('cross-w3m-what-is-a-buy-view')
 export class W3mWhatIsABuyView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -35,6 +35,6 @@ export class W3mWhatIsABuyView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-what-is-a-buy-view': W3mWhatIsABuyView
+    'cross-w3m-what-is-a-buy-view': W3mWhatIsABuyView
   }
 }

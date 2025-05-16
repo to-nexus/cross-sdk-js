@@ -18,7 +18,7 @@ type Currency = {
   symbol: string
 }
 
-@customElement('cro-onramp-input')
+@customElement('cross-w3m-onramp-input')
 export class W3mInputCurrency extends LitElement {
   public static override styles = styles
 
@@ -110,6 +110,6 @@ export class W3mInputCurrency extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-onramp-input': W3mInputCurrency
+    'cross-w3m-onramp-input': W3mInputCurrency
   }
 }

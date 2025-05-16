@@ -17,7 +17,7 @@ import styles from './styles.js'
 // -- Helpers --------------------------------------------- //
 const LOADING_ITEM_COUNT = 7
 
-@customElement('cro-onramp-activity-view')
+@customElement('cross-w3m-onramp-activity-view')
 export class W3mOnRampActivityView extends LitElement {
   public static override styles = styles
 
@@ -78,7 +78,7 @@ export class W3mOnRampActivityView extends LitElement {
       const icon = fungibleInfo?.icon?.url || this.tokenImages?.[fungibleInfo.symbol || '']
 
       return html`
-        <cro-onramp-activity-item
+        <cross-w3m-onramp-activity-item
           label="Bought"
           .completed=${transaction.metadata.status === 'ONRAMP_TRANSACTION_STATUS_SUCCESS'}
           .inProgress=${transaction.metadata.status === 'ONRAMP_TRANSACTION_STATUS_IN_PROGRESS'}
@@ -88,7 +88,7 @@ export class W3mOnRampActivityView extends LitElement {
           date=${date}
           icon=${ifDefined(icon)}
           symbol=${ifDefined(fungibleInfo.symbol)}
-        ></cro-onramp-activity-item>
+        ></cross-w3m-onramp-activity-item>
       `
     })
   }
@@ -189,6 +189,6 @@ export class W3mOnRampActivityView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-onramp-activity-view': W3mOnRampActivityView
+    'cross-w3m-onramp-activity-view': W3mOnRampActivityView
   }
 }

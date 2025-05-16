@@ -5,7 +5,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-@customElement('cro-account-view')
+@customElement('cross-w3m-account-view')
 export class W3mAccountView extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -41,16 +41,16 @@ export class W3mAccountView extends LitElement {
 
   // -- Private ------------------------------------------- //
   private walletFeaturesTemplate() {
-    return html`<cro-account-wallet-features-widget></cro-account-wallet-features-widget>`
+    return html`<cross-w3m-account-wallet-features-widget></cross-w3m-account-wallet-features-widget>`
   }
 
   private defaultTemplate() {
-    return html`<cro-account-default-widget></cro-account-default-widget>`
+    return html`<cross-w3m-account-default-widget></cross-w3m-account-default-widget>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-account-view': W3mAccountView
+    'cross-w3m-account-view': W3mAccountView
   }
 }

@@ -14,7 +14,7 @@ const PAYMENT_CURRENCY_SYMBOLS: Record<string, string> = {
 
 const BUY_PRESET_AMOUNTS = [100, 250, 500, 1000]
 
-@customElement('cro-onramp-widget')
+@customElement('cross-w3m-onramp-widget')
 export class W3mOnrampWidget extends LitElement {
   public static override styles = styles
 
@@ -64,16 +64,16 @@ export class W3mOnrampWidget extends LitElement {
     return html`
       <wui-flex flexDirection="column" justifyContent="center" alignItems="center">
         <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <cro-onramp-input
+          <cross-w3m-onramp-input
             type="Fiat"
             @inputChange=${this.onPaymentAmountChange.bind(this)}
             .value=${this.paymentAmount || 0}
-          ></cro-onramp-input>
-          <cro-onramp-input
+          ></cross-w3m-onramp-input>
+          <cross-w3m-onramp-input
             type="Token"
             .value=${this.purchaseAmount || 0}
             .loading=${this.quoteLoading}
-          ></cro-onramp-input>
+          ></cross-w3m-onramp-input>
           <wui-flex justifyContent="space-evenly" class="amounts-container" gap="xs">
             ${BUY_PRESET_AMOUNTS.map(
               amount =>
@@ -141,6 +141,6 @@ export class W3mOnrampWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-onramp-widget': W3mOnrampWidget
+    'cross-w3m-onramp-widget': W3mOnrampWidget
   }
 }

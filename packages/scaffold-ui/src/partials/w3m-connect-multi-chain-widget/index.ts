@@ -6,7 +6,7 @@ import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-@customElement('cro-connect-multi-chain-widget')
+@customElement('cross-w3m-connect-multi-chain-widget')
 export class W3mConnectMultiChainWidget extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -69,6 +69,6 @@ export class W3mConnectMultiChainWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connect-multi-chain-widget': W3mConnectMultiChainWidget
+    'cross-w3m-connect-multi-chain-widget': W3mConnectMultiChainWidget
   }
 }

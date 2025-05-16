@@ -49,10 +49,13 @@ declare module 'react' {
       'appkit-connect-button': Pick<AppKitConnectButton, 'size' | 'label' | 'loadingLabel'>
       'appkit-account-button': Pick<AppKitAccountButton, 'disabled' | 'balance'>
       'appkit-network-button': Pick<AppKitNetworkButton, 'disabled'>
-      'cro-connect-button': Pick<W3mConnectButton, 'size' | 'label' | 'loadingLabel'>
-      'cro-account-button': Pick<W3mAccountButton, 'disabled' | 'balance'>
-      'cro-button': Pick<W3mButton, 'size' | 'label' | 'loadingLabel' | 'disabled' | 'balance'>
-      'cro-network-button': Pick<W3mNetworkButton, 'disabled'>
+      'cross-w3m-connect-button': Pick<W3mConnectButton, 'size' | 'label' | 'loadingLabel'>
+      'cross-w3m-account-button': Pick<W3mAccountButton, 'disabled' | 'balance'>
+      'cross-w3m-button': Pick<
+        W3mButton,
+        'size' | 'label' | 'loadingLabel' | 'disabled' | 'balance'
+      >
+      'cross-w3m-network-button': Pick<W3mNetworkButton, 'disabled'>
     }
   }
 }

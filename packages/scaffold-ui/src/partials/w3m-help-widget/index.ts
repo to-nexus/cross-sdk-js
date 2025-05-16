@@ -10,7 +10,7 @@ type Data = {
   text: string
 }
 
-@customElement('cro-help-widget')
+@customElement('cross-w3m-help-widget')
 export class W3mHelpWidget extends LitElement {
   // -- State & Properties -------------------------------- //
   @property({ type: Array }) public data: Data[] = []
@@ -41,6 +41,6 @@ export class W3mHelpWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-help-widget': W3mHelpWidget
+    'cross-w3m-help-widget': W3mHelpWidget
   }
 }

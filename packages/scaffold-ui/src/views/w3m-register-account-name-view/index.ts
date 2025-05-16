@@ -15,7 +15,7 @@ import { type Ref, createRef, ref } from 'lit/directives/ref.js'
 
 import styles from './styles.js'
 
-@customElement('cro-register-account-name-view')
+@customElement('cross-w3m-register-account-name-view')
 export class W3mRegisterAccountNameView extends LitElement {
   public static override styles = styles
 
@@ -245,6 +245,6 @@ export class W3mRegisterAccountNameView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-register-account-name-view': W3mRegisterAccountNameView
+    'cross-w3m-register-account-name-view': W3mRegisterAccountNameView
   }
 }

@@ -11,7 +11,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-swap-preview-view')
+@customElement('cross-w3m-swap-preview-view')
 export class W3mSwapPreviewView extends LitElement {
   public static override styles = styles
 
@@ -230,7 +230,7 @@ export class W3mSwapPreviewView extends LitElement {
       return null
     }
 
-    return html`<cro-swap-details .detailsOpen=${this.detailsOpen}></cro-swap-details>`
+    return html`<cross-w3m-swap-details .detailsOpen=${this.detailsOpen}></cross-w3m-swap-details>`
   }
 
   private actionButtonLabel(): string {
@@ -260,6 +260,6 @@ export class W3mSwapPreviewView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-swap-preview-view': W3mSwapPreviewView
+    'cross-w3m-swap-preview-view': W3mSwapPreviewView
   }
 }

@@ -9,7 +9,7 @@ import type { Ref } from 'lit/directives/ref.js'
 
 import styles from './styles.js'
 
-@customElement('cro-update-email-wallet-view')
+@customElement('cross-w3m-update-email-wallet-view')
 export class W3mUpdateEmailWalletView extends LitElement {
   public static override styles = styles
 
@@ -109,6 +109,6 @@ export class W3mUpdateEmailWalletView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-update-email-wallet-view': W3mUpdateEmailWalletView
+    'cross-w3m-update-email-wallet-view': W3mUpdateEmailWalletView
   }
 }

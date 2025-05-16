@@ -56,7 +56,7 @@ export class W3mOnRampProvidersView extends LitElement {
       <wui-flex flexDirection="column" .padding=${['0', 's', 's', 's']} gap="xs">
         ${this.onRampProvidersTemplate()}
       </wui-flex>
-      <cro-onramp-providers-footer></cro-onramp-providers-footer>
+      <cross-w3m-onramp-providers-footer></cross-w3m-onramp-providers-footer>
     `
   }
 
@@ -68,7 +68,7 @@ export class W3mOnRampProvidersView extends LitElement {
       )
       .map(
         provider => html`
-          <cro-onramp-provider-item
+          <cross-w3m-onramp-provider-item
             label=${provider.label}
             name=${provider.name}
             feeRange=${provider.feeRange}
@@ -76,7 +76,7 @@ export class W3mOnRampProvidersView extends LitElement {
               this.onClickProvider(provider)
             }}
             ?disabled=${!provider.url}
-          ></cro-onramp-provider-item>
+          ></cross-w3m-onramp-provider-item>
         `
       )
   }

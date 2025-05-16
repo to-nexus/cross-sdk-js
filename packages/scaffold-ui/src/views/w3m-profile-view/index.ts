@@ -18,7 +18,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-profile-view')
+@customElement('cross-w3m-profile-view')
 export class W3mProfileView extends LitElement {
   public static override styles = styles
 
@@ -66,7 +66,7 @@ export class W3mProfileView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.address) {
-      throw new Error('cro-profile-view: No account provided')
+      throw new Error('cross-w3m-profile-view: No account provided')
     }
 
     return html`
@@ -172,6 +172,6 @@ export class W3mProfileView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-profile-view': W3mProfileView
+    'cross-w3m-profile-view': W3mProfileView
   }
 }

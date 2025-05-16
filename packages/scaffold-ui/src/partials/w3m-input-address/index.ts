@@ -8,7 +8,7 @@ import type { Ref } from 'lit/directives/ref.js'
 
 import styles from './styles.js'
 
-@customElement('cro-input-address')
+@customElement('cross-w3m-input-address')
 export class W3mInputAddress extends LitElement {
   public static override styles = styles
 
@@ -167,6 +167,6 @@ ${this.value ?? ''}</textarea
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-input-address': W3mInputAddress
+    'cross-w3m-input-address': W3mInputAddress
   }
 }

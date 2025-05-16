@@ -11,7 +11,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 import { W3mEmailOtpWidget } from '../../utils/w3m-email-otp-widget/index.js'
 import type { OnOtpResendFn, OnOtpSubmitFn } from '../../utils/w3m-email-otp-widget/index.js'
 
-@customElement('cro-email-verify-otp-view')
+@customElement('cross-w3m-email-verify-otp-view')
 export class W3mEmailVerifyOtpView extends W3mEmailOtpWidget {
   // --  Private ------------------------------------------ //
   override onOtpSubmit: OnOtpSubmitFn = async otp => {
@@ -58,6 +58,6 @@ export class W3mEmailVerifyOtpView extends W3mEmailOtpWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-email-verify-otp-view': W3mEmailVerifyOtpView
+    'cross-w3m-email-verify-otp-view': W3mEmailVerifyOtpView
   }
 }

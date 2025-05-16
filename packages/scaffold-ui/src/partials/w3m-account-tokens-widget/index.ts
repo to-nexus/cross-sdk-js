@@ -7,7 +7,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-account-tokens-widget')
+@customElement('cross-w3m-account-tokens-widget')
 export class W3mAccountTokensWidget extends LitElement {
   public static override styles = styles
 
@@ -101,6 +101,6 @@ export class W3mAccountTokensWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-account-tokens-widget': W3mAccountTokensWidget
+    'cross-w3m-account-tokens-widget': W3mAccountTokensWidget
   }
 }

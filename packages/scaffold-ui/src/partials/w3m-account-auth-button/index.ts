@@ -11,7 +11,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-@customElement('cro-account-auth-button')
+@customElement('cross-w3m-account-auth-button')
 export class W3mAccountAuthButton extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -54,7 +54,7 @@ export class W3mAccountAuthButton extends LitElement {
         iconVariant="overlay"
         icon=${this.socialProvider ?? 'mail'}
         iconSize=${this.socialProvider ? 'xxl' : 'sm'}
-        data-testid="cro-account-email-update"
+        data-testid="cross-w3m-account-email-update"
         ?chevron=${!this.socialProvider}
         @click=${() => {
           this.onGoToUpdateEmail(email, this.socialProvider)
@@ -87,6 +87,6 @@ export class W3mAccountAuthButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-account-auth-button': W3mAccountAuthButton
+    'cross-w3m-account-auth-button': W3mAccountAuthButton
   }
 }

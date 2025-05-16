@@ -10,7 +10,7 @@ import styles from './styles.js'
 // -- Constants ----------------------------------------- //
 const slippageRate = ConstantsUtil.CONVERT_SLIPPAGE_TOLERANCE
 
-@customElement('cro-swap-details')
+@customElement('cross-w3m-swap-details')
 export class WuiSwapDetails extends LitElement {
   public static override styles = [styles]
 
@@ -109,11 +109,11 @@ export class WuiSwapDetails extends LitElement {
                         <wui-text class="details-row-title" variant="small-400" color="fg-150">
                           Network cost
                         </wui-text>
-                        <cro-tooltip-trigger
+                        <cross-w3m-tooltip-trigger
                           text=${`Network cost is paid in ${this.networkTokenSymbol} on the ${this.networkName} network in order to execute transaction.`}
                         >
                           <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
-                        </cro-tooltip-trigger>
+                        </cross-w3m-tooltip-trigger>
                       </wui-flex>
                       <wui-text variant="small-400" color="fg-100">
                         $${UiHelperUtil.formatNumberToLocalString(this.gasPriceInUSD, 3)}
@@ -131,11 +131,11 @@ export class WuiSwapDetails extends LitElement {
                             <wui-text class="details-row-title" variant="small-400" color="fg-150">
                               Price impact
                             </wui-text>
-                            <cro-tooltip-trigger
+                            <cross-w3m-tooltip-trigger
                               text="Price impact reflects the change in market price due to your trade"
                             >
                               <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
-                            </cro-tooltip-trigger>
+                            </cross-w3m-tooltip-trigger>
                           </wui-flex>
                           <wui-flex>
                             <wui-text variant="small-400" color="fg-200">
@@ -156,7 +156,7 @@ export class WuiSwapDetails extends LitElement {
                             <wui-text class="details-row-title" variant="small-400" color="fg-150">
                               Max. slippage
                             </wui-text>
-                            <cro-tooltip-trigger
+                            <cross-w3m-tooltip-trigger
                               text=${`Max slippage sets the minimum amount you must receive for the transaction to proceed. ${
                                 minReceivedAmount
                                   ? `Transaction will be reversed if you receive less than ${UiHelperUtil.formatNumberToLocalString(
@@ -167,7 +167,7 @@ export class WuiSwapDetails extends LitElement {
                               }`}
                             >
                               <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
-                            </cro-tooltip-trigger>
+                            </cross-w3m-tooltip-trigger>
                           </wui-flex>
                           <wui-flex>
                             <wui-text variant="small-400" color="fg-200">

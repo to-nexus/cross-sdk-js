@@ -15,7 +15,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 
 import styles from './styles.js'
 
-@customElement('cro-connecting-multi-chain-view')
+@customElement('cross-w3m-connecting-multi-chain-view')
 export class W3mConnectingMultiChainView extends LitElement {
   public static override styles = styles
 
@@ -118,6 +118,6 @@ export class W3mConnectingMultiChainView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-multi-chain-view': W3mConnectingMultiChainView
+    'cross-w3m-connecting-multi-chain-view': W3mConnectingMultiChainView
   }
 }

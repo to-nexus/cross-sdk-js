@@ -5,7 +5,7 @@ import { LitElement, html } from 'lit'
 
 import styles from './styles.js'
 
-@customElement('cro-legal-checkbox')
+@customElement('cross-w3m-legal-checkbox')
 export class W3mLegalCheckbox extends LitElement {
   public static override styles = [styles]
 
@@ -62,6 +62,6 @@ export class W3mLegalCheckbox extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-legal-checkbox': W3mLegalCheckbox
+    'cross-w3m-legal-checkbox': W3mLegalCheckbox
   }
 }

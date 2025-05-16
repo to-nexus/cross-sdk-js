@@ -12,7 +12,7 @@ import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-wallet-send-view')
+@customElement('cross-w3m-wallet-send-view')
 export class W3mWalletSendView extends LitElement {
   public static override styles = styles
 
@@ -72,12 +72,12 @@ export class W3mWalletSendView extends LitElement {
 
     return html` <wui-flex flexDirection="column" .padding=${['0', 'l', 'l', 'l'] as const}>
       <wui-flex class="inputContainer" gap="xs" flexDirection="column">
-        <cro-input-token
+        <cross-w3m-input-token
           .token=${this.token}
           .sendTokenAmount=${this.sendTokenAmount}
           .gasPriceInUSD=${this.gasPriceInUSD}
           .gasPrice=${this.gasPrice}
-        ></cro-input-token>
+        ></cross-w3m-input-token>
         <wui-icon-box
           size="inherit"
           backgroundColor="fg-300"
@@ -86,9 +86,9 @@ export class W3mWalletSendView extends LitElement {
           background="opaque"
           icon="arrowBottom"
         ></wui-icon-box>
-        <cro-input-address
+        <cross-w3m-input-address
           .value=${this.receiverProfileName ? this.receiverProfileName : this.receiverAddress}
-        ></cro-input-address>
+        ></cross-w3m-input-address>
       </wui-flex>
       <wui-flex .margin=${['l', '0', '0', '0'] as const}>
         <wui-button
@@ -170,6 +170,6 @@ export class W3mWalletSendView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-wallet-send-view': W3mWalletSendView
+    'cross-w3m-wallet-send-view': W3mWalletSendView
   }
 }
