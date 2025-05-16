@@ -8,7 +8,7 @@ import { ifDefined } from 'lit/directives/if-defined.js'
 import { ConnectorUtil } from '../../utils/ConnectorUtil.js'
 import styles from './styles.js'
 
-@customElement('cro-connector-list')
+@customElement('cross-w3m-connector-list')
 export class W3mConnectorList extends LitElement {
   public static override styles = styles
 
@@ -41,9 +41,9 @@ export class W3mConnectorList extends LitElement {
     return html`
       <wui-flex flexDirection="column" gap="xs">
         ${custom?.length
-          ? html`<w3m-connect-custom-widget
+          ? html`<cross-w3m-connect-custom-widget
               tabIdx=${ifDefined(this.tabIdx)}
-            ></w3m-connect-custom-widget>`
+            ></cross-w3m-connect-custom-widget>`
           : null}
       </wui-flex>
     `
@@ -52,6 +52,6 @@ export class W3mConnectorList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connector-list': W3mConnectorList
+    'cross-w3m-connector-list': W3mConnectorList
   }
 }

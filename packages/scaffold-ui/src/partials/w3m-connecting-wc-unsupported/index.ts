@@ -4,7 +4,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 import { LitElement, html } from 'lit'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-@customElement('w3m-connecting-wc-unsupported')
+@customElement('cross-w3m-connecting-wc-unsupported')
 export class W3mConnectingWcUnsupported extends LitElement {
   // -- Members ------------------------------------------- //
   private readonly wallet = RouterController.state.data?.wallet
@@ -12,7 +12,7 @@ export class W3mConnectingWcUnsupported extends LitElement {
   public constructor() {
     super()
     if (!this.wallet) {
-      throw new Error('w3m-connecting-wc-unsupported: No wallet provided')
+      throw new Error('cross-w3m-connecting-wc-unsupported: No wallet provided')
     }
     EventsController.sendEvent({
       type: 'track',
@@ -38,13 +38,13 @@ export class W3mConnectingWcUnsupported extends LitElement {
         <wui-text variant="paragraph-500" color="fg-100">Not Detected</wui-text>
       </wui-flex>
 
-      <cro-mobile-download-links .wallet=${this.wallet}></cro-mobile-download-links>
+      <cross-w3m-mobile-download-links .wallet=${this.wallet}></cross-w3m-mobile-download-links>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-wc-unsupported': W3mConnectingWcUnsupported
+    'cross-w3m-connecting-wc-unsupported': W3mConnectingWcUnsupported
   }
 }

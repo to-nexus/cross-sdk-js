@@ -93,7 +93,7 @@ function headings() {
   }
 }
 
-@customElement('cro-header')
+@customElement('cross-w3m-header')
 export class W3mHeader extends LitElement {
   public static override styles = styles
 
@@ -183,7 +183,7 @@ export class W3mHeader extends LitElement {
       <wui-icon-link
         icon="clock"
         @click=${() => RouterController.push('SmartSessionList')}
-        data-testid="w3m-header-smart-sessions"
+        data-testid="cross-w3m-header-smart-sessions"
       ></wui-icon-link>
       ${this.closeButtonTemplate()}
     </wui-flex> `
@@ -195,7 +195,7 @@ export class W3mHeader extends LitElement {
         ?disabled=${this.buffering}
         icon="close"
         @click=${this.onClose.bind(this)}
-        data-testid="w3m-header-close"
+        data-testid="cross-w3m-header-close"
       ></wui-icon-link>
     `
   }
@@ -210,7 +210,7 @@ export class W3mHeader extends LitElement {
         alignItems="center"
         gap="xs"
       >
-        <wui-text variant="paragraph-700" color="fg-100" data-testid="w3m-header-text"
+        <wui-text variant="paragraph-700" color="fg-100" data-testid="cross-w3m-header-text"
           >${this.headerText}</wui-text
         >
         ${isBeta ? html`<wui-tag variant="main">Beta</wui-tag>` : null}
@@ -233,7 +233,7 @@ export class W3mHeader extends LitElement {
     if (isAccountView) {
       return html`<wui-select
         id="dynamic"
-        data-testid="w3m-account-select-network"
+        data-testid="cross-w3m-account-select-network"
         active-network=${ifDefined(this.network?.name)}
         @click=${this.onNetworks.bind(this)}
         imageSrc=${ifDefined(this.networkImage)}
@@ -330,6 +330,6 @@ export class W3mHeader extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-header': W3mHeader
+    'cross-w3m-header': W3mHeader
   }
 }

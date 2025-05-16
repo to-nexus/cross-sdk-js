@@ -16,7 +16,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 import { LitElement, html } from 'lit'
 import { state } from 'lit/decorators.js'
 
-@customElement('cro-connecting-wc-view')
+@customElement('cross-w3m-connecting-wc-view')
 export class W3mConnectingWcView extends LitElement {
   // -- Members ------------------------------------------- //
   private interval?: ReturnType<typeof setInterval> = undefined
@@ -59,7 +59,7 @@ export class W3mConnectingWcView extends LitElement {
     if (this.platform === 'browser') {
       /*
        * If the platform is browser it means the user is using a browser wallet,
-       * in this case the connection is handled in w3m-connecting-wc-browser component.
+       * in this case the connection is handled in cro-connecting-wc-browser component.
        */
       return
     }
@@ -157,23 +157,26 @@ export class W3mConnectingWcView extends LitElement {
     console.log('this.platform', this.platform)
     switch (this.platform) {
       case 'browser':
-        return html`<w3m-connecting-wc-browser></w3m-connecting-wc-browser>`
+        return html`<cross-w3m-connecting-wc-browser></cross-w3m-connecting-wc-browser>`
       case 'web':
-        return html`<w3m-connecting-wc-web></w3m-connecting-wc-web>`
+        return html`<cross-w3m-connecting-wc-web></cross-w3m-connecting-wc-web>`
       case 'desktop':
         return html`
-          <w3m-connecting-wc-desktop .onRetry=${() => this.initializeConnection(true)}>
-          </w3m-connecting-wc-desktop>
+          <cross-w3m-connecting-wc-desktop .onRetry=${() => this.initializeConnection(true)}>
+          </cross-w3m-connecting-wc-desktop>
         `
       case 'mobile':
         return html`
-          <w3m-connecting-wc-mobile isMobile .onRetry=${() => this.initializeConnection(true)}>
-          </w3m-connecting-wc-mobile>
+          <cross-w3m-connecting-wc-mobile
+            isMobile
+            .onRetry=${() => this.initializeConnection(true)}
+          >
+          </cross-w3m-connecting-wc-mobile>
         `
       case 'qrcode':
-        return html`<cro-connecting-wc-qrcode></cro-connecting-wc-qrcode>`
+        return html`<cross-w3m-connecting-wc-qrcode></cross-w3m-connecting-wc-qrcode>`
       default:
-        return html`<w3m-connecting-wc-unsupported></w3m-connecting-wc-unsupported>`
+        return html`<cross-w3m-connecting-wc-unsupported></cross-w3m-connecting-wc-unsupported>`
     }
   }
 
@@ -185,11 +188,11 @@ export class W3mConnectingWcView extends LitElement {
     }
 
     return html`
-      <w3m-connecting-header
+      <cross-w3m-connecting-header
         .platforms=${this.platforms}
         .onSelectPlatfrom=${this.onSelectPlatform.bind(this)}
       >
-      </w3m-connecting-header>
+      </cross-w3m-connecting-header>
     `
   }
 
@@ -213,6 +216,6 @@ export class W3mConnectingWcView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-connecting-wc-view': W3mConnectingWcView
+    'cross-w3m-connecting-wc-view': W3mConnectingWcView
   }
 }

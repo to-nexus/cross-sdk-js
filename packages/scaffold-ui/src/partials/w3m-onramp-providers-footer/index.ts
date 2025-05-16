@@ -1,5 +1,3 @@
-import { LitElement, html } from 'lit'
-
 import {
   AccountController,
   EventsController,
@@ -9,9 +7,11 @@ import {
 import { customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
+import { LitElement, html } from 'lit'
+
 import styles from './styles.js'
 
-@customElement('w3m-onramp-providers-footer')
+@customElement('cross-w3m-onramp-providers-footer')
 export class W3mOnRampProvidersFooter extends LitElement {
   public static override styles = [styles]
 
@@ -65,6 +65,6 @@ export class W3mOnRampProvidersFooter extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-onramp-providers-footer': W3mOnRampProvidersFooter
+    'cross-w3m-onramp-providers-footer': W3mOnRampProvidersFooter
   }
 }

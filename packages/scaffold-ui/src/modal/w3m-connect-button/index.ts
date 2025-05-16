@@ -1,10 +1,10 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { ModalController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 import type { WuiConnectButton } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 class W3mConnectButtonBase extends LitElement {
   // -- Members ------------------------------------------- //
@@ -62,7 +62,7 @@ class W3mConnectButtonBase extends LitElement {
   }
 }
 
-@customElement('w3m-connect-button')
+@customElement('cross-w3m-connect-button')
 export class W3mConnectButton extends W3mConnectButtonBase {}
 
 @customElement('appkit-connect-button')
@@ -70,7 +70,7 @@ export class AppKitConnectButton extends W3mConnectButtonBase {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connect-button': W3mConnectButton
+    'cross-w3m-connect-button': W3mConnectButton
     'appkit-connect-button': AppKitConnectButton
   }
 }

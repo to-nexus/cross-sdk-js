@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { NumberUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -16,9 +13,12 @@ import {
 import { customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-swap-view')
+@customElement('cross-w3m-swap-view')
 export class W3mSwapView extends LitElement {
   public static override styles = styles
 
@@ -172,8 +172,8 @@ export class W3mSwapView extends LitElement {
     return html`
       <wui-flex flexDirection="column" gap="l">
         <wui-flex flexDirection="column" alignItems="center" gap="xs" class="swap-inputs-container">
-          <w3m-swap-input-skeleton target="sourceToken"></w3m-swap-input-skeleton>
-          <w3m-swap-input-skeleton target="toToken"></w3m-swap-input-skeleton>
+          <cross-w3m-swap-input-skeleton target="sourceToken"></cross-w3m-swap-input-skeleton>
+          <cross-w3m-swap-input-skeleton target="toToken"></cross-w3m-swap-input-skeleton>
           ${this.templateReplaceTokensButton()}
         </wui-flex>
         ${this.templateActionButton()}
@@ -189,7 +189,7 @@ export class W3mSwapView extends LitElement {
     const price = target === 'toToken' ? this.toTokenPriceInUSD : this.sourceTokenPriceInUSD
     const marketValue = NumberUtil.parseLocalStringToNumber(amount) * price
 
-    return html`<w3m-swap-input
+    return html`<cross-w3m-swap-input
       .value=${target === 'toToken' ? this.toTokenAmount : this.sourceTokenAmount}
       .disabled=${target === 'toToken'}
       .onSetAmount=${this.handleChangeAmount.bind(this)}
@@ -199,7 +199,7 @@ export class W3mSwapView extends LitElement {
       .price=${myToken?.price}
       .marketValue=${marketValue}
       .onSetMaxValue=${this.onSetMaxValue.bind(this)}
-    ></w3m-swap-input>`
+    ></cross-w3m-swap-input>`
   }
 
   private onSetMaxValue(target: SwapInputTarget, balance: string | undefined) {
@@ -236,7 +236,7 @@ export class W3mSwapView extends LitElement {
       return null
     }
 
-    return html`<w3m-swap-details .detailsOpen=${this.detailsOpen}></w3m-swap-details>`
+    return html`<cross-w3m-swap-details .detailsOpen=${this.detailsOpen}></cross-w3m-swap-details>`
   }
 
   private handleChangeAmount(target: SwapInputTarget, value: string) {
@@ -306,6 +306,6 @@ export class W3mSwapView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-swap-view': W3mSwapView
+    'cross-w3m-swap-view': W3mSwapView
   }
 }

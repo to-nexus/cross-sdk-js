@@ -1,13 +1,13 @@
+import { RouterController, type WalletGuideType } from '@to-nexus/appkit-core'
+import { customElement } from '@to-nexus/appkit-ui'
+
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { RouterController, type WalletGuideType } from '@to-nexus/appkit-core'
-import { customElement } from '@to-nexus/appkit-ui'
-
 import styles from './styles.js'
 
-@customElement('w3m-wallet-guide')
+@customElement('cross-w3m-wallet-guide')
 export class W3mWalletGuide extends LitElement {
   public static override styles = styles
 
@@ -25,7 +25,7 @@ export class W3mWalletGuide extends LitElement {
           alignItems="center"
           justifyContent="center"
           rowGap="xs"
-          data-testid="w3m-wallet-guide-explore"
+          data-testid="cross-w3m-wallet-guide-explore"
         >
           <wui-text variant="small-400" color="fg-200" align="center">
             Looking for a self-custody wallet?
@@ -51,7 +51,7 @@ export class W3mWalletGuide extends LitElement {
             >Haven't got a wallet?</wui-text
           >
           <wui-link
-            data-testid="w3m-wallet-guide-get-started"
+            data-testid="cross-w3m-wallet-guide-get-started"
             color="blue-100"
             class="get-started-link"
             @click=${this.onGetStarted}
@@ -70,6 +70,6 @@ export class W3mWalletGuide extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-wallet-guide': W3mWalletGuide
+    'cross-w3m-wallet-guide': W3mWalletGuide
   }
 }

@@ -1,13 +1,13 @@
+import { AssetUtil, ChainController, type OnRampProvider } from '@to-nexus/appkit-core'
+import { type ColorType, customElement } from '@to-nexus/appkit-ui'
+
 import { LitElement, html } from 'lit'
 import { property } from 'lit/decorators.js'
 import { ifDefined } from 'lit/directives/if-defined.js'
 
-import { AssetUtil, ChainController, type OnRampProvider } from '@to-nexus/appkit-core'
-import { type ColorType, customElement } from '@to-nexus/appkit-ui'
-
 import styles from './styles.js'
 
-@customElement('w3m-onramp-provider-item')
+@customElement('cross-w3m-onramp-provider-item')
 export class W3mOnRampProviderItem extends LitElement {
   public static override styles = [styles]
 
@@ -75,6 +75,6 @@ export class W3mOnRampProviderItem extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-onramp-provider-item': W3mOnRampProviderItem
+    'cross-w3m-onramp-provider-item': W3mOnRampProviderItem
   }
 }

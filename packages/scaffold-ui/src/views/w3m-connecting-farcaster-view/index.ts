@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AccountController,
   ConnectionController,
@@ -16,9 +12,13 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-connecting-farcaster-view')
+@customElement('cross-w3m-connecting-farcaster-view')
 export class W3mConnectingFarcasterView extends LitElement {
   public static override styles = styles
 
@@ -290,6 +290,6 @@ export class W3mConnectingFarcasterView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-farcaster-view': W3mConnectingFarcasterView
+    'cross-w3m-connecting-farcaster-view': W3mConnectingFarcasterView
   }
 }

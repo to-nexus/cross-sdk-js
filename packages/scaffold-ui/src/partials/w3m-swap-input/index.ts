@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-
 import { InputUtil, NumberUtil } from '@to-nexus/appkit-common'
 import {
   EventsController,
@@ -10,11 +7,14 @@ import {
 } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
 const MINIMUM_USD_VALUE_TO_CONVERT = 0.00005
 
-@customElement('w3m-swap-input')
+@customElement('cross-w3m-swap-input')
 export class W3mSwapInput extends LitElement {
   public static override styles = [styles]
 
@@ -184,6 +184,6 @@ export class W3mSwapInput extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-swap-input': W3mSwapInput
+    'cross-w3m-swap-input': W3mSwapInput
   }
 }

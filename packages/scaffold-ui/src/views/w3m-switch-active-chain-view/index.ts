@@ -1,13 +1,13 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-
 import { ConstantsUtil } from '@to-nexus/appkit-common'
 import { ChainController, ConnectorController, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-switch-active-chain-view')
+@customElement('cross-w3m-switch-active-chain-view')
 export class W3mSwitchActiveChainView extends LitElement {
   public static override styles = styles
 
@@ -71,7 +71,7 @@ export class W3mSwitchActiveChainView extends LitElement {
             need to connect with a different wallet.
           </wui-text>
           <wui-button
-            data-testid="w3m-switch-active-chain-button"
+            data-testid="cross-w3m-switch-active-chain-button"
             size="md"
             @click=${this.switchActiveChain.bind(this)}
             >Switch</wui-button
@@ -102,6 +102,6 @@ export class W3mSwitchActiveChainView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-switch-active-chain-view': W3mSwitchActiveChainView
+    'cross-w3m-switch-active-chain-view': W3mSwitchActiveChainView
   }
 }

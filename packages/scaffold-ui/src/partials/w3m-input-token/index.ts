@@ -1,14 +1,14 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-
 import type { Balance } from '@to-nexus/appkit-common'
 import { NumberUtil } from '@to-nexus/appkit-common'
 import { ConstantsUtil, RouterController, SendController } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-input-token')
+@customElement('cross-w3m-input-token')
 export class W3mInputToken extends LitElement {
   public static override styles = styles
 
@@ -142,6 +142,6 @@ export class W3mInputToken extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-input-token': W3mInputToken
+    'cross-w3m-input-token': W3mInputToken
   }
 }

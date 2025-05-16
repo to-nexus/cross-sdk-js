@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { type ChainNamespace, ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ChainController,
@@ -11,7 +8,10 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-account-auth-button')
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
+@customElement('cross-w3m-account-auth-button')
 export class W3mAccountAuthButton extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -54,7 +54,7 @@ export class W3mAccountAuthButton extends LitElement {
         iconVariant="overlay"
         icon=${this.socialProvider ?? 'mail'}
         iconSize=${this.socialProvider ? 'xxl' : 'sm'}
-        data-testid="w3m-account-email-update"
+        data-testid="cross-w3m-account-email-update"
         ?chevron=${!this.socialProvider}
         @click=${() => {
           this.onGoToUpdateEmail(email, this.socialProvider)
@@ -87,6 +87,6 @@ export class W3mAccountAuthButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-auth-button': W3mAccountAuthButton
+    'cross-w3m-account-auth-button': W3mAccountAuthButton
   }
 }

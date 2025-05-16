@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AssetController,
   ModalController,
@@ -11,6 +7,10 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
 type Currency = {
@@ -18,7 +18,7 @@ type Currency = {
   symbol: string
 }
 
-@customElement('w3m-onramp-input')
+@customElement('cross-w3m-onramp-input')
 export class W3mInputCurrency extends LitElement {
   public static override styles = styles
 
@@ -110,6 +110,6 @@ export class W3mInputCurrency extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-onramp-input': W3mInputCurrency
+    'cross-w3m-onramp-input': W3mInputCurrency
   }
 }

@@ -1,11 +1,11 @@
-import { LitElement, html } from 'lit'
-
 import { AccountController, OptionsController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+
 import styles from './styles.js'
 
-@customElement('w3m-siwx-sign-message-thumbnails')
+@customElement('cross-w3m-siwx-sign-message-thumbnails')
 export class W3mSIWXSignMessageThumbnails extends LitElement {
   public static override styles = styles
 
@@ -49,6 +49,6 @@ export class W3mSIWXSignMessageThumbnails extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-siwx-sign-message-thumbnails': W3mSIWXSignMessageThumbnails
+    'cross-w3m-siwx-sign-message-thumbnails': W3mSIWXSignMessageThumbnails
   }
 }

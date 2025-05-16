@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import type { WcWallet } from '@to-nexus/appkit-core'
 import {
   ApiController,
@@ -15,9 +11,13 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import { WalletUtil } from '../../utils/WalletUtil.js'
 
-@customElement('w3m-connect-recommended-widget')
+@customElement('cross-w3m-connect-recommended-widget')
 export class W3mConnectRecommendedWidget extends LitElement {
   // -- Members ------------------------------------------- //
 
@@ -113,6 +113,6 @@ export class W3mConnectRecommendedWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connect-recommended-widget': W3mConnectRecommendedWidget
+    'cross-w3m-connect-recommended-widget': W3mConnectRecommendedWidget
   }
 }

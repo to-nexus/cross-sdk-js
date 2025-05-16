@@ -10,7 +10,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 
 import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
 
-@customElement('w3m-connecting-external-view')
+@customElement('cross-w3m-connecting-external-view')
 export class W3mConnectingExternalView extends W3mConnectingWidget {
   // -- Members ------------------------------------------- //
   private externalViewUnsubscribe: (() => void)[] = []
@@ -78,6 +78,6 @@ export class W3mConnectingExternalView extends W3mConnectingWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connecting-external-view': W3mConnectingExternalView
+    'cross-w3m-connecting-external-view': W3mConnectingExternalView
   }
 }

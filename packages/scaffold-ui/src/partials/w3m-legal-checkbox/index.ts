@@ -1,11 +1,11 @@
-import { LitElement, html } from 'lit'
-
 import { OptionsController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+
 import styles from './styles.js'
 
-@customElement('w3m-legal-checkbox')
+@customElement('cross-w3m-legal-checkbox')
 export class W3mLegalCheckbox extends LitElement {
   public static override styles = [styles]
 
@@ -62,6 +62,6 @@ export class W3mLegalCheckbox extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-legal-checkbox': W3mLegalCheckbox
+    'cross-w3m-legal-checkbox': W3mLegalCheckbox
   }
 }

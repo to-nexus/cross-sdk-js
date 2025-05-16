@@ -7,7 +7,7 @@ import { property } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
-@customElement('cro-mobile-download-links')
+@customElement('cross-w3m-mobile-download-links')
 export class W3mMobileDownloadLinks extends LitElement {
   public static override styles = [styles]
 
@@ -100,6 +100,6 @@ export class W3mMobileDownloadLinks extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-mobile-download-links': W3mMobileDownloadLinks
+    'cross-w3m-mobile-download-links': W3mMobileDownloadLinks
   }
 }

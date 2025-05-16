@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import type { Balance } from '@to-nexus/appkit-common'
 import {
   ChainController,
@@ -10,9 +7,12 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-wallet-send-select-token-view')
+@customElement('cross-w3m-wallet-send-select-token-view')
 export class W3mSendSelectTokenView extends LitElement {
   public static override styles = styles
 
@@ -158,6 +158,6 @@ export class W3mSendSelectTokenView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-wallet-send-select-token-view': W3mSendSelectTokenView
+    'cross-w3m-wallet-send-select-token-view': W3mSendSelectTokenView
   }
 }

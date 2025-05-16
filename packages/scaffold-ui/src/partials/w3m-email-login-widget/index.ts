@@ -1,9 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-import { createRef, ref } from 'lit/directives/ref.js'
-import type { Ref } from 'lit/directives/ref.js'
-
 import { type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   ChainController,
@@ -14,9 +8,15 @@ import {
 import { EventsController, RouterController, SnackController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+import { createRef, ref } from 'lit/directives/ref.js'
+import type { Ref } from 'lit/directives/ref.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-email-login-widget')
+@customElement('cross-w3m-email-login-widget')
 export class W3mEmailLoginWidget extends LitElement {
   public static override styles = styles
 
@@ -129,7 +129,7 @@ export class W3mEmailLoginWidget extends LitElement {
       const authConnector = ConnectorController.getAuthConnector()
 
       if (!authConnector) {
-        throw new Error('w3m-email-login-widget: Auth connector not found')
+        throw new Error('cross-w3m-email-login-widget: Auth connector not found')
       }
       const { action } = await authConnector.provider.connectEmail({ email: this.email })
       EventsController.sendEvent({ type: 'track', event: 'EMAIL_SUBMITTED' })
@@ -166,6 +166,6 @@ export class W3mEmailLoginWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-email-login-widget': W3mEmailLoginWidget
+    'cross-w3m-email-login-widget': W3mEmailLoginWidget
   }
 }

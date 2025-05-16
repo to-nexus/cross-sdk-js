@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import type { Connector } from '@to-nexus/appkit-core'
 import { AssetUtil, ConnectorController, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-connect-multi-chain-widget')
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
+@customElement('cross-w3m-connect-multi-chain-widget')
 export class W3mConnectMultiChainWidget extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -69,6 +69,6 @@ export class W3mConnectMultiChainWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-connect-multi-chain-widget': W3mConnectMultiChainWidget
+    'cross-w3m-connect-multi-chain-widget': W3mConnectMultiChainWidget
   }
 }

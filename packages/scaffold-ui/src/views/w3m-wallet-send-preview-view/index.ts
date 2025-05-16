@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { ChainController, RouterController, SendController } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-wallet-send-preview-view')
+@customElement('cross-w3m-wallet-send-preview-view')
 export class W3mWalletSendPreviewView extends LitElement {
   public static override styles = styles
 
@@ -91,11 +91,11 @@ export class W3mWalletSendPreviewView extends LitElement {
         </wui-flex>
       </wui-flex>
       <wui-flex flexDirection="column" .padding=${['xxl', '0', '0', '0'] as const}>
-        <w3m-wallet-send-details
+        <cross-w3m-wallet-send-details
           .caipNetwork=${this.caipNetwork}
           .receiverAddress=${this.receiverAddress}
           .networkFee=${this.gasPriceInUSD}
-        ></w3m-wallet-send-details>
+        ></cross-w3m-wallet-send-details>
         <wui-flex justifyContent="center" gap="xxs" .padding=${['s', '0', '0', '0'] as const}>
           <wui-icon size="sm" color="fg-200" name="warningCircle"></wui-icon>
           <wui-text variant="small-400" color="fg-200">Review transaction carefully</wui-text>
@@ -147,6 +147,6 @@ export class W3mWalletSendPreviewView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-wallet-send-preview-view': W3mWalletSendPreviewView
+    'cross-w3m-wallet-send-preview-view': W3mWalletSendPreviewView
   }
 }

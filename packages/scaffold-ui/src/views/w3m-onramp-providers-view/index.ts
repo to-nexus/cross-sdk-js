@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import {
   AccountController,
   BlockchainApiController,
@@ -15,6 +12,9 @@ import {
 import type { CoinbasePaySDKChainNameValues } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
+
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
 
 @customElement('w3m-onramp-providers-view')
 export class W3mOnRampProvidersView extends LitElement {
@@ -56,7 +56,7 @@ export class W3mOnRampProvidersView extends LitElement {
       <wui-flex flexDirection="column" .padding=${['0', 's', 's', 's']} gap="xs">
         ${this.onRampProvidersTemplate()}
       </wui-flex>
-      <w3m-onramp-providers-footer></w3m-onramp-providers-footer>
+      <cross-w3m-onramp-providers-footer></cross-w3m-onramp-providers-footer>
     `
   }
 
@@ -68,7 +68,7 @@ export class W3mOnRampProvidersView extends LitElement {
       )
       .map(
         provider => html`
-          <w3m-onramp-provider-item
+          <cross-w3m-onramp-provider-item
             label=${provider.label}
             name=${provider.name}
             feeRange=${provider.feeRange}
@@ -76,7 +76,7 @@ export class W3mOnRampProvidersView extends LitElement {
               this.onClickProvider(provider)
             }}
             ?disabled=${!provider.url}
-          ></w3m-onramp-provider-item>
+          ></cross-w3m-onramp-provider-item>
         `
       )
   }

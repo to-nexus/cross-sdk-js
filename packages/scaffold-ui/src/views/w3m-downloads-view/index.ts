@@ -1,9 +1,9 @@
-import { LitElement, html } from 'lit'
-
 import { CoreHelperUtil, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-downloads-view')
+import { LitElement, html } from 'lit'
+
+@customElement('cross-w3m-downloads-view')
 export class W3mDownloadsView extends LitElement {
   // -- Members ------------------------------------------- //
   private wallet = RouterController.state.data?.wallet
@@ -11,7 +11,7 @@ export class W3mDownloadsView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.wallet) {
-      throw new Error('w3m-downloads-view')
+      throw new Error('cross-w3m-downloads-view')
     }
 
     return html`
@@ -116,6 +116,6 @@ export class W3mDownloadsView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-downloads-view': W3mDownloadsView
+    'cross-w3m-downloads-view': W3mDownloadsView
   }
 }

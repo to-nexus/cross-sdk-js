@@ -1,12 +1,12 @@
-import { LitElement, html } from 'lit'
-
 import { NavigationUtil } from '@to-nexus/appkit-common'
 import { CoreHelperUtil, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+
 import styles from './styles.js'
 
-@customElement('w3m-register-account-name-success-view')
+@customElement('cross-w3m-register-account-name-success-view')
 export class W3mRegisterAccountNameSuccess extends LitElement {
   public static override styles = styles
 
@@ -79,6 +79,6 @@ export class W3mRegisterAccountNameSuccess extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-register-account-name-success-view': W3mRegisterAccountNameSuccess
+    'cross-w3m-register-account-name-success-view': W3mRegisterAccountNameSuccess
   }
 }

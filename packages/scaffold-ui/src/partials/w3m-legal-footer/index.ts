@@ -1,11 +1,11 @@
-import { LitElement, html } from 'lit'
-
 import { OptionsController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+
 import styles from './styles.js'
 
-@customElement('w3m-legal-footer')
+@customElement('cross-w3m-legal-footer')
 export class W3mLegalFooter extends LitElement {
   public static override styles = [styles]
 
@@ -61,6 +61,6 @@ export class W3mLegalFooter extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-legal-footer': W3mLegalFooter
+    'cross-w3m-legal-footer': W3mLegalFooter
   }
 }

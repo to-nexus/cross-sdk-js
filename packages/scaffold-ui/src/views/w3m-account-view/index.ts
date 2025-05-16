@@ -1,11 +1,11 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import { ChainController, ConnectorController, StorageUtil } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-account-view')
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
+@customElement('cross-w3m-account-view')
 export class W3mAccountView extends LitElement {
   // -- Members ------------------------------------------- //
   private unsubscribe: (() => void)[] = []
@@ -41,16 +41,16 @@ export class W3mAccountView extends LitElement {
 
   // -- Private ------------------------------------------- //
   private walletFeaturesTemplate() {
-    return html`<w3m-account-wallet-features-widget></w3m-account-wallet-features-widget>`
+    return html`<cross-w3m-account-wallet-features-widget></cross-w3m-account-wallet-features-widget>`
   }
 
   private defaultTemplate() {
-    return html`<w3m-account-default-widget></w3m-account-default-widget>`
+    return html`<cross-w3m-account-default-widget></cross-w3m-account-default-widget>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-view': W3mAccountView
+    'cross-w3m-account-view': W3mAccountView
   }
 }

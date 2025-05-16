@@ -22,7 +22,7 @@ import styles from './styles.js'
 // -- Helpers --------------------------------------------- //
 const SCROLL_LOCK = 'scroll-lock'
 
-@customElement('cro-modal')
+@customElement('cross-w3m-modal')
 export class W3mModal extends LitElement {
   public static override styles = styles
 
@@ -97,15 +97,15 @@ export class W3mModal extends LitElement {
 
     if (this.enableEmbedded) {
       return html`${this.contentTemplate()}
-        <w3m-tooltip></w3m-tooltip> `
+        <cross-w3m-tooltip></cross-w3m-tooltip> `
     }
 
     return this.open
       ? html`
-          <wui-flex @click=${this.onOverlayClick.bind(this)} data-testid="w3m-modal-overlay">
+          <wui-flex @click=${this.onOverlayClick.bind(this)} data-testid="cross-w3m-modal-overlay">
             ${this.contentTemplate()}
           </wui-flex>
-          <w3m-tooltip></w3m-tooltip>
+          <cross-w3m-tooltip></cross-w3m-tooltip>
         `
       : null
   }
@@ -118,12 +118,12 @@ export class W3mModal extends LitElement {
       role="alertdialog"
       aria-modal="true"
       tabindex="0"
-      data-testid="w3m-modal-card"
+      data-testid="cross-w3m-modal-card"
     >
-      <cro-header></cro-header>
-      <cro-router></cro-router>
-      <cro-snackbar></cro-snackbar>
-      <cro-alertbar></cro-alertbar>
+      <cross-w3m-header></cross-w3m-header>
+      <cross-w3m-router></cross-w3m-router>
+      <cross-w3m-snackbar></cross-w3m-snackbar>
+      <cross-w3m-alertbar></cross-w3m-alertbar>
     </wui-card>`
   }
 
@@ -173,7 +173,7 @@ export class W3mModal extends LitElement {
         overflow: hidden;
         overscroll-behavior: contain;
       }
-      cro-modal {
+      cross-w3m-modal {
         pointer-events: auto;
       }
     `
@@ -277,6 +277,6 @@ export class W3mModal extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cro-modal': W3mModal
+    'cross-w3m-modal': W3mModal
   }
 }

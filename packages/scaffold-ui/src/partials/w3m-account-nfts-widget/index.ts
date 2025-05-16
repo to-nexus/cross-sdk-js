@@ -1,11 +1,11 @@
-import { LitElement, html } from 'lit'
-
 import { RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+
 import styles from './styles.js'
 
-@customElement('w3m-account-nfts-widget')
+@customElement('cross-w3m-account-nfts-widget')
 export class W3mAccountNftsWidget extends LitElement {
   public static override styles = styles
 
@@ -65,6 +65,6 @@ export class W3mAccountNftsWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-nfts-widget': W3mAccountNftsWidget
+    'cross-w3m-account-nfts-widget': W3mAccountNftsWidget
   }
 }

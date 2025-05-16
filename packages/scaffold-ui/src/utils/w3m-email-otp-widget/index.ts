@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import {
   ConnectorController,
   CoreHelperUtil,
@@ -9,6 +6,9 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameHelpers } from '@to-nexus/appkit-wallet'
+
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
 
 import styles from './styles.js'
 
@@ -20,7 +20,7 @@ export type OnStartOverFn = () => void
 // -- Helpers ------------------------------------------- //
 const OTP_LENGTH = 6
 
-@customElement('w3m-email-otp-widget')
+@customElement('cross-w3m-email-otp-widget')
 export class W3mEmailOtpWidget extends LitElement {
   public static override styles = styles
 
@@ -60,7 +60,7 @@ export class W3mEmailOtpWidget extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     if (!this.email) {
-      throw new Error('w3m-email-otp-widget: No email provided')
+      throw new Error('cross-w3m-email-otp-widget: No email provided')
     }
     const isResendDisabled = Boolean(this.timeoutTimeLeft)
     const footerLabels = this.getFooterLabels(isResendDisabled)
@@ -151,7 +151,7 @@ export class W3mEmailOtpWidget extends LitElement {
           this.otp = ''
           const authConnector = ConnectorController.getAuthConnector()
           if (!authConnector || !this.email) {
-            throw new Error('w3m-email-otp-widget: Unable to resend email')
+            throw new Error('cross-w3m-email-otp-widget: Unable to resend email')
           }
           this.loading = true
           await this.onOtpResend(this.email)
@@ -185,6 +185,6 @@ export class W3mEmailOtpWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-email-otp-widget': W3mEmailOtpWidget
+    'cross-w3m-email-otp-widget': W3mEmailOtpWidget
   }
 }

@@ -1,7 +1,4 @@
 /* eslint-disable max-depth */
-import type { SessionTypes } from '@walletconnect/types'
-import UniversalProvider from '@to-nexus/universal-provider'
-import type { UniversalProviderOpts } from '@to-nexus/universal-provider'
 import {
   type CaipAddress,
   type CaipNetwork,
@@ -80,6 +77,9 @@ import {
   type W3mFrameTypes
 } from '@to-nexus/appkit-wallet'
 import type { AppKitNetwork } from '@to-nexus/appkit/networks'
+import UniversalProvider from '@to-nexus/universal-provider'
+import type { UniversalProviderOpts } from '@to-nexus/universal-provider'
+import type { SessionTypes } from '@walletconnect/types'
 
 import type { AdapterBlueprint } from './adapters/ChainAdapterBlueprint.js'
 import { W3mFrameProviderSingleton } from './auth-provider/W3MFrameProviderSingleton.js'
@@ -131,25 +131,25 @@ function getEnv(): string {
   // ✅ Vite 환경 (import.meta.env.MODE 사용)
   if (typeof import.meta !== 'undefined' && import.meta.env?.['VITE_ENV_MODE']) {
     console.log('getEnv(), import.meta.env.VITE_ENV_MODE', import.meta.env['VITE_ENV_MODE'])
-    return import.meta.env['VITE_ENV_MODE'];
+    return import.meta.env['VITE_ENV_MODE']
   }
-  
+
   // ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
-  if (typeof process !== 'undefined' && process.env?.["NEXT_PUBLIC_ENV_MODE"]) {
-    console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env["NEXT_PUBLIC_ENV_MODE"])
-    return process.env["NEXT_PUBLIC_ENV_MODE"];
+  if (typeof process !== 'undefined' && process.env?.['NEXT_PUBLIC_ENV_MODE']) {
+    console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env['NEXT_PUBLIC_ENV_MODE'])
+    return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
   // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
-  if (typeof process !== 'undefined' && process.env?.["NODE_ENV"]) {
-    console.log('getEnv(), process.env.NODE_ENV', process.env["NODE_ENV"])
-    return process.env["NODE_ENV"];
+  if (typeof process !== 'undefined' && process.env?.['NODE_ENV']) {
+    console.log('getEnv(), process.env.NODE_ENV', process.env['NODE_ENV'])
+    return process.env['NODE_ENV']
   }
 
   // ✅ 브라우저에서 직접 주입된 환경 변수 (globalThis 사용)
 
   console.log('getEnv(), development')
-  return 'development';
+  return 'development'
 }
 
 // -- Client --------------------------------------------------------------------
@@ -945,7 +945,6 @@ export class AppKit {
   private createClients() {
     this.connectionControllerClient = {
       connectWalletConnect: async () => {
-
         console.log(`connectWalletConnect`)
 
         const adapter = this.getAdapter(ChainController.state.activeChain)
@@ -962,7 +961,6 @@ export class AppKit {
         await this.syncWalletConnectAccount()
       },
       connectExternal: async ({ id, info, type, provider, chain, caipNetwork }) => {
-
         console.log(`connectExternal`)
 
         const activeChain = ChainController.state.activeChain as ChainNamespace
@@ -1035,7 +1033,7 @@ export class AppKit {
 
         return ids.some(id => Boolean(window.ethereum?.[String(id)]))
       },
-      signMessage: async (params: {message: string, customData?: CustomData}) => {
+      signMessage: async (params: { message: string; customData?: CustomData }) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const result = await adapter?.signMessage({
           message: params.message,
@@ -1048,7 +1046,7 @@ export class AppKit {
       },
       signEIP712: async (args: SignEIP712Args) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
-        
+
         const result = await adapter?.signEIP712({
           ...args,
           provider: ProviderUtil.getProvider(args.chainNamespace)
@@ -1057,7 +1055,6 @@ export class AppKit {
         return result?.signature || ''
       },
       sendTransaction: async (args: SendTransactionArgs) => {
-
         if (args.chainNamespace === ConstantsUtil.CHAIN.EVM) {
           const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
@@ -1065,11 +1062,11 @@ export class AppKit {
             ChainController.state.activeChain as ChainNamespace
           )
           const result = await adapter?.sendTransaction({ ...args, provider })
-          
-          // update native balance
-          this.updateNativeBalance(true)  // ignoreCache after sendTransaction
 
-          return result?.hash ? { hash: `${result.hash}` as `0x${string}` } : null;
+          // update native balance
+          this.updateNativeBalance(true) // ignoreCache after sendTransaction
+
+          return result?.hash ? { hash: `${result.hash}` as `0x${string}` } : null
         }
 
         return null
@@ -1129,7 +1126,6 @@ export class AppKit {
           throw new Error('CaipNetwork or CaipAddress is undefined')
         }
 
-
         const result = await adapter?.writeContract({ ...args, caipNetwork, provider, caipAddress })
         return result ? { hash: result?.hash as `0x${string}` } : null
       },
@@ -1144,7 +1140,10 @@ export class AppKit {
         }
 
         const result = await adapter?.readContract({ ...args, provider, caipNetwork })
-        console.log('Appkit ReadContract result', JSON.stringify(result, (key, val)=>typeof val === 'bigint' ? val.toString() : val))
+        console.log(
+          'Appkit ReadContract result',
+          JSON.stringify(result, (key, val) => (typeof val === 'bigint' ? val.toString() : val))
+        )
         return result
       },
       parseUnits: (value: string, decimals: number) => {
@@ -1581,7 +1580,9 @@ export class AppKit {
         tokens: this.options.tokens,
         ignoreCache: ignoreCache
       })
-      console.log(`chainId: ${ChainController.state.activeCaipNetwork?.id} native balance: ${JSON.stringify(balance)} tokens: ${JSON.stringify(this.options.tokens, (key, val)=>typeof val === 'bigint' ? val.toString() : val)}`)
+      console.log(
+        `chainId: ${ChainController.state.activeCaipNetwork?.id} native balance: ${JSON.stringify(balance)} tokens: ${JSON.stringify(this.options.tokens, (key, val) => (typeof val === 'bigint' ? val.toString() : val))}`
+      )
       this.setBalance(balance.balance, balance.symbol, ChainController.state.activeChain)
     }
   }
@@ -2032,7 +2033,7 @@ export class AppKit {
       console.error(...args)
     })
 
-    const injectedEnv = getEnv();
+    const injectedEnv = getEnv()
     console.log(`injected env from your project: ${injectedEnv}`)
 
     const universalProviderOptions: UniversalProviderOpts = {
@@ -2042,13 +2043,17 @@ export class AppKit {
         description: this.options?.metadata ? this.options?.metadata.description : '',
         url: this.options?.metadata ? this.options?.metadata.url : '',
         icons: this.options?.metadata ? this.options?.metadata.icons : [''],
-        verifyUrl: injectedEnv === 'development' ? ConstantsUtil.VERIFY_URL_DEV : ConstantsUtil.VERIFY_URL_PROD,
+        verifyUrl:
+          injectedEnv === 'development'
+            ? ConstantsUtil.VERIFY_URL_DEV
+            : ConstantsUtil.VERIFY_URL_PROD,
         redirect: {
           universal: this.options?.metadata?.redirect?.universal
         }
       },
       logger,
-      relayUrl: injectedEnv === 'development' ? ConstantsUtil.RELAY_URL_DEV : ConstantsUtil.RELAY_URL_PROD,
+      relayUrl:
+        injectedEnv === 'development' ? ConstantsUtil.RELAY_URL_DEV : ConstantsUtil.RELAY_URL_PROD
     }
 
     console.log(`relayUrl: ${universalProviderOptions.relayUrl}`)
@@ -2247,7 +2252,7 @@ export class AppKit {
           import('@to-nexus/appkit-ui'),
           import('@to-nexus/appkit-scaffold-ui/w3m-modal')
         ])
-        const modal = document.createElement('cro-modal')
+        const modal = document.createElement('cross-w3m-modal')
         if (!OptionsController.state.disableAppend && !OptionsController.state.enableEmbedded) {
           document.body.insertAdjacentElement('beforeend', modal)
         }

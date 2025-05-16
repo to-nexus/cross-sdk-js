@@ -21,7 +21,7 @@ export default css`
     flex: 1;
   }
 
-  w3m-transactions-view {
+  cro-transactions-view {
     max-height: 200px;
   }
 

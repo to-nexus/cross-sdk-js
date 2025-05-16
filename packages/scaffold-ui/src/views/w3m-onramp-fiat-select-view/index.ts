@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AssetController,
   ModalController,
@@ -11,9 +7,13 @@ import {
 import type { PaymentCurrency } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-onramp-fiat-select-view')
+@customElement('cross-w3m-onramp-fiat-select-view')
 export class W3mOnrampFiatSelectView extends LitElement {
   public static override styles = styles
 
@@ -55,7 +55,9 @@ export class W3mOnrampFiatSelectView extends LitElement {
     const disabled = showLegalCheckbox && !this.checked
 
     return html`
-      <w3m-legal-checkbox @checkboxChange=${this.onCheckboxChange.bind(this)}></w3m-legal-checkbox>
+      <cross-w3m-legal-checkbox
+        @checkboxChange=${this.onCheckboxChange.bind(this)}
+      ></cross-w3m-legal-checkbox>
       <wui-flex
         flexDirection="column"
         .padding=${['0', 's', 's', 's']}
@@ -64,7 +66,7 @@ export class W3mOnrampFiatSelectView extends LitElement {
       >
         ${this.currenciesTemplate(disabled)}
       </wui-flex>
-      <w3m-legal-footer></w3m-legal-footer>
+      <cross-w3m-legal-footer></cross-w3m-legal-footer>
     `
   }
 
@@ -101,6 +103,6 @@ export class W3mOnrampFiatSelectView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-onramp-fiat-select-view': W3mOnrampFiatSelectView
+    'cross-w3m-onramp-fiat-select-view': W3mOnrampFiatSelectView
   }
 }

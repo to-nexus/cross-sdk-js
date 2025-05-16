@@ -1,10 +1,10 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import type { WcWallet } from '@to-nexus/appkit-core'
 import { ApiController, ConnectorController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 import { WalletUtil } from '../../utils/WalletUtil.js'
 import styles from './styles.js'
@@ -12,7 +12,7 @@ import styles from './styles.js'
 // -- Helpers --------------------------------------------- //
 const PAGINATOR_ID = 'local-paginator'
 
-@customElement('w3m-all-wallets-list')
+@customElement('cross-w3m-all-wallets-list')
 export class W3mAllWalletsList extends LitElement {
   public static override styles = styles
 
@@ -101,10 +101,10 @@ export class W3mAllWalletsList extends LitElement {
 
     return walletsWithInstalled.map(
       wallet => html`
-        <w3m-all-wallets-list-item
+        <cross-w3m-all-wallets-list-item
           @click=${() => this.onConnectWallet(wallet)}
           .wallet=${wallet}
-        ></w3m-all-wallets-list-item>
+        ></cross-w3m-all-wallets-list-item>
       `
     )
   }
@@ -150,6 +150,6 @@ export class W3mAllWalletsList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-all-wallets-list': W3mAllWalletsList
+    'cross-w3m-all-wallets-list': W3mAllWalletsList
   }
 }

@@ -4,7 +4,7 @@ import { customElement } from '@to-nexus/appkit-ui'
 import { W3mEmailOtpWidget } from '../../utils/w3m-email-otp-widget/index.js'
 import type { OnOtpSubmitFn } from '../../utils/w3m-email-otp-widget/index.js'
 
-@customElement('w3m-update-email-primary-otp-view')
+@customElement('cross-w3m-update-email-primary-otp-view')
 export class W3mUpdateEmailPrimaryOtpView extends W3mEmailOtpWidget {
   public constructor() {
     super()
@@ -37,6 +37,6 @@ export class W3mUpdateEmailPrimaryOtpView extends W3mEmailOtpWidget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-update-email-primary-otp-view': W3mUpdateEmailPrimaryOtpView
+    'cross-w3m-update-email-primary-otp-view': W3mUpdateEmailPrimaryOtpView
   }
 }

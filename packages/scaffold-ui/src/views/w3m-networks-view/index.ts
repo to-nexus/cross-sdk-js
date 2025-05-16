@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { type CaipNetwork, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -16,9 +12,13 @@ import {
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-networks-view')
+@customElement('cross-w3m-networks-view')
 export class W3mNetworksView extends LitElement {
   public static override styles = styles
   // -- Members ------------------------------------------- //
@@ -204,6 +204,6 @@ export class W3mNetworksView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-networks-view': W3mNetworksView
+    'cross-w3m-networks-view': W3mNetworksView
   }
 }

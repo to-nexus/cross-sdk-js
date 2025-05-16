@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { property, state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import {
   AccountController,
   ChainController,
@@ -17,9 +13,13 @@ import {
 import { customElement } from '@to-nexus/appkit-ui'
 import { SocialProviderEnum } from '@to-nexus/appkit-utils'
 
+import { LitElement, html } from 'lit'
+import { property, state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-social-login-list')
+@customElement('cross-w3m-social-login-list')
 export class W3mSocialLoginList extends LitElement {
   public static override styles = styles
 
@@ -142,6 +142,6 @@ export class W3mSocialLoginList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-social-login-list': W3mSocialLoginList
+    'cross-w3m-social-login-list': W3mSocialLoginList
   }
 }

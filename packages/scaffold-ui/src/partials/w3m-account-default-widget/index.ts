@@ -1,7 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -21,9 +17,13 @@ import {
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-account-default-widget')
+@customElement('cross-w3m-account-default-widget')
 export class W3mAccountDefaultWidget extends LitElement {
   public static override styles = styles
 
@@ -113,7 +113,7 @@ export class W3mAccountDefaultWidget extends LitElement {
       </wui-flex>
 
       <wui-flex flexDirection="column" gap="xs" .padding=${['0', 's', 's', 's'] as const}>
-        ${this.authCardTemplate()} <w3m-account-auth-button></w3m-account-auth-button>
+        ${this.authCardTemplate()} <cross-w3m-account-auth-button></cross-w3m-account-auth-button>
         ${this.orderedFeaturesTemplate()} ${this.activityTemplate()}
         <wui-list-item
           variant="icon"
@@ -146,7 +146,7 @@ export class W3mAccountDefaultWidget extends LitElement {
 
     return html`
       <wui-list-item
-        data-testid="w3m-account-default-onramp-button"
+        data-testid="cross-w3m-account-default-onramp-button"
         iconVariant="blue"
         icon="card"
         ?chevron=${true}
@@ -165,12 +165,12 @@ export class W3mAccountDefaultWidget extends LitElement {
       switch (feature) {
         case 'onramp':
           return null
-          // TODO: not provide on-ramp yet
-          // return this.onrampTemplate()
+        // TODO: not provide on-ramp yet
+        // return this.onrampTemplate()
         case 'swaps':
           return null
-          // TODO: not provide swaps yet
-          // return this.swapsTemplate()
+        // TODO: not provide swaps yet
+        // return this.swapsTemplate()
         case 'send':
           return this.sendTemplate()
         default:
@@ -265,7 +265,7 @@ export class W3mAccountDefaultWidget extends LitElement {
         label="Upgrade your wallet"
         description="Transition to a self-custodial wallet"
         icon="wallet"
-        data-testid="w3m-wallet-upgrade-card"
+        data-testid="cross-w3m-wallet-upgrade-card"
       ></wui-notice-card>
     `
   }
@@ -339,7 +339,7 @@ export class W3mAccountDefaultWidget extends LitElement {
 
   private multiAccountTemplate() {
     if (!this.address) {
-      throw new Error('w3m-account-view: No account provided')
+      throw new Error('cross-w3m-account-view: No account provided')
     }
 
     const account = this.allAccounts.find(acc => acc.address === this.address)
@@ -451,6 +451,6 @@ export class W3mAccountDefaultWidget extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-account-default-widget': W3mAccountDefaultWidget
+    'cross-w3m-account-default-widget': W3mAccountDefaultWidget
   }
 }

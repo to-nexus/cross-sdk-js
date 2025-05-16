@@ -1,14 +1,14 @@
+import { ConnectionController, CoreHelperUtil, SendController } from '@to-nexus/appkit-core'
+import { customElement } from '@to-nexus/appkit-ui'
+
 import { LitElement, html } from 'lit'
 import { property, state } from 'lit/decorators.js'
 import { createRef, ref } from 'lit/directives/ref.js'
 import type { Ref } from 'lit/directives/ref.js'
 
-import { ConnectionController, CoreHelperUtil, SendController } from '@to-nexus/appkit-core'
-import { customElement } from '@to-nexus/appkit-ui'
-
 import styles from './styles.js'
 
-@customElement('w3m-input-address')
+@customElement('cross-w3m-input-address')
 export class W3mInputAddress extends LitElement {
   public static override styles = styles
 
@@ -167,6 +167,6 @@ ${this.value ?? ''}</textarea
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-input-address': W3mInputAddress
+    'cross-w3m-input-address': W3mInputAddress
   }
 }

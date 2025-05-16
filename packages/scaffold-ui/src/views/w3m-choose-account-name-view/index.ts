@@ -1,6 +1,3 @@
-import { LitElement, html } from 'lit'
-import { state } from 'lit/decorators.js'
-
 import { NavigationUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -11,9 +8,12 @@ import {
 import { customElement } from '@to-nexus/appkit-ui'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
 
+import { LitElement, html } from 'lit'
+import { state } from 'lit/decorators.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-choose-account-name-view')
+@customElement('cross-w3m-choose-account-name-view')
 export class W3mChooseAccountNameView extends LitElement {
   public static override styles = styles
 
@@ -104,6 +104,6 @@ export class W3mChooseAccountNameView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-choose-account-name-view': W3mChooseAccountNameView
+    'cross-w3m-choose-account-name-view': W3mChooseAccountNameView
   }
 }

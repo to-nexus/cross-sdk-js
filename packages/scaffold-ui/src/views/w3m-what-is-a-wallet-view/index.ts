@@ -1,7 +1,7 @@
-import { LitElement, html } from 'lit'
-
 import { EventsController, RouterController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+
+import { LitElement, html } from 'lit'
 
 const data = [
   {
@@ -21,7 +21,7 @@ const data = [
   }
 ] as const
 
-@customElement('w3m-what-is-a-wallet-view')
+@customElement('cross-w3m-what-is-a-wallet-view')
 export class W3mWhatIsAWalletView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -32,7 +32,7 @@ export class W3mWhatIsAWalletView extends LitElement {
         alignItems="center"
         gap="xl"
       >
-        <w3m-help-widget .data=${data}></w3m-help-widget>
+        <cross-w3m-help-widget .data=${data}></cross-w3m-help-widget>
         <wui-button variant="main" size="md" @click=${this.onGetWallet.bind(this)}>
           <wui-icon color="inherit" slot="iconLeft" name="wallet"></wui-icon>
           Get a wallet
@@ -50,6 +50,6 @@ export class W3mWhatIsAWalletView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-what-is-a-wallet-view': W3mWhatIsAWalletView
+    'cross-w3m-what-is-a-wallet-view': W3mWhatIsAWalletView
   }
 }

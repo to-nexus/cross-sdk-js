@@ -1,14 +1,14 @@
-import { LitElement, html } from 'lit'
-import { property } from 'lit/decorators.js'
-import { ifDefined } from 'lit/directives/if-defined.js'
-
 import { type CaipNetwork } from '@to-nexus/appkit-common'
 import { AssetUtil, RouterController } from '@to-nexus/appkit-core'
 import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
+import { LitElement, html } from 'lit'
+import { property } from 'lit/decorators.js'
+import { ifDefined } from 'lit/directives/if-defined.js'
+
 import styles from './styles.js'
 
-@customElement('w3m-wallet-send-details')
+@customElement('cross-w3m-wallet-send-details')
 export class W3mWalletSendDetails extends LitElement {
   public static override styles = styles
 
@@ -62,6 +62,6 @@ export class W3mWalletSendDetails extends LitElement {
 }
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-wallet-send-details': W3mWalletSendDetails
+    'cross-w3m-wallet-send-details': W3mWalletSendDetails
   }
 }

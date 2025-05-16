@@ -1,9 +1,9 @@
-import { LitElement, html } from 'lit'
-
 import { ConstantsUtil } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
-@customElement('w3m-upgrade-wallet-view')
+import { LitElement, html } from 'lit'
+
+@customElement('cross-w3m-upgrade-wallet-view')
 export class W3mUpgradeWalletView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
@@ -15,7 +15,7 @@ export class W3mUpgradeWalletView extends LitElement {
           variant="fill"
           href=${ConstantsUtil.SECURE_SITE_DASHBOARD}
           imageSrc=${ConstantsUtil.SECURE_SITE_FAVICON}
-          data-testid="w3m-secure-website-button"
+          data-testid="cross-w3m-secure-website-button"
         >
         </wui-chip>
         <wui-text variant="small-400" color="fg-200">
@@ -28,6 +28,6 @@ export class W3mUpgradeWalletView extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'w3m-upgrade-wallet-view': W3mUpgradeWalletView
+    'cross-w3m-upgrade-wallet-view': W3mUpgradeWalletView
   }
 }
