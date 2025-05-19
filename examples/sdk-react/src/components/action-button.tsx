@@ -46,7 +46,7 @@ console.log(`redirectUrl: ${redirectUrl}`)
 //   },
 //   themeMode: 'light'
 // })
-initCrossSdk(projectId, redirectUrl)
+initCrossSdk(projectId, redirectUrl, undefined, 'dark', crossMainnet)
 
 export function ActionButtonList() {
   const appKit = useAppKit()
