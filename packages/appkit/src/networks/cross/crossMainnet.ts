@@ -2,7 +2,7 @@ import { defineChain } from '../utils.js'
 
 export const crossMainnet = defineChain({
   id: 612055,
-  name: 'CROSS',
+  name: 'CROSS Mainnet',
   network: 'cross',
   nativeCurrency: { name: 'CROSS', symbol: 'CROSS', decimals: 18 },
   rpcUrls: {

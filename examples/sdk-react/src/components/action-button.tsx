@@ -424,6 +424,20 @@ export function ActionButtonList() {
     alert(`erc721 balance: ${amount}`)
   }
 
+  async function getBalanceFromWallet() {
+
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    const chainFilter = [`0x${network?.chainId?.toString(16)}`] as `0x${string}`[]
+    console.log(`getBalanceFromWallet - chainFilter: ${chainFilter}`)
+
+    const tokens = await ConnectionController.walletGetAssets({ account: FROM_ADDRESS, chainFilter })
+    alert(`balance: ${JSON.stringify(tokens, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)}`)
+  }
+
   useEffect(() => {
     ;(() => {
       if (contractArgs || !FROM_ADDRESS || !network?.caipNetwork?.chainNamespace) return
@@ -495,6 +509,7 @@ export function ActionButtonList() {
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>
         <button onClick={() => getBalanceOfERC20()}>Get Balance of ERC20</button>
         <button onClick={getBalanceOfNFT}>Get Balance of NFT</button>
+        <button onClick={getBalanceFromWallet}>Get Balance from Wallet</button>
       </div>
     </div>
   )

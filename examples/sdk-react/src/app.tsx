@@ -20,7 +20,7 @@ export default function App() {
       </div>
 
       <h1 className="page-title">Cross React Sdk Example</h1>
-
+      <appkit-network-button />
       <ActionButtonList />
       <AccountInfo />
       <InfoList />
