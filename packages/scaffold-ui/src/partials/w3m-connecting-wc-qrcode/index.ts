@@ -47,7 +47,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
         <wui-shimmer borderRadius="l" width="100%"> ${this.qrCodeTemplate()} </wui-shimmer>
 
         <wui-text variant="paragraph-500" color="fg-100">
-          Scan this QR Code with your phone partial
+          Scan this QR Code with your phone
         </wui-text>
         ${this.copyTemplate()}
       </wui-flex>
