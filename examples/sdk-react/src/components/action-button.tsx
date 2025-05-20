@@ -20,11 +20,10 @@ import {
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
-import type { WriteContractArgs } from '@to-nexus/sdk/react'
+import type { WriteContractArgs, AssetFilterType } from '@to-nexus/sdk/react'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
-import type { AssetFilterType } from '../../../../packages/core/dist/types/exports'
 import { sampleEIP712 } from '../contracts/sample-eip712'
 import { sampleErc20ABI } from '../contracts/sample-erc20'
 import { sampleErc721ABI } from '../contracts/sample-erc721'
@@ -443,7 +442,7 @@ export function ActionButtonList() {
     )
   }
 
-  async function getSpecificTokensBalance() {
+  async function getBalanceFromWalletWithAssetFilter() {
     if (!account?.isConnected) {
       alert('Please connect wallet first.')
       return
@@ -491,7 +490,7 @@ export function ActionButtonList() {
   }
 
   // 여러 체인의 여러 토큰 잔액을 한번에 요청하는 함수
-  async function getMultiChainTokensBalance() {
+  async function getBalanceFromWalletOnMultipleChains() {
     if (!account?.isConnected) {
       alert('Please connect wallet first.')
       return
@@ -536,7 +535,7 @@ export function ActionButtonList() {
   }
 
   // 지정된 토큰 타입만 필터링하여 요청하는 함수
-  async function getTokensByType() {
+  async function getBalanceFromWalletByTokenType() {
     if (!account?.isConnected) {
       alert('Please connect wallet first.')
       return
@@ -642,9 +641,9 @@ export function ActionButtonList() {
         <button onClick={getBalanceFromWalletWithChainFilter}>
           Get Balance from Wallet with ChainFilter
         </button>
-        <button onClick={getSpecificTokensBalance}>Get Specific Token Balance from Wallet</button>
-        <button onClick={getMultiChainTokensBalance}>Get Multi Chain Balance from Wallet</button>
-        <button onClick={getTokensByType}>Get Balance from Wallet by AssetFilterType</button>
+        <button onClick={getBalanceFromWalletWithAssetFilter}>Get Specific Token Balance from Wallet</button>
+        <button onClick={getBalanceFromWalletOnMultipleChains}>Get Multi Chain Balance from Wallet</button>
+        <button onClick={getBalanceFromWalletByTokenType}>Get Balance from Wallet by AssetFilterType</button>
       </div>
     </div>
   )

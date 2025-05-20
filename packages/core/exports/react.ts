@@ -1,7 +1,6 @@
 import { useSnapshot } from 'valtio'
 
 import type { ChainNamespace } from '@to-nexus/appkit-common'
-
 import { ChainController } from '../src/controllers/ChainController.js'
 import { ConnectionController } from '../src/controllers/ConnectionController.js'
 import { ConnectorController } from '../src/controllers/ConnectorController.js'

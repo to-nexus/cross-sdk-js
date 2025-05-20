@@ -4,7 +4,8 @@ import {
   ConnectionController,
   ConstantsUtil,
   SendController,
-  type ThemeMode
+  type ThemeMode,
+  type AssetFilterType
 } from '@to-nexus/appkit-core'
 import { bscMainnet, bscTestnet, crossMainnet, crossTestnet } from '@to-nexus/appkit/networks'
 import {
@@ -23,7 +24,7 @@ import {
 } from '@to-nexus/appkit/react'
 import UniversalProvider from '@to-nexus/universal-provider'
 
-export type { SendTransactionArgs, WriteContractArgs } from '@to-nexus/appkit-core'
+export type { SendTransactionArgs, WriteContractArgs, AssetFilterType } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
 
