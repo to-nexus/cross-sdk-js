@@ -24,6 +24,7 @@ import type { WriteContractArgs } from '@to-nexus/sdk/react'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
+import type { AssetFilterType } from '../../../../packages/core/dist/types/exports'
 import { sampleEIP712 } from '../contracts/sample-eip712'
 import { sampleErc20ABI } from '../contracts/sample-erc20'
 import { sampleErc721ABI } from '../contracts/sample-erc721'
@@ -424,8 +425,7 @@ export function ActionButtonList() {
     alert(`erc721 balance: ${amount}`)
   }
 
-  async function getBalanceFromWallet() {
-
+  async function getBalanceFromWalletWithChainFilter() {
     if (!account?.isConnected) {
       alert('Please connect wallet first.')
       return
@@ -434,8 +434,138 @@ export function ActionButtonList() {
     const chainFilter = [`0x${network?.chainId?.toString(16)}`] as `0x${string}`[]
     console.log(`getBalanceFromWallet - chainFilter: ${chainFilter}`)
 
-    const tokens = await ConnectionController.walletGetAssets({ account: FROM_ADDRESS, chainFilter })
-    alert(`balance: ${JSON.stringify(tokens, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)}`)
+    const tokens = await ConnectionController.walletGetAssets({
+      account: FROM_ADDRESS,
+      chainFilter
+    })
+    alert(
+      `balance: ${JSON.stringify(tokens, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)}`
+    )
+  }
+
+  async function getSpecificTokensBalance() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    // 현재 체인 ID를 16진수 형태로 변환
+    const chainIdHex = `0x${network?.chainId?.toString(16)}` as `0x${string}`
+    console.log(`getSpecificTokensBalance - chainId: ${chainIdHex}`)
+
+    // assetFilter 구성
+    const assetFilter = {
+      [chainIdHex as `0x${string}`]: [
+        // 네이티브 토큰 (ETH, BNB 등)
+        { address: 'native', type: 'native' },
+        // MYTC 토큰 주소
+        { address: '0x89b743f55fa4f300be1cd86cfb714979c16e4efe', type: 'erc20' },
+        // tZENY 토큰 주소
+        { address: '0xd4b74588311cab39925697d3f664517283f9ea19', type: 'erc20' }
+      ]
+    } as AssetFilterType
+
+    console.log(`getSpecificTokensBalance - assetFilter:`, assetFilter)
+
+    try {
+      // assetFilter를 사용하여 특정 토큰 잔액 요청
+      const tokens = await ConnectionController.walletGetAssets({
+        account: FROM_ADDRESS,
+        assetFilter: assetFilter
+      })
+
+      // bigint를 문자열로 변환하여 JSON으로 출력
+      alert(
+        `Specific tokens balance: ${JSON.stringify(
+          tokens,
+          (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )}`
+      )
+
+      return tokens
+    } catch (error) {
+      console.error('Error fetching specific tokens balance:', error)
+      alert(`Error: ${(error as Error).message}`)
+    }
+  }
+
+  // 여러 체인의 여러 토큰 잔액을 한번에 요청하는 함수
+  async function getMultiChainTokensBalance() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    // 여러 체인의 특정 토큰 조회 설정
+    const assetFilter = {
+      // stage
+      '0x956cc': [
+        { address: 'native', type: 'native' },
+        // MYTC 토큰 주소
+        { address: '0x89b743f55fa4f300be1cd86cfb714979c16e4efe', type: 'erc20' },
+        // tZENY 토큰 주소
+        { address: '0xd4b74588311cab39925697d3f664517283f9ea19', type: 'erc20' }
+      ],
+      // BSC test
+      '0x61': [{ address: 'native', type: 'native' }]
+    } as AssetFilterType
+
+    console.log('getMultiChainTokensBalance - assetFilter:', assetFilter)
+
+    try {
+      // 여러 체인의 특정 토큰 잔액 요청
+      const multiChainTokens = await ConnectionController.walletGetAssets({
+        account: FROM_ADDRESS,
+        assetFilter: assetFilter
+      })
+
+      alert(
+        `Multi-chain tokens balance: ${JSON.stringify(
+          multiChainTokens,
+          (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )}`
+      )
+
+      return multiChainTokens
+    } catch (error) {
+      console.error('Error fetching multi-chain tokens balance:', error)
+      alert(`Error: ${(error as Error).message}`)
+    }
+  }
+
+  // 지정된 토큰 타입만 필터링하여 요청하는 함수
+  async function getTokensByType() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    const chainIdHex = `0x${network?.chainId?.toString(16)}` as `0x${string}`
+
+    try {
+      // assetTypeFilter와 chainFilter 조합으로 요청
+      // (특정 체인의 특정 타입 토큰 전체 조회)
+      const tokens = await ConnectionController.walletGetAssets({
+        account: FROM_ADDRESS,
+        chainFilter: [chainIdHex],
+        assetTypeFilter: ['NATIVE', 'ERC20'] // ERC20 토큰과 네이티브 토큰만 조회
+      })
+
+      alert(
+        `ERC20 and native tokens: ${JSON.stringify(
+          tokens,
+          (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2
+        )}`
+      )
+
+      return tokens
+    } catch (error) {
+      console.error('Error fetching tokens by type:', error)
+      alert(`Error: ${(error as Error).message}`)
+    }
   }
 
   useEffect(() => {
@@ -509,7 +639,12 @@ export function ActionButtonList() {
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>
         <button onClick={() => getBalanceOfERC20()}>Get Balance of ERC20</button>
         <button onClick={getBalanceOfNFT}>Get Balance of NFT</button>
-        <button onClick={getBalanceFromWallet}>Get Balance from Wallet</button>
+        <button onClick={getBalanceFromWalletWithChainFilter}>
+          Get Balance from Wallet with ChainFilter
+        </button>
+        <button onClick={getSpecificTokensBalance}>Get Specific Token Balance from Wallet</button>
+        <button onClick={getMultiChainTokensBalance}>Get Multi Chain Balance from Wallet</button>
+        <button onClick={getTokensByType}>Get Balance from Wallet by AssetFilterType</button>
       </div>
     </div>
   )
