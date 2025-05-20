@@ -25,15 +25,6 @@ import UniversalProvider from '@to-nexus/universal-provider'
 
 export type { SendTransactionArgs, WriteContractArgs } from '@to-nexus/appkit-core'
 
-const networks = [
-  {
-    id: crossTestnet.id,
-    name: crossTestnet.name,
-    nativeCurrency: crossTestnet.nativeCurrency,
-    rpcUrls: crossTestnet.rpcUrls
-  }
-]
-
 const ethersAdapter = new EthersAdapter()
 
 export type Metadata = {
@@ -42,6 +33,8 @@ export type Metadata = {
   url: string
   icons: string[]
 }
+
+type SupportedNetworks = typeof crossTestnet | typeof crossMainnet | typeof bscTestnet | typeof bscMainnet
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -55,11 +48,12 @@ export type CrossSdkParams = {
   redirectUrl?: string
   metadata?: Metadata
   themeMode?: ThemeMode
+  defaultNetwork?: SupportedNetworks
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode } = params
-  initCrossSdk(projectId, redirectUrl, metadata, themeMode)
+  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork } = params
+  initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork)
 }
 
 // Create modal
@@ -67,7 +61,8 @@ const initCrossSdk = (
   projectId: string,
   redirectUrl?: string,
   metadata?: Metadata,
-  themeMode?: ThemeMode
+  themeMode?: ThemeMode,
+  defaultNetwork?: SupportedNetworks
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -79,7 +74,8 @@ const initCrossSdk = (
 
   return createAppKit({
     adapters: [ethersAdapter],
-    networks: [crossTestnet, crossMainnet, bscTestnet, bscMainnet, ...networks],
+    networks: [crossTestnet, crossMainnet, bscTestnet, bscMainnet],
+    defaultNetwork: defaultNetwork,
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
