@@ -20,7 +20,7 @@ import {
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
-import type { WriteContractArgs, AssetFilterType } from '@to-nexus/sdk/react'
+import type { AssetFilterType, WriteContractArgs } from '@to-nexus/sdk/react'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -481,8 +481,6 @@ export function ActionButtonList() {
           2
         )}`
       )
-
-      return tokens
     } catch (error) {
       console.error('Error fetching specific tokens balance:', error)
       alert(`Error: ${(error as Error).message}`)
@@ -526,8 +524,6 @@ export function ActionButtonList() {
           2
         )}`
       )
-
-      return multiChainTokens
     } catch (error) {
       console.error('Error fetching multi-chain tokens balance:', error)
       alert(`Error: ${(error as Error).message}`)
@@ -559,8 +555,6 @@ export function ActionButtonList() {
           2
         )}`
       )
-
-      return tokens
     } catch (error) {
       console.error('Error fetching tokens by type:', error)
       alert(`Error: ${(error as Error).message}`)
@@ -641,9 +635,15 @@ export function ActionButtonList() {
         <button onClick={getBalanceFromWalletWithChainFilter}>
           Get Balance from Wallet with ChainFilter
         </button>
-        <button onClick={getBalanceFromWalletWithAssetFilter}>Get Specific Token Balance from Wallet</button>
-        <button onClick={getBalanceFromWalletOnMultipleChains}>Get Multi Chain Balance from Wallet</button>
-        <button onClick={getBalanceFromWalletByTokenType}>Get Balance from Wallet by AssetFilterType</button>
+        <button onClick={getBalanceFromWalletWithAssetFilter}>
+          Get Specific Token Balance from Wallet
+        </button>
+        <button onClick={getBalanceFromWalletOnMultipleChains}>
+          Get Multi Chain Balance from Wallet
+        </button>
+        <button onClick={getBalanceFromWalletByTokenType}>
+          Get Balance from Wallet by AssetFilterType
+        </button>
       </div>
     </div>
   )
