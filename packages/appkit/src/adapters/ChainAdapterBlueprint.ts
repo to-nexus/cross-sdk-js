@@ -10,6 +10,7 @@ import {
   type AccountControllerState,
   type AccountType,
   type Connector as AppKitConnector,
+  type AssetFilterType,
   OptionsController,
   type ReadContractArgs,
   type Tokens,
@@ -556,7 +557,7 @@ export namespace AdapterBlueprint {
 
   export type WalletGetAssetsParams = {
     account: `0x${string}`
-    assetFilter?: Record<`0x${string}`, (`0x${string}` | 'native')[]>
+    assetFilter?: AssetFilterType
     assetTypeFilter?: ('NATIVE' | 'ERC20')[]
     chainFilter?: `0x${string}`[]
   }
