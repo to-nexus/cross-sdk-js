@@ -2,18 +2,18 @@ import type { ChainNamespace } from './TypeUtil.js'
 
 function getEnv(): string {
   if (typeof import.meta !== 'undefined' && import.meta.env?.['VITE_ENV_MODE']) {
-    return import.meta.env['VITE_ENV_MODE'];
-  }
-  
-  if (typeof process !== 'undefined' && process.env?.["NEXT_PUBLIC_ENV_MODE"]) {
-    return process.env["NEXT_PUBLIC_ENV_MODE"];
+    return import.meta.env['VITE_ENV_MODE']
   }
 
-  if (typeof process !== 'undefined' && process.env?.["NODE_ENV"]) {
-    return process.env["NODE_ENV"];
+  if (typeof process !== 'undefined' && process.env?.['NEXT_PUBLIC_ENV_MODE']) {
+    return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
-  return 'development';
+  if (typeof process !== 'undefined' && process.env?.['NODE_ENV']) {
+    return process.env['NODE_ENV']
+  }
+
+  return 'development'
 }
 
 export const ConstantsUtil = {
@@ -21,14 +21,17 @@ export const ConstantsUtil = {
   WC_NAME_SUFFIX_LEGACY: '.wcn.id',
   BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001',
   PULSE_API_URL: 'https://pulse.walletconnect.org',
-  W3M_API_URL: getEnv() === 'development' ? 'https://dev-wallet-server.crosstoken.io' : 'https://wallet-server.crosstoken.io',
-  RELAY_URL_DEV: "wss://dev-cross-relay.crosstoken.io/ws",
-  RELAY_URL_PROD: "wss://cross-relay.crosstoken.io/ws",
-  VERIFY_URL_DEV: "http://dev-cross-verify.crosstoken.io",
-  VERIFY_URL_PROD: "http://cross-verify.crosstoken.io",
+  W3M_API_URL:
+    getEnv() === 'development'
+      ? 'https://dev-wallet-server.crosstoken.io'
+      : 'https://wallet-server.crosstoken.io',
+  RELAY_URL_DEV: 'wss://dev-cross-relay.crosstoken.io/ws',
+  RELAY_URL_PROD: 'wss://cross-relay.crosstoken.io/ws',
+  VERIFY_URL_DEV: 'http://dev-cross-verify.crosstoken.io',
+  VERIFY_URL_PROD: 'http://cross-verify.crosstoken.io',
   /* Connector IDs */
   CONNECTOR_ID: {
-    WALLET_CONNECT: 'walletConnect',
+    WALLET_CONNECT: 'crossWalletConnect',
     INJECTED: 'injected',
     WALLET_STANDARD: 'announced',
     COINBASE: 'coinbaseWallet',

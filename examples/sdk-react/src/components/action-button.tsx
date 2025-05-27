@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 
 import {
   AccountController,
@@ -46,7 +46,13 @@ console.log(`redirectUrl: ${redirectUrl}`)
 //   },
 //   themeMode: 'light'
 // })
-initCrossSdk(projectId, redirectUrl, undefined, 'dark', crossMainnet)
+const metadata = {
+  name: 'Cross SDK',
+  description: 'Cross SDK for React',
+  url: 'https://to.nexus',
+  icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+}
+initCrossSdk(projectId, redirectUrl, metadata, 'dark', crossMainnet)
 
 export function ActionButtonList() {
   const appKit = useAppKit()
