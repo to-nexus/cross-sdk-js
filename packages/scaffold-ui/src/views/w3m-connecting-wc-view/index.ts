@@ -35,6 +35,7 @@ export class W3mConnectingWcView extends LitElement {
   public constructor() {
     super()
     this.determinePlatforms()
+    console.log('W3mConnectingWcView - platforms: ', JSON.stringify(this.platforms))
     this.initializeConnection()
     this.interval = setInterval(
       this.initializeConnection.bind(this),

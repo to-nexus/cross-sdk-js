@@ -4,7 +4,7 @@ import { useCallback, useEffect } from 'react'
 import { useSnapshot } from 'valtio'
 
 import type { ParsedCaipAddress } from '@to-nexus/appkit-common'
-import { ChainController, type Connector, ConnectorController } from '@to-nexus/appkit-core'
+import { ChainController, type Connector, ConnectorController, OptionsController } from '@to-nexus/appkit-core'
 
 import { ApiController } from '../src/controllers/ApiController.js'
 import { WalletButtonController } from '../src/controllers/WalletButtonController.js'
@@ -86,6 +86,8 @@ export function useAppKitWallet(parameters?: {
   const connect = useCallback(
     async (wallet: Wallet) => {
       try {
+        console.log('connect - wallet', wallet)
+
         WalletButtonController.setPending(true)
         WalletButtonController.setError(undefined)
 
@@ -107,10 +109,14 @@ export function useAppKitWallet(parameters?: {
           return
         }
 
+        // added by Harvey-Probe for direct access to custom wallets
+        const { customWallets } = OptionsController.state
+        const customWallet = customWallets?.find(w => w.id === wallet)
+
         await ConnectorUtil.connectWalletConnect({
-          walletConnect: wallet === 'walletConnect',
-          connector: connectors.find(c => c.id === 'walletConnect') as Connector | undefined,
-          wallet: walletButton
+          walletConnect: wallet === 'cross_wallet',
+          connector: connectors.find(c => c.id === wallet) as Connector | undefined,
+          wallet: customWallet
         }).then(handleSuccess)
       } catch (err) {
         handleError(err)
