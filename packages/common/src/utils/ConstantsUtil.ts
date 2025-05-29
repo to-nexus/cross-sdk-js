@@ -31,7 +31,7 @@ export const ConstantsUtil = {
   VERIFY_URL_PROD: 'http://cross-verify.crosstoken.io',
   /* Connector IDs */
   CONNECTOR_ID: {
-    WALLET_CONNECT: 'crossWalletConnect',
+    WALLET_CONNECT: 'cross_wallet',
     INJECTED: 'injected',
     WALLET_STANDARD: 'announced',
     COINBASE: 'coinbaseWallet',
