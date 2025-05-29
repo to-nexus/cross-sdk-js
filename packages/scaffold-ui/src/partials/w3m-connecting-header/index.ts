@@ -53,7 +53,7 @@ export class W3mConnectingHeader extends LitElement {
       } else if (platform === 'mobile') {
         return { label: 'Mobile', icon: 'mobile', platform: 'mobile' } as const
       } else if (platform === 'qrcode') {
-        return { label: 'Mobile', icon: 'mobile', platform: 'qrcode' } as const
+        return { label: 'QR Code', icon: 'mobile', platform: 'qrcode' } as const
       } else if (platform === 'web') {
         return { label: 'Webapp', icon: 'browser', platform: 'web' } as const
       } else if (platform === 'desktop') {

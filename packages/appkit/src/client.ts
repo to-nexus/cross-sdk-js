@@ -945,7 +945,6 @@ export class AppKit {
   private createClients() {
     this.connectionControllerClient = {
       connectWalletConnect: async () => {
-        console.log(`connectWalletConnect`)
 
         const adapter = this.getAdapter(ChainController.state.activeChain)
 
