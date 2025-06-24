@@ -4,27 +4,16 @@ import {
   ConnectionController,
   ConstantsUtil,
   SendController,
-  type ThemeMode,
-  type AssetFilterType
+  type ThemeMode
 } from '@to-nexus/appkit-core'
 import { bscMainnet, bscTestnet, crossMainnet, crossTestnet } from '@to-nexus/appkit/networks'
 import {
   createAppKit,
-  getUniversalProvider,
-  useAppKit,
-  useAppKitAccount,
-  useAppKitEvents,
-  useAppKitNetwork,
-  useAppKitProvider,
-  useAppKitState,
-  useAppKitTheme,
-  useAppKitWallet,
-  useDisconnect,
-  useWalletInfo
-} from '@to-nexus/appkit/react'
+} from '@to-nexus/appkit'
 import UniversalProvider from '@to-nexus/universal-provider'
+import { createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
 
-export type { SendTransactionArgs, WriteContractArgs, AssetFilterType } from '@to-nexus/appkit-core'
+export type { SendTransactionArgs, WriteContractArgs, AssetFilterType, ThemeMode } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
 
@@ -39,7 +28,7 @@ type SupportedNetworks = typeof crossTestnet | typeof crossMainnet | typeof bscT
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
-  description: 'Cross SDK for React',
+  description: 'Cross SDK for HTML',
   url: 'https://to.nexus',
   icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
 }
@@ -107,19 +96,14 @@ const initCrossSdk = (
   })
 }
 
+export const useAppKitWallet = () => {
+  const walletButton = createAppKitWalletButton()
+  return walletButton
+}
+
 export {
   initCrossSdkWithParams,
   initCrossSdk,
-  useAppKit,
-  useAppKitState,
-  useAppKitTheme,
-  useAppKitEvents,
-  useAppKitAccount,
-  useWalletInfo,
-  useAppKitNetwork,
-  useDisconnect,
-  useAppKitProvider,
-  useAppKitWallet,
   ConnectionController,
   SendController,
   AccountController,
@@ -128,6 +112,5 @@ export {
   bscMainnet,
   bscTestnet,
   UniversalProvider,
-  getUniversalProvider,
   ConstantsUtil
 }

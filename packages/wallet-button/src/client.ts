@@ -1,4 +1,4 @@
-import { type Connector, ConnectorController } from '@to-nexus/appkit-core'
+import { ConnectionController, type Connector, ConnectorController, OptionsController } from '@to-nexus/appkit-core'
 
 import { ApiController } from './controllers/ApiController.js'
 import { WalletButtonController } from './controllers/WalletButtonController.js'
@@ -28,27 +28,67 @@ export class AppKitWalletButton {
     })
   }
 
+  async disconnect() {
+    WalletButtonController.setPending(true)
+    WalletButtonController.setError(undefined)
+    await ConnectionController.disconnect()
+    WalletButtonController.setPending(false)
+  }
+
   async connect(wallet: Wallet) {
-    const connectors = ConnectorController.state.connectors
+    try {
+      console.log('connect - wallet', wallet)
 
-    if (ConstantsUtil.Socials.some(social => social === wallet)) {
-      return ConnectorUtil.connectSocial(wallet as SocialProvider)
+      WalletButtonController.setPending(true)
+      WalletButtonController.setError(undefined)
+
+      const connectors = ConnectorController.state.connectors
+
+      if (ConstantsUtil.Socials.some(social => social === wallet)) {
+        const result = await ConnectorUtil.connectSocial(wallet as SocialProvider)
+        this.handleSuccess(result)
+        return result
+      }
+
+      const walletButton = WalletUtil.getWalletButton(wallet)
+
+      const connector = walletButton
+        ? ConnectorController.getConnector(walletButton.id, walletButton.rdns)
+        : undefined
+
+      if (connector) {
+        const result = await ConnectorUtil.connectExternal(connector)
+        this.handleSuccess(result)
+        return result
+      }
+
+      // added by Harvey-Probe for direct access to custom wallets
+      const { customWallets } = OptionsController.state
+      const customWallet = customWallets?.find(w => w.id === wallet)
+
+      const result = await ConnectorUtil.connectWalletConnect({
+        walletConnect: wallet === 'cross_wallet',
+        connector: connectors.find(c => c.id === wallet) as Connector | undefined,
+        wallet: customWallet
+      })
+      this.handleSuccess(result)
+      return result
+    } catch (err) {
+      this.handleError(err)
+      throw err
+    } finally {
+      WalletButtonController.setPending(false)
     }
+  }
 
-    const walletButton = WalletUtil.getWalletButton(wallet)
+  private handleSuccess(result: any) {
+    console.log('Connection successful:', result)
+    // 여기에 성공 시 추가 로직을 구현할 수 있습니다
+  }
 
-    const connector = walletButton
-      ? ConnectorController.getConnector(walletButton.id, walletButton.rdns)
-      : undefined
-
-    if (connector) {
-      return ConnectorUtil.connectExternal(connector)
-    }
-
-    return ConnectorUtil.connectWalletConnect({
-      walletConnect: wallet === 'walletConnect',
-      connector: connectors.find(c => c.id === 'walletConnect') as Connector | undefined,
-      wallet: walletButton
-    })
+  private handleError(err: any) {
+    console.error('Connection failed:', err)
+    WalletButtonController.setError(err)
+    // 여기에 에러 처리 로직을 구현할 수 있습니다
   }
 }
