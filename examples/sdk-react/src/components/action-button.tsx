@@ -568,7 +568,7 @@ export function ActionButtonList() {
   }
 
   useEffect(() => {
-    ;(() => {
+    (() => {
       if (contractArgs || !FROM_ADDRESS || !network?.caipNetwork?.chainNamespace) return
 
       const uuidHex = uuidv4().replace(/-/g, '')
