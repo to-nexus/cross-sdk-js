@@ -41,111 +41,26 @@ let eip155Provider = null
 
 // 네트워크 선택 팝업 생성 함수
 function createNetworkModal() {
-  // 기존 모달이 있다면 제거
-  const existingModal = document.getElementById('network-modal')
-  if (existingModal) {
-    existingModal.remove()
-  }
-
-  const modal = document.createElement('div')
-  modal.id = 'network-modal'
-  modal.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  `
-
-  const modalContent = document.createElement('div')
-  modalContent.style.cssText = `
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    min-width: 300px;
-    max-width: 400px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  `
-
-  const title = document.createElement('h3')
-  title.textContent = '네트워크 선택'
-  title.style.cssText = `
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-  `
-
-  const networkList = document.createElement('div')
-  networkList.style.cssText = `
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  `
-
+  const modal = document.getElementById('network-modal')
+  const networkList = document.getElementById('network-list')
+  
+  // 기존 네트워크 리스트 초기화
+  networkList.innerHTML = ''
+  
+  // 네트워크 리스트 생성
   availableNetworks.forEach(networkInfo => {
     const networkItem = document.createElement('div')
-    networkItem.style.cssText = `
-      padding: 12px 16px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    `
-
-    // 현재 네트워크인지 확인
     const isCurrentNetwork = networkState?.caipNetwork?.id === networkInfo.network.id
-    if (isCurrentNetwork) {
-      networkItem.style.backgroundColor = '#f0f8ff'
-      networkItem.style.borderColor = '#007bff'
-    }
-
-    networkItem.onmouseenter = () => {
-      if (!isCurrentNetwork) {
-        networkItem.style.backgroundColor = '#f8f9fa'
-        networkItem.style.borderColor = '#007bff'
-      }
-    }
-
-    networkItem.onmouseleave = () => {
-      if (!isCurrentNetwork) {
-        networkItem.style.backgroundColor = 'white'
-        networkItem.style.borderColor = '#e0e0e0'
-      }
-    }
-
+    
+    networkItem.className = `network-item ${isCurrentNetwork ? 'current' : ''}`
+    
     const networkName = document.createElement('span')
+    networkName.className = 'network-name'
     networkName.textContent = networkInfo.name
-    networkName.style.cssText = `
-      font-size: 14px;
-      font-weight: 500;
-      color: #333;
-    `
 
     const statusIndicator = document.createElement('span')
-    if (isCurrentNetwork) {
-      statusIndicator.textContent = '✓ 현재'
-      statusIndicator.style.cssText = `
-        font-size: 12px;
-        color: #007bff;
-        font-weight: 500;
-      `
-    } else {
-      statusIndicator.textContent = '선택'
-      statusIndicator.style.cssText = `
-        font-size: 12px;
-        color: #666;
-        font-weight: 400;
-      `
-    }
+    statusIndicator.className = `network-status ${isCurrentNetwork ? 'current' : 'selectable'}`
+    statusIndicator.textContent = isCurrentNetwork ? '✓ 현재' : '선택'
 
     networkItem.appendChild(networkName)
     networkItem.appendChild(statusIndicator)
@@ -165,43 +80,30 @@ function createNetworkModal() {
     networkList.appendChild(networkItem)
   })
 
-  const closeButton = document.createElement('button')
-  closeButton.textContent = '닫기'
-  closeButton.style.cssText = `
-    margin-top: 20px;
-    padding: 8px 16px;
-    background: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    width: 100%;
-  `
-
-  closeButton.onclick = closeNetworkModal
-
-  modalContent.appendChild(title)
-  modalContent.appendChild(networkList)
-  modalContent.appendChild(closeButton)
-  modal.appendChild(modalContent)
-
-  // 모달 외부 클릭 시 닫기
-  modal.onclick = (e) => {
-    if (e.target === modal) {
-      closeNetworkModal()
-    }
-  }
-
-  document.body.appendChild(modal)
+  // 모달 표시
+  modal.classList.add('show')
 }
 
 // 네트워크 모달 닫기 함수
 function closeNetworkModal() {
   const modal = document.getElementById('network-modal')
-  if (modal) {
-    modal.remove()
-  }
+  modal.classList.remove('show')
+}
+
+// 모달 이벤트 리스너 설정
+function setupNetworkModalEvents() {
+  const modal = document.getElementById('network-modal')
+  const closeBtn = document.getElementById('network-modal-close')
+  
+  // 모달 외부 클릭 시 닫기
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeNetworkModal()
+    }
+  })
+  
+  // 닫기 버튼 클릭 시 닫기
+  closeBtn.addEventListener('click', closeNetworkModal)
 }
 
 // Helper function to update theme
@@ -219,18 +121,20 @@ const updateTheme = mode => {
 // Subscribe to state changes
 crossSdk.subscribeAccount(state => {
   accountState = state
-  document.getElementById('accountState').textContent = JSON.stringify(state, null, 2)
+  document.getElementById('accountState').textContent = JSON.stringify(accountState, null, 2)
+  // connect-wallet 버튼 텍스트 업데이트
+  document.getElementById('connect-wallet').textContent = accountState.isConnected ? 'Connected' : 'Connect Wallet'
 })
 
 crossSdk.subscribeNetwork(state => {
   networkState = state
-  const switchNetwork = document.getElementById('switch-network')
-  switchNetwork.textContent = networkState.caipNetwork.name
+  document.getElementById('networkState').textContent = JSON.stringify(state, null, 2)
+  document.getElementById('switch-network').textContent = networkState.caipNetwork.name
 })
 
 crossSdk.subscribeState(state => {
   appKitState = state
-  appKitState.isConnected ? connectWallet.textContent = 'Connected' : connectWallet.textContent = 'Connect Wallet'
+  document.getElementById('appKitState').textContent = JSON.stringify(state, null, 2)
 })
 
 crossSdk.subscribeTheme(state => {
@@ -256,7 +160,7 @@ crossSdk.subscribeProviders(state => {
 // Button event listeners
 const connectWallet = document.getElementById('connect-wallet')
 connectWallet.addEventListener('click', async () => {
-  if (appKitState.isConnected) {
+  if (accountState.isConnected) {
     await appkitWallet.disconnect()
   } else {
     await appkitWallet.connect("cross_wallet")
@@ -299,3 +203,6 @@ async function signMessage() {
 
 // Set initial theme and UI state
 updateTheme(themeState.themeMode)
+
+// 모달 이벤트 설정
+setupNetworkModalEvents()
