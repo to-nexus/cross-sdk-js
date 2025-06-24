@@ -184,8 +184,8 @@ a:disabled {
   border: 1px solid var(--apkt-border-secondary);
   border-radius: var(--apkt-border-sm);
   padding: var(--apkt-spacing-2, 8px);
-  min-height: 200px;
 
+  background-color: var(--apkt-background-primary);
   background-image: radial-gradient(var(--page-background-image-color) 1px, #ffffff00 1px);
   background-size: 16px 16px;
   background-position: -16px -8px;

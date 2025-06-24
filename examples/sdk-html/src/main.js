@@ -5,8 +5,6 @@ import {
   ConnectionController, 
   ConstantsUtil, 
   SendController,
-  UniversalProvider,
-  getUniversalProvider
 } from '@to-nexus/sdk'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
