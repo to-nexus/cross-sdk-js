@@ -9,9 +9,9 @@ import { WalletUtil } from './utils/WalletUtil.js'
 
 export class AppKitWalletButton {
   constructor() {
-    if (!this.isReady()) {
-      ApiController.fetchWalletButtons()
-    }
+    // if (!this.isReady()) {
+    //   ApiController.fetchWalletButtons()
+    // }
   }
 
   public isReady() {
