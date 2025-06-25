@@ -94,7 +94,7 @@ function createNetworkModal() {
 
     const statusIndicator = document.createElement('span')
     statusIndicator.className = `network-status ${isCurrentNetwork ? 'current' : 'selectable'}`
-    statusIndicator.textContent = isCurrentNetwork ? '✓ 현재' : '선택'
+    statusIndicator.textContent = isCurrentNetwork ? '✓ Current' : 'Select'
 
     networkItem.appendChild(networkName)
     networkItem.appendChild(statusIndicator)
@@ -105,8 +105,8 @@ function createNetworkModal() {
           await crossSdk.switchNetwork(networkInfo.network)
           closeNetworkModal()
         } catch (error) {
-          console.error('네트워크 전환 실패:', error)
-          alert('네트워크 전환에 실패했습니다.')
+          console.error('Network switch failed:', error)
+          alert('Network switch failed.')
         }
       }
     }
@@ -526,7 +526,6 @@ crossSdk.subscribeState(state => {
 
 crossSdk.subscribeTheme(state => {
   themeState = state
-  document.getElementById('themeState').textContent = JSON.stringify(state, null, 2)
   updateTheme(state.themeMode)
 })
 

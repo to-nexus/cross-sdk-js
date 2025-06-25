@@ -19,15 +19,15 @@ function getEnv(): string {
 export const ConstantsUtil = {
   WC_NAME_SUFFIX: '.reown.id',
   WC_NAME_SUFFIX_LEGACY: '.wcn.id',
-  BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001',
-  PULSE_API_URL: 'https://pulse.walletconnect.org',
+  BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001',  // todo: why not provide mainnet option?
+  PULSE_API_URL: 'https://pulse.walletconnect.org',   // todo: remove this
   W3M_API_URL:
     getEnv() === 'development'
-      ? 'https://dev-wallet-server.crosstoken.io'
+      ? 'https://wallet-server.crosstoken.io'   // no need to use dev-wallet-server
       : 'https://wallet-server.crosstoken.io',
-  RELAY_URL_DEV: 'wss://dev-cross-relay.crosstoken.io/ws',
+  RELAY_URL_DEV: 'wss://cross-relay.crosstoken.io/ws',  // no need to use dev-cross-relay
   RELAY_URL_PROD: 'wss://cross-relay.crosstoken.io/ws',
-  VERIFY_URL_DEV: 'http://dev-cross-verify.crosstoken.io',
+  VERIFY_URL_DEV: 'http://cross-verify.crosstoken.io',  // no need to use dev-cross-verify
   VERIFY_URL_PROD: 'http://cross-verify.crosstoken.io',
   /* Connector IDs */
   CONNECTOR_ID: {
