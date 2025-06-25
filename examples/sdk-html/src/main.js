@@ -9,9 +9,9 @@ import {
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
-import { sampleErc20ABI } from './contracts/sample-erc20.js'
-import { sampleErc721ABI } from './contracts/sample-erc721.js'
-import { sampleEIP712 } from './contracts/sample-eip712.js'
+import { sampleErc20ABI } from './contracts/sample-erc20'
+import { sampleErc721ABI } from './contracts/sample-erc721'
+import { sampleEIP712 } from './contracts/sample-eip712'
 
 const metadata = {
   name: 'Cross SDK',
@@ -43,7 +43,7 @@ const availableNetworks = [
 ]
 
 // Contract addresses and constants
-const ERC20_ADDRESS = '0x88f8146EB4120dA51Fc978a22933CbeB71D8Bde6'
+const ERC20_ADDRESS = '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3'
 const ERC20_DECIMALS = 18
 const ERC721_ADDRESS = '0xEeE291deAF8505681AA7A3e930A6f12b7f21fe65'
 const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
