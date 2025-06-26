@@ -1,6 +1,6 @@
 #### 📚 [Documentation](https://cross.readme.io/update/docs/js/)
 
-# Cross SDK examples
+# CROSS SDK - Vanilla JS examples
 
 1. Prerequsites
 :   - Node.js ^20.18.0
