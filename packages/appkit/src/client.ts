@@ -346,6 +346,10 @@ export class AppKit {
         address: CoreHelperUtil.getPlainAddress(accountState.caipAddress),
         isConnected: Boolean(accountState.caipAddress),
         status: accountState.status,
+        balance: accountState.balance,
+        balanceSymbol: accountState.balanceSymbol,
+        balanceLoading: accountState.balanceLoading,
+        tokenBalance: accountState.tokenBalance,
         embeddedWalletInfo: authConnector
           ? {
               user: accountState.user,

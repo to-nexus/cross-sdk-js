@@ -59,6 +59,7 @@ let events = []
 let walletInfo = {}
 let eip155Provider = null
 let contractArgs = null
+let previousCaipAddress = null // 이전 주소를 저장하기 위한 변수
 
 // Helper functions
 function getERC20CAIPAddress() {
@@ -508,9 +509,23 @@ async function getBalanceOfNFT() {
 // Subscribe to state changes
 crossSdk.subscribeAccount(state => {
   accountState = state
-  document.getElementById('accountState').textContent = JSON.stringify(accountState, null, 2)
+  document.getElementById('accountState').textContent = JSON.stringify(accountState, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)
   // connect-wallet 버튼 텍스트 업데이트
   document.getElementById('connect-wallet').textContent = accountState.isConnected ? 'Connected' : 'Connect Wallet'
+  
+  // 주소가 변경되었을 때만 토큰 잔액을 가져옵니다
+  if (accountState.caipAddress && accountState.caipAddress !== previousCaipAddress) {
+    previousCaipAddress = accountState.caipAddress
+    const fetchTokenBalance = async () => {
+      try {
+        await AccountController.fetchTokenBalance()
+        console.log('Token balance fetched successfully for new address:', accountState.caipAddress)
+      } catch (error) {
+        console.error('Error fetching token balance:', error)
+      }
+    }
+    fetchTokenBalance()
+  }
 })
 
 crossSdk.subscribeNetwork(state => {
