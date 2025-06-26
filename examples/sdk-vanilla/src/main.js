@@ -45,7 +45,7 @@ const availableNetworks = [
 // Contract addresses and constants
 const ERC20_ADDRESS = '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3'
 const ERC20_DECIMALS = 18
-const ERC721_ADDRESS = '0xEeE291deAF8505681AA7A3e930A6f12b7f21fe65'
+const ERC721_ADDRESS = '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
 const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
 const SEND_ERC20_AMOUNT = 1
 const SEND_CROSS_AMOUNT = 1
@@ -611,7 +611,7 @@ function initializeContractArgs() {
       getFROM_ADDRESS(), // address of token that will take the NFT
       tokenId
     ],
-    method: 'mint', // method to call on the contract
+    method: 'mintTo(address, uint256)', // method to call on the contract
     abi: sampleErc721ABI, // abi of the contract
     chainNamespace: networkState?.caipNetwork?.chainNamespace,
     type: ConstantsUtil.TRANSACTION_TYPE.LEGACY // default type is LEGACY

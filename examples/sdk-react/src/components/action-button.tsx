@@ -70,7 +70,7 @@ export function ActionButtonList() {
   // erc20 token contract address in caip format - eip155:{chainId}:{address}
   const ERC20_CAIP_ADDRESS = `${network.caipNetworkId}:${ERC20_ADDRESS}`
   // erc721 token contract address
-  const ERC721_ADDRESS = '0xEeE291deAF8505681AA7A3e930A6f12b7f21fe65'
+  const ERC721_ADDRESS = '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
   // address to send erc20 token or cross
   const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
   // address of wallet owner
@@ -84,6 +84,10 @@ export function ActionButtonList() {
   )
   // amount of cross to send
   const SEND_CROSS_AMOUNT = 1
+
+  useEffect(() => {
+    console.log('contractArgs', JSON.stringify(contractArgs?.args, ))
+  }, [contractArgs?.args])
 
   // used for connecting wallet with wallet list
   function handleConnect() {
@@ -581,9 +585,9 @@ export function ActionButtonList() {
         args: [
           // arguments to pass to the specific method of contract
           FROM_ADDRESS as `0x${string}`, // address of token that will take the NFT
-          tokenId
+          tokenId // tokenId
         ],
-        method: 'mint', // method to call on the contract
+        method: 'mintTo(address, uint256)', // method to call on the contract
         abi: sampleErc721ABI, // abi of the contract
         chainNamespace: network?.caipNetwork?.chainNamespace,
         type: ConstantsUtil.TRANSACTION_TYPE.LEGACY // default type is LEGACY
