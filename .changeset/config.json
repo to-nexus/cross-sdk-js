@@ -24,7 +24,7 @@
       "@to-nexus/appkit-wallet-button",
       "@to-nexus/appkit-experimental",
       "@reown/appkit-cli",
-      "@to-nexus/appkit-cdn"
+      "@to-nexus/sdk-cdn"
     ]
   ],
   "access": "restricted",
