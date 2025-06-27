@@ -67,7 +67,7 @@ const metadata = {
 
 ```html
 <!-- Load Cross SDK from CDN -->
-<script src="https://unpkg.com/@to-nexus/cdn@latest/dist/sdk.js"></script>
+<script src="https://unpkg.com/@to-nexus/cdn@latest/dist/cross-sdk.js"></script>
 ```
 
 ### Using SDK
@@ -131,7 +131,7 @@ If CDN is not yet deployed, you can use locally built files:
 
 ```html
 <!-- Use local build files -->
-<script src="../../packages/cdn/dist/sdk.js"></script>
+<script src="../../packages/cdn/dist/cross-sdk.js"></script>
 ```
 
 ### Building

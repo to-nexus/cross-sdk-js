@@ -13,8 +13,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        sdk: resolve(__dirname, 'lib/sdk.ts'),
-        'sdk-react': resolve(__dirname, 'lib/sdk-react.ts')
+        'cross-sdk': resolve(__dirname, 'lib/cross-sdk.ts'),
+        'cross-sdk-react': resolve(__dirname, 'lib/cross-sdk-react.ts')
       },
       name: 'CrossSdk',
       formats: ['es'],
