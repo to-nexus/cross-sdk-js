@@ -63,12 +63,28 @@ const metadata = {
 
 ## CDN Usage
 
-### Loading SDK
+### Version Management
+
+Cross SDK CDN supports multiple versioning strategies:
 
 ```html
-<!-- Load Cross SDK from CDN -->
-<script src="https://unpkg.com/@to-nexus/cdn@latest/dist/cross-sdk.js"></script>
+<!-- Specific version (recommended for production) -->
+<script src="https://test-sdk-cdn.crosstoken.io/cross-sdk/1.8.1/cross-sdk.js"></script>
+
+<!-- Latest version (for development/testing) -->
+<script src="https://test-sdk-cdn.crosstoken.io/cross-sdk/latest/cross-sdk.js"></script>
+
+<!-- React SDK -->
+<script src="https://test-sdk-cdn.crosstoken.io/cross-sdk/1.8.1/cross-sdk-react.js"></script>
 ```
+
+### Version Strategy Recommendations
+
+| Use Case | Version Tag | Description |
+|----------|-------------|-------------|
+| **Production** | `@1.8.1` | Specific version for stability |
+| **Development** | `@latest` | Always get the newest version |
+| **Legacy Support** | `@1.7.0` | Previous versions for compatibility |
 
 ### Using SDK
 
@@ -120,8 +136,9 @@ const hash = await sdk.sendTransaction({
 
 1. **Project ID**: You must set a valid project ID for actual use.
 2. **HTTPS**: Use HTTPS in production environments.
-3. **CDN Version**: Currently using `@latest`, but specify a specific version for production.
+3. **Version Pinning**: Use specific versions in production for stability.
 4. **Error Handling**: More robust error handling is needed for actual applications.
+5. **Backward Compatibility**: Previous versions remain available via CDN.
 
 ## Development
 
@@ -143,6 +160,15 @@ To build CDN package locally:
 npm run build:cdn
 ```
 
+### Publishing New Versions
+
+When publishing a new version:
+
+1. Update version in `packages/cdn/package.json`
+2. Build the package: `npm run build`
+3. Publish to npm: `npm publish`
+4. CDN automatically becomes available at the new version
+
 ## Troubleshooting
 
 ### SDK Not Loading
@@ -150,6 +176,7 @@ npm run build:cdn
 1. Check if CDN URL is correct
 2. Check network connection
 3. Check error messages in browser console
+4. Verify version tag exists
 
 ### Connection Issues
 
@@ -162,6 +189,12 @@ npm run build:cdn
 1. Check if account has sufficient balance
 2. Verify network configuration
 3. Check gas fee settings
+
+### Version Issues
+
+1. Check if the specified version exists
+2. Try using `@latest` for testing
+3. Verify npm package is published
 
 ## License
 
