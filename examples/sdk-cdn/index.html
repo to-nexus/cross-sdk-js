@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross SDK CDN Sample</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cross SDK CDN Sample</h1>
+            <p>Vanilla JavaScript sample using Cross SDK via CDN</p>
+        </header>
+
+        <main>
+            <div class="card">
+                <h2>Wallet Connection</h2>
+                <div class="wallet-status">
+                    <span id="connection-status" class="status disconnected">Not Connected</span>
+                </div>
+                <div class="button-group">
+                    <button id="connect-btn" class="btn btn-primary">Connect Wallet</button>
+                    <button id="disconnect-btn" class="btn btn-secondary" disabled>Disconnect</button>
+                </div>
+            </div>
+
+            <div class="card" id="account-info" style="display: none;">
+                <h2>Account Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Address:</label>
+                        <span id="account-address" class="address"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Network:</label>
+                        <span id="network-name"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Balance:</label>
+                        <span id="account-balance"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="actions" style="display: none;">
+                <h2>Actions</h2>
+                <div class="button-group">
+                    <button id="sign-message-btn" class="btn btn-action">Sign Message</button>
+                    <button id="send-transaction-btn" class="btn btn-action">Send Transaction</button>
+                    <button id="switch-network-btn" class="btn btn-action">Switch Network</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Logs</h2>
+                <div id="log-container" class="log-container">
+                    <div class="log-entry">Initializing SDK...</div>
+                </div>
+                <button id="clear-log-btn" class="btn btn-small">Clear Logs</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Load Cross SDK from CDN -->
+    <script src="https://unpkg.com/@to-nexus/cdn@latest/dist/sdk.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
