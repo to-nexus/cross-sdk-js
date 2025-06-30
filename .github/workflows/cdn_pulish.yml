@@ -1,0 +1,186 @@
+name: CI - CDN Publish
+
+on:
+  push:
+    branches:
+      - main
+      - "ci/*"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+
+jobs:
+  cdn_upload:
+    name: Build and Upload CDN to S3
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
+    runs-on: ubuntu-latest
+    
+    environment: 'prod'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Extract version from package.json
+        id: extract_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Current version: ${VERSION}"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Check existing versions in S3
+        id: check_versions
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          
+          # S3에서 기존 버전들 확인
+          echo "Checking existing versions in S3..."
+          aws s3 ls s3://${BUCKET_NAME}/cross-sdk/ --recursive | grep -E "cross-sdk/[0-9]+\.[0-9]+\.[0-9]+" | sed -E 's/.*cross-sdk\/([0-9]+\.[0-9]+\.[0-9]+)\/.*/\1/' | sort -V | uniq > existing_versions.txt
+          
+          if [ -s existing_versions.txt ]; then
+            echo "Existing versions:"
+            cat existing_versions.txt
+            LATEST_VERSION=$(tail -n 1 existing_versions.txt)
+            echo "LATEST_S3_VERSION=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+            
+            # 현재 버전이 S3의 최신 버전과 같은지 확인
+            if [ "${CURRENT_VERSION}" = "${LATEST_VERSION}" ]; then
+              echo "VERSION_EXISTS=true" >> $GITHUB_OUTPUT
+              echo "Current version ${CURRENT_VERSION} already exists in S3"
+            else
+              echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+              echo "Current version ${CURRENT_VERSION} is new"
+            fi
+            
+            # 현재 버전이 최신인지 확인 (semantic version 비교)
+            if printf '%s\n%s\n' "${CURRENT_VERSION}" "${LATEST_VERSION}" | sort -V -C; then
+              echo "IS_LATEST=true" >> $GITHUB_OUTPUT
+              echo "Current version ${CURRENT_VERSION} is the latest or equal"
+            else
+              echo "IS_LATEST=false" >> $GITHUB_OUTPUT
+              echo "Current version ${CURRENT_VERSION} is not the latest"
+            fi
+          else
+            echo "No existing versions found in S3"
+            echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+            echo "IS_LATEST=true" >> $GITHUB_OUTPUT
+            echo "LATEST_S3_VERSION=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build CDN packages
+        if: steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        run: |
+          echo "Building CDN packages..."
+          pnpm run build
+          
+          # CDN 패키지 빌드 확인
+          if [ -d "packages/cdn/lib" ]; then
+            echo "CDN build successful"
+            ls -la packages/cdn/lib/
+          else
+            echo "CDN build failed - lib directory not found"
+            exit 1
+          fi
+
+      - name: Upload to S3 with version prefix
+        if: steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          
+          echo "Uploading CDN files to S3..."
+          
+          # 버전별 디렉토리에 업로드
+          aws s3 sync packages/cdn/lib/ s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --metadata-directive REPLACE
+          
+          echo "Upload to cross-sdk/${CURRENT_VERSION}/ completed"
+
+      - name: Update latest if current version is newest
+        if: steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_LATEST == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          
+          echo "Current version ${CURRENT_VERSION} is the latest, updating latest directory..."
+          
+          # latest 디렉토리에 복사
+          aws s3 sync s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ s3://${BUCKET_NAME}/cross-sdk/latest/ \
+            --delete \
+            --cache-control "public, max-age=3600" \
+            --metadata-directive REPLACE
+          
+          echo "Update to cross-sdk/latest/ completed"
+
+      - name: Invalidate CloudFront cache
+        if: steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          DISTRIBUTION_ID="${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+          
+          echo "Invalidating CloudFront cache..."
+          
+          # 버전별 경로 무효화
+          INVALIDATION_PATHS="/cross-sdk/${CURRENT_VERSION}/*"
+          
+          # latest도 업데이트된 경우 latest 경로도 무효화
+          if [ "${{ steps.check_versions.outputs.IS_LATEST }}" = "true" ]; then
+            INVALIDATION_PATHS="${INVALIDATION_PATHS} /cross-sdk/latest/*"
+          fi
+          
+          aws cloudfront create-invalidation \
+            --distribution-id ${DISTRIBUTION_ID} \
+            --paths ${INVALIDATION_PATHS}
+          
+          echo "CloudFront invalidation completed for paths: ${INVALIDATION_PATHS}"
+
+      - name: Upload summary
+        if: steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          echo "## CDN Upload Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${CURRENT_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **S3 Path:** cross-sdk/${CURRENT_VERSION}/" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_versions.outputs.IS_LATEST }}" = "true" ]; then
+            echo "- **Latest Updated:** Yes (cross-sdk/latest/)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Latest Updated:** No (newer version exists)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- **CloudFront:** Cache invalidated" >> $GITHUB_STEP_SUMMARY
+
+      - name: Skip upload notification
+        if: steps.check_versions.outputs.VERSION_EXISTS == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          echo "## CDN Upload Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "- **Reason:** Version ${CURRENT_VERSION} already exists in S3" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action:** No upload or invalidation performed" >> $GITHUB_STEP_SUMMARY
