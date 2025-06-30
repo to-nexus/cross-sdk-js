@@ -51,7 +51,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ vars.CDN_ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Check existing versions in S3
