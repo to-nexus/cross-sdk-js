@@ -48,13 +48,40 @@ jobs:
           echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
           echo "Current version: ${VERSION}"
 
+      - name: Check if version changed from previous commit
+        id: version_changed
+        run: |
+          # 이전 커밋의 버전 추출
+          git fetch --depth=2 origin ${{ github.ref_name }}
+          if git show HEAD^:package.json > /dev/null 2>&1; then
+            PREV_VERSION=$(git show HEAD^:package.json | node -e "const fs=require('fs'); const stdin=fs.readFileSync(0,'utf8'); console.log(JSON.parse(stdin).version)")
+            echo "Previous version: ${PREV_VERSION}"
+            echo "PREV_VERSION=${PREV_VERSION}" >> $GITHUB_OUTPUT
+            
+            # 현재 버전과 이전 버전 비교
+            CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+            if [ "${CURRENT_VERSION}" != "${PREV_VERSION}" ]; then
+              echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+              echo "✅ Version changed from ${PREV_VERSION} to ${CURRENT_VERSION}"
+            else
+              echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ Version unchanged: ${CURRENT_VERSION}"
+            fi
+          else
+            echo "No previous commit found, treating as new version"
+            echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+            echo "PREV_VERSION=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Configure AWS Credentials
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ vars.CDN_ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Check existing versions in S3
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true'
         id: check_versions
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
@@ -95,22 +122,22 @@ jobs:
           fi
 
       - name: Build CDN packages
-        if: steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false'
         run: |
           echo "Building CDN packages..."
           pnpm run build
           
           # CDN 패키지 빌드 확인
-          if [ -d "packages/cdn/lib" ]; then
+          if [ -d "packages/cdn/dist" ]; then
             echo "CDN build successful"
-            ls -la packages/cdn/lib/
+            ls -la packages/cdn/dist/
           else
-            echo "CDN build failed - lib directory not found"
+            echo "CDN build failed - dist directory not found"
             exit 1
           fi
 
       - name: Upload to S3 with version prefix
-        if: steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
@@ -118,7 +145,7 @@ jobs:
           echo "Uploading CDN files to S3..."
           
           # 버전별 디렉토리에 업로드
-          aws s3 sync packages/cdn/lib/ s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ \
+          aws s3 sync packages/cdn/dist/ s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ \
             --delete \
             --cache-control "public, max-age=31536000, immutable" \
             --metadata-directive REPLACE
@@ -126,7 +153,7 @@ jobs:
           echo "Upload to cross-sdk/${CURRENT_VERSION}/ completed"
 
       - name: Update latest if current version is newest
-        if: steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_LATEST == 'true'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_LATEST == 'true'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
@@ -142,7 +169,7 @@ jobs:
           echo "Update to cross-sdk/latest/ completed"
 
       - name: Invalidate CloudFront cache
-        if: steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           DISTRIBUTION_ID="${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
@@ -164,7 +191,7 @@ jobs:
           echo "CloudFront invalidation completed for paths: ${INVALIDATION_PATHS}"
 
       - name: Upload summary
-        if: steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           echo "## CDN Upload Summary" >> $GITHUB_STEP_SUMMARY
@@ -177,8 +204,18 @@ jobs:
           fi
           echo "- **CloudFront:** Cache invalidated" >> $GITHUB_STEP_SUMMARY
 
-      - name: Skip upload notification
-        if: steps.check_versions.outputs.VERSION_EXISTS == 'true'
+      - name: Skip upload - Version unchanged
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'false'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          PREV_VERSION="${{ steps.version_changed.outputs.PREV_VERSION }}"
+          echo "## CDN Upload Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "- **Reason:** Version unchanged (${CURRENT_VERSION})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Previous Version:** ${PREV_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action:** No upload or invalidation performed" >> $GITHUB_STEP_SUMMARY
+
+      - name: Skip upload - Version exists in S3
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'true'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           echo "## CDN Upload Skipped" >> $GITHUB_STEP_SUMMARY
