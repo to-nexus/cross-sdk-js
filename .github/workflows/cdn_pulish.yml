@@ -51,33 +51,33 @@ jobs:
       - name: Check if version changed from previous commit
         id: version_changed
         run: |
-          # 🚧 TEMPORARILY DISABLED FOR TESTING 🚧
-          # 테스트를 위해 버전 체크 비활성화 - 항상 true로 설정
-          echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
-          echo "PREV_VERSION=test" >> $GITHUB_OUTPUT
-          echo "⚠️ Version change check temporarily disabled for testing"
+          # # 🚧 TEMPORARILY DISABLED FOR TESTING 🚧
+          # # 테스트를 위해 버전 체크 비활성화 - 항상 true로 설정
+          # echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+          # echo "PREV_VERSION=test" >> $GITHUB_OUTPUT
+          # echo "⚠️ Version change check temporarily disabled for testing"
           
-          # # 이전 커밋의 버전 추출
-          # git fetch --depth=2 origin ${{ github.ref_name }}
-          # if git show HEAD^:package.json > /dev/null 2>&1; then
-          #   PREV_VERSION=$(git show HEAD^:package.json | node -e "const fs=require('fs'); const stdin=fs.readFileSync(0,'utf8'); console.log(JSON.parse(stdin).version)")
-          #   echo "Previous version: ${PREV_VERSION}"
-          #   echo "PREV_VERSION=${PREV_VERSION}" >> $GITHUB_OUTPUT
-          #   
-          #   # 현재 버전과 이전 버전 비교
-          #   CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
-          #   if [ "${CURRENT_VERSION}" != "${PREV_VERSION}" ]; then
-          #     echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
-          #     echo "✅ Version changed from ${PREV_VERSION} to ${CURRENT_VERSION}"
-          #   else
-          #     echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
-          #     echo "ℹ️ Version unchanged: ${CURRENT_VERSION}"
-          #   fi
-          # else
-          #   echo "No previous commit found, treating as new version"
-          #   echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
-          #   echo "PREV_VERSION=" >> $GITHUB_OUTPUT
-          # fi
+          # 이전 커밋의 버전 추출
+          git fetch --depth=2 origin ${{ github.ref_name }}
+          if git show HEAD^:package.json > /dev/null 2>&1; then
+            PREV_VERSION=$(git show HEAD^:package.json | node -e "const fs=require('fs'); const stdin=fs.readFileSync(0,'utf8'); console.log(JSON.parse(stdin).version)")
+            echo "Previous version: ${PREV_VERSION}"
+            echo "PREV_VERSION=${PREV_VERSION}" >> $GITHUB_OUTPUT
+            
+            # 현재 버전과 이전 버전 비교
+            CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+            if [ "${CURRENT_VERSION}" != "${PREV_VERSION}" ]; then
+              echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+              echo "✅ Version changed from ${PREV_VERSION} to ${CURRENT_VERSION}"
+            else
+              echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ Version unchanged: ${CURRENT_VERSION}"
+            fi
+          else
+            echo "No previous commit found, treating as new version"
+            echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+            echo "PREV_VERSION=" >> $GITHUB_OUTPUT
+          fi
 
       - name: Configure AWS Credentials
         if: steps.version_changed.outputs.VERSION_CHANGED == 'true'
