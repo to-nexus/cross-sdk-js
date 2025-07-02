@@ -1,29 +1,14 @@
 {
-  "name": "cross-sdk-cdn-sample",
+  "name": "sdk-cdn-example",
   "version": "1.0.0",
-  "description": "Cross SDK CDN 사용 샘플",
+  "description": "Cross SDK CDN Example",
   "main": "index.html",
   "scripts": {
-    "start": "http-server -p 8080 -c-1",
-    "dev": "http-server -p 8080 -c-1 --cors",
-    "serve": "python3 -m http.server 8080"
+    "start": "http-server -a localhost -c-1",
+    "dev": "http-server -a localhost -c-1 --cors",
+    "serve": "python3 -m http.server"
   },
-  "keywords": [
-    "cross-sdk",
-    "cdn",
-    "web3",
-    "wallet",
-    "blockchain",
-    "sample"
-  ],
-  "author": "Cross SDK Team",
-  "license": "MIT",
   "devDependencies": {
     "http-server": "^14.1.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/to-nexus/cross-sdk-js.git",
-    "directory": "examples/sdk-cdn"
   }
 } 

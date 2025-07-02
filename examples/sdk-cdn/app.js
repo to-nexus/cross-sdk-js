@@ -3,367 +3,799 @@
  * Vanilla JavaScript sample using Cross SDK via CDN
  */
 
-class CrossSdkCDNSample {
-    constructor() {
-        this.sdk = null;
-        this.account = null;
-        this.network = null;
-        this.balance = null;
-        
-        this.init();
-        this.bindEvents();
-    }
+// ethers import from CDN
+import { ethers } from 'https://cdn.skypack.dev/ethers@5.7.2'
+import { v4 as uuidv4 } from 'https://cdn.skypack.dev/uuid@9.0.0'
 
-    async init() {
-        try {
-            this.log('Initializing Cross SDK...', 'info');
-            
-            // Check if Cross SDK is loaded from CDN
-            if (typeof window.CrossSdk === 'undefined') {
-                throw new Error('Cross SDK not loaded. Please check the CDN URL.');
-            }
-
-            // Initialize SDK
-            this.sdk = window.CrossSdk;
-            
-            // SDK configuration
-            const projectId = 'YOUR_PROJECT_ID'; // Change to actual project ID
-            const metadata = {
-                name: 'Cross SDK CDN Sample',
-                description: 'Sample using Cross SDK via CDN',
-                url: window.location.origin,
-                icons: ['https://your-app-icon.com/icon.png']
-            };
-
-            // Initialize SDK
-            await this.sdk.initCrossSdk({
-                projectId,
-                metadata,
-                chains: [this.sdk.crossTestnet], // Use testnet
-                enableAnalytics: false
-            });
-
-            this.log('Cross SDK initialization completed', 'info');
-            
-            // Setup event listeners
-            this.setupEventListeners();
-            
-            // Check initial connection status
-            await this.checkConnectionStatus();
-            
-        } catch (error) {
-            this.log(`Initialization error: ${error.message}`, 'error');
-            console.error('SDK initialization error:', error);
+// SDK 로딩을 기다리는 함수
+function waitForSDK() {
+  return new Promise((resolve) => {
+    if (window.CrossSdk) {
+      resolve(window.CrossSdk);
+    } else {
+      const checkSDK = () => {
+        if (window.CrossSdk) {
+          resolve(window.CrossSdk);
+        } else {
+          setTimeout(checkSDK, 100);
         }
+      };
+      checkSDK();
     }
-
-    setupEventListeners() {
-        // Connection status change event
-        this.sdk.on('session_event', (event) => {
-            this.log(`Session event: ${event.name}`, 'info');
-            this.updateConnectionStatus();
-        });
-
-        // Account change event
-        this.sdk.on('session_update', (event) => {
-            this.log(`Session update: ${JSON.stringify(event)}`, 'info');
-            this.updateAccountInfo();
-        });
-
-        // Disconnect event
-        this.sdk.on('session_delete', () => {
-            this.log('Session deleted', 'warning');
-            this.updateConnectionStatus();
-            this.hideAccountInfo();
-        });
-    }
-
-    async checkConnectionStatus() {
-        try {
-            const session = await this.sdk.getActiveSession();
-            if (session) {
-                this.log('Existing session found', 'info');
-                await this.updateConnectionStatus();
-                await this.updateAccountInfo();
-            } else {
-                this.log('No connected session', 'info');
-            }
-        } catch (error) {
-            this.log(`Connection status check error: ${error.message}`, 'error');
-        }
-    }
-
-    async connect() {
-        try {
-            this.log('Attempting to connect wallet...', 'info');
-            
-            const session = await this.sdk.connect();
-            
-            if (session) {
-                this.log('Wallet connected successfully!', 'info');
-                await this.updateConnectionStatus();
-                await this.updateAccountInfo();
-            } else {
-                this.log('Wallet connection failed', 'error');
-            }
-        } catch (error) {
-            this.log(`Connection error: ${error.message}`, 'error');
-        }
-    }
-
-    async disconnect() {
-        try {
-            this.log('Disconnecting wallet...', 'info');
-            
-            await this.sdk.disconnect();
-            
-            this.log('Wallet disconnected successfully', 'info');
-            this.updateConnectionStatus();
-            this.hideAccountInfo();
-        } catch (error) {
-            this.log(`Disconnect error: ${error.message}`, 'error');
-        }
-    }
-
-    async updateConnectionStatus() {
-        try {
-            const session = await this.sdk.getActiveSession();
-            const statusElement = document.getElementById('connection-status');
-            const connectBtn = document.getElementById('connect-btn');
-            const disconnectBtn = document.getElementById('disconnect-btn');
-            const accountInfo = document.getElementById('account-info');
-            const actions = document.getElementById('actions');
-
-            if (session) {
-                statusElement.textContent = 'Connected';
-                statusElement.className = 'status connected';
-                connectBtn.disabled = true;
-                disconnectBtn.disabled = false;
-                accountInfo.style.display = 'block';
-                actions.style.display = 'block';
-            } else {
-                statusElement.textContent = 'Not Connected';
-                statusElement.className = 'status disconnected';
-                connectBtn.disabled = false;
-                disconnectBtn.disabled = true;
-                accountInfo.style.display = 'none';
-                actions.style.display = 'none';
-            }
-        } catch (error) {
-            this.log(`Status update error: ${error.message}`, 'error');
-        }
-    }
-
-    async updateAccountInfo() {
-        try {
-            const session = await this.sdk.getActiveSession();
-            if (!session) return;
-
-            // Get account information
-            const accounts = await this.sdk.getAccounts();
-            if (accounts && accounts.length > 0) {
-                this.account = accounts[0];
-                
-                // Display address
-                document.getElementById('account-address').textContent = 
-                    `${this.account.slice(0, 6)}...${this.account.slice(-4)}`;
-                
-                // Network information
-                const chainId = await this.sdk.getChainId();
-                const networkName = this.getNetworkName(chainId);
-                document.getElementById('network-name').textContent = networkName;
-                
-                // Get balance
-                await this.updateBalance();
-            }
-        } catch (error) {
-            this.log(`Account info update error: ${error.message}`, 'error');
-        }
-    }
-
-    async updateBalance() {
-        try {
-            if (!this.account) return;
-
-            const balance = await this.sdk.getBalance();
-            if (balance) {
-                const formattedBalance = this.formatBalance(balance);
-                document.getElementById('account-balance').textContent = formattedBalance;
-            }
-        } catch (error) {
-            this.log(`Balance update error: ${error.message}`, 'error');
-        }
-    }
-
-    async signMessage() {
-        try {
-            if (!this.account) {
-                this.log('Account not connected', 'error');
-                return;
-            }
-
-            const message = prompt('Enter message to sign:', 'Hello Cross SDK!');
-            if (!message) return;
-
-            this.log('Signing message...', 'info');
-            
-            const signature = await this.sdk.signMessage({
-                message,
-                account: this.account
-            });
-
-            this.log(`Message signed successfully: ${signature}`, 'info');
-            
-            // Display signature result in modal or alert
-            alert(`Signature completed!\n\nMessage: ${message}\nSignature: ${signature}`);
-            
-        } catch (error) {
-            this.log(`Message signing error: ${error.message}`, 'error');
-        }
-    }
-
-    async sendTransaction() {
-        try {
-            if (!this.account) {
-                this.log('Account not connected', 'error');
-                return;
-            }
-
-            const toAddress = prompt('Enter recipient address:');
-            if (!toAddress) return;
-
-            const amount = prompt('Enter amount to send (CROSS):', '0.001');
-            if (!amount) return;
-
-            this.log('Sending transaction...', 'info');
-            
-            const transaction = {
-                to: toAddress,
-                value: this.sdk.parseEther(amount),
-                account: this.account
-            };
-
-            const hash = await this.sdk.sendTransaction(transaction);
-            
-            this.log(`Transaction sent successfully: ${hash}`, 'info');
-            
-            // Display transaction hash in modal or alert
-            alert(`Transaction sent successfully!\n\nHash: ${hash}`);
-            
-            // Update balance
-            await this.updateBalance();
-            
-        } catch (error) {
-            this.log(`Transaction sending error: ${error.message}`, 'error');
-        }
-    }
-
-    async switchNetwork() {
-        try {
-            this.log('Switching network...', 'info');
-            
-            const networks = [
-                { name: 'Cross Testnet', chain: this.sdk.crossTestnet },
-                { name: 'Cross Mainnet', chain: this.sdk.crossMainnet },
-                { name: 'BSC Testnet', chain: this.sdk.bscTestnet },
-                { name: 'BSC Mainnet', chain: this.sdk.bscMainnet }
-            ];
-
-            const networkNames = networks.map(n => n.name);
-            const selectedNetwork = prompt(
-                `Select network:\n${networkNames.map((name, index) => `${index + 1}. ${name}`).join('\n')}`,
-                '1'
-            );
-
-            if (!selectedNetwork) return;
-
-            const networkIndex = parseInt(selectedNetwork) - 1;
-            if (networkIndex >= 0 && networkIndex < networks.length) {
-                const selectedChain = networks[networkIndex].chain;
-                
-                await this.sdk.switchChain(selectedChain);
-                
-                this.log(`Network switched successfully: ${networks[networkIndex].name}`, 'info');
-                
-                // Update account information
-                await this.updateAccountInfo();
-            }
-        } catch (error) {
-            this.log(`Network switch error: ${error.message}`, 'error');
-        }
-    }
-
-    getNetworkName(chainId) {
-        const networks = {
-            1: 'Cross Mainnet',
-            56: 'BSC Mainnet',
-            97: 'BSC Testnet',
-            1001: 'Cross Testnet'
-        };
-        return networks[chainId] || `Chain ID: ${chainId}`;
-    }
-
-    formatBalance(balance) {
-        if (!balance) return '0 CROSS';
-        
-        // Convert Wei to CROSS (18 decimals)
-        const crossAmount = parseFloat(balance) / Math.pow(10, 18);
-        return `${crossAmount.toFixed(6)} CROSS`;
-    }
-
-    log(message, type = 'info') {
-        const logContainer = document.getElementById('log-container');
-        const logEntry = document.createElement('div');
-        logEntry.className = `log-entry ${type}`;
-        
-        const timestamp = new Date().toLocaleTimeString();
-        logEntry.textContent = `[${timestamp}] ${message}`;
-        
-        logContainer.appendChild(logEntry);
-        logContainer.scrollTop = logContainer.scrollHeight;
-        
-        console.log(`[${type.toUpperCase()}] ${message}`);
-    }
-
-    bindEvents() {
-        // Connect button
-        document.getElementById('connect-btn').addEventListener('click', () => {
-            this.connect();
-        });
-
-        // Disconnect button
-        document.getElementById('disconnect-btn').addEventListener('click', () => {
-            this.disconnect();
-        });
-
-        // Sign message button
-        document.getElementById('sign-message-btn').addEventListener('click', () => {
-            this.signMessage();
-        });
-
-        // Send transaction button
-        document.getElementById('send-transaction-btn').addEventListener('click', () => {
-            this.sendTransaction();
-        });
-
-        // Switch network button
-        document.getElementById('switch-network-btn').addEventListener('click', () => {
-            this.switchNetwork();
-        });
-
-        // Clear logs button
-        document.getElementById('clear-log-btn').addEventListener('click', () => {
-            document.getElementById('log-container').innerHTML = '';
-        });
-    }
-
-    hideAccountInfo() {
-        document.getElementById('account-info').style.display = 'none';
-        document.getElementById('actions').style.display = 'none';
-    }
+  });
 }
 
-// Start application
-document.addEventListener('DOMContentLoaded', () => {
-    new CrossSdkCDNSample();
-}); 
+// SDK 로딩 후 초기화
+async function initializeApp() {
+  try {
+    console.log('Waiting for SDK to load...');
+    const CrossSdk = await waitForSDK();
+    console.log('SDK loaded successfully:', CrossSdk);
+
+    // CDN SDK에서 필요한 함수들을 import
+    const { 
+      initCrossSdkWithParams, 
+      useAppKitWallet,
+      crossMainnet, 
+      crossTestnet, 
+      bscMainnet, 
+      bscTestnet,
+      AccountController, 
+      ConnectionController, 
+      ConstantsUtil, 
+      SendController
+    } = CrossSdk;
+
+    const metadata = {
+      name: 'Cross SDK',
+      description: 'Cross SDK for HTML',
+      url: 'https://to.nexus',
+      icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+    }
+
+    // Your unique project id provided by Cross Team. If you don't have one, please contact us.
+    const projectId = '0979fd7c92ec3dbd8e78f433c3e5a523'
+    // Redirect URL to return to after wallet app interaction
+    const redirectUrl = window.location.href
+
+    const crossSdk = initCrossSdkWithParams({
+      projectId,
+      redirectUrl,
+      metadata,
+      themeMode: 'light'
+    })
+
+    const appkitWallet = useAppKitWallet()
+
+    // 사용 가능한 네트워크 리스트
+    const availableNetworks = [
+      { id: 'cross-mainnet', name: 'Cross Mainnet', network: crossMainnet },
+      { id: 'cross-testnet', name: 'Cross Testnet', network: crossTestnet },
+      { id: 'bsc-mainnet', name: 'BSC Mainnet', network: bscMainnet },
+      { id: 'bsc-testnet', name: 'BSC Testnet', network: bscTestnet }
+    ]
+
+    // Contract addresses and constants
+    const ERC20_ADDRESS = '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3'
+    const ERC20_DECIMALS = 18
+    const ERC721_ADDRESS = '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
+    const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
+    const SEND_ERC20_AMOUNT = 1
+    const SEND_CROSS_AMOUNT = 1
+
+    // State objects
+    let accountState = {}
+    let networkState = {}
+    let appKitState = {}
+    let themeState = { themeMode: 'light', themeVariables: {} }
+    let events = []
+    let walletInfo = {}
+    let eip155Provider = null
+    let contractArgs = null
+    let previousCaipAddress = null // 이전 주소를 저장하기 위한 변수
+
+    // Helper functions
+    function getERC20CAIPAddress() {
+      return `${networkState.caipNetworkId}:${ERC20_ADDRESS}`
+    }
+
+    function getFROM_ADDRESS() {
+      return AccountController.state.address
+    }
+
+    function getSEND_ERC20_AMOUNT_IN_WEI() {
+      return ConnectionController.parseUnits(SEND_ERC20_AMOUNT.toString(), ERC20_DECIMALS)
+    }
+
+    // 네트워크 선택 팝업 생성 함수
+    function createNetworkModal() {
+      const modal = document.getElementById('network-modal')
+      const networkList = document.getElementById('network-list')
+      
+      // 기존 네트워크 리스트 초기화
+      networkList.innerHTML = ''
+      
+      // 네트워크 리스트 생성
+      availableNetworks.forEach(networkInfo => {
+        const networkItem = document.createElement('div')
+        const isCurrentNetwork = networkState?.caipNetwork?.id === networkInfo.network.id
+        
+        networkItem.className = `network-item ${isCurrentNetwork ? 'current' : ''}`
+        
+        const networkName = document.createElement('span')
+        networkName.className = 'network-name'
+        networkName.textContent = networkInfo.name
+
+        const statusIndicator = document.createElement('span')
+        statusIndicator.className = `network-status ${isCurrentNetwork ? 'current' : 'selectable'}`
+        statusIndicator.textContent = isCurrentNetwork ? '✓ Current' : 'Select'
+
+        networkItem.appendChild(networkName)
+        networkItem.appendChild(statusIndicator)
+
+        networkItem.onclick = async () => {
+          if (!isCurrentNetwork) {
+            try {
+              await crossSdk.switchNetwork(networkInfo.network)
+              closeNetworkModal()
+            } catch (error) {
+              console.error('Network switch failed:', error)
+              alert('Network switch failed.')
+            }
+          }
+        }
+
+        networkList.appendChild(networkItem)
+      })
+
+      // 모달 표시
+      modal.classList.add('show')
+    }
+
+    // 네트워크 모달 닫기 함수
+    function closeNetworkModal() {
+      const modal = document.getElementById('network-modal')
+      modal.classList.remove('show')
+    }
+
+    // 모달 이벤트 리스너 설정
+    function setupNetworkModalEvents() {
+      const modal = document.getElementById('network-modal')
+      const closeBtn = document.getElementById('network-modal-close')
+      
+      // 모달 외부 클릭 시 닫기
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeNetworkModal()
+        }
+      })
+      
+      // 닫기 버튼 클릭 시 닫기
+      closeBtn.addEventListener('click', closeNetworkModal)
+    }
+
+    // Helper function to update theme
+    const updateTheme = mode => {
+      document.documentElement.setAttribute('data-theme', mode)
+      document.body.className = mode
+
+      // Update logo based on theme
+      const nexusLogo = document.getElementById('nexus-logo')
+      if (nexusLogo) {
+        nexusLogo.src = mode === 'dark' ? './nexus-logo-white.png' : 'nexus-logo.png'
+      }
+    }
+
+    // Action functions
+    async function handleSignMessage() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        const signedMessage = await ConnectionController.signMessage({
+          message: `Hello, world! ${Date.now()}`,
+          customData: {
+            metadata: 'This is metadata for signed message'
+          }
+        })
+        alert(`signedMessage: ${signedMessage}`)
+      } catch (error) {
+        console.error('Error signing message:', error)
+        alert('Failed to sign message')
+      }
+    }
+
+    async function handleSignEIP712() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        const PERMIT_CONTRACT_ADDRESS = '0x7aa0c7864455cf7a967409c158ae4cd41a2c5585'
+        const PERMIT_SPENDER_ADDRESS = '0xC87D72172cd8839DdB26a7478025883af783571e'
+        const PERMIT_VALUE = 1000000000000000000n
+        const FROM_ADDRESS = getFROM_ADDRESS()
+
+        const bnbRpcUrl = 'https://bsc-testnet.crosstoken.io/110ea3628b77f244e5dbab16790d81bba874b962'
+        const provider = new ethers.providers.JsonRpcProvider(bnbRpcUrl)
+        const contract = new ethers.Contract(PERMIT_CONTRACT_ADDRESS, sampleEIP712, provider)
+        const name = contract['name'] ? await contract['name']() : ''
+        const nonce = contract['nonce'] ? await contract['nonce'](FROM_ADDRESS) : 0
+        const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // after 1 hour
+
+        const resSignedEIP712 = await ConnectionController.signEIP712({
+          contractAddress: PERMIT_CONTRACT_ADDRESS,
+          fromAddress: FROM_ADDRESS,
+          spenderAddress: PERMIT_SPENDER_ADDRESS,
+          value: PERMIT_VALUE,
+          deadline,
+          nonce,
+          name,
+          version: '1',
+          chainId: networkState.caipNetworkId
+        })
+
+        alert(`signedEIP712: ${resSignedEIP712}`)
+      } catch (error) {
+        console.error('Error signing EIP712:', error)
+        alert('Failed to sign EIP712')
+      }
+    }
+
+    async function handleProviderRequest() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        const result = await eip155Provider.request({
+          method: 'eth_blockNumber',
+          params: []
+        })
+        alert(`eth_blockNumber: ${result}`)
+      } catch (error) {
+        console.error('Error requesting provider:', error)
+        alert('Failed to request provider')
+      }
+    }
+
+    async function handleSendTransaction() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      if (!contractArgs) {
+        alert('no contract args set')
+        return
+      }
+
+      try {
+        const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
+
+        const resTx = await ConnectionController.writeContract({
+          fromAddress,
+          contractAddress,
+          args,
+          method,
+          abi,
+          chainNamespace,
+          customData: {
+            metadata: {
+              activity: 'You are about to send custom transaction to the contract.',
+              currentFormat: 'This is a JSON formatted custom data.',
+              providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
+              txTime: new Date().toISOString(),
+              randomValue: uuidv4()
+            }
+          },
+          type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        })
+
+        alert(`resTx: ${JSON.stringify(resTx)}`)
+
+        // generate new tokenId for next NFT
+        const uuidHex = uuidv4().replace(/-/g, '')
+        const tokenId = BigInt(`0x${uuidHex}`).toString()
+        const newArgs = [getFROM_ADDRESS(), tokenId]
+
+        contractArgs = { ...contractArgs, args: newArgs }
+      } catch (error) {
+        console.error('Error sending transaction:', error)
+        alert('Failed to send transaction')
+      }
+    }
+
+    async function handleSendNative() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        const resTx = await SendController.sendNativeToken({
+          data: '0x',
+          receiverAddress: RECEIVER_ADDRESS,
+          sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
+          decimals: '18',
+          customData: {
+            metadata: 'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+          },
+          type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        })
+        alert(`resTx: ${JSON.stringify(resTx)}`)
+      } catch (error) {
+        console.error('Error sending native token:', error)
+        alert('Failed to send native token')
+      }
+    }
+
+    async function handleSendERC20Token() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        const resTx = await SendController.sendERC20Token({
+          receiverAddress: RECEIVER_ADDRESS,
+          contractAddress: getERC20CAIPAddress(),
+          sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
+          decimals: '18',
+          customData: {
+            metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+          },
+          type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        })
+        alert(`resTx: ${JSON.stringify(resTx)}`)
+        getBalanceOfERC20({ showResult: false })
+      } catch (error) {
+        console.error('Error sending ERC20 token:', error)
+        alert('Failed to send ERC20 token')
+      }
+    }
+
+    async function handleSendTransactionWithDynamicFee() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      if (!contractArgs) {
+        alert('no contract args set')
+        return
+      }
+
+      try {
+        const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
+
+        const resTx = await ConnectionController.writeContract({
+          fromAddress,
+          contractAddress,
+          args,
+          method,
+          abi,
+          chainNamespace,
+          customData: {
+            metadata: {
+              activity: 'You are about to send custom transaction to the contract.',
+              currentFormat: 'This is a JSON formatted custom data.',
+              providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
+              txTime: new Date().toISOString(),
+              randomValue: uuidv4()
+            }
+          },
+          type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+        })
+
+        alert(`resTx: ${JSON.stringify(resTx)}`)
+
+        // generate new tokenId for next NFT
+        const uuidHex = uuidv4().replace(/-/g, '')
+        const tokenId = BigInt(`0x${uuidHex}`).toString()
+        const newArgs = [getFROM_ADDRESS(), tokenId]
+
+        contractArgs = { ...contractArgs, args: newArgs }
+      } catch (error) {
+        console.error('Error sending transaction with dynamic fee:', error)
+        alert('Failed to send transaction with dynamic fee')
+      }
+    }
+
+    async function handleSendNativeWithDynamicFee() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        const resTx = await SendController.sendNativeToken({
+          data: '0x',
+          receiverAddress: RECEIVER_ADDRESS,
+          sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
+          decimals: '18',
+          customData: {
+            metadata: 'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+          },
+          type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+        })
+        alert(`resTx: ${JSON.stringify(resTx)}`)
+      } catch (error) {
+        console.error('Error sending native token with dynamic fee:', error)
+        alert('Failed to send native token with dynamic fee')
+      }
+    }
+
+    async function handleSendERC20TokenWithDynamicFee() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        const resTx = await SendController.sendERC20Token({
+          receiverAddress: RECEIVER_ADDRESS,
+          contractAddress: getERC20CAIPAddress(),
+          sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
+          decimals: '18',
+          gas: BigInt(147726), // optional (you can set this your calculated gas or skip it )
+          maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+          maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
+          customData: {
+            metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+          },
+          type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+        })
+        alert(`resTx: ${JSON.stringify(resTx)}`)
+        getBalanceOfERC20({ showResult: false })
+      } catch (error) {
+        console.error('Error sending ERC20 token with dynamic fee:', error)
+        alert('Failed to send ERC20 token with dynamic fee')
+      }
+    }
+
+    async function getBalanceOfNative() {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      const balance = accountState?.balance
+      alert(`CROSS balance: ${balance}`)
+    }
+
+    async function getBalanceOfERC20({ showResult = true } = {}) {
+      if (!accountState.isConnected) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        const amount = await ConnectionController.readContract({
+          contractAddress: ERC20_ADDRESS,
+          method: 'balanceOf',
+          abi: sampleErc20ABI,
+          args: [getFROM_ADDRESS()]
+        })
+
+        const balance = accountState?.tokenBalance?.map(token => {
+          if (token.address === ERC20_ADDRESS.toLowerCase()) {
+            return {
+              ...token,
+              quantity: {
+                ...token.quantity,
+                numeric: amount
+              }
+            }
+          }
+          return token
+        })
+
+        if (!balance) {
+          console.log('balance not found')
+          return
+        }
+        await AccountController.updateTokenBalance(balance)
+        if (showResult)
+          alert(
+            `updated erc20 balance: ${JSON.stringify(
+              accountState?.tokenBalance?.find(token => token.address === ERC20_ADDRESS.toLowerCase()),
+              (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+              2
+            )}`
+          )
+      } catch (error) {
+        console.error('Error getting ERC20 balance:', error)
+        alert('Failed to get ERC20 balance')
+      }
+    }
+
+    async function getBalanceOfNFT() {
+      try {
+        const amount = await ConnectionController.readContract({
+          contractAddress: ERC721_ADDRESS,
+          method: 'balanceOf',
+          abi: sampleErc721ABI,
+          args: [getFROM_ADDRESS()]
+        })
+
+        alert(`erc721 balance: ${amount}`)
+      } catch (error) {
+        console.error('Error getting NFT balance:', error)
+        alert('Failed to get NFT balance')
+      }
+    }
+
+    // Subscribe to state changes
+    crossSdk.subscribeAccount(state => {
+      accountState = state
+      document.getElementById('accountState').textContent = JSON.stringify(accountState, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)
+      // connect-wallet 버튼 텍스트 업데이트
+      document.getElementById('connect-wallet').textContent = accountState.isConnected ? 'Connected' : 'Connect Wallet'
+      
+      // 주소가 변경되었을 때만 토큰 잔액을 가져옵니다
+      if (accountState.caipAddress && accountState.caipAddress !== previousCaipAddress) {
+        previousCaipAddress = accountState.caipAddress
+        const fetchTokenBalance = async () => {
+          try {
+            await AccountController.fetchTokenBalance()
+            console.log('Token balance fetched successfully for new address:', accountState.caipAddress)
+          } catch (error) {
+            console.error('Error fetching token balance:', error)
+          }
+        }
+        fetchTokenBalance()
+      }
+    })
+
+    crossSdk.subscribeNetwork(state => {
+      networkState = state
+      document.getElementById('networkState').textContent = JSON.stringify(state, null, 2)
+      document.getElementById('switch-network').textContent = networkState.caipNetwork.name
+    })
+
+    crossSdk.subscribeState(state => {
+      appKitState = state
+      document.getElementById('appKitState').textContent = JSON.stringify(state, null, 2)
+    })
+
+    crossSdk.subscribeTheme(state => {
+      themeState = state
+      updateTheme(state.themeMode)
+    })
+
+    crossSdk.subscribeEvents(state => {
+      events = state
+      document.getElementById('events').textContent = JSON.stringify(state, null, 2)
+    })
+
+    crossSdk.subscribeWalletInfo(state => {
+      walletInfo = state
+      document.getElementById('walletInfo').textContent = JSON.stringify(state, null, 2)
+    })
+
+    crossSdk.subscribeProviders(state => {
+      eip155Provider = state['eip155']
+    })
+
+    // Button event listeners
+    const connectWallet = document.getElementById('connect-wallet')
+    connectWallet.addEventListener('click', async () => {
+      if (accountState.isConnected) {
+        await appkitWallet.disconnect()
+      } else {
+        await appkitWallet.connect("cross_wallet")
+      }
+    })
+
+    document.getElementById('toggle-theme')?.addEventListener('click', () => {
+      const newTheme = themeState.themeMode === 'dark' ? 'light' : 'dark'
+      crossSdk.setThemeMode(newTheme)
+      themeState = { ...themeState, themeMode: newTheme }
+      updateTheme(newTheme)
+    })
+
+    const switchNetwork = document.getElementById('switch-network')
+
+    switchNetwork.addEventListener('click', () => {
+      createNetworkModal()
+    })
+
+    // Action button event listeners
+    document.getElementById('sign-message')?.addEventListener('click', handleSignMessage)
+    document.getElementById('sign-eip712')?.addEventListener('click', handleSignEIP712)
+    document.getElementById('provider-request')?.addEventListener('click', handleProviderRequest)
+
+    document.getElementById('send-native')?.addEventListener('click', handleSendNative)
+    document.getElementById('send-erc20')?.addEventListener('click', handleSendERC20Token)
+    document.getElementById('send-transaction')?.addEventListener('click', handleSendTransaction)
+    document.getElementById('send-native-dynamic')?.addEventListener('click', handleSendNativeWithDynamicFee)
+    document.getElementById('send-erc20-dynamic')?.addEventListener('click', handleSendERC20TokenWithDynamicFee)
+    document.getElementById('send-transaction-dynamic')?.addEventListener('click', handleSendTransactionWithDynamicFee)
+
+    document.getElementById('get-balance-native')?.addEventListener('click', getBalanceOfNative)
+    document.getElementById('get-balance-erc20')?.addEventListener('click', () => getBalanceOfERC20())
+    document.getElementById('get-balance-nft')?.addEventListener('click', getBalanceOfNFT)
+
+    // Initialize contract args when account and network are ready
+    function initializeContractArgs() {
+      if (contractArgs || !getFROM_ADDRESS() || !networkState?.caipNetwork?.chainNamespace) return
+
+      const uuidHex = uuidv4().replace(/-/g, '')
+      const tokenId = BigInt(`0x${uuidHex}`).toString()
+
+      contractArgs = {
+        fromAddress: getFROM_ADDRESS(),
+        contractAddress: ERC721_ADDRESS,
+        args: [
+          getFROM_ADDRESS(), // address of token that will take the NFT
+          tokenId
+        ],
+        method: 'mintTo(address, uint256)', // method to call on the contract
+        abi: sampleErc721ABI, // abi of the contract
+        chainNamespace: networkState?.caipNetwork?.chainNamespace,
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY // default type is LEGACY
+      }
+    }
+
+    // Set initial theme and UI state
+    updateTheme(themeState.themeMode)
+
+    // 모달 이벤트 설정
+    setupNetworkModalEvents()
+
+    // Initialize contract args when state changes
+    crossSdk.subscribeAccount(() => {
+      setTimeout(initializeContractArgs, 100)
+    })
+
+    crossSdk.subscribeNetwork(() => {
+      setTimeout(initializeContractArgs, 100)
+    })
+
+    console.log('App initialized successfully!');
+
+  } catch (error) {
+    console.error('Failed to initialize app:', error);
+  }
+}
+
+// Contract ABIs (simplified versions)
+const sampleErc20ABI = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "transfer",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
+
+const sampleErc721ABI = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "mintTo",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
+
+const sampleEIP712 = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "v",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "r",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      }
+    ],
+    "name": "permit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
+
+// DOM이 로드된 후 앱 초기화
+document.addEventListener('DOMContentLoaded', initializeApp); 
