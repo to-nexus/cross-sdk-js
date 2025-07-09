@@ -1,5 +1,6 @@
 import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
 import {
+  ApiController,
   AccountController,
   ConnectionController,
   ConstantsUtil,
@@ -122,6 +123,7 @@ export {
   useAppKitWallet,
   ConnectionController,
   SendController,
+  ApiController,
   AccountController,
   crossMainnet,
   crossTestnet,

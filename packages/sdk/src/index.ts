@@ -2,6 +2,7 @@ import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
 import {
   AccountController,
   ConnectionController,
+  ApiController,
   ConstantsUtil,
   SendController,
   type ThemeMode
@@ -107,6 +108,7 @@ export {
   ConnectionController,
   SendController,
   AccountController,
+  ApiController,
   crossMainnet,
   crossTestnet,
   bscMainnet,
