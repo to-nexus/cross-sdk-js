@@ -1,10 +1,8 @@
-import react from '@vitejs/plugin-react'
 import path from 'path'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/react/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/vanilla/' : '/',
   define: {
     'import.meta.env.VITE_NODE_ENV': JSON.stringify(process.env.VITE_NODE_ENV || 'development')
   },
@@ -25,9 +23,8 @@ export default defineConfig({
       }
     ]
   },
-  // optimizeDeps 설정 제거 (문제의 원인일 수 있음)
   server: {
-    // 필요한 경우 HMR 관련 설정 추가
+    // HMR 관련 설정
     hmr: {
       // 워크스페이스 패키지의 변경 사항을 감지하도록 설정
       clientPort: 3012

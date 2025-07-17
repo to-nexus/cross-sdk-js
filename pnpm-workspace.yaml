@@ -15,5 +15,5 @@ packages:
   - 'packages/experimental'
   - 'packages/cli'
   - 'examples/sdk-react'
-  - 'examples/sdk-html'
+  - 'examples/sdk-vanilla'
   - 'packages/cdn'
