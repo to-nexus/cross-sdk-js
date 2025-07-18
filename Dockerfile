@@ -63,7 +63,7 @@ COPY --chown=nexus:nexus nginx.conf /etc/nginx/nginx.conf
 RUN chmod -R a-w /usr/share/nginx/html
 RUN chown -R nexus:nexus /var/cache/nginx /var/run /var/log/nginx
 
-USER nexus
+# USER nexus
 
 # 포트 8080에서 서빙 (non-root 사용자는 1024 이상 포트 사용)
 EXPOSE 8080
