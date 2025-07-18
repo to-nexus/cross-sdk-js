@@ -24,23 +24,23 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   echo ".npmrc mounted"
 
 # Docker 환경에서 새로 의존성 설치
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # 소스 코드 복사
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 # Build sdk-react
 WORKDIR $WORKDIR/examples/sdk-react
 RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
 RUN pnpm i
-RUN npm run build
+RUN pnpm run build
 
 # Build sdk-vanilla  
 WORKDIR $WORKDIR/examples/sdk-vanilla
 RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
 RUN pnpm i
-RUN npm run build
+RUN pnpm run build
 
 # sdk-cdn은 빌드가 필요없으므로 그대로 사용
 
