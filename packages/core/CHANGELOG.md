@@ -6,6 +6,12 @@
 
 - Fixed 5-second delay issue when sending requests (core, sign-client version migrate)
 
+## 2.19.10
+
+### Patch Changes
+
+- Fixed 5-second delay issue when sending requests (core, sign-client version migrate)
+
 ## 2.19.9
 
 ### Patch Changes
