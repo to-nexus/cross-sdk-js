@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/core",
   "description": "Core for Cross Connect Protocol",
-  "version": "2.19.9",
+  "version": "2.19.10",
   "author": "Nexus",
   "homepage": "https://github.com/to-nexus/cross-connect",
   "license": "Apache-2.0",

@@ -107,7 +107,7 @@ export class UniversalProvider implements IUniversalProvider {
     if (!this.client) {
       throw new Error("Sign Client not initialized");
     }
-    if (!this.session) { 
+    if (!this.session) {
       await this.connect({
         namespaces: this.namespaces,
         optionalNamespaces: this.optionalNamespaces,
