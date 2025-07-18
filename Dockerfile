@@ -12,8 +12,8 @@ WORKDIR $WORKDIR
 
 # 먼저 package.json과 pnpm-lock.yaml만 복사해서 의존성 설치
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/*/package.json ./packages/
-COPY examples/*/package.json ./examples/
+COPY packages/* ./packages/
+COPY examples/* ./examples/
 
 # GitHub Token으로 private 레포 접근 설정
 RUN --mount=type=secret,id=github_token \
@@ -23,11 +23,13 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   echo ".npmrc mounted"
 
-# Docker 환경에서 새로 의존성 설치
-RUN pnpm install
-
 # 소스 코드 복사
 COPY . .
+
+# Docker 환경에서 의존성 설치 (소스 코드 복사 후)
+RUN pnpm install
+
+# 빌드 실행
 RUN pnpm run build
 
 # Build sdk-react
