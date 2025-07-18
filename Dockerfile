@@ -12,8 +12,8 @@ WORKDIR $WORKDIR
 
 # 먼저 package.json과 pnpm-lock.yaml만 복사해서 의존성 설치
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/* ./packages/
-COPY examples/* ./examples/
+COPY packages/ ./packages/
+COPY examples/ ./examples/
 
 # GitHub Token으로 private 레포 접근 설정
 RUN --mount=type=secret,id=github_token \
