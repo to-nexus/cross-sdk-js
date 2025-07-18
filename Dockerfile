@@ -24,7 +24,7 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   echo ".npmrc mounted"
 
 # Docker 환경에서 새로 의존성 설치
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # 소스 코드 복사
 COPY . .
