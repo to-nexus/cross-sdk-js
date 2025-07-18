@@ -1,5 +1,11 @@
 # @to-nexus/core
 
+## 2.19.9
+
+### Patch Changes
+
+- Fixed 5-second delay issue when sending requests
+
 ## 2.19.10
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "cross-connect",
-  "version": "2.19.8",
+  "version": "2.19.9",
   "description": "Monorepo for Cross Connect",
   "private": true,
   "keywords": [
