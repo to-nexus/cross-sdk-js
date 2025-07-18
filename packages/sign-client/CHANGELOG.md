@@ -5,6 +5,14 @@
 ### Patch Changes
 
 - Fixed 5-second delay issue when sending requests (core, sign-client version migrate)
+- Updated dependencies
+  - @to-nexus/core@2.19.10
+
+## 2.19.10
+
+### Patch Changes
+
+- Fixed 5-second delay issue when sending requests (core, sign-client version migrate)
 
 ## 2.19.9
 
