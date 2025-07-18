@@ -1,5 +1,23 @@
 # @to-nexus/core
 
+## 2.19.10
+
+### Patch Changes
+
+- Fixed 5-second delay issue when sending requests and resolved test configuration errors
+
+## 2.19.9
+
+### Patch Changes
+
+- Fixed 5-second delay issue when sending requests
+
+## 2.19.9
+
+### Patch Changes
+
+- 88afe18: catch error on websocket construction failure
+
 ## 2.19.3
 
 ### Patch Changes

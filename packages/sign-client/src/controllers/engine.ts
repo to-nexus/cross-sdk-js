@@ -1475,9 +1475,9 @@ export class Engine extends IEngine {
 
     let attestation: string | undefined;
     if (METHODS_TO_VERIFY.includes(method)) {
-      const decryptedId = hashMessage(JSON.stringify(payload));
-      const id = hashMessage(message);
-      attestation = await this.client.core.verify.register({ id, decryptedId });
+      // const decryptedId = hashMessage(JSON.stringify(payload));
+      // const id = hashMessage(message);
+      // attestation = await this.client.core.verify.register({ id, decryptedId });
     }
     const opts = ENGINE_RPC_OPTS[method].req;
     opts.attestation = attestation;
