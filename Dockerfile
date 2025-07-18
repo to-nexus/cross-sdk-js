@@ -28,19 +28,19 @@ RUN pnpm install --frozen-lockfile
 
 # 소스 코드 복사
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 # Build sdk-react
 WORKDIR $WORKDIR/examples/sdk-react
 RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
 RUN pnpm i
-RUN npm run build
+RUN pnpm run build
 
 # Build sdk-vanilla  
 WORKDIR $WORKDIR/examples/sdk-vanilla
 RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
 RUN pnpm i
-RUN npm run build
+RUN pnpm run build
 
 # sdk-cdn은 빌드가 필요없으므로 그대로 사용
 
