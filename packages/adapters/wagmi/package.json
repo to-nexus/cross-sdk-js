@@ -26,7 +26,7 @@
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
     "@walletconnect/utils": "2.18.0",
-    "@to-nexus/universal-provider": "~2.19.7",
+    "@to-nexus/universal-provider": "workspace:*",
     "valtio": "1.13.2"
   },
   "optionalDependencies": {

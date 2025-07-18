@@ -17,3 +17,5 @@ packages:
   - 'examples/sdk-react'
   - 'examples/sdk-html'
   - 'packages/cdn'
+  - 'packages/sign-client'
+  - 'providers/universal-provider' # 추가

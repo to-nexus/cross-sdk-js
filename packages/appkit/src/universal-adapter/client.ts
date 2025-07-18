@@ -1,7 +1,3 @@
-import type UniversalProvider from '@to-nexus/universal-provider'
-import bs58 from 'bs58'
-import { toHex } from 'viem'
-
 import { type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -9,6 +5,9 @@ import {
   ConstantsUtil as CoreConstantsUtil,
   CoreHelperUtil
 } from '@to-nexus/appkit-core'
+import type UniversalProvider from '@to-nexus/universal-provider'
+import bs58 from 'bs58'
+import { toHex } from 'viem'
 
 import { AdapterBlueprint } from '../adapters/ChainAdapterBlueprint.js'
 import { WalletConnectConnector } from '../connectors/WalletConnectConnector.js'
@@ -28,6 +27,8 @@ export class UniversalAdapter extends AdapterBlueprint {
   public async connect(
     params: AdapterBlueprint.ConnectParams
   ): Promise<AdapterBlueprint.ConnectResult> {
+    console.log('###?? connect : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({
       id: 'WALLET_CONNECT',
       type: 'WALLET_CONNECT' as const,
@@ -38,6 +39,7 @@ export class UniversalAdapter extends AdapterBlueprint {
   }
 
   public async disconnect() {
+    console.log('###?? disconnect : start ', new Date().toLocaleTimeString())
     try {
       const connector = this.getWalletConnectConnector()
       await connector.disconnect()
@@ -51,6 +53,7 @@ export class UniversalAdapter extends AdapterBlueprint {
   }: AdapterBlueprint.GetAccountsParams & {
     namespace: ChainNamespace
   }): Promise<AdapterBlueprint.GetAccountsResult> {
+    console.log('###?? getAccounts : start ', new Date().toLocaleTimeString())
     const provider = this.provider as UniversalProvider
     const addresses = (provider?.session?.namespaces?.[namespace]?.accounts
       ?.map(account => {
@@ -68,12 +71,15 @@ export class UniversalAdapter extends AdapterBlueprint {
   }
 
   override async syncConnectors() {
+    console.log('###?? syncConnectors : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve()
   }
 
   public async getBalance(
     params: AdapterBlueprint.GetBalanceParams
   ): Promise<AdapterBlueprint.GetBalanceResult> {
+    console.log('###?? getBalance : start ', new Date().toLocaleTimeString())
     const isBalanceSupported =
       params.caipNetwork &&
       CoreConstantsUtil.BALANCE_SUPPORTED_CHAINS.includes(params.caipNetwork?.chainNamespace)
@@ -110,6 +116,8 @@ export class UniversalAdapter extends AdapterBlueprint {
   public override async signEIP712(
     params: AdapterBlueprint.SignEIP712Params
   ): Promise<AdapterBlueprint.SignEIP712Result> {
+    console.log('###?? signEIP712 : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({
       signature: ''
     })
@@ -118,14 +126,24 @@ export class UniversalAdapter extends AdapterBlueprint {
   public override async signMessage(
     params: AdapterBlueprint.SignMessageParams
   ): Promise<AdapterBlueprint.SignMessageResult> {
+    console.log('###?? universalAdapter signMessage : start ', new Date().toLocaleTimeString())
     const { provider, message, address, customData } = params
     if (!provider) {
       throw new Error('UniversalAdapter:signMessage - provider is undefined')
     }
 
+    console.log('###?? UniversalAdapter.provider info: providerType=', provider?.constructor?.name)
+    console.log('###?? UniversalAdapter.provider info: message=', message)
+    console.log('###?? UniversalAdapter.provider info: address=', address)
+
     let signature = ''
 
     if (ChainController.state.activeCaipNetwork?.chainNamespace === ConstantsUtil.CHAIN.SOLANA) {
+      console.log(
+        '###?? UniversalAdapter.provider.request : calling SOLANA personal_sign ',
+        new Date().toLocaleTimeString()
+      )
+
       const response = await provider.request(
         {
           method: 'solana_signMessage',
@@ -137,8 +155,14 @@ export class UniversalAdapter extends AdapterBlueprint {
         ChainController.state.activeCaipNetwork?.caipNetworkId
       )
 
+      console.log('###?? UniversalAdapter.provider.request : SOLANA response=', response)
       signature = (response as { signature: string }).signature
     } else {
+      console.log(
+        '###?? UniversalAdapter.provider.request : calling EVM personal_sign ',
+        new Date().toLocaleTimeString()
+      )
+
       signature = await provider.request(
         {
           method: 'personal_sign',
@@ -146,7 +170,11 @@ export class UniversalAdapter extends AdapterBlueprint {
         },
         ChainController.state.activeCaipNetwork?.caipNetworkId
       )
+
+      console.log('###?? UniversalAdapter.provider.request : EVM signature=', signature)
     }
+
+    console.log('###?? universalAdapter signMessage : end ', new Date().toLocaleTimeString())
 
     return { signature }
   }
@@ -158,12 +186,16 @@ export class UniversalAdapter extends AdapterBlueprint {
    * These function definition is to have a type parity between the clients. Currently not in use.
    */
   public override async estimateGas(): Promise<AdapterBlueprint.EstimateGasTransactionResult> {
+    console.log('###?? estimateGas : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({
       gas: BigInt(0)
     })
   }
 
   public async getProfile(): Promise<AdapterBlueprint.GetProfileResult> {
+    console.log('###?? getProfile : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({
       profileImage: '',
       profileName: ''
@@ -171,6 +203,8 @@ export class UniversalAdapter extends AdapterBlueprint {
   }
 
   public async sendTransaction(): Promise<AdapterBlueprint.SendTransactionResult> {
+    console.log('###?? sendTransaction : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({
       hash: ''
     })
@@ -179,20 +213,28 @@ export class UniversalAdapter extends AdapterBlueprint {
   public override walletGetAssets(
     _params: AdapterBlueprint.WalletGetAssetsParams
   ): Promise<AdapterBlueprint.WalletGetAssetsResponse> {
+    console.log('###?? walletGetAssets : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({})
   }
-  
+
   public async writeContract(): Promise<AdapterBlueprint.WriteContractResult> {
+    console.log('###?? writeContract : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({
       hash: ''
     })
   }
 
   public async readContract(): Promise<AdapterBlueprint.ReadContractResult> {
+    console.log('###?? readContract : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({})
   }
 
   public async getEnsAddress(): Promise<AdapterBlueprint.GetEnsAddressResult> {
+    console.log('###?? getEnsAddress : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({
       address: false
     })
@@ -207,18 +249,26 @@ export class UniversalAdapter extends AdapterBlueprint {
   }
 
   public async getCapabilities(): Promise<unknown> {
+    console.log('###?? getCapabilities : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({})
   }
 
   public async grantPermissions(): Promise<unknown> {
+    console.log('###?? grantPermissions : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({})
   }
 
   public async revokePermissions(): Promise<`0x${string}`> {
+    console.log('###?? revokePermissions : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve('0x')
   }
 
   public async syncConnection() {
+    console.log('###?? syncConnection : start ', new Date().toLocaleTimeString())
+
     return Promise.resolve({
       id: 'WALLET_CONNECT',
       type: 'WALLET_CONNECT' as const,
@@ -230,6 +280,7 @@ export class UniversalAdapter extends AdapterBlueprint {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public override async switchNetwork(params: AdapterBlueprint.SwitchNetworkParams) {
+    console.log('###?? switchNetwork : start ', new Date().toLocaleTimeString())
     const { caipNetwork } = params
     const connector = this.getWalletConnectConnector()
 

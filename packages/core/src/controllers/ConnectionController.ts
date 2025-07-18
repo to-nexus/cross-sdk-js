@@ -1,8 +1,12 @@
+import {
+  type CaipNetwork,
+  type ChainNamespace,
+  ConstantsUtil,
+  type CustomData
+} from '@to-nexus/appkit-common'
+import { type W3mFrameTypes } from '@to-nexus/appkit-wallet'
 import { proxy, ref } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
-
-import { type CaipNetwork, type ChainNamespace, ConstantsUtil, type CustomData } from '@to-nexus/appkit-common'
-import { type W3mFrameTypes } from '@to-nexus/appkit-wallet'
 
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
 import { SIWXUtil } from '../utils/SIWXUtil.js'
@@ -38,7 +42,7 @@ export interface ConnectExternalOptions {
 export interface ConnectionControllerClient {
   connectWalletConnect?: () => Promise<void>
   disconnect: () => Promise<void>
-  signMessage: (params: {message: string, customData?: CustomData}) => Promise<string>
+  signMessage: (params: { message: string; customData?: CustomData }) => Promise<string>
   signEIP712: (args: SignEIP712Args) => Promise<string>
   sendTransaction: (args: SendTransactionArgs) => Promise<{ hash: `0x${string}` } | null>
   estimateGas: (args: EstimateGasTransactionArgs) => Promise<bigint>
@@ -107,6 +111,7 @@ export const ConnectionController = {
   },
 
   async connectWalletConnect() {
+    console.log('###?? connectWalletConnect : start ', new Date().toLocaleTimeString())
     // Connect all namespaces to WalletConnect
     const namespaces = [...ChainController.state.chains.keys()]
     namespaces.forEach(namespace => {
@@ -141,6 +146,7 @@ export const ConnectionController = {
   },
 
   async connectExternal(options: ConnectExternalOptions, chain: ChainNamespace, setChain = true) {
+    console.log('###?? connectExternal : start ', new Date().toLocaleTimeString())
     await this._getClient()?.connectExternal?.(options)
 
     if (setChain) {
@@ -149,6 +155,7 @@ export const ConnectionController = {
   },
 
   async reconnectExternal(options: ConnectExternalOptions) {
+    console.log('###?? reconnectExternal : start ', new Date().toLocaleTimeString())
     await this._getClient()?.reconnectExternal?.(options)
     const namespace = options.chain || ChainController.state.activeChain
     if (namespace) {
@@ -157,6 +164,7 @@ export const ConnectionController = {
   },
 
   async setPreferredAccountType(accountType: W3mFrameTypes.AccountType) {
+    console.log('###?? setPreferredAccountType : start ', new Date().toLocaleTimeString())
     ModalController.setLoading(true)
     const authConnector = ConnectorController.getAuthConnector()
     if (!authConnector) {
@@ -175,11 +183,15 @@ export const ConnectionController = {
     })
   },
 
-  async signMessage(params: {message: string, customData?: CustomData}) {
+  async signMessage(params: { message: string; customData?: CustomData }) {
+    console.log('###?? signMessage : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.signMessage(params)
   },
 
   async signEIP712(args: SignEIP712Args) {
+    console.log('###?? signEIP712 : start ConnectionController : ', new Date().toLocaleTimeString())
+
     return this._getClient()?.signEIP712(args)
   },
 
@@ -192,38 +204,56 @@ export const ConnectionController = {
   },
 
   async sendTransaction(args: SendTransactionArgs) {
+    console.log('###?? sendTransaction : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.sendTransaction(args)
   },
 
   async getCapabilities(params: string) {
+    console.log('###?? getCapabilities : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.getCapabilities(params)
   },
 
   async grantPermissions(params: object | readonly unknown[]) {
+    console.log('###?? grantPermissions : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.grantPermissions(params)
   },
 
   async walletGetAssets(params: WalletGetAssetsParams): Promise<WalletGetAssetsResponse> {
+    console.log('###?? walletGetAssets : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.walletGetAssets(params) ?? {}
   },
 
   async estimateGas(args: EstimateGasTransactionArgs) {
+    console.log('###?? estimateGas : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.estimateGas(args)
   },
 
   async writeContract(args: WriteContractArgs) {
-    return this._getClient()?.  writeContract(args)
+    console.log('###?? writeContract : start ', new Date().toLocaleTimeString())
+
+    return this._getClient()?.writeContract(args)
   },
 
   async readContract(args: ReadContractArgs) {
+    console.log('###?? readContract : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.readContract(args)
   },
 
   async getEnsAddress(value: string) {
+    console.log('###?? getEnsAddress : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.getEnsAddress(value)
   },
 
   async getEnsAvatar(value: string) {
+    console.log('###?? getEnsAvatar : start ', new Date().toLocaleTimeString())
+
     return this._getClient()?.getEnsAvatar(value)
   },
 
@@ -268,6 +298,7 @@ export const ConnectionController = {
   },
 
   async disconnect() {
+    console.log('###?? disconnect : start ', new Date().toLocaleTimeString())
     try {
       ModalController.setLoading(true)
       await SIWXUtil.clearSessions()

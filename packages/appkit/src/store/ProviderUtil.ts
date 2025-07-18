@@ -1,9 +1,8 @@
+import type { ChainNamespace } from '@to-nexus/appkit-common'
+import type { ConnectorType } from '@to-nexus/appkit-core'
 import type UniversalProvider from '@to-nexus/universal-provider'
 import { proxy, ref, subscribe } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
-
-import type { ChainNamespace } from '@to-nexus/appkit-common'
-import type { ConnectorType } from '@to-nexus/appkit-core'
 
 type StateKey = keyof ProviderStoreUtilState
 
@@ -45,31 +44,54 @@ export const ProviderUtil = {
   },
 
   setProvider<T = UniversalProvider>(chainNamespace: ChainNamespace, provider: T) {
+    console.log(`###?? ProviderUtil.setProvider : start ${new Date().toISOString()}`)
+    console.log(
+      `###?? ProviderUtil.setProvider : chainNamespace=${chainNamespace}, providerType=${provider?.constructor?.name || 'unknown'}`
+    )
     if (provider) {
       state.providers[chainNamespace] = ref(provider) as T
     }
   },
 
   getProvider<T = UniversalProvider>(chainNamespace: ChainNamespace): T | undefined {
-    return state.providers[chainNamespace] as T | undefined
+    console.log(`###?? ProviderUtil.getProvider : start ${new Date().toISOString()}`)
+    const provider = state.providers[chainNamespace] as T | undefined
+    console.log(
+      `###?? ProviderUtil.getProvider : chainNamespace=${chainNamespace}, providerType=${provider?.constructor?.name || 'undefined'}`
+    )
+
+    return provider
   },
 
   setProviderId(chainNamespace: ChainNamespace, providerId: ConnectorType) {
+    console.log(`###?? ProviderUtil.setProviderId : start ${new Date().toISOString()}`)
+    console.log(
+      `###?? ProviderUtil.setProviderId : chainNamespace=${chainNamespace}, providerId=${providerId}`
+    )
     if (providerId) {
       state.providerIds[chainNamespace] = providerId
     }
   },
 
   getProviderId(chainNamespace: ChainNamespace): ConnectorType | undefined {
-    return state.providerIds[chainNamespace]
+    console.log(`###?? ProviderUtil.getProviderId : start ${new Date().toISOString()}`)
+    const providerId = state.providerIds[chainNamespace]
+    console.log(
+      `###?? ProviderUtil.getProviderId : chainNamespace=${chainNamespace}, providerId=${providerId}`
+    )
+
+    return providerId
   },
 
   reset() {
+    console.log(`###?? ProviderUtil.reset : start ${new Date().toISOString()}`)
     state.providers = { ...CLEAN_PROVIDERS_STATE }
     state.providerIds = { ...CLEAN_PROVIDERS_STATE }
   },
 
   resetChain(chainNamespace: ChainNamespace) {
+    console.log(`###?? ProviderUtil.resetChain : start ${new Date().toISOString()}`)
+    console.log(`###?? ProviderUtil.resetChain : chainNamespace=${chainNamespace}`)
     state.providers[chainNamespace] = undefined
     state.providerIds[chainNamespace] = undefined
   }

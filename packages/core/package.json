@@ -44,7 +44,7 @@
     }
   },
   "dependencies": {
-    "@to-nexus/universal-provider": "~2.19.7",
+    "@to-nexus/universal-provider": "workspace:*",
     "@to-nexus/appkit-common": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
     "valtio": "1.13.2",

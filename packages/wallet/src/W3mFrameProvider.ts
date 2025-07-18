@@ -66,6 +66,7 @@ export class W3mFrameProvider {
   }
 
   public async init() {
+    console.log(`###?? init : start ${new Date().toISOString()}`)
     this.w3mFrame.initFrame()
     if (this.initPromise) {
       await this.initPromise
@@ -86,6 +87,7 @@ export class W3mFrameProvider {
   }
 
   public async reload() {
+    console.log(`###?? reload : start ${new Date().toISOString()}`)
     try {
       this.w3mFrame.initFrame()
       await this.appEvent<'Reload'>({
@@ -98,6 +100,7 @@ export class W3mFrameProvider {
   }
 
   public async connectEmail(payload: W3mFrameTypes.Requests['AppConnectEmailRequest']) {
+    console.log(`###?? connectEmail : start ${new Date().toISOString()}`)
     try {
       W3mFrameHelpers.checkIfAllowedToTriggerEmail()
       this.w3mFrame.initFrame()
@@ -115,6 +118,7 @@ export class W3mFrameProvider {
   }
 
   public async connectDevice() {
+    console.log(`###?? connectDevice : start ${new Date().toISOString()}`)
     try {
       return this.appEvent<'ConnectDevice'>({
         type: W3mFrameConstants.APP_CONNECT_DEVICE
@@ -126,6 +130,7 @@ export class W3mFrameProvider {
   }
 
   public async connectOtp(payload: W3mFrameTypes.Requests['AppConnectOtpRequest']) {
+    console.log(`###?? connectOtp : start ${new Date().toISOString()}`)
     try {
       return this.appEvent<'ConnectOtp'>({
         type: W3mFrameConstants.APP_CONNECT_OTP,
@@ -138,6 +143,7 @@ export class W3mFrameProvider {
   }
 
   public async isConnected() {
+    console.log(`###?? isConnected : start ${new Date().toISOString()}`)
     try {
       if (!this.getLoginEmailUsed()) {
         return { isConnected: false }
@@ -158,6 +164,7 @@ export class W3mFrameProvider {
   }
 
   public async getChainId() {
+    console.log(`###?? getChainId : start ${new Date().toISOString()}`)
     try {
       const response = await this.appEvent<'GetChainId'>({
         type: W3mFrameConstants.APP_GET_CHAIN_ID
@@ -175,6 +182,7 @@ export class W3mFrameProvider {
   public async getSocialRedirectUri(
     payload: W3mFrameTypes.Requests['AppGetSocialRedirectUriRequest']
   ) {
+    console.log(`###?? getSocialRedirectUri : start ${new Date().toISOString()}`)
     try {
       this.w3mFrame.initFrame()
 
@@ -189,6 +197,7 @@ export class W3mFrameProvider {
   }
 
   public async updateEmail(payload: W3mFrameTypes.Requests['AppUpdateEmailRequest']) {
+    console.log(`###?? updateEmail : start ${new Date().toISOString()}`)
     try {
       const response = await this.appEvent<'UpdateEmail'>({
         type: W3mFrameConstants.APP_UPDATE_EMAIL,
@@ -206,6 +215,7 @@ export class W3mFrameProvider {
   public async updateEmailPrimaryOtp(
     payload: W3mFrameTypes.Requests['AppUpdateEmailPrimaryOtpRequest']
   ) {
+    console.log(`###?? updateEmailPrimaryOtp : start ${new Date().toISOString()}`)
     try {
       return this.appEvent<'UpdateEmailPrimaryOtp'>({
         type: W3mFrameConstants.APP_UPDATE_EMAIL_PRIMARY_OTP,
@@ -220,6 +230,7 @@ export class W3mFrameProvider {
   public async updateEmailSecondaryOtp(
     payload: W3mFrameTypes.Requests['AppUpdateEmailSecondaryOtpRequest']
   ) {
+    console.log(`###?? updateEmailSecondaryOtp : start ${new Date().toISOString()}`)
     try {
       const response = await this.appEvent<'UpdateEmailSecondaryOtp'>({
         type: W3mFrameConstants.APP_UPDATE_EMAIL_SECONDARY_OTP,
@@ -236,6 +247,7 @@ export class W3mFrameProvider {
   }
 
   public async syncTheme(payload: W3mFrameTypes.Requests['AppSyncThemeRequest']) {
+    console.log(`###?? syncTheme : start ${new Date().toISOString()}`)
     try {
       return this.appEvent<'SyncTheme'>({
         type: W3mFrameConstants.APP_SYNC_THEME,
@@ -250,6 +262,7 @@ export class W3mFrameProvider {
   public async syncDappData(
     payload: W3mFrameTypes.Requests['AppSyncDappDataRequest']
   ): Promise<W3mFrameTypes.Responses['FrameSyncDappDataResponse']> {
+    console.log(`###?? syncDappData : start ${new Date().toISOString()}`)
     try {
       return this.appEvent<'SyncDappData'>({
         type: W3mFrameConstants.APP_SYNC_DAPP_DATA,
@@ -262,6 +275,7 @@ export class W3mFrameProvider {
   }
 
   public async getSmartAccountEnabledNetworks() {
+    console.log(`###?? getSmartAccountEnabledNetworks : start ${new Date().toISOString()}`)
     try {
       const response = await this.appEvent<'GetSmartAccountEnabledNetworks'>({
         type: W3mFrameConstants.APP_GET_SMART_ACCOUNT_ENABLED_NETWORKS
@@ -278,6 +292,7 @@ export class W3mFrameProvider {
   }
 
   public async setPreferredAccount(type: W3mFrameTypes.AccountType) {
+    console.log(`###?? setPreferredAccount : start ${new Date().toISOString()}`)
     try {
       return this.appEvent<'SetPreferredAccount'>({
         type: W3mFrameConstants.APP_SET_PREFERRED_ACCOUNT,
@@ -291,6 +306,7 @@ export class W3mFrameProvider {
 
   // -- Provider Methods ------------------------------------------------
   public async connect(payload?: W3mFrameTypes.Requests['AppGetUserRequest']) {
+    console.log(`###?? connect : start ${new Date().toISOString()}`)
     try {
       const chainId = payload?.chainId || this.getLastUsedChainId() || 1
       const response = await this.appEvent<'GetUser'>({
@@ -308,6 +324,7 @@ export class W3mFrameProvider {
   }
 
   public async getUser(payload: W3mFrameTypes.Requests['AppGetUserRequest']) {
+    console.log(`###?? getUser : start ${new Date().toISOString()}`)
     try {
       const chainId = payload?.chainId || this.getLastUsedChainId() || 1
       const response = await this.appEvent<'GetUser'>({
@@ -323,6 +340,7 @@ export class W3mFrameProvider {
   }
 
   public async connectSocial(uri: string) {
+    console.log(`###?? connectSocial : start ${new Date().toISOString()}`)
     try {
       this.w3mFrame.initFrame()
       const response = await this.appEvent<'ConnectSocial'>({
@@ -342,6 +360,7 @@ export class W3mFrameProvider {
   }
 
   public async getFarcasterUri() {
+    console.log(`###?? getFarcasterUri : start ${new Date().toISOString()}`)
     try {
       this.w3mFrame.initFrame()
       const response = await this.appEvent<'GetFarcasterUri'>({
@@ -356,6 +375,7 @@ export class W3mFrameProvider {
   }
 
   public async connectFarcaster() {
+    console.log(`###?? connectFarcaster : start ${new Date().toISOString()}`)
     try {
       const response = await this.appEvent<'ConnectFarcaster'>({
         type: W3mFrameConstants.APP_CONNECT_FARCASTER
@@ -373,6 +393,7 @@ export class W3mFrameProvider {
   }
 
   public async switchNetwork(chainId: number | string) {
+    console.log(`###?? switchNetwork : start ${new Date().toISOString()}`)
     try {
       const response = await this.appEvent<'SwitchNetwork'>({
         type: W3mFrameConstants.APP_SWITCH_NETWORK,
@@ -389,6 +410,7 @@ export class W3mFrameProvider {
   }
 
   public async disconnect() {
+    console.log(`###?? disconnect : start ${new Date().toISOString()}`)
     try {
       const response = await this.appEvent<'SignOut'>({
         type: W3mFrameConstants.APP_SIGN_OUT
@@ -403,6 +425,7 @@ export class W3mFrameProvider {
   }
 
   public async request(req: W3mFrameTypes.RPCRequest): Promise<W3mFrameTypes.RPCResponse> {
+    console.log(`###?? request : start ${new Date().toISOString()}`)
     try {
       if (W3mFrameRpcConstants.GET_CHAIN_ID === req.method) {
         return this.getLastUsedChainId()
@@ -482,6 +505,7 @@ export class W3mFrameProvider {
   }
 
   public async getCapabilities(): Promise<Record<`0x${string}`, W3mFrameTypes.WalletCapabilities>> {
+    console.log(`###?? getCapabilities : start ${new Date().toISOString()}`)
     try {
       const capabilities = await this.request({
         method: 'wallet_getCapabilities'
@@ -536,6 +560,7 @@ export class W3mFrameProvider {
   private async appEvent<T extends W3mFrameTypes.ProviderRequestType>(
     event: AppEventType
   ): Promise<W3mFrameTypes.Responses[`Frame${T}Response`]> {
+    console.log(`###?? appEvent : start ${new Date().toISOString()}`)
     await this.w3mFrame.frameLoadPromise
     let timer: ReturnType<typeof setTimeout> | undefined = undefined
 
