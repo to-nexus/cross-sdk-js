@@ -117,8 +117,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/test/${{ steps.env.outputs.SERVICE_NAME }}:${{ steps.env.outputs.GIT_SHA }}
-            ${{ steps.login-ecr.outputs.registry }}/test/${{ steps.env.outputs.SERVICE_NAME }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/dev/${{ steps.env.outputs.SERVICE_NAME }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/dev/${{ steps.env.outputs.SERVICE_NAME }}:latest
           platforms: linux/amd64
           build-args: |
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
