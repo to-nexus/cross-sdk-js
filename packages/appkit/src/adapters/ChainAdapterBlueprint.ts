@@ -13,6 +13,7 @@ import {
   type AssetFilterType,
   OptionsController,
   type ReadContractArgs,
+  type SignTypedDataV4Args,
   type Tokens,
   type WriteContractArgs
 } from '@to-nexus/appkit-core'
@@ -309,6 +310,17 @@ export abstract class AdapterBlueprint<
   ): Promise<AdapterBlueprint.SignEIP712Result>
 
   /**
+   * Signs typed data v4 (EIP-712) with the connected wallet using generic structure.
+   * This is an improved, universal method that can handle any EIP-712 typed data structure,
+   * unlike signEIP712 which is limited to specific permit signatures.
+   * @param {AdapterBlueprint.SignTypedDataV4Params} params - Parameters including params array and optional provider
+   * @returns {Promise<AdapterBlueprint.SignTypedDataV4Result>} Object containing the signature
+   */
+  public abstract signTypedDataV4(
+    params: AdapterBlueprint.SignTypedDataV4Params
+  ): Promise<AdapterBlueprint.SignTypedDataV4Result>
+
+  /**
    * Estimates gas for a transaction.
    * @param {AdapterBlueprint.EstimateGasTransactionArgs} params - Parameters including address, to, data, and optional provider
    * @returns {Promise<AdapterBlueprint.EstimateGasTransactionResult>} Object containing the gas estimate
@@ -489,6 +501,16 @@ export namespace AdapterBlueprint {
   }
 
   export type SignEIP712Result = {
+    signature: string
+  }
+
+  export type SignTypedDataV4Params = {
+    paramsData: SignTypedDataV4Args // EIP-712 typed data object (no address needed - provider will determine from connected account)
+    provider?: AppKitConnector['provider']
+    customData?: CustomData
+  }
+
+  export type SignTypedDataV4Result = {
     signature: string
   }
 

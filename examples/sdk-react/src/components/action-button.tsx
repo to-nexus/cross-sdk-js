@@ -20,9 +20,25 @@ import {
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
-import type { AssetFilterType, WriteContractArgs } from '@to-nexus/sdk/react'
+import type { 
+  AssetFilterType, 
+  WriteContractArgs,
+  SignTypedDataV4Args,
+  TypedDataDomain,
+  TypedDataTypes
+} from '@to-nexus/sdk/react'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
+
+// API Response types for EIP-712 signing
+interface SignTypedDataApiResponse {
+  data: {
+    params: [string, SignTypedDataV4Args] // Server still sends [address, typedData] tuple
+    hash: string
+    uuid: string
+    recover: string
+  }
+}
 
 import { sampleEIP712 } from '../contracts/sample-eip712'
 import { sampleErc20ABI } from '../contracts/sample-erc20'
@@ -152,8 +168,8 @@ export function ActionButtonList() {
     alert(`signedMessage: ${signedMessage}`)
   }
 
-  // used for signing typed data with EIP712
-  async function handleSignEIP712() {
+  // DEPRECATED: Legacy EIP-712 method for ERC-2612 permit signatures only
+  async function handleSignDeprecatedPermit() {
     if (!account?.isConnected) {
       alert('Please connect wallet first.')
       return
@@ -196,6 +212,172 @@ export function ActionButtonList() {
     const signature = Signature.from(resSignedEIP712)
     alert(`v: ${signature?.v}, r: ${signature?.r}, s: ${signature?.s}`)
   }
+
+  // NEW: Generic EIP-712 signing using universal signTypedDataV4 method
+  async function handleSignTypedDataV4() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    try {
+      console.log('Requesting typed data from API...')
+      
+      // Example: Get typed data from API (can be any source)
+      const response = await fetch('https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          account: FROM_ADDRESS, // Use actual connected wallet address
+          amount: "1",
+          direction: true,
+          pair_id: 1,
+          project_id: "nexus-ramp-v1"
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`API response: ${response.status} ${response.statusText}`)
+      }
+
+      const apiData: SignTypedDataApiResponse = await response.json()
+      console.log('API response:', JSON.stringify(apiData, null, 2))
+
+      if (!apiData.data?.params) {
+        throw new Error('Invalid API response: missing params data')
+      }
+
+      // Extract only the typedData (second element) from API response params
+      const tupleParams = apiData.data.params as [string, SignTypedDataV4Args]
+      const paramsData = tupleParams[1]
+      console.log('Extracted typedData for signing (address removed):', JSON.stringify(paramsData, null, 2))
+
+      // Use the new universal signTypedDataV4 method
+      const signature = await ConnectionController.signTypedDataV4(paramsData, {
+        metadata: {
+          apiResponse: {
+            hash: apiData.data.hash,
+            uuid: apiData.data.uuid,
+            recover: apiData.data.recover
+          },
+          description: 'Universal EIP-712 typed data signature',
+          timestamp: new Date().toISOString()
+        }
+      })
+
+      if (!signature) {
+        alert('Signature is undefined')
+        return
+      }
+
+      console.log('Signature result:', signature)
+      
+      // Show detailed results
+      alert(`
+✅ Signature successful!
+
+🔑 Signature: ${signature}
+📝 Hash: ${apiData.data.hash}
+🆔 UUID: ${apiData.data.uuid}
+🔗 Primary Type: ${paramsData.primaryType}
+⛓️ Chain ID: ${paramsData.domain.chainId}
+📋 Contract: ${paramsData.domain.verifyingContract}
+
+Check console for full details.
+      `.trim())
+
+    } catch (error) {
+      console.error('Error in handleSignTypedDataV4:', error)
+      alert(`❌ Error: ${(error as Error).message}`)
+    }
+  }
+
+  // NEW: Client-side generated EIP-712 typed data example
+  async function handleSignTypedDataV4Manual() {
+    if (!account?.isConnected) {
+      alert('Please connect wallet first.')
+      return
+    }
+
+    try {
+      console.log('Creating typed data using exact server structure...')
+
+      // Using exact server data structure with EIP712Domain removed
+      const domain: TypedDataDomain = {
+        chainId: 612044,
+        name: "MockService", 
+        verifyingContract: "0xa55d9fff44bf394bdb42b0a20d7fcb2090e424d2",
+        version: "1"
+      }
+
+      // ✅ EIP712Domain type removed from server data - let wallet handle it automatically  
+      const types = {
+        "ERC20Mint": [
+          { name: "token", type: "address" },
+          { name: "amount", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" }
+        ]
+      } as Record<string, any>
+
+      const message = {
+        amount: 1,
+        deadline: 1753082356,
+        nonce: 0,
+        token: "0x61cc7192cce705cf289dd099094883fbd626c3ee"
+      }
+
+      // ⚠️ Using any to bypass EIP712Domain requirement - wallet will handle domain types automatically
+      const typedData = {
+        domain,
+        types,
+        primaryType: 'ERC20Mint',
+        message
+      } as unknown as SignTypedDataV4Args
+
+      console.log(`Manual test typed data (EIP712Domain removed): ${JSON.stringify(typedData, null, 2)}`)
+
+      // Use the universal signTypedDataV4 method (no need for address - provider will determine)
+      const signature = await ConnectionController.signTypedDataV4(typedData, {
+        metadata: {
+          generatedBy: 'client',
+          description: 'Client-generated EIP-712 typed data signature',
+          tokenName: domain.name,
+          approvalAmount: message.amount,
+          timestamp: new Date().toISOString()
+        }
+      })
+
+      if (!signature) {
+        alert('Signature is undefined')
+        return
+      }
+
+      console.log('Signature result:', signature)
+      
+      // Show detailed results
+      alert(`✅ Client-side signature successful!
+
+🔑 Signature: ${signature}
+🏭 Service: ${domain.name}
+🪙 Token: ${message.token}
+💰 Amount: ${message.amount}
+⏰ Deadline: ${new Date(message.deadline * 1000).toLocaleString()}
+🔢 Nonce: ${message.nonce}
+⛓️ Chain ID: ${domain.chainId}
+
+`)
+
+    } catch (error) {
+      console.error('Error in handleSignTypedDataV4Manual:', error)
+      alert(`❌ Error: ${(error as Error).message}`)
+    }
+  }
+
+
 
   // used for sending custom transaction
   async function handleSendTransaction() {
@@ -635,7 +817,9 @@ export function ActionButtonList() {
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSignMessage}>Sign Message</button>
-        <button onClick={handleSignEIP712}>Sign EIP712</button>
+        <button onClick={handleSignDeprecatedPermit}>ERC-2612 Permit (Deprecated)</button>
+        <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (Universal)</button>
+        <button onClick={handleSignTypedDataV4Manual}>Sign TypedData V4 (Manual)</button>
         <button onClick={handleProviderRequest}>Provider Request</button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>

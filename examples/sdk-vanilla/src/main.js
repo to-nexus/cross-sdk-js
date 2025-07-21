@@ -13,6 +13,59 @@ import { sampleErc20ABI } from './contracts/sample-erc20'
 import { sampleErc721ABI } from './contracts/sample-erc721'
 import { sampleEIP712 } from './contracts/sample-eip712'
 
+/**
+ * TypeScript-style type definitions using JSDoc for better code safety
+ */
+
+/**
+ * @typedef {Object} TypedDataDomain
+ * @property {string} name
+ * @property {string} version
+ * @property {number} chainId
+ * @property {string} verifyingContract
+ */
+
+/**
+ * @typedef {Object} TypedDataField
+ * @property {string} name
+ * @property {string} type
+ */
+
+/**
+ * @typedef {Object.<string, TypedDataField[]>} TypedDataTypes
+ */
+
+/**
+ * @typedef {Object} EIP712TypedData
+ * @property {TypedDataDomain} domain
+ * @property {TypedDataTypes} types
+ * @property {string} primaryType
+ * @property {Object} message
+ */
+
+
+
+/**
+ * Type guard function to validate API response structure
+ * @param {any} data - Data to validate
+ * @returns {boolean} - Whether data matches SignTypedDataApiResponse structure
+ */
+function isValidSignTypedDataApiResponse(data) {
+  return (
+    data && 
+    typeof data === 'object' &&
+    data.data &&
+    typeof data.data === 'object' &&
+    Array.isArray(data.data.params) &&
+    data.data.params.length === 2 &&
+    typeof data.data.params[0] === 'string' &&
+    typeof data.data.params[1] === 'object' &&
+    typeof data.data.hash === 'string' &&
+    typeof data.data.uuid === 'string' &&
+    typeof data.data.recover === 'string'
+  )
+}
+
 const metadata = {
   name: 'Cross SDK',
   description: 'Cross SDK for HTML',
@@ -174,7 +227,8 @@ async function handleSignMessage() {
   }
 }
 
-async function handleSignEIP712() {
+// DEPRECATED: Legacy EIP-712 method for ERC-2612 permit signatures only
+async function handleSignDeprecatedPermit() {
   if (!accountState.isConnected) {
     alert('Please connect wallet first.')
     return
@@ -218,6 +272,97 @@ async function handleSignEIP712() {
   } catch (error) {
     console.error('Error signing EIP712:', error)
     alert('Failed to sign EIP712')
+  }
+}
+
+// NEW: Generic EIP-712 signing using universal signTypedDataV4 method
+async function handleSignTypedDataV4() {
+  if (!accountState.isConnected) {
+    alert('Please connect wallet first.')
+    return
+  }
+
+  try {
+    console.log('Requesting typed data from API...')
+    const FROM_ADDRESS = getFROM_ADDRESS()
+    
+    // Example: Get typed data from API (can be any source)
+    const response = await fetch('https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        account: FROM_ADDRESS, // Use actual connected wallet address
+        amount: "1",
+        direction: true,
+        pair_id: 1,
+        project_id: "nexus-ramp-v1"
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`API response: ${response.status} ${response.statusText}`)
+    }
+
+    /**
+     * @typedef {Object} SignTypedDataApiResponse
+     * @property {Object} data
+              * @property {[string, EIP712TypedData]} data.params - Typed params [address, EIP712TypedData]
+     * @property {string} data.hash
+     * @property {string} data.uuid
+     * @property {string} data.recover
+     */
+    
+    /** @type {SignTypedDataApiResponse} */
+    const apiData = await response.json()
+    console.log('API response:', JSON.stringify(apiData, null, 2))
+
+    if (!isValidSignTypedDataApiResponse(apiData)) {
+      throw new Error('Invalid API response: does not match expected SignTypedDataApiResponse structure')
+    }
+
+    // Extract only the typedData (second element) from API response params
+    /** @type {EIP712TypedData} */
+    const paramsData = apiData.data.params[1]
+    console.log('Extracted params for signing:', JSON.stringify(paramsData, null, 2))
+
+    // Use the new universal signTypedDataV4 method
+    const signature = await ConnectionController.signTypedDataV4(paramsData, {
+      metadata: {
+        apiResponse: {
+          hash: apiData.data.hash,
+          uuid: apiData.data.uuid,
+          recover: apiData.data.recover
+        },
+        description: 'Universal EIP-712 typed data signature',
+        timestamp: new Date().toISOString()
+      }
+    })
+
+    if (!signature) {
+      alert('Signature is undefined')
+      return
+    }
+
+    console.log('Signature result:', signature)
+    
+    // Show detailed results
+    alert(`✅ Signature successful!
+
+🔑 Signature: ${signature}
+📝 Hash: ${apiData.data.hash}
+🆔 UUID: ${apiData.data.uuid}
+🔗 Primary Type: ${paramsData[1].primaryType}
+⛓️ Chain ID: ${paramsData[1].domain.chainId}
+📋 Contract: ${paramsData[1].domain.verifyingContract}
+
+Check console for full details.`)
+
+  } catch (error) {
+    console.error('Error in handleSignTypedDataV4:', error)
+    alert(`❌ Error: ${error.message}`)
   }
 }
 
@@ -583,7 +728,8 @@ switchNetwork.addEventListener('click', () => {
 
 // Action button event listeners
 document.getElementById('sign-message')?.addEventListener('click', handleSignMessage)
-document.getElementById('sign-eip712')?.addEventListener('click', handleSignEIP712)
+document.getElementById('sign-deprecated-permit')?.addEventListener('click', handleSignDeprecatedPermit)
+document.getElementById('sign-typed-data-v4')?.addEventListener('click', handleSignTypedDataV4)
 document.getElementById('provider-request')?.addEventListener('click', handleProviderRequest)
 
 document.getElementById('send-native')?.addEventListener('click', handleSendNative)

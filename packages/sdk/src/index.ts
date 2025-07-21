@@ -14,7 +14,17 @@ import {
 import UniversalProvider from '@to-nexus/universal-provider'
 import { createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
 
-export type { SendTransactionArgs, WriteContractArgs, AssetFilterType, ThemeMode } from '@to-nexus/appkit-core'
+export type { 
+  SendTransactionArgs, 
+  WriteContractArgs, 
+  AssetFilterType, 
+  ThemeMode,
+  SignTypedDataV4Args,
+
+  TypedDataDomain,
+  TypedDataTypes,
+  TypedDataField
+} from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
 
