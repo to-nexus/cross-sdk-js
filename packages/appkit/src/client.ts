@@ -34,6 +34,7 @@ import {
   type SdkVersion,
   type SendTransactionArgs,
   type SignEIP712Args,
+  type SignTypedDataV4Args,
   type SocialProvider,
   type ThemeControllerState,
   type UseAppKitAccountReturn,
@@ -1053,6 +1054,17 @@ export class AppKit {
         const result = await adapter?.signEIP712({
           ...args,
           provider: ProviderUtil.getProvider(args.chainNamespace)
+        })
+
+        return result?.signature || ''
+      },
+      signTypedDataV4: async (paramsData: SignTypedDataV4Args, customData?: CustomData) => {
+        const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
+
+        const result = await adapter?.signTypedDataV4({
+          paramsData,
+          provider: ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace),
+          customData
         })
 
         return result?.signature || ''

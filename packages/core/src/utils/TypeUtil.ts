@@ -1016,6 +1016,19 @@ export type EstimateGasTransactionArgs =
       chainNamespace: 'solana'
     }
 
+/**
+ * @description Legacy ERC-2612 permit signature arguments
+ * 
+ * ⚠️ DEPRECATED: This interface is limited to ERC-2612 permit signatures only.
+ * Use SignTypedDataV4Args instead for a generic, flexible EIP-712 implementation
+ * that can handle any typed data structure.
+ * 
+ * This interface was designed specifically for token permit operations and lacks
+ * the flexibility needed for modern dApp requirements.
+ * 
+ * @deprecated Use SignTypedDataV4Args for new implementations
+ * @see SignTypedDataV4Args for the improved, generic alternative
+ */
 export interface SignEIP712Args {
   contractAddress: `0x${string}`
   fromAddress: `0x${string}`
@@ -1243,3 +1256,61 @@ export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 're
  * @default
  */
 export type DefaultAccountTypes = { [Key in keyof NamespaceTypeMap]: NamespaceTypeMap[Key] }
+
+// EIP-712 Typed Data Definitions
+// These types represent the standard EIP-712 typed data structure for secure message signing
+
+/**
+ * @description EIP-712 domain separator data
+ * Used to differentiate between different dApps and prevent replay attacks across different contexts
+ */
+export interface TypedDataDomain {
+  /** Human-readable name of the signing domain */
+  name?: string
+  /** Current version of the signing domain */
+  version?: string
+  /** EIP-155 chain id of the network */
+  chainId?: number
+  /** Address of the contract that will verify the signature */
+  verifyingContract?: string
+  /** Salt value for domain separation (rarely used) */
+  salt?: string
+}
+
+/**
+ * @description Definition of a single field in EIP-712 typed data
+ */
+export interface TypedDataField {
+  /** Name of the field */
+  name: string
+  /** Solidity type of the field (e.g., 'uint256', 'address', 'bytes32') */
+  type: string
+}
+
+/**
+ * @description Complete type definitions for EIP-712 structured data
+ * Must always include EIP712Domain, and can include custom types
+ */
+export interface TypedDataTypes {
+  /** Standard EIP712Domain type definition - always required */
+  EIP712Domain: TypedDataField[]
+  /** Custom type definitions specific to the message being signed */
+  [key: string]: TypedDataField[]
+}
+
+/**
+ * @description Complete EIP-712 typed data structure for signing
+ * This is an improved, generic version that replaces the limited SignEIP712Args
+ * which was designed only for specific permit signatures
+ */
+export interface SignTypedDataV4Args {
+  /** Domain separator information */
+  domain: TypedDataDomain
+  /** Type definitions for all data structures */
+  types: TypedDataTypes
+  /** Name of the primary type being signed (must exist in types) */
+  primaryType: string
+  /** Actual data values to be signed, matching the primaryType structure */
+  message: Record<string, any>
+}
+

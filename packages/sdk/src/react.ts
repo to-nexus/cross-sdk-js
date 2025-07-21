@@ -25,7 +25,16 @@ import {
 } from '@to-nexus/appkit/react'
 import UniversalProvider from '@to-nexus/universal-provider'
 
-export type { SendTransactionArgs, WriteContractArgs, AssetFilterType } from '@to-nexus/appkit-core'
+export type { 
+  SendTransactionArgs, 
+  WriteContractArgs, 
+  AssetFilterType,
+  SignTypedDataV4Args,
+
+  TypedDataDomain,
+  TypedDataTypes,
+  TypedDataField
+} from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
 
