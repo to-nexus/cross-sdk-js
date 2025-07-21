@@ -1,17 +1,17 @@
 import { initCrossSdkWithParams, useAppKitWallet } from '@to-nexus/sdk'
-import { crossMainnet, crossTestnet, bscMainnet, bscTestnet } from '@to-nexus/sdk'
-import { 
-  AccountController, 
-  ConnectionController, 
-  ConstantsUtil, 
-  SendController,
+import { bscMainnet, bscTestnet, crossMainnet, crossTestnet } from '@to-nexus/sdk'
+import {
+  AccountController,
+  ConnectionController,
+  ConstantsUtil,
+  SendController
 } from '@to-nexus/sdk'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
+import { sampleEIP712 } from './contracts/sample-eip712'
 import { sampleErc20ABI } from './contracts/sample-erc20'
 import { sampleErc721ABI } from './contracts/sample-erc721'
-import { sampleEIP712 } from './contracts/sample-eip712'
 
 const metadata = {
   name: 'Cross SDK',
@@ -25,7 +25,7 @@ const projectId = import.meta.env['VITE_PROJECT_ID'] || '0979fd7c92ec3dbd8e78f43
 // Redirect URL to return to after wallet app interaction
 const redirectUrl = window.location.href
 
-const crossSdk =initCrossSdkWithParams({
+const crossSdk = initCrossSdkWithParams({
   projectId,
   redirectUrl,
   metadata,
@@ -78,17 +78,17 @@ function getSEND_ERC20_AMOUNT_IN_WEI() {
 function createNetworkModal() {
   const modal = document.getElementById('network-modal')
   const networkList = document.getElementById('network-list')
-  
+
   // 기존 네트워크 리스트 초기화
   networkList.innerHTML = ''
-  
+
   // 네트워크 리스트 생성
   availableNetworks.forEach(networkInfo => {
     const networkItem = document.createElement('div')
     const isCurrentNetwork = networkState?.caipNetwork?.id === networkInfo.network.id
-    
+
     networkItem.className = `network-item ${isCurrentNetwork ? 'current' : ''}`
-    
+
     const networkName = document.createElement('span')
     networkName.className = 'network-name'
     networkName.textContent = networkInfo.name
@@ -129,14 +129,14 @@ function closeNetworkModal() {
 function setupNetworkModalEvents() {
   const modal = document.getElementById('network-modal')
   const closeBtn = document.getElementById('network-modal-close')
-  
+
   // 모달 외부 클릭 시 닫기
-  modal.addEventListener('click', (e) => {
+  modal.addEventListener('click', e => {
     if (e.target === modal) {
       closeNetworkModal()
     }
   })
-  
+
   // 닫기 버튼 클릭 시 닫기
   closeBtn.addEventListener('click', closeNetworkModal)
 }
@@ -149,7 +149,7 @@ const updateTheme = mode => {
   // Update logo based on theme
   const nexusLogo = document.getElementById('nexus-logo')
   if (nexusLogo) {
-    nexusLogo.src = mode === 'dark' ? '/nexus-logo-white.png' : '/nexus-logo.png'
+    nexusLogo.src = mode === 'dark' ? './nexus-logo-white.png' : './nexus-logo.png'
   }
 }
 
@@ -299,7 +299,8 @@ async function handleSendNative() {
       sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
       decimals: '18',
       customData: {
-        metadata: 'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+        metadata:
+          'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
       },
       type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
@@ -395,7 +396,8 @@ async function handleSendNativeWithDynamicFee() {
       sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
       decimals: '18',
       customData: {
-        metadata: 'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+        metadata:
+          'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
       },
       type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
@@ -509,10 +511,16 @@ async function getBalanceOfNFT() {
 // Subscribe to state changes
 crossSdk.subscribeAccount(state => {
   accountState = state
-  document.getElementById('accountState').textContent = JSON.stringify(accountState, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)
+  document.getElementById('accountState').textContent = JSON.stringify(
+    accountState,
+    (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+    2
+  )
   // connect-wallet 버튼 텍스트 업데이트
-  document.getElementById('connect-wallet').textContent = accountState.isConnected ? 'Connected' : 'Connect Wallet'
-  
+  document.getElementById('connect-wallet').textContent = accountState.isConnected
+    ? 'Connected'
+    : 'Connect Wallet'
+
   // 주소가 변경되었을 때만 토큰 잔액을 가져옵니다
   if (accountState.caipAddress && accountState.caipAddress !== previousCaipAddress) {
     previousCaipAddress = accountState.caipAddress
@@ -564,7 +572,7 @@ connectWallet.addEventListener('click', async () => {
   if (accountState.isConnected) {
     await appkitWallet.disconnect()
   } else {
-    await appkitWallet.connect("cross_wallet")
+    await appkitWallet.connect('cross_wallet')
   }
 })
 
@@ -589,9 +597,15 @@ document.getElementById('provider-request')?.addEventListener('click', handlePro
 document.getElementById('send-native')?.addEventListener('click', handleSendNative)
 document.getElementById('send-erc20')?.addEventListener('click', handleSendERC20Token)
 document.getElementById('send-transaction')?.addEventListener('click', handleSendTransaction)
-document.getElementById('send-native-dynamic')?.addEventListener('click', handleSendNativeWithDynamicFee)
-document.getElementById('send-erc20-dynamic')?.addEventListener('click', handleSendERC20TokenWithDynamicFee)
-document.getElementById('send-transaction-dynamic')?.addEventListener('click', handleSendTransactionWithDynamicFee)
+document
+  .getElementById('send-native-dynamic')
+  ?.addEventListener('click', handleSendNativeWithDynamicFee)
+document
+  .getElementById('send-erc20-dynamic')
+  ?.addEventListener('click', handleSendERC20TokenWithDynamicFee)
+document
+  .getElementById('send-transaction-dynamic')
+  ?.addEventListener('click', handleSendTransactionWithDynamicFee)
 
 document.getElementById('get-balance-native')?.addEventListener('click', getBalanceOfNative)
 document.getElementById('get-balance-erc20')?.addEventListener('click', () => getBalanceOfERC20())
