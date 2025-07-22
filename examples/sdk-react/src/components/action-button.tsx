@@ -32,11 +32,13 @@ import { v4 as uuidv4 } from 'uuid'
 
 // API Response types for EIP-712 signing
 interface SignTypedDataApiResponse {
+  code: number // API response code
+  message: string // API response message
   data: {
     params: [string, SignTypedDataV4Args] // Server still sends [address, typedData] tuple
     hash: string
     uuid: string
-    recover: string
+    recover: object // Recover data object, not string
   }
 }
 
@@ -168,51 +170,6 @@ export function ActionButtonList() {
     alert(`signedMessage: ${signedMessage}`)
   }
 
-  // DEPRECATED: Legacy EIP-712 method for ERC-2612 permit signatures only
-  async function handleSignDeprecatedPermit() {
-    if (!account?.isConnected) {
-      alert('Please connect wallet first.')
-      return
-    }
-
-    const PERMIT_CONTRACT_ADDRESS = '0x7aa0c7864455cf7a967409c158ae4cd41a2c5585'
-    const PERMIT_SPENDER_ADDRESS = '0xC87D72172cd8839DdB26a7478025883af783571e'
-    const PERMIT_VALUE = 1000000000000000000n
-    const PERMIT_ABI = sampleEIP712
-
-    const bnbRpcUrl = 'https://bsc-testnet.crosstoken.io/110ea3628b77f244e5dbab16790d81bba874b962'
-    const provider = new ethers.JsonRpcProvider(bnbRpcUrl)
-    const contract = new ethers.Contract(PERMIT_CONTRACT_ADDRESS, PERMIT_ABI, provider)
-    const name = contract['name'] ? await contract['name']() : ''
-    const nonce = contract['nonce'] ? await contract['nonce'](FROM_ADDRESS) : 0
-    const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // after 1 hour
-    console.log(`handleSignEIP712 - name: ${name}, nonce: ${nonce}`)
-
-    const resSignedEIP712 = await ConnectionController.signEIP712({
-      contractAddress: PERMIT_CONTRACT_ADDRESS,
-      fromAddress: FROM_ADDRESS,
-      spenderAddress: PERMIT_SPENDER_ADDRESS,
-      value: PERMIT_VALUE,
-      chainNamespace: 'eip155',
-      chainId: '97',
-      name,
-      nonce,
-      deadline,
-      customData: {
-        metadata: 'This is metadata for signed EIP712'
-      }
-    })
-
-    if (!resSignedEIP712) {
-      alert('resSignedEIP712 is undefined')
-      return
-    }
-
-    console.log(`resSignedEIP712: ${resSignedEIP712}`)
-    const signature = Signature.from(resSignedEIP712)
-    alert(`v: ${signature?.v}, r: ${signature?.r}, s: ${signature?.s}`)
-  }
-
   // NEW: Generic EIP-712 signing using universal signTypedDataV4 method
   async function handleSignTypedDataV4() {
     if (!account?.isConnected) {
@@ -261,7 +218,9 @@ export function ActionButtonList() {
           apiResponse: {
             hash: apiData.data.hash,
             uuid: apiData.data.uuid,
-            recover: apiData.data.recover
+            recover: apiData.data.recover,
+            code: apiData.code,
+            message: apiData.message
           },
           description: 'Universal EIP-712 typed data signature',
           timestamp: new Date().toISOString()
@@ -294,90 +253,6 @@ Check console for full details.
       alert(`❌ Error: ${(error as Error).message}`)
     }
   }
-
-  // NEW: Client-side generated EIP-712 typed data example
-  async function handleSignTypedDataV4Manual() {
-    if (!account?.isConnected) {
-      alert('Please connect wallet first.')
-      return
-    }
-
-    try {
-      console.log('Creating typed data using exact server structure...')
-
-      // Using exact server data structure with EIP712Domain removed
-      const domain: TypedDataDomain = {
-        chainId: 612044,
-        name: "MockService", 
-        verifyingContract: "0xa55d9fff44bf394bdb42b0a20d7fcb2090e424d2",
-        version: "1"
-      }
-
-      // ✅ EIP712Domain type removed from server data - let wallet handle it automatically  
-      const types = {
-        "ERC20Mint": [
-          { name: "token", type: "address" },
-          { name: "amount", type: "uint256" },
-          { name: "nonce", type: "uint256" },
-          { name: "deadline", type: "uint256" }
-        ]
-      } as Record<string, any>
-
-      const message = {
-        amount: 1,
-        deadline: 1753082356,
-        nonce: 0,
-        token: "0x61cc7192cce705cf289dd099094883fbd626c3ee"
-      }
-
-      // ⚠️ Using any to bypass EIP712Domain requirement - wallet will handle domain types automatically
-      const typedData = {
-        domain,
-        types,
-        primaryType: 'ERC20Mint',
-        message
-      } as unknown as SignTypedDataV4Args
-
-      console.log(`Manual test typed data (EIP712Domain removed): ${JSON.stringify(typedData, null, 2)}`)
-
-      // Use the universal signTypedDataV4 method (no need for address - provider will determine)
-      const signature = await ConnectionController.signTypedDataV4(typedData, {
-        metadata: {
-          generatedBy: 'client',
-          description: 'Client-generated EIP-712 typed data signature',
-          tokenName: domain.name,
-          approvalAmount: message.amount,
-          timestamp: new Date().toISOString()
-        }
-      })
-
-      if (!signature) {
-        alert('Signature is undefined')
-        return
-      }
-
-      console.log('Signature result:', signature)
-      
-      // Show detailed results
-      alert(`✅ Client-side signature successful!
-
-🔑 Signature: ${signature}
-🏭 Service: ${domain.name}
-🪙 Token: ${message.token}
-💰 Amount: ${message.amount}
-⏰ Deadline: ${new Date(message.deadline * 1000).toLocaleString()}
-🔢 Nonce: ${message.nonce}
-⛓️ Chain ID: ${domain.chainId}
-
-`)
-
-    } catch (error) {
-      console.error('Error in handleSignTypedDataV4Manual:', error)
-      alert(`❌ Error: ${(error as Error).message}`)
-    }
-  }
-
-
 
   // used for sending custom transaction
   async function handleSendTransaction() {
@@ -817,9 +692,7 @@ Check console for full details.
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSignMessage}>Sign Message</button>
-        <button onClick={handleSignDeprecatedPermit}>ERC-2612 Permit (Deprecated)</button>
-        <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (Universal)</button>
-        <button onClick={handleSignTypedDataV4Manual}>Sign TypedData V4 (Manual)</button>
+        <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
         <button onClick={handleProviderRequest}>Provider Request</button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
