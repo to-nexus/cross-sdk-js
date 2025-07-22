@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      # - "ci/*"
+      - "ci/*"
   pull_request:
     branches:
       - main
@@ -51,33 +51,33 @@ jobs:
       - name: Check if version changed from previous commit
         id: version_changed
         run: |
-          # # 🚧 TEMPORARILY DISABLED FOR TESTING 🚧
-          # # 테스트를 위해 버전 체크 비활성화 - 항상 true로 설정
-          # echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
-          # echo "PREV_VERSION=test" >> $GITHUB_OUTPUT
-          # echo "⚠️ Version change check temporarily disabled for testing"
+          # 🚧 TEMPORARILY DISABLED FOR TESTING 🚧
+          # 테스트를 위해 버전 체크 비활성화 - 항상 true로 설정
+          echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+          echo "PREV_VERSION=test" >> $GITHUB_OUTPUT
+          echo "⚠️ Version change check temporarily disabled for testing"
           
-          # 이전 커밋의 버전 추출
-          git fetch --depth=2 origin ${{ github.ref_name }}
-          if git show HEAD^:package.json > /dev/null 2>&1; then
-            PREV_VERSION=$(git show HEAD^:package.json | node -e "const fs=require('fs'); const stdin=fs.readFileSync(0,'utf8'); console.log(JSON.parse(stdin).version)")
-            echo "Previous version: ${PREV_VERSION}"
-            echo "PREV_VERSION=${PREV_VERSION}" >> $GITHUB_OUTPUT
-            
-            # 현재 버전과 이전 버전 비교
-            CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
-            if [ "${CURRENT_VERSION}" != "${PREV_VERSION}" ]; then
-              echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
-              echo "✅ Version changed from ${PREV_VERSION} to ${CURRENT_VERSION}"
-            else
-              echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
-              echo "ℹ️ Version unchanged: ${CURRENT_VERSION}"
-            fi
-          else
-            echo "No previous commit found, treating as new version"
-            echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
-            echo "PREV_VERSION=" >> $GITHUB_OUTPUT
-          fi
+          # # 이전 커밋의 버전 추출
+          # git fetch --depth=2 origin ${{ github.ref_name }}
+          # if git show HEAD^:package.json > /dev/null 2>&1; then
+          #   PREV_VERSION=$(git show HEAD^:package.json | node -e "const fs=require('fs'); const stdin=fs.readFileSync(0,'utf8'); console.log(JSON.parse(stdin).version)")
+          #   echo "Previous version: ${PREV_VERSION}"
+          #   echo "PREV_VERSION=${PREV_VERSION}" >> $GITHUB_OUTPUT
+          #   
+          #   # 현재 버전과 이전 버전 비교
+          #   CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          #   if [ "${CURRENT_VERSION}" != "${PREV_VERSION}" ]; then
+          #     echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+          #     echo "✅ Version changed from ${PREV_VERSION} to ${CURRENT_VERSION}"
+          #   else
+          #     echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
+          #     echo "ℹ️ Version unchanged: ${CURRENT_VERSION}"
+          #   fi
+          # else
+          #   echo "No previous commit found, treating as new version"
+          #   echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+          #   echo "PREV_VERSION=" >> $GITHUB_OUTPUT
+          # fi
 
       - name: Configure AWS Credentials
         if: steps.version_changed.outputs.VERSION_CHANGED == 'true'
@@ -112,23 +112,23 @@ jobs:
               echo "Current version ${CURRENT_VERSION} is new"
             fi
             
-            # 현재 버전이 최신인지 확인 (semantic version 비교)
-            if printf '%s\n%s\n' "${CURRENT_VERSION}" "${LATEST_VERSION}" | sort -V -C; then
-              echo "IS_LATEST=true" >> $GITHUB_OUTPUT
-              echo "Current version ${CURRENT_VERSION} is the latest or equal"
+            # 현재 버전이 최신 버전보다 큰지 확인 (semantic version 비교)
+            if printf '%s\n%s\n' "${LATEST_VERSION}" "${CURRENT_VERSION}" | sort -V -C; then
+              echo "IS_NEWER=true" >> $GITHUB_OUTPUT
+              echo "Current version ${CURRENT_VERSION} is newer than or equal to latest ${LATEST_VERSION}"
             else
-              echo "IS_LATEST=false" >> $GITHUB_OUTPUT
-              echo "Current version ${CURRENT_VERSION} is not the latest"
+              echo "IS_NEWER=false" >> $GITHUB_OUTPUT
+              echo "Current version ${CURRENT_VERSION} is older than latest ${LATEST_VERSION}"
             fi
           else
             echo "No existing versions found in S3"
             echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
-            echo "IS_LATEST=true" >> $GITHUB_OUTPUT
+            echo "IS_NEWER=true" >> $GITHUB_OUTPUT
             echo "LATEST_S3_VERSION=" >> $GITHUB_OUTPUT
           fi
 
       - name: Build CDN packages
-        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
         run: |
           echo "Building CDN packages..."
           pnpm run build
@@ -143,7 +143,7 @@ jobs:
           fi
 
       - name: Upload to S3 with version prefix
-        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
@@ -159,7 +159,7 @@ jobs:
           echo "Upload to cross-sdk/${CURRENT_VERSION}/ completed"
 
       - name: Update latest if current version is newest
-        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_LATEST == 'true'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
@@ -175,7 +175,7 @@ jobs:
           echo "Update to cross-sdk/latest/ completed"
 
       - name: Invalidate CloudFront cache
-        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           DISTRIBUTION_ID="${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
@@ -186,7 +186,7 @@ jobs:
           INVALIDATION_PATHS="/cross-sdk/${CURRENT_VERSION}/*"
           
           # latest도 업데이트된 경우 latest 경로도 무효화
-          if [ "${{ steps.check_versions.outputs.IS_LATEST }}" = "true" ]; then
+          if [ "${{ steps.check_versions.outputs.IS_NEWER }}" = "true" ]; then
             INVALIDATION_PATHS="${INVALIDATION_PATHS} /cross-sdk/latest/*"
           fi
           
@@ -197,13 +197,13 @@ jobs:
           echo "CloudFront invalidation completed for paths: ${INVALIDATION_PATHS}"
 
       - name: Upload summary
-        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false'
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
         run: |
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           echo "## CDN Upload Summary" >> $GITHUB_STEP_SUMMARY
           echo "- **Version:** ${CURRENT_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **S3 Path:** cross-sdk/${CURRENT_VERSION}/" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.check_versions.outputs.IS_LATEST }}" = "true" ]; then
+          if [ "${{ steps.check_versions.outputs.IS_NEWER }}" = "true" ]; then
             echo "- **Latest Updated:** Yes (cross-sdk/latest/)" >> $GITHUB_STEP_SUMMARY
           else
             echo "- **Latest Updated:** No (newer version exists)" >> $GITHUB_STEP_SUMMARY
@@ -226,4 +226,13 @@ jobs:
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           echo "## CDN Upload Skipped" >> $GITHUB_STEP_SUMMARY
           echo "- **Reason:** Version ${CURRENT_VERSION} already exists in S3" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action:** No upload or invalidation performed" >> $GITHUB_STEP_SUMMARY
+
+      - name: Skip upload - Version is not newer
+        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'false'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          LATEST_VERSION="${{ steps.check_versions.outputs.LATEST_S3_VERSION }}"
+          echo "## CDN Upload Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "- **Reason:** Current version ${CURRENT_VERSION} is not newer than latest version ${LATEST_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Action:** No upload or invalidation performed" >> $GITHUB_STEP_SUMMARY
