@@ -241,7 +241,7 @@ async function initializeApp() {
       }
     }
 
-    // Generic EIP-712 typed data signing example
+    // Universal EIP-712 signing using server-provided typed data
     async function handleSignTypedDataV4() {
       if (!accountState.isConnected) {
         alert('Please connect wallet first.')
@@ -249,51 +249,49 @@ async function initializeApp() {
       }
 
       try {
-        console.log('Creating typed data using exact server structure...')
+        console.log('Requesting typed data from API...')
+        const FROM_ADDRESS = getFROM_ADDRESS()
+        
+        // Get typed data from API
+        const response = await fetch('https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            account: FROM_ADDRESS,
+            amount: "1",
+            direction: true,
+            pair_id: 1,
+            project_id: "nexus-ramp-v1"
+          })
+        })
 
-        // Using exact server data structure with EIP712Domain removed
-        /** @type {TypedDataDomain} */
-        const domain = {
-          chainId: 612044,
-          name: "MockService", 
-          verifyingContract: "0xa55d9fff44bf394bdb42b0a20d7fcb2090e424d2",
-          version: "1"
+        if (!response.ok) {
+          throw new Error(`API response: ${response.status} ${response.statusText}`)
         }
 
-        // ✅ EIP712Domain type removed from server data - let wallet handle it automatically  
-        const types = {
-          "ERC20Mint": [
-            { name: "token", type: "address" },
-            { name: "amount", type: "uint256" },
-            { name: "nonce", type: "uint256" },
-            { name: "deadline", type: "uint256" }
-          ]
+        const apiData = await response.json()
+        console.log('API response:', JSON.stringify(apiData, null, 2))
+
+        if (!apiData.data?.params) {
+          throw new Error('Invalid API response: missing params data')
         }
 
-        const message = {
-          amount: 1,
-          deadline: 1753082356,
-          nonce: 0,
-          token: "0x61cc7192cce705cf289dd099094883fbd626c3ee"
-        }
+        // Extract only the typedData (second element) from API response params
+        const paramsData = apiData.data.params[1]
+        console.log('Extracted typedData for signing:', JSON.stringify(paramsData, null, 2))
 
-        /** @type {EIP712TypedData} */
-        const typedData = {
-          domain,
-          types,
-          primaryType: 'ERC20Mint',
-          message
-        }
-
-        console.log(`Manual test typed data (EIP712Domain removed): ${JSON.stringify(typedData, null, 2)}`)
-
-        // Use the universal signTypedDataV4 method (no need for address - provider will determine)
-        const signature = await ConnectionController.signTypedDataV4(typedData, {
+        // Use the universal signTypedDataV4 method
+        const signature = await ConnectionController.signTypedDataV4(paramsData, {
           metadata: {
-            generatedBy: 'client',
-            description: 'Client-generated EIP-712 typed data signature',
-            tokenName: domain.name,
-            approvalAmount: message.amount,
+            apiResponse: {
+              hash: apiData.data.hash,
+              uuid: apiData.data.uuid,
+              recover: apiData.data.recover
+            },
+            description: 'Universal EIP-712 typed data signature',
             timestamp: new Date().toISOString()
           }
         })
@@ -306,17 +304,16 @@ async function initializeApp() {
         console.log('Signature result:', signature)
         
         // Show detailed results
-        alert(`✅ Client-side signature successful!
+        alert(`✅ Signature successful!
 
 🔑 Signature: ${signature}
-🏭 Service: ${domain.name}
-🪙 Token: ${message.token}
-💰 Amount: ${message.amount}
-⏰ Deadline: ${new Date(message.deadline * 1000).toLocaleString()}
-🔢 Nonce: ${message.nonce}
-⛓️ Chain ID: ${domain.chainId}
+📝 Hash: ${apiData.data.hash}
+🆔 UUID: ${apiData.data.uuid}
+🔗 Primary Type: ${paramsData.primaryType}
+⛓️ Chain ID: ${paramsData.domain.chainId}
+📋 Contract: ${paramsData.domain.verifyingContract}
 
-`)
+Check console for full details.`)
 
       } catch (error) {
         console.error('Error in handleSignTypedDataV4:', error)
