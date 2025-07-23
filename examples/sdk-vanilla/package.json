@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.10.0",
   "scripts": {
-    "dev": "vite --port 3012",
+    "dev": "vite --port 3013",
     "build": "vite build"
   },
   "dependencies": {

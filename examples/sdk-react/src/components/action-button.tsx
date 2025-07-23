@@ -20,15 +20,21 @@ import {
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
-import type { 
-  AssetFilterType, 
-  WriteContractArgs,
+import type {
+  AssetFilterType,
   SignTypedDataV4Args,
   TypedDataDomain,
-  TypedDataTypes
+  TypedDataTypes,
+  WriteContractArgs
 } from '@to-nexus/sdk/react'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
+
+import { sampleEIP712 } from '../contracts/sample-eip712'
+import { sampleErc20ABI } from '../contracts/sample-erc20'
+import { sampleErc721ABI } from '../contracts/sample-erc721'
+import { useResultModal } from '../hooks/use-result-modal'
+import { ResultModal } from './result-modal'
 
 // API Response types for EIP-712 signing
 interface SignTypedDataApiResponse {
@@ -41,10 +47,6 @@ interface SignTypedDataApiResponse {
     recover: object // Recover data object, not string
   }
 }
-
-import { sampleEIP712 } from '../contracts/sample-eip712'
-import { sampleErc20ABI } from '../contracts/sample-erc20'
-import { sampleErc721ABI } from '../contracts/sample-erc721'
 
 // Your unique project id provided by Cross Team. If you don't have one, please contact us.
 const projectId = import.meta.env['VITE_PROJECT_ID']
@@ -81,6 +83,7 @@ export function ActionButtonList() {
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
   const { connect } = useAppKitWallet()
+  const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   // erc20 token contract address
   const ERC20_ADDRESS = '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3'
   // define decimals of erc20 token (ERC20 standard is 18)
@@ -104,7 +107,7 @@ export function ActionButtonList() {
   const SEND_CROSS_AMOUNT = 1
 
   useEffect(() => {
-    console.log('contractArgs', JSON.stringify(contractArgs?.args, ))
+    console.log('contractArgs', JSON.stringify(contractArgs?.args))
   }, [contractArgs?.args])
 
   // used for connecting wallet with wallet list
@@ -129,7 +132,7 @@ export function ActionButtonList() {
     const targetNetwork =
       import.meta.env['VITE_NODE_ENV'] === 'production' ? crossMainnet : crossTestnet
     switchNetwork(targetNetwork)
-    alert(`Current network: ${targetNetwork.caipNetworkId}`)
+    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
   }
 
   function handleSwitchNetworkBsc() {
@@ -137,13 +140,13 @@ export function ActionButtonList() {
       import.meta.env['VITE_NODE_ENV'] === 'production' ? bscMainnet : bscTestnet
 
     switchNetwork(targetNetwork)
-    alert(`Current network: ${targetNetwork.caipNetworkId}`)
+    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
   }
 
   // used for provider request
   async function handleProviderRequest() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleProviderRequest', 'Please connect wallet first.')
       return
     }
 
@@ -151,13 +154,13 @@ export function ActionButtonList() {
       method: 'eth_chainId',
       params: [account.address, 'latest']
     })
-    alert(`response by eth_chainId: ${JSON.stringify(res)}`)
+    showSuccess('Provider Request Successful!', `response by eth_chainId: ${JSON.stringify(res)}`)
   }
 
   // used for signing custom message
   async function handleSignMessage() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleSignMessage', 'Please connect wallet first.')
       return
     }
 
@@ -167,34 +170,37 @@ export function ActionButtonList() {
         metadata: 'This is metadata for signed message'
       }
     })
-    alert(`signedMessage: ${signedMessage}`)
+    showSuccess('Sign Message Successful!', `signedMessage: ${signedMessage}`)
   }
 
   // NEW: Generic EIP-712 signing using universal signTypedDataV4 method
   async function handleSignTypedDataV4() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleSignTypedDataV4', 'Please connect wallet first.')
       return
     }
 
     try {
       console.log('Requesting typed data from API...')
-      
+
       // Example: Get typed data from API (can be any source)
-      const response = await fetch('https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          account: FROM_ADDRESS, // Use actual connected wallet address
-          amount: "1",
-          direction: true,
-          pair_id: 1,
-          project_id: "nexus-ramp-v1"
-        })
-      })
+      const response = await fetch(
+        'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
+        {
+          method: 'POST',
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            account: FROM_ADDRESS, // Use actual connected wallet address
+            amount: '1',
+            direction: true,
+            pair_id: 1,
+            project_id: 'nexus-ramp-v1'
+          })
+        }
+      )
 
       if (!response.ok) {
         throw new Error(`API response: ${response.status} ${response.statusText}`)
@@ -210,7 +216,10 @@ export function ActionButtonList() {
       // Extract only the typedData (second element) from API response params
       const tupleParams = apiData.data.params as [string, SignTypedDataV4Args]
       const paramsData = tupleParams[1]
-      console.log('Extracted typedData for signing (address removed):', JSON.stringify(paramsData, null, 2))
+      console.log(
+        'Extracted typedData for signing (address removed):',
+        JSON.stringify(paramsData, null, 2)
+      )
 
       // Use the new universal signTypedDataV4 method
       const signature = await ConnectionController.signTypedDataV4(paramsData, {
@@ -228,41 +237,39 @@ export function ActionButtonList() {
       })
 
       if (!signature) {
-        alert('Signature is undefined')
+        showError('Error in handleSignTypedDataV4', 'Signature is undefined')
         return
       }
 
       console.log('Signature result:', signature)
-      
-      // Show detailed results
-      alert(`
-✅ Signature successful!
 
-🔑 Signature: ${signature}
+      // Show detailed results
+      showSuccess(
+        'Signature Successful!',
+        `🔑 Signature: ${signature}
 📝 Hash: ${apiData.data.hash}
 🆔 UUID: ${apiData.data.uuid}
 🔗 Primary Type: ${paramsData.primaryType}
 ⛓️ Chain ID: ${paramsData.domain.chainId}
 📋 Contract: ${paramsData.domain.verifyingContract}
 
-Check console for full details.
-      `.trim())
-
+Check console for full details.`
+      )
     } catch (error) {
       console.error('Error in handleSignTypedDataV4:', error)
-      alert(`❌ Error: ${(error as Error).message}`)
+      showError('Error in handleSignTypedDataV4', `❌ Error: ${(error as Error).message}`)
     }
   }
 
   // used for sending custom transaction
   async function handleSendTransaction() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleSendTransaction', 'Please connect wallet first.')
       return
     }
 
     if (!contractArgs) {
-      alert('no contract args set')
+      showError('Error in handleSendTransaction', 'no contract args set')
       return
     }
 
@@ -287,7 +294,7 @@ Check console for full details.
       type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
 
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Transaction Successful!', `resTx: ${JSON.stringify(resTx)}`)
 
     // generate new tokenId for next NFT
     const uuidHex = uuidv4().replace(/-/g, '')
@@ -300,7 +307,7 @@ Check console for full details.
   // used for sending CROSS
   async function handleSendNative() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleSendNative', 'Please connect wallet first.')
       return
     }
 
@@ -315,13 +322,13 @@ Check console for full details.
       },
       type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Send Native Successful!', `resTx: ${JSON.stringify(resTx)}`)
   }
 
   // used for sending any of game tokens
   async function handleSendERC20Token() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleSendERC20Token', 'Please connect wallet first.')
       return
     }
 
@@ -335,19 +342,19 @@ Check console for full details.
       },
       type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Send ERC20 Token Successful!', `resTx: ${JSON.stringify(resTx)}`)
     getBalanceOfERC20({ showResult: false })
   }
 
   // used for sending custom transaction
   async function handleSendTransactionWithDynamicFee() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleSendTransactionWithDynamicFee', 'Please connect wallet first.')
       return
     }
 
     if (!contractArgs) {
-      alert('no contract args set')
+      showError('Error in handleSendTransactionWithDynamicFee', 'no contract args set')
       return
     }
 
@@ -372,7 +379,7 @@ Check console for full details.
       type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
 
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Transaction Successful!', `resTx: ${JSON.stringify(resTx)}`)
 
     // generate new tokenId for next NFT
     const uuidHex = uuidv4().replace(/-/g, '')
@@ -385,7 +392,7 @@ Check console for full details.
   // used for sending CROSS
   async function handleSendNativeWithDynamicFee() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleSendNativeWithDynamicFee', 'Please connect wallet first.')
       return
     }
 
@@ -400,13 +407,13 @@ Check console for full details.
       },
       type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Send Native Successful!', `resTx: ${JSON.stringify(resTx)}`)
   }
 
   // used for sending any of game tokens
   async function handleSendERC20TokenWithDynamicFee() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in handleSendERC20TokenWithDynamicFee', 'Please connect wallet first.')
       return
     }
 
@@ -423,23 +430,23 @@ Check console for full details.
       },
       type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Send ERC20 Token Successful!', `resTx: ${JSON.stringify(resTx)}`)
     getBalanceOfERC20({ showResult: false })
   }
 
   async function getBalanceOfNative() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in getBalanceOfNative', 'Please connect wallet first.')
       return
     }
 
     const balance = account?.balance
-    alert(`CROSS balance: ${balance}`)
+    showSuccess('Get Balance of Native Successful!', `CROSS balance: ${balance}`)
   }
 
   async function getBalanceOfERC20({ showResult = true }: { showResult?: boolean } = {}) {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in getBalanceOfERC20', 'Please connect wallet first.')
       return
     }
 
@@ -471,7 +478,8 @@ Check console for full details.
     }
     await AccountController.updateTokenBalance(balance)
     if (showResult)
-      alert(
+      showSuccess(
+        'Get Balance of ERC20 Successful!',
         `updated erc20 balance: ${JSON.stringify(
           account?.tokenBalance?.find(token => token.address === ERC20_ADDRESS.toLowerCase()),
           (key, value) => (typeof value === 'bigint' ? value.toString() : value),
@@ -488,12 +496,12 @@ Check console for full details.
       args: [FROM_ADDRESS as `0x${string}`]
     })
 
-    alert(`erc721 balance: ${amount}`)
+    showSuccess('Get Balance of NFT Successful!', `erc721 balance: ${amount}`)
   }
 
   async function getBalanceFromWalletWithChainFilter() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in getBalanceFromWalletWithChainFilter', 'Please connect wallet first.')
       return
     }
 
@@ -504,14 +512,15 @@ Check console for full details.
       account: FROM_ADDRESS,
       chainFilter
     })
-    alert(
+    showSuccess(
+      'Get Balance from Wallet with ChainFilter Successful!',
       `balance: ${JSON.stringify(tokens, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)}`
     )
   }
 
   async function getBalanceFromWalletWithAssetFilter() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in getBalanceFromWalletWithAssetFilter', 'Please connect wallet first.')
       return
     }
 
@@ -531,7 +540,7 @@ Check console for full details.
       ]
     } as AssetFilterType
 
-    console.log(`getSpecificTokensBalance - assetFilter:`, assetFilter)
+    console.log(`getSpecificTokensBalance - assetFilter:`, FROM_ADDRESS, assetFilter)
 
     try {
       // assetFilter를 사용하여 특정 토큰 잔액 요청
@@ -540,8 +549,10 @@ Check console for full details.
         assetFilter: assetFilter
       })
 
+      console.log(`getSpecificTokensBalance - tokens:`, tokens)
       // bigint를 문자열로 변환하여 JSON으로 출력
-      alert(
+      showSuccess(
+        'Get Specific Token Balance from Wallet Successful!',
         `Specific tokens balance: ${JSON.stringify(
           tokens,
           (key, value) => (typeof value === 'bigint' ? value.toString() : value),
@@ -550,14 +561,17 @@ Check console for full details.
       )
     } catch (error) {
       console.error('Error fetching specific tokens balance:', error)
-      alert(`Error: ${(error as Error).message}`)
+      showError(
+        'Error in getBalanceFromWalletWithAssetFilter',
+        `Error: ${(error as Error).message}`
+      )
     }
   }
 
   // 여러 체인의 여러 토큰 잔액을 한번에 요청하는 함수
   async function getBalanceFromWalletOnMultipleChains() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in getBalanceFromWalletOnMultipleChains', 'Please connect wallet first.')
       return
     }
 
@@ -584,7 +598,8 @@ Check console for full details.
         assetFilter: assetFilter
       })
 
-      alert(
+      showSuccess(
+        'Get Multi Chain Balance from Wallet Successful!',
         `Multi-chain tokens balance: ${JSON.stringify(
           multiChainTokens,
           (key, value) => (typeof value === 'bigint' ? value.toString() : value),
@@ -593,14 +608,17 @@ Check console for full details.
       )
     } catch (error) {
       console.error('Error fetching multi-chain tokens balance:', error)
-      alert(`Error: ${(error as Error).message}`)
+      showError(
+        'Error in getBalanceFromWalletOnMultipleChains',
+        `Error: ${(error as Error).message}`
+      )
     }
   }
 
   // 지정된 토큰 타입만 필터링하여 요청하는 함수
   async function getBalanceFromWalletByTokenType() {
     if (!account?.isConnected) {
-      alert('Please connect wallet first.')
+      showError('Error in getBalanceFromWalletByTokenType', 'Please connect wallet first.')
       return
     }
 
@@ -615,7 +633,8 @@ Check console for full details.
         assetTypeFilter: ['NATIVE', 'ERC20'] // ERC20 토큰과 네이티브 토큰만 조회
       })
 
-      alert(
+      showSuccess(
+        'Get Balance from Wallet by AssetFilterType Successful!',
         `ERC20 and native tokens: ${JSON.stringify(
           tokens,
           (key, value) => (typeof value === 'bigint' ? value.toString() : value),
@@ -624,12 +643,12 @@ Check console for full details.
       )
     } catch (error) {
       console.error('Error fetching tokens by type:', error)
-      alert(`Error: ${(error as Error).message}`)
+      showError('Error in getBalanceFromWalletByTokenType', `Error: ${(error as Error).message}`)
     }
   }
 
   useEffect(() => {
-    (() => {
+    ;(() => {
       if (contractArgs || !FROM_ADDRESS || !network?.caipNetwork?.chainNamespace) return
 
       const uuidHex = uuidv4().replace(/-/g, '')
@@ -712,6 +731,13 @@ Check console for full details.
           Get Balance from Wallet by AssetFilterType
         </button>
       </div>
+      <ResultModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        title={title}
+        content={content}
+        type={type}
+      />
     </div>
   )
 }

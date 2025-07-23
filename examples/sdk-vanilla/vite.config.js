@@ -27,7 +27,7 @@ export default defineConfig({
     // HMR 관련 설정
     hmr: {
       // 워크스페이스 패키지의 변경 사항을 감지하도록 설정
-      clientPort: 3012
+      clientPort: 3013
     }
   }
 })
