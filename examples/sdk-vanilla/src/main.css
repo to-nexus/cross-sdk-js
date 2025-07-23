@@ -272,7 +272,9 @@ a:disabled {
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
 }
 
 .network-modal.show {
@@ -378,6 +380,109 @@ a:disabled {
   background: var(--apkt-text-primary);
 }
 
+.result-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+result-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-modal-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 28rem;
+  width: 100%;
+  margin: 0 1rem;
+  border: 2px solid;
+}
+
+.result-modal-success {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.result-modal-error {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.result-modal-info {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.result-modal-content {
+  padding: 1.5rem;
+}
+
+.result-modal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.result-modal-icon {
+  margin-right: 0.75rem;
+  font-size: 1.5rem;
+}
+
+.result-modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+}
+
+.result-modal-body {
+  white-space: pre-line;
+  word-break: break-word;
+  font-size: 0.875rem;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 0.75rem;
+  border-radius: 4px;
+  overflow-y: auto;
+  max-height: 16rem;
+  font-family: 'Courier New', monospace;
+}
+
+.result-modal-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.result-modal-button {
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.result-modal-button:hover {
+  background-color: #2563eb;
+}
 /* 다크 모드 대응 */
 .dark .network-modal-content {
   background: var(--apkt-background-primary);
@@ -405,19 +510,19 @@ a:disabled {
     min-width: 280px;
     margin: 20px;
   }
-  
+
   .network-modal-title {
     font-size: 16px;
   }
-  
+
   .network-item {
     padding: 10px 14px;
   }
-  
+
   .network-name {
     font-size: 13px;
   }
-  
+
   .network-status {
     font-size: 11px;
   }

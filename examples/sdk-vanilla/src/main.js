@@ -43,10 +43,6 @@ import { sampleErc721ABI } from './contracts/sample-erc721'
  * @property {Object} message
  */
 
-
-
-
-
 const metadata = {
   name: 'Cross SDK',
   description: 'Cross SDK for HTML',
@@ -141,7 +137,7 @@ function createNetworkModal() {
           closeNetworkModal()
         } catch (error) {
           console.error('Network switch failed:', error)
-          alert('Network switch failed.')
+          showError('Network switch failed!', `Error: ${error.message}`)
         }
       }
     }
@@ -175,6 +171,72 @@ function setupNetworkModalEvents() {
   closeBtn.addEventListener('click', closeNetworkModal)
 }
 
+function showResultModal(title, content, type = 'info') {
+  console.log('showResultModal', title, content, type)
+  const modal = document.getElementById('result-modal')
+  const container = modal.querySelector('.result-modal-container')
+  const iconEl = modal.querySelector('.result-modal-icon')
+  const titleEl = modal.querySelector('.result-modal-title')
+  const bodyEl = modal.querySelector('.result-modal-body')
+
+  // 타입별 스타일 설정
+  container.className = 'result-modal-container'
+  switch (type) {
+    case 'success':
+      container.classList.add('result-modal-success')
+      iconEl.textContent = '✅'
+      iconEl.style.color = '#10b981'
+      break
+    case 'error':
+      container.classList.add('result-modal-error')
+      iconEl.textContent = '❌'
+      iconEl.style.color = '#ef4444'
+      break
+    case 'info':
+    default:
+      container.classList.add('result-modal-info')
+      iconEl.textContent = 'ℹ️'
+      iconEl.style.color = '#3b82f6'
+      break
+  }
+
+  // 내용 설정
+  titleEl.textContent = title
+  bodyEl.textContent = content
+
+  // 모달 표시
+  modal.style.display = 'flex'
+  console.log('showResultModal', modal)
+}
+
+function showSuccess(title, content) {
+  showResultModal(title, content, 'success')
+}
+
+function showError(title, content) {
+  showResultModal(title, content, 'error')
+}
+
+function closeResultModal() {
+  const modal = document.getElementById('result-modal')
+  modal.style.display = 'none'
+}
+
+function setupResultModalEvents() {
+  const modal = document.getElementById('result-modal')
+  const closeBtn = document.getElementById('result-modal-close')
+
+  // 모달 외부 클릭 시 닫기
+  modal.addEventListener('click', e => {
+    if (e.target === modal) {
+      closeResultModal()
+    }
+  })
+
+  // 닫기 버튼 클릭 시 닫기
+  closeBtn.addEventListener('click', closeResultModal)
+}
+
 // Helper function to update theme
 const updateTheme = mode => {
   document.documentElement.setAttribute('data-theme', mode)
@@ -190,7 +252,7 @@ const updateTheme = mode => {
 // Action functions
 async function handleSignMessage() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
@@ -201,39 +263,42 @@ async function handleSignMessage() {
         metadata: 'This is metadata for signed message'
       }
     })
-    alert(`signedMessage: ${signedMessage}`)
+    showSuccess('Signature successful!', `Signature: ${signedMessage}`)
   } catch (error) {
     console.error('Error signing message:', error)
-    alert('Failed to sign message')
+    showError('Signature failed!', `Error: ${error.message}`)
   }
 }
 
 // Universal EIP-712 signing using server-provided typed data
 async function handleSignTypedDataV4() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
   try {
     console.log('Requesting typed data from API...')
     const FROM_ADDRESS = getFROM_ADDRESS()
-    
+
     // Get typed data from API
-    const response = await fetch('https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user', {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        account: FROM_ADDRESS,
-        amount: "1",
-        direction: true,
-        pair_id: 1,
-        project_id: "nexus-ramp-v1"
-      })
-    })
+    const response = await fetch(
+      'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
+      {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          account: FROM_ADDRESS,
+          amount: '1',
+          direction: true,
+          pair_id: 1,
+          project_id: 'nexus-ramp-v1'
+        })
+      }
+    )
 
     if (!response.ok) {
       throw new Error(`API response: ${response.status} ${response.statusText}`)
@@ -264,35 +329,23 @@ async function handleSignTypedDataV4() {
     })
 
     if (!signature) {
-      alert('Signature is undefined')
+      showError('Signature is undefined')
       return
     }
 
     console.log('Signature result:', signature)
-    
+
     // Show detailed results
-    alert(`✅ Signature successful!
-
-🔑 Signature: ${signature}
-📝 Hash: ${apiData.data.hash}
-🆔 UUID: ${apiData.data.uuid}
-🔗 Primary Type: ${paramsData.primaryType}
-⛓️ Chain ID: ${paramsData.domain.chainId}
-📋 Contract: ${paramsData.domain.verifyingContract}
-
-Check console for full details.`)
-
+    showSuccess('Signature successful!', `Signature: ${signature}`)
   } catch (error) {
     console.error('Error in handleSignTypedDataV4:', error)
-    alert(`❌ Error: ${error.message}`)
+    showError('Signature failed!', `Error: ${error.message}`)
   }
 }
 
-
-
 async function handleProviderRequest() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
@@ -301,21 +354,21 @@ async function handleProviderRequest() {
       method: 'eth_chainId',
       params: [accountState.address, 'latest']
     })
-    alert(`response by eth_chainId: ${JSON.stringify(res)}`)
+    showSuccess('Provider request successful!', `Response: ${JSON.stringify(res)}`)
   } catch (error) {
     console.error('Error in provider request:', error)
-    alert('Failed to make provider request')
+    showError('Provider request failed!', `Error: ${error.message}`)
   }
 }
 
 async function handleSendTransaction() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
   if (!contractArgs) {
-    alert('no contract args set')
+    showError('no contract args set')
     return
   }
 
@@ -341,7 +394,7 @@ async function handleSendTransaction() {
       type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
 
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Transaction successful!', `Response: ${JSON.stringify(resTx)}`)
 
     // generate new tokenId for next NFT
     const uuidHex = uuidv4().replace(/-/g, '')
@@ -351,13 +404,13 @@ async function handleSendTransaction() {
     contractArgs = { ...contractArgs, args: newArgs }
   } catch (error) {
     console.error('Error sending transaction:', error)
-    alert('Failed to send transaction')
+    showError('Transaction failed!', `Error: ${error.message}`)
   }
 }
 
 async function handleSendNative() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
@@ -373,16 +426,16 @@ async function handleSendNative() {
       },
       type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Native token send successful!', `Response: ${JSON.stringify(resTx)}`)
   } catch (error) {
     console.error('Error sending native token:', error)
-    alert('Failed to send native token')
+    showError('Native token send failed!', `Error: ${error.message}`)
   }
 }
 
 async function handleSendERC20Token() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
@@ -397,22 +450,22 @@ async function handleSendERC20Token() {
       },
       type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
     })
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('ERC20 token send successful!', `Response: ${JSON.stringify(resTx)}`)
     getBalanceOfERC20({ showResult: false })
   } catch (error) {
     console.error('Error sending ERC20 token:', error)
-    alert('Failed to send ERC20 token')
+    showError('ERC20 token send failed!', `Error: ${error.message}`)
   }
 }
 
 async function handleSendTransactionWithDynamicFee() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
   if (!contractArgs) {
-    alert('no contract args set')
+    showError('no contract args set')
     return
   }
 
@@ -438,7 +491,7 @@ async function handleSendTransactionWithDynamicFee() {
       type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
 
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess('Transaction successful!', `Response: ${JSON.stringify(resTx)}`)
 
     // generate new tokenId for next NFT
     const uuidHex = uuidv4().replace(/-/g, '')
@@ -448,13 +501,13 @@ async function handleSendTransactionWithDynamicFee() {
     contractArgs = { ...contractArgs, args: newArgs }
   } catch (error) {
     console.error('Error sending transaction with dynamic fee:', error)
-    alert('Failed to send transaction with dynamic fee')
+    showError('Transaction with dynamic fee failed!', `Error: ${error.message}`)
   }
 }
 
 async function handleSendNativeWithDynamicFee() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
@@ -470,16 +523,19 @@ async function handleSendNativeWithDynamicFee() {
       },
       type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess(
+      'Native token send with dynamic fee successful!',
+      `Response: ${JSON.stringify(resTx)}`
+    )
   } catch (error) {
     console.error('Error sending native token with dynamic fee:', error)
-    alert('Failed to send native token with dynamic fee')
+    showError('Native token send with dynamic fee failed!', `Error: ${error.message}`)
   }
 }
 
 async function handleSendERC20TokenWithDynamicFee() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
@@ -497,27 +553,30 @@ async function handleSendERC20TokenWithDynamicFee() {
       },
       type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
     })
-    alert(`resTx: ${JSON.stringify(resTx)}`)
+    showSuccess(
+      'ERC20 token send with dynamic fee successful!',
+      `Response: ${JSON.stringify(resTx)}`
+    )
     getBalanceOfERC20({ showResult: false })
   } catch (error) {
     console.error('Error sending ERC20 token with dynamic fee:', error)
-    alert('Failed to send ERC20 token with dynamic fee')
+    showError('ERC20 token send with dynamic fee failed!', `Error: ${error.message}`)
   }
 }
 
 async function getBalanceOfNative() {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
   const balance = accountState?.balance
-  alert(`CROSS balance: ${balance}`)
+  showSuccess('Native token balance!', `Balance: ${balance}`)
 }
 
 async function getBalanceOfERC20({ showResult = true } = {}) {
   if (!accountState.isConnected) {
-    alert('Please connect wallet first.')
+    showError('Please connect wallet first.')
     return
   }
 
@@ -548,8 +607,9 @@ async function getBalanceOfERC20({ showResult = true } = {}) {
     }
     await AccountController.updateTokenBalance(balance)
     if (showResult)
-      alert(
-        `updated erc20 balance: ${JSON.stringify(
+      showSuccess(
+        'ERC20 balance updated!',
+        `Updated erc20 balance: ${JSON.stringify(
           accountState?.tokenBalance?.find(token => token.address === ERC20_ADDRESS.toLowerCase()),
           (key, value) => (typeof value === 'bigint' ? value.toString() : value),
           2
@@ -557,7 +617,7 @@ async function getBalanceOfERC20({ showResult = true } = {}) {
       )
   } catch (error) {
     console.error('Error getting ERC20 balance:', error)
-    alert('Failed to get ERC20 balance')
+    showError('Failed to get ERC20 balance')
   }
 }
 
@@ -570,10 +630,10 @@ async function getBalanceOfNFT() {
       args: [getFROM_ADDRESS()]
     })
 
-    alert(`erc721 balance: ${amount}`)
+    showSuccess('NFT balance!', `Balance: ${amount}`)
   } catch (error) {
     console.error('Error getting NFT balance:', error)
-    alert('Failed to get NFT balance')
+    showError('Failed to get NFT balance')
   }
 }
 
@@ -706,7 +766,7 @@ updateTheme(themeState.themeMode)
 
 // 모달 이벤트 설정
 setupNetworkModalEvents()
-
+setupResultModalEvents()
 // Initialize contract args when state changes
 crossSdk.subscribeAccount(() => {
   setTimeout(initializeContractArgs, 100)
