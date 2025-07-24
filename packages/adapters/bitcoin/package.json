@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-adapter-bitcoin",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -29,7 +29,7 @@
     "@to-nexus/appkit-common": "workspace:*",
     "@to-nexus/appkit-core": "workspace:*",
     "@to-nexus/appkit-utils": "workspace:*",
-    "@to-nexus/universal-provider": "~2.19.7",
+    "@to-nexus/universal-provider": "workspace:*",
     "@exodus/bitcoin-wallet-standard": "0.0.0",
     "@wallet-standard/app": "1.1.0",
     "@wallet-standard/base": "1.1.0",

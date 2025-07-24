@@ -130,6 +130,23 @@ export class EthersAdapter extends AdapterBlueprint {
     }
   }
 
+  /**
+   * @description Legacy EIP-712 signing method for ERC-2612 permit signatures only
+   * 
+   * ⚠️ DEPRECATED: This method is limited to ERC-2612 permit signatures and should not be used
+   * for new implementations. Use signTypedDataV4 instead for a generic, standards-compliant solution.
+   * 
+   * This adapter method specifically handles token permit signatures with hardcoded structure:
+   * - Only works with ERC-2612 permit domain/message format
+   * - Cannot handle arbitrary EIP-712 typed data structures
+   * - Limited to specific contractAddress/spenderAddress/value scenarios
+   * 
+   * @param {AdapterBlueprint.SignEIP712Params} params - ERC-2612 permit-specific parameters
+   * @returns {Promise<AdapterBlueprint.SignEIP712Result>} Object containing the permit signature
+   * 
+   * @deprecated Use signTypedDataV4 for new implementations
+   * @see signTypedDataV4 for the improved, generic alternative
+   */
   public async signEIP712(
     params: AdapterBlueprint.SignEIP712Params
   ): Promise<AdapterBlueprint.SignEIP712Result> {
@@ -154,6 +171,69 @@ export class EthersAdapter extends AdapterBlueprint {
       return { signature }
     } catch (error) {
       throw new Error(`EthersAdapter:signEIP712 failed: ${error}`)
+    }
+  }
+
+  /**
+   * @description Universal EIP-712 typed data signing method using Ethers.js
+   * 
+   * This is the recommended method for all EIP-712 signatures. It provides a generic,
+   * flexible solution that can handle any EIP-712 structured data, replacing the 
+   * limited signEIP712 method which only works with ERC-2612 permits.
+   * 
+   * Key advantages over signEIP712:
+   * - ✅ Accepts any EIP-712 typed data structure from any source (API, client-side, etc.)
+   * - ✅ Follows standard eth_signTypedData_v4 RPC specification exactly
+   * - ✅ Compatible with pre-formatted typed data (API responses, external libraries)
+   * - ✅ Works with custom domain separators and message types
+   * - ✅ Maintains full backward compatibility
+   * 
+   * The method expects paramsData in the format: [signerAddress, typedDataStructure]
+   * which directly matches the eth_signTypedData_v4 RPC call parameters.
+   * 
+   * @param {AdapterBlueprint.SignTypedDataV4Params} params - Generic typed data parameters
+   * @param {[string, any]} params.paramsData - Tuple of [address, typedData] matching RPC params
+   * @param {Provider} [params.provider] - Ethers provider instance
+   * @param {CustomData} [params.customData] - Optional metadata for the signature request
+   * @returns {Promise<AdapterBlueprint.SignTypedDataV4Result>} Object containing the signature
+   * 
+   * @example
+   * // Using pre-formatted typed data (e.g., from API response)
+   * const apiResponse = await fetch('/api/signature-request');
+   * const result = await adapter.signTypedDataV4({
+   *   paramsData: apiResponse.data.params, // [address, typedData]
+   *   provider: ethersProvider,
+   *   customData: { description: 'API signature request' }
+   * });
+   * 
+   * @example
+   * // Using manually constructed typed data
+   * const result = await adapter.signTypedDataV4({
+   *   paramsData: [
+   *     "0x1234...5678",
+   *     {
+   *       domain: { name: "MyApp", version: "1", chainId: 1, verifyingContract: "0x..." },
+   *       types: { EIP712Domain: [...], MyType: [...] },
+   *       primaryType: "MyType",
+   *       message: { field1: "value1", field2: 123 }
+   *     }
+   *   ],
+   *   provider: ethersProvider
+   * });
+   */
+  public async signTypedDataV4(
+    params: AdapterBlueprint.SignTypedDataV4Params
+  ): Promise<AdapterBlueprint.SignTypedDataV4Result> {
+    try {
+      const signature = await EthersMethods.signTypedDataV4(
+        params.paramsData,
+        params.provider as Provider,
+        params.customData
+      )
+
+      return { signature }
+    } catch (error) {
+      throw new Error(`EthersAdapter:signTypedDataV4 failed: ${error}`)
     }
   }
 

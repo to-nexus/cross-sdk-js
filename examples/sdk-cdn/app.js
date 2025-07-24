@@ -3,6 +3,40 @@
  * Vanilla JavaScript sample using Cross SDK via CDN
  */
 
+/**
+ * TypeScript-style type definitions using JSDoc for better code safety
+ */
+
+/**
+ * @typedef {Object} TypedDataDomain
+ * @property {string} name
+ * @property {string} version
+ * @property {number} chainId
+ * @property {string} verifyingContract
+ */
+
+/**
+ * @typedef {Object} TypedDataField
+ * @property {string} name
+ * @property {string} type
+ */
+
+/**
+ * @typedef {Object.<string, TypedDataField[]>} TypedDataTypes
+ */
+
+/**
+ * @typedef {Object} EIP712TypedData
+ * @property {TypedDataDomain} domain
+ * @property {TypedDataTypes} types
+ * @property {string} primaryType
+ * @property {Object} message
+ */
+
+
+
+
+
 // ethers import from CDN
 import { ethers } from 'https://cdn.skypack.dev/ethers@5.7.2'
 import { v4 as uuidv4 } from 'https://cdn.skypack.dev/uuid@9.0.0'
@@ -207,43 +241,87 @@ async function initializeApp() {
       }
     }
 
-    async function handleSignEIP712() {
+    // Universal EIP-712 signing using server-provided typed data
+    async function handleSignTypedDataV4() {
       if (!accountState.isConnected) {
         alert('Please connect wallet first.')
         return
       }
 
       try {
-        const PERMIT_CONTRACT_ADDRESS = '0x7aa0c7864455cf7a967409c158ae4cd41a2c5585'
-        const PERMIT_SPENDER_ADDRESS = '0xC87D72172cd8839DdB26a7478025883af783571e'
-        const PERMIT_VALUE = 1000000000000000000n
+        console.log('Requesting typed data from API...')
         const FROM_ADDRESS = getFROM_ADDRESS()
-
-        const bnbRpcUrl = 'https://bsc-testnet.crosstoken.io/110ea3628b77f244e5dbab16790d81bba874b962'
-        const provider = new ethers.providers.JsonRpcProvider(bnbRpcUrl)
-        const contract = new ethers.Contract(PERMIT_CONTRACT_ADDRESS, sampleEIP712, provider)
-        const name = contract['name'] ? await contract['name']() : ''
-        const nonce = contract['nonce'] ? await contract['nonce'](FROM_ADDRESS) : 0
-        const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // after 1 hour
-
-        const resSignedEIP712 = await ConnectionController.signEIP712({
-          contractAddress: PERMIT_CONTRACT_ADDRESS,
-          fromAddress: FROM_ADDRESS,
-          spenderAddress: PERMIT_SPENDER_ADDRESS,
-          value: PERMIT_VALUE,
-          deadline,
-          nonce,
-          name,
-          version: '1',
-          chainId: networkState.caipNetworkId
+        
+        // Get typed data from API
+        const response = await fetch('https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            account: FROM_ADDRESS,
+            amount: "1",
+            direction: true,
+            pair_id: 1,
+            project_id: "nexus-ramp-v1"
+          })
         })
 
-        alert(`signedEIP712: ${resSignedEIP712}`)
+        if (!response.ok) {
+          throw new Error(`API response: ${response.status} ${response.statusText}`)
+        }
+
+        const apiData = await response.json()
+        console.log('API response:', JSON.stringify(apiData, null, 2))
+
+        if (!apiData.data?.params) {
+          throw new Error('Invalid API response: missing params data')
+        }
+
+        // Extract only the typedData (second element) from API response params
+        const paramsData = apiData.data.params[1]
+        console.log('Extracted typedData for signing:', JSON.stringify(paramsData, null, 2))
+
+        // Use the universal signTypedDataV4 method
+        const signature = await ConnectionController.signTypedDataV4(paramsData, {
+          metadata: {
+            apiResponse: {
+              hash: apiData.data.hash,
+              uuid: apiData.data.uuid,
+              recover: apiData.data.recover
+            },
+            description: 'Universal EIP-712 typed data signature',
+            timestamp: new Date().toISOString()
+          }
+        })
+
+        if (!signature) {
+          alert('Signature is undefined')
+          return
+        }
+
+        console.log('Signature result:', signature)
+        
+        // Show detailed results
+        alert(`✅ Signature successful!
+
+🔑 Signature: ${signature}
+📝 Hash: ${apiData.data.hash}
+🆔 UUID: ${apiData.data.uuid}
+🔗 Primary Type: ${paramsData.primaryType}
+⛓️ Chain ID: ${paramsData.domain.chainId}
+📋 Contract: ${paramsData.domain.verifyingContract}
+
+Check console for full details.`)
+
       } catch (error) {
-        console.error('Error signing EIP712:', error)
-        alert('Failed to sign EIP712')
+        console.error('Error in handleSignTypedDataV4:', error)
+        alert(`❌ Error: ${error.message}`)
       }
     }
+
+
 
     async function handleProviderRequest() {
       if (!accountState.isConnected) {
@@ -607,7 +685,7 @@ async function initializeApp() {
 
     // Action button event listeners
     document.getElementById('sign-message')?.addEventListener('click', handleSignMessage)
-    document.getElementById('sign-eip712')?.addEventListener('click', handleSignEIP712)
+    document.getElementById('sign-typed-data-v4')?.addEventListener('click', handleSignTypedDataV4)
     document.getElementById('provider-request')?.addEventListener('click', handleProviderRequest)
 
     document.getElementById('send-native')?.addEventListener('click', handleSendNative)

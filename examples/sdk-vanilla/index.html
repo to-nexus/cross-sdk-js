@@ -5,20 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CROSS SDK - Vanilla Example</title>
     <link rel="stylesheet" href="/src/main.css" />
-    <link
-      rel="icon"
-      type="image/svg"
-      href="/favicon.svg"
-      media="(prefers-color-scheme: light)"
-    />
+    <link rel="icon" type="image/svg" href="/favicon.svg" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg" href="/favicon.svg" media="(prefers-color-scheme: dark)" />
   </head>
 
   <body>
     <div class="page-container" id="app">
       <div class="logo-container">
-        <img id="nexus-logo" src="/nexus-logo.png" alt="Nexus" width="150" />
-        <img src="/appkit-logo.png" alt="Cross Sdk" width="150" />
+        <img id="nexus-logo" src="./nexus-logo.png" alt="Nexus" width="150" />
+        <img src="./appkit-logo.png" alt="Cross Sdk" width="150" />
       </div>
 
       <h1 class="page-title">CROSS SDK - Vanilla Example</h1>
@@ -44,7 +39,7 @@
 
       <div class="action-button-list">
         <button id="sign-message">Sign Message</button>
-        <button id="sign-eip712">Sign EIP712</button>
+        <button id="sign-typed-data-v4">Sign TypedData V4 (Universal)</button>
         <button id="provider-request">Provider Request</button>
       </div>
 
@@ -107,11 +102,15 @@
         <div class="footer-links">
           <a href="https://to.nexus" target="_blank" rel="noreferrer"> Nexus </a>
           •
-          <a href="https://cross.readme.io/update/docs/integration/" target="_blank" rel="noreferrer"> Docs </a>
-          •
-          <a href="https://github.com/to-nexus/sdk" target="_blank" rel="noreferrer">
-            GitHub
+          <a
+            href="https://cross.readme.io/update/docs/integration/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Docs
           </a>
+          •
+          <a href="https://github.com/to-nexus/sdk" target="_blank" rel="noreferrer"> GitHub </a>
         </div>
         <p class="warning">Get your own project ID from Nexus Team.</p>
       </div>
@@ -125,6 +124,21 @@
           <!-- Network list will be dynamically created by JavaScript -->
         </div>
         <button class="network-modal-close-btn" id="network-modal-close">Close</button>
+      </div>
+    </div>
+
+    <div id="result-modal" class="result-modal-backdrop" style="display: none">
+      <div class="result-modal-container">
+        <div class="result-modal-content">
+          <div class="result-modal-header">
+            <div class="result-modal-icon"></div>
+            <h3 class="result-modal-title"></h3>
+          </div>
+          <div class="result-modal-body"></div>
+          <div class="result-modal-footer">
+            <button class="result-modal-button" id="result-modal-close">Close</button>
+          </div>
+        </div>
       </div>
     </div>
 

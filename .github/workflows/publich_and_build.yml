@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ci/*
   pull_request:
     branches:
       - main
@@ -38,7 +39,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20.x"
+          node-version: '20.x'
 
       - name: Configure npm for Nexus
         run: |
@@ -56,7 +57,7 @@ jobs:
           version: 9.5.0
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build packages
         run: pnpm run build
@@ -65,7 +66,6 @@ jobs:
         run: pnpm run publish:latest
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
-
   build_and_push:
     name: Build and Push Docker Image
     needs: publish_npm

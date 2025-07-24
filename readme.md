@@ -114,21 +114,21 @@ function App() {
 ### Prerequisites
 
 - Node.js ^20.18.0
-- pnpm
-- turbo
+    - pnpm
+    - turbo
 
 ### Environment Setup
 
 1. **Clone the repository**
-   ```bash
+    ```bash
    git clone https://github.com/your-org/cross-sdk-js.git
    cd cross-sdk-js
    ```
 
 2. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
+    ```bash
+    pnpm install
+    ```
 
 3. **Set up environment variables**
    ```bash
@@ -230,7 +230,7 @@ const sdk = initCrossSdk({
 
 This project uses [Changesets](https://github.com/changesets/changesets) for version management.
 
-```bash
+    ```bash
 # Add a changeset
 pnpm changeset
 

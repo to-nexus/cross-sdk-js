@@ -8,6 +8,7 @@ import {
   type ReadContractArgs,
   type SendTransactionArgs,
   type SignEIP712Args,
+  type SignTypedDataV4Args,
   type WriteContractArgs
 } from '@to-nexus/appkit-core'
 import {
@@ -24,6 +25,7 @@ import {
 } from 'ethers'
 import type { TransactionRequest } from 'ethers'
 import { getBigInt, toQuantity } from 'ethers/utils'
+
 
 async function pollingTx(hash: `0x${string}`, signer: JsonRpcSigner) {
   return await new Promise(
@@ -79,6 +81,89 @@ export const EthersMethods = {
     return signature as `0x${string}`
   },
 
+  /**
+   * @description Generic EIP-712 typed data signing method
+   * 
+   * This method replaces the limited signEIP712 function, which was specifically designed
+   * for ERC-2612 permit signatures only. signTypedDataV4 is a universal solution that can
+   * handle any EIP-712 structured data from servers or client-side generation.
+   * 
+   * Key improvements over signEIP712:
+   * - Accepts any EIP-712 structure, not just permit signatures  
+   * - Works with server-generated typed data or client-generated data
+   * - Follows standard eth_signTypedData_v4 RPC specification
+   * - Maintains backward compatibility by keeping signEIP712 intact
+   * 
+   * @param paramsData - Tuple of [signerAddress, typedDataStructure] matching RPC params
+   * @param provider - Ethereum provider instance for wallet communication
+   * @param customData - Optional custom data to pass to the wallet
+   * @returns Promise resolving to the signature string
+   * 
+   * @example
+   * // Using pre-formatted typed data (e.g., from API response)
+   * const apiResponse = await fetch('/api/signature-request');
+   * const signature = await EthersMethods.signTypedDataV4(
+   *   apiResponse.data.params,
+   *   provider,
+   *   customData
+   * );
+   * 
+   * @example  
+   * // Using manually constructed typed data
+   * const paramsData = {
+   *   domain: { name: "MyApp", version: "1", chainId: 1, verifyingContract: "0x..." },
+   *   types: { EIP712Domain: [...], MyType: [...] },
+   *   primaryType: "MyType",
+   *   message: { field1: "value1", field2: 123 }
+   * };
+   * const signature = await EthersMethods.signTypedDataV4(paramsData, provider);
+   */
+  signTypedDataV4: async (
+    paramsData: SignTypedDataV4Args,
+    provider: Provider,
+    customData?: CustomData
+  ) => {
+    if (!provider) {
+      throw new Error('signTypedDataV4 - provider is undefined')
+    }
+    if (!paramsData) {
+      throw new Error('signTypedDataV4 - paramsData is required')
+    }
+
+    try {
+      console.log(`signTypedDataV4 - paramsData: ${JSON.stringify(paramsData, null, 2)}`)
+
+      const signature = await provider.request({
+        method: 'eth_signTypedData_v4',
+        params: [paramsData, customData]
+      })
+
+      return signature as `0x${string}`
+    } catch (error) {
+      console.error('signTypedDataV4 error:', error)
+      throw error
+    }
+  },
+
+  /**
+   * @description Legacy EIP-712 signing method for ERC-2612 permit signatures only
+   * 
+   * ⚠️ DEPRECATED: This method is limited to ERC-2612 permit signatures and should not be used
+   * for new implementations. Use signTypedDataV4 instead for a generic, standards-compliant solution.
+   * 
+   * This method was originally designed specifically for token permit signatures and has several limitations:
+   * - Hardcoded for ERC-2612 permit structure only
+   * - Cannot handle arbitrary EIP-712 typed data
+   * - Not compatible with server-generated typed data structures
+   * - Limited flexibility for different use cases
+   * 
+   * @param data - ERC-2612 permit-specific signature data  
+   * @param provider - Ethereum provider instance
+   * @returns Promise resolving to the permit signature
+   * 
+   * @deprecated Use signTypedDataV4 for new implementations
+   * @see signTypedDataV4 for the improved, generic alternative
+   */
   signEIP712: async (data: SignEIP712Args, provider: Provider) => {
     if (!provider) {
       throw new Error('signEIP712 - provider is undefined')

@@ -37,7 +37,7 @@
 
       <div class="action-button-list">
         <button id="sign-message">Sign Message</button>
-        <button id="sign-eip712">Sign EIP712</button>
+        <button id="sign-typed-data-v4">Sign TypedData V4 (Universal)</button>
         <button id="provider-request">Provider Request</button>
       </div>
 
@@ -124,7 +124,7 @@
     <!-- Load Cross SDK from CDN -->
     <script type="module">
         // Import all SDK functions from CDN
-        import * as CrossSdk from 'https://sdk-cdn.crosstoken.io/cross-sdk/1.8.1/cross-sdk.js';
+        import * as CrossSdk from '../../packages/cdn/dist/cross-sdk.js';
 
         // Make SDK available globally
         window.CrossSdk = CrossSdk;

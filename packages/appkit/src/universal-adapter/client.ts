@@ -123,6 +123,14 @@ export class UniversalAdapter extends AdapterBlueprint {
     })
   }
 
+  public override async signTypedDataV4(
+    params: AdapterBlueprint.SignTypedDataV4Params
+  ): Promise<AdapterBlueprint.SignTypedDataV4Result> {
+    return Promise.resolve({
+      signature: ''
+    })
+  }
+
   public override async signMessage(
     params: AdapterBlueprint.SignMessageParams
   ): Promise<AdapterBlueprint.SignMessageResult> {
