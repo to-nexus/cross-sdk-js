@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cross SDK JS - Examples</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .container {
+        text-align: center;
+        max-width: 800px;
+        padding: 2rem;
+      }
+
+      .logo {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 3rem;
+        opacity: 0.9;
+      }
+
+      .examples-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .example-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+        text-decoration: none;
+        color: white;
+      }
+
+      .example-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .example-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+
+      .example-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+
+      .example-description {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        line-height: 1.4;
+      }
+
+      .footer {
+        margin-top: 3rem;
+        opacity: 0.7;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        .logo {
+          font-size: 2rem;
+        }
+
+        .examples-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .container {
+          padding: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">🌐 Cross SDK JS</div>
+      <div class="subtitle">다양한 블록체인을 위한 통합 SDK 예제들을 체험해보세요</div>
+
+      <div class="examples-grid">
+        <a href="/react/" class="example-card">
+          <div class="example-icon">⚛️</div>
+          <div class="example-title">React Example</div>
+          <div class="example-description">
+            React 컴포넌트와 훅을 사용한<br />
+            현대적인 웹 앱 구현 예제
+          </div>
+        </a>
+
+        <a href="/vanilla/" class="example-card">
+          <div class="example-icon">🍦</div>
+          <div class="example-title">Vanilla JS Example</div>
+          <div class="example-description">
+            순수 JavaScript로 구현한<br />
+            프레임워크 없는 깔끔한 예제
+          </div>
+        </a>
+
+        <a href="/cdn/" class="example-card">
+          <div class="example-icon">🔗</div>
+          <div class="example-title">CDN Example</div>
+          <div class="example-description">
+            CDN을 통한 간단한 스크립트<br />
+            태그 방식의 빠른 시작 예제
+          </div>
+        </a>
+      </div>
+
+      <div class="footer">Cross SDK JS v1.0 - 모든 블록체인을 하나로 연결하세요</div>
+    </div>
+  </body>
+</html>
