@@ -48,7 +48,9 @@
     "publish:canary": "pnpm install; pnpm build; changeset publish --tag canary",
     "prepare": "husky",
     "run:examples": "pnpm run build && cd examples && pnpm run examples",
-    "packages:version:switch": "node dependency-switcher.cjs"
+    "packages:version:switch": "node scripts/dependency-switcher.cjs",
+    "push:external": "bash scripts/sync-external-sdks.sh push",
+    "pull:external": "bash scripts/sync-external-sdks.sh pull"
   },
   "devDependencies": {
     "@changesets/changelog-github": "0.5.0",
