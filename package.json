@@ -47,7 +47,8 @@
     "publish:beta": "pnpm install; pnpm build; changeset publish --tag beta",
     "publish:canary": "pnpm install; pnpm build; changeset publish --tag canary",
     "prepare": "husky",
-    "run:examples": "pnpm run build && cd examples && pnpm run examples"
+    "run:examples": "pnpm run build && cd examples && pnpm run examples",
+    "packages:version:switch": "node dependency-switcher.cjs"
   },
   "devDependencies": {
     "@changesets/changelog-github": "0.5.0",

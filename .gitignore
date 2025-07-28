@@ -20,3 +20,4 @@ tsconfig.tsbuildinfo
 .coverage
 .d.ts
 .d.ts.map
+backups/*
