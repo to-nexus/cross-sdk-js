@@ -45,27 +45,29 @@ export class W3mConnectAnnouncedWidget extends LitElement {
 
     return html`
       <wui-flex flexDirection="column" gap="xs">
-        ${announcedConnectors.map(connector => {
-          if (connector.info?.rdns && ApiController.state.excludedRDNS) {
-            if (ApiController.state.excludedRDNS.includes(connector?.info?.rdns)) {
-              return null
+        ${announcedConnectors
+          .filter(v => v.id.toLowerCase().includes('crosswallet'))
+          .map(connector => {
+            if (connector.info?.rdns && ApiController.state.excludedRDNS) {
+              if (ApiController.state.excludedRDNS.includes(connector?.info?.rdns)) {
+                return null
+              }
             }
-          }
 
-          return html`
-            <wui-list-wallet
-              imageSrc=${ifDefined(AssetUtil.getConnectorImage(connector))}
-              name=${connector.name ?? 'Unknown'}
-              @click=${() => this.onConnector(connector)}
-              tagVariant="success"
-              tagLabel="installed"
-              data-testid=${`wallet-selector-${connector.id}`}
-              .installed=${true}
-              tabIdx=${ifDefined(this.tabIdx)}
-            >
-            </wui-list-wallet>
-          `
-        })}
+            return html`
+              <wui-list-wallet
+                imageSrc=${ifDefined(AssetUtil.getConnectorImage(connector))}
+                name=${connector.name ?? 'Unknown'}
+                @click=${() => this.onConnector(connector)}
+                tagVariant="success"
+                tagLabel="installed"
+                data-testid=${`wallet-selector-${connector.id}`}
+                .installed=${true}
+                tabIdx=${ifDefined(this.tabIdx)}
+              >
+              </wui-list-wallet>
+            `
+          })}
       </wui-flex>
     `
   }

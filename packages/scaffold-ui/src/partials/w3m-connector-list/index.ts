@@ -45,6 +45,11 @@ export class W3mConnectorList extends LitElement {
               tabIdx=${ifDefined(this.tabIdx)}
             ></cross-w3m-connect-custom-widget>`
           : null}
+        ${announced?.length
+          ? html`<cross-w3m-connect-announced-widget
+              tabIdx=${ifDefined(this.tabIdx)}
+            ></cross-w3m-connect-announced-widget>`
+          : null}
       </wui-flex>
     `
   }
