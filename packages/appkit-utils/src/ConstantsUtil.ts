@@ -18,6 +18,8 @@ export const ConstantsUtil = {
   ADD_CHAIN_METHOD: 'wallet_addEthereumChain',
   EIP6963_ANNOUNCE_EVENT: 'eip6963:announceProvider',
   EIP6963_REQUEST_EVENT: 'eip6963:requestProvider',
+  EIP6963_CROSS_ANNOUNCE_EVENT: 'eip6963:crossAnnounceProvider',
+  EIP6963_CROSS_REQUEST_EVENT: 'eip6963:crossRequestProvider',
   CONNECTOR_RDNS_MAP: {
     coinbaseWallet: 'com.coinbase.wallet',
     coinbaseWalletSDK: 'com.coinbase.wallet'
