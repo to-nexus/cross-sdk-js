@@ -33,20 +33,36 @@ export class W3mConnectorList extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    const { custom, recent, announced, injected, multiChain, recommended, featured, external } =
-      ConnectorUtil.getConnectorsByType(this.connectors)
-
-    const enableWalletConnect = OptionsController.state.enableWalletConnect
+    const { custom, announced } = ConnectorUtil.getConnectorsByType(this.connectors)
+    const hasAnnounced = Boolean(announced && announced?.length > 0)
+    const hasCustom = Boolean(custom && custom?.length > 0)
 
     return html`
       <wui-flex flexDirection="column" gap="xs">
-        ${custom?.length
-          ? html`<cross-w3m-connect-custom-widget
-              tabIdx=${ifDefined(this.tabIdx)}
-            ></cross-w3m-connect-custom-widget>`
-          : null}
+        ${this.renderConnectorWidget(hasAnnounced, hasCustom)}
       </wui-flex>
     `
+  }
+
+  private renderConnectorWidget(hasAnnounced: boolean, hasCustom: boolean) {
+    // 1. desktop Wallet 이 있는 경우엔 desktop Wallet 위젯을 렌더링
+    if (hasAnnounced) {
+      return html`
+        <cross-w3m-connect-announced-widget
+          tabIdx=${ifDefined(this.tabIdx)}
+        ></cross-w3m-connect-announced-widget>
+      `
+    }
+    // 2. desktop Wallet 이 없는 경우엔 crossx wallet을 렌더링
+    if (!hasAnnounced && hasCustom) {
+      return html`
+        <cross-w3m-connect-custom-widget
+          tabIdx=${ifDefined(this.tabIdx)}
+        ></cross-w3m-connect-custom-widget>
+      `
+    }
+
+    return null
   }
 }
 

@@ -465,8 +465,8 @@ export class EthersAdapter extends AdapterBlueprint {
   private listenInjectedConnector(enableEIP6963: boolean) {
     if (typeof window !== 'undefined' && enableEIP6963) {
       const handler = this.eip6963EventHandler.bind(this)
-      window.addEventListener(ConstantsUtil.EIP6963_ANNOUNCE_EVENT, handler)
-      window.dispatchEvent(new Event(ConstantsUtil.EIP6963_REQUEST_EVENT))
+      window.addEventListener(ConstantsUtil.EIP6963_CROSS_ANNOUNCE_EVENT, handler)
+      window.dispatchEvent(new Event(ConstantsUtil.EIP6963_CROSS_REQUEST_EVENT))
     }
   }
 
@@ -583,7 +583,7 @@ export class EthersAdapter extends AdapterBlueprint {
     switch (params.providerType) {
       case 'WALLET_CONNECT':
         if ((params.provider as UniversalProvider).session) {
-          ;(params.provider as UniversalProvider).disconnect()
+          ; (params.provider as UniversalProvider).disconnect()
         }
         break
       case 'AUTH':
