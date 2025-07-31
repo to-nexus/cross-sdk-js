@@ -76,8 +76,7 @@ const initCrossSdk = (
   projectId: string,
   redirectUrl?: string,
   metadata?: Metadata,
-  themeMode?: ThemeMode,
-  defaultNetwork?: SupportedNetworks
+  themeMode?: ThemeMode
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -91,12 +90,12 @@ const initCrossSdk = (
   const changeNetwork = () => {
     const allNetworks = [crossMainnet, crossTestnet, bscTestnet, bscMainnet]
 
-    if (!defaultNetwork?.id) {
+    if (!crossTestnet?.id) {
       return allNetworks as unknown as [AppKitNetwork, ...AppKitNetwork[]]
     }
 
-    const matchedNetwork = allNetworks.find(network => network.id === defaultNetwork.id)
-    const otherNetworks = allNetworks.filter(network => network.id !== defaultNetwork.id)
+    const matchedNetwork = allNetworks.find(network => network.id === crossTestnet.id)
+    const otherNetworks = allNetworks.filter(network => network.id !== crossTestnet.id)
 
     return (matchedNetwork ? [matchedNetwork, ...otherNetworks] : allNetworks) as unknown as [
       AppKitNetwork,
@@ -109,7 +108,7 @@ const initCrossSdk = (
   return createAppKit({
     adapters: [ethersAdapter],
     networks,
-    defaultNetwork,
+    defaultNetwork: crossTestnet,
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
@@ -141,7 +140,7 @@ const initCrossSdk = (
 }
 
 // Create modal
-const initChainNetwork = (
+const configureNetwork = (
   projectId: string,
   redirectUrl?: string,
   metadata?: Metadata,
@@ -213,7 +212,7 @@ const initChainNetwork = (
 export {
   initCrossSdkWithParams,
   initCrossSdk,
-  initChainNetwork,
+  configureNetwork,
   useAppKit,
   useAppKitState,
   useAppKitTheme,

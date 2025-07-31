@@ -9,10 +9,10 @@ import {
   UniversalProvider,
   bscMainnet,
   bscTestnet,
+  configureNetwork,
   crossMainnet,
   crossTestnet,
   getUniversalProvider,
-  initChainNetwork,
   initCrossSdk,
   useAppKit,
   useAppKitAccount,
@@ -90,7 +90,7 @@ const contractData = {
   }
 }
 
-initCrossSdk(projectId, redirectUrl, metadata, 'dark', crossTestnet)
+initCrossSdk(projectId, redirectUrl, metadata, 'dark')
 
 export function ActionButtonList() {
   const appKit = useAppKit()
@@ -135,7 +135,7 @@ export function ActionButtonList() {
   useEffect(() => {
     const targetNetwork = contractData[network.chainId as keyof typeof contractData].network
     if (!appKitClient) {
-      const appKit = initChainNetwork(projectId, redirectUrl, metadata, 'dark', targetNetwork)
+      const appKit = configureNetwork(projectId, redirectUrl, metadata, 'dark', targetNetwork)
       setAppKitClient(appKit)
     } else {
       switchNetwork(targetNetwork)
