@@ -37,12 +37,11 @@ export class AppKitWalletButton {
 
   async connect(wallet: Wallet) {
     try {
-      console.log('connect - wallet', wallet)
 
       WalletButtonController.setPending(true)
       WalletButtonController.setError(undefined)
 
-      const connectors = ConnectorController.state.connectors
+
 
       if (ConstantsUtil.Socials.some(social => social === wallet)) {
         const result = await ConnectorUtil.connectSocial(wallet as SocialProvider)
@@ -52,6 +51,7 @@ export class AppKitWalletButton {
 
       const walletButton = WalletUtil.getWalletButton(wallet)
 
+
       const connector = walletButton
         ? ConnectorController.getConnector(walletButton.id, walletButton.rdns)
         : undefined
@@ -59,16 +59,32 @@ export class AppKitWalletButton {
       if (connector) {
         const result = await ConnectorUtil.connectExternal(connector)
         this.handleSuccess(result)
+
         return result
       }
+      // added by sonny-nexus for direct access to cross desktop wallet
+      // 1. If an announced wallet (Cross desktop wallet) exists, connect to the desktop wallet
+      // 2. If not, connect to the cross wallet app
+      const crossWalletDesktopId = 'nexus.to.crosswallet.desktop' //rdns | name | uuid
+      const currentConnectors = ConnectorController.state.connectors
+      const announced = currentConnectors?.filter(c => c.type === 'ANNOUNCED' && c.id === crossWalletDesktopId)
 
+      if (announced && announced.length > 0) {
+        const crossWalletConnector = announced[0];
+        if (crossWalletConnector) {
+          const result = await ConnectorUtil.connectExternal(crossWalletConnector);
+          this.handleSuccess(result)
+
+          return result
+        }
+      }
       // added by Harvey-Probe for direct access to custom wallets
       const { customWallets } = OptionsController.state
       const customWallet = customWallets?.find(w => w.id === wallet)
 
       const result = await ConnectorUtil.connectWalletConnect({
         walletConnect: wallet === 'cross_wallet',
-        connector: connectors.find(c => c.id === wallet) as Connector | undefined,
+        connector: currentConnectors.find((c: Connector) => c.id === wallet),
         wallet: customWallet
       })
       this.handleSuccess(result)

@@ -41,8 +41,8 @@ export function useAppKitWallet(parameters?: {
   // Prefetch wallet buttons
   // useEffect(() => {
   //   if (!isWalletButtonReady) {
-      // ApiController.fetchWalletButtons()
-    // }
+  // ApiController.fetchWalletButtons()
+  // }
   // }, [isWalletButtonReady])
 
   useEffect(
@@ -86,7 +86,6 @@ export function useAppKitWallet(parameters?: {
   const connect = useCallback(
     async (wallet: Wallet) => {
       try {
-        console.log('connect - wallet', wallet)
 
         WalletButtonController.setPending(true)
         WalletButtonController.setError(undefined)
@@ -99,16 +98,29 @@ export function useAppKitWallet(parameters?: {
 
         const walletButton = WalletUtil.getWalletButton(wallet)
 
+
         const connector = walletButton
           ? ConnectorController.getConnector(walletButton.id, walletButton.rdns)
           : undefined
-
         if (connector) {
           await ConnectorUtil.connectExternal(connector).then(handleSuccess)
 
           return
         }
+        // added by sonny-nexus for direct access to cross desktop wallet
+        // 1. If an announced wallet (Cross desktop wallet) exists, connect to the desktop wallet
+        // 2. If not, connect to the cross wallet app
+        const crossWalletDesktopId = 'nexus.to.crosswallet.desktop' //rdns | name | uuid
+        const currentConnectors = ConnectorController.state.connectors
+        const announced = currentConnectors.filter(c => c.type === 'ANNOUNCED' && c.id === crossWalletDesktopId)
+        if (announced && announced.length > 0) {
+          const crossWalletConnector = announced[0];
+          if (crossWalletConnector) {
+            await ConnectorUtil.connectExternal(crossWalletConnector).then(handleSuccess)
 
+            return
+          }
+        }
         // added by Harvey-Probe for direct access to custom wallets
         const { customWallets } = OptionsController.state
         const customWallet = customWallets?.find(w => w.id === wallet)
