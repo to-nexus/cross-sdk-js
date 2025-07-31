@@ -23,18 +23,16 @@ export let modal: AppKit | undefined = undefined
 
 export type CreateAppKit = Omit<AppKitOptions, 'sdkType' | 'sdkVersion'>
 
+export type AppKitType = typeof AppKit
+
 export function createAppKit(options: CreateAppKit) {
-  if (!modal) {
-    modal = new AppKit({
-      ...options,
-      sdkVersion: CoreHelperUtil.generateSdkVersion(
-        options.adapters ?? [],
-        'react',
-        PACKAGE_VERSION
-      )
-    })
-    getAppKit(modal)
-  }
+  console.log('getDefaultChain ::: createAppKit ::: options ', options)
+
+  modal = new AppKit({
+    ...options,
+    sdkVersion: CoreHelperUtil.generateSdkVersion(options.adapters ?? [], 'react', PACKAGE_VERSION)
+  })
+  getAppKit(modal)
 
   return modal
 }

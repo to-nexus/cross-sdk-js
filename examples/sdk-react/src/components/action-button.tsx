@@ -1,7 +1,8 @@
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   AccountController,
+  type AppKitType,
   ConnectionController,
   ConstantsUtil,
   SendController,
@@ -11,8 +12,8 @@ import {
   crossMainnet,
   crossTestnet,
   getUniversalProvider,
+  initChainNetwork,
   initCrossSdk,
-  initCrossSdkWithParams,
   useAppKit,
   useAppKitAccount,
   useAppKitNetwork,
@@ -20,14 +21,7 @@ import {
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
-import type {
-  AssetFilterType,
-  SignTypedDataV4Args,
-  TypedDataDomain,
-  TypedDataTypes,
-  WriteContractArgs
-} from '@to-nexus/sdk/react'
-import { Signature, ethers } from 'ethers'
+import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { sampleEIP712 } from '../contracts/sample-eip712'
@@ -72,7 +66,31 @@ const metadata = {
   url: 'https://to.nexus',
   icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
 }
-initCrossSdk(projectId, redirectUrl, metadata, 'dark', crossMainnet)
+
+const contractData = {
+  612044: {
+    erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
+    erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
+    network: crossTestnet
+  },
+  612055: {
+    erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
+    erc721: '',
+    network: crossMainnet
+  },
+  97: {
+    erc20: '',
+    erc721: '',
+    network: bscTestnet
+  },
+  56: {
+    erc20: '',
+    erc721: '',
+    network: bscMainnet
+  }
+}
+
+initCrossSdk(projectId, redirectUrl, metadata, 'dark', crossTestnet)
 
 export function ActionButtonList() {
   const appKit = useAppKit()
@@ -84,14 +102,18 @@ export function ActionButtonList() {
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
   const { connect } = useAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
+
+  const [appKitClient, setAppKitClient] = useState<AppKitType | null>(null)
   // erc20 token contract address
-  const ERC20_ADDRESS = '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3'
+  const ERC20_ADDRESS = contractData[network.chainId as keyof typeof contractData]
+    .erc20 as `0x${string}`
   // define decimals of erc20 token (ERC20 standard is 18)
   const ERC20_DECIMALS = 18
   // erc20 token contract address in caip format - eip155:{chainId}:{address}
   const ERC20_CAIP_ADDRESS = `${network.caipNetworkId}:${ERC20_ADDRESS}`
   // erc721 token contract address
-  const ERC721_ADDRESS = '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
+  const ERC721_ADDRESS = contractData[network.chainId as keyof typeof contractData]
+    .erc721 as `0x${string}`
   // address to send erc20 token or cross
   const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
   // address of wallet owner
@@ -109,6 +131,17 @@ export function ActionButtonList() {
   useEffect(() => {
     console.log('contractArgs', JSON.stringify(contractArgs?.args))
   }, [contractArgs?.args])
+
+  useEffect(() => {
+    const targetNetwork = contractData[network.chainId as keyof typeof contractData].network
+    if (!appKitClient) {
+      const appKit = initChainNetwork(projectId, redirectUrl, metadata, 'dark', targetNetwork)
+      setAppKitClient(appKit)
+    } else {
+      switchNetwork(targetNetwork)
+    }
+    //
+  }, [network.chainId])
 
   // used for connecting wallet with wallet list
   function handleConnect() {
@@ -450,6 +483,13 @@ Check console for full details.`
       return
     }
 
+    const address = contractData[network.chainId as keyof typeof contractData].erc20
+
+    if (address === '') {
+      showError('Error in getBalanceOfERC20', 'Contract does not exist.')
+      return
+    }
+
     const amount = (await ConnectionController.readContract({
       contractAddress: ERC20_ADDRESS,
       method: 'balanceOf',
@@ -489,6 +529,13 @@ Check console for full details.`
   }
 
   async function getBalanceOfNFT() {
+    const address = contractData[network.chainId as keyof typeof contractData].erc721
+
+    if (address === '') {
+      showError('Error in getBalanceOfNFT', 'Contract does not exist.')
+      return
+    }
+
     const amount = await ConnectionController.readContract({
       contractAddress: ERC721_ADDRESS,
       method: 'balanceOf',

@@ -1,8 +1,12 @@
-import type UniversalProvider from '@to-nexus/universal-provider'
-
 import type { AppKitNetwork, ThemeVariables } from '@to-nexus/appkit-common'
-import type { ChainAdapter, Metadata, OptionsControllerState, ThemeMode } from '@to-nexus/appkit-core'
+import type {
+  ChainAdapter,
+  Metadata,
+  OptionsControllerState,
+  ThemeMode
+} from '@to-nexus/appkit-core'
 import type { AppKitSIWEClient } from '@to-nexus/appkit-siwe'
+import type UniversalProvider from '@to-nexus/universal-provider'
 
 export type AppKitOptions = {
   /**
