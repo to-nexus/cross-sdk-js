@@ -56,6 +56,9 @@ COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-re
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-vanilla/dist /usr/share/nginx/html/vanilla
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-cdn /usr/share/nginx/html/cdn
 
+# 랜딩 페이지 복사
+COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/index.html /usr/share/nginx/html/index.html
+
 # nginx 설정 복사
 COPY --chown=nexus:nexus nginx.conf /etc/nginx/nginx.conf
 

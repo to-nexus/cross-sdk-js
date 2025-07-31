@@ -21,3 +21,4 @@ tsconfig.tsbuildinfo
 .d.ts
 .d.ts.map
 backups/*
+.history
