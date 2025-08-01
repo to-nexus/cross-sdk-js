@@ -85,9 +85,86 @@ declare -a CREATED_BACKUPS=()
 declare -a SUCCESSFUL_OPERATIONS=()
 declare -a FAILED_OPERATIONS=()
 
+# 패키지 설정 (호환성을 위한 함수 기반 설정)
+get_package_config() {
+    local package_name="$1"
+    case "$package_name" in
+        "universal-provider")
+            echo "providers/universal-provider:cross-connect"
+            ;;
+        "sign-client")
+            echo "packages/sign-client:cross-connect"
+            ;;
+        *)
+            echo ""
+            ;;
+    esac
+}
+
+get_package_default_branch() {
+    local package_name="$1"
+    case "$package_name" in
+        "universal-provider"|"sign-client")
+            echo "main"
+            ;;
+        *)
+            echo "main"
+            ;;
+    esac
+}
+
+get_all_packages() {
+    echo "universal-provider sign-client"
+}
+
+get_package_path() {
+    local package_name="$1"
+    local config=$(get_package_config "$package_name")
+    echo "${config%%:*}"
+}
+
+get_package_remote() {
+    local package_name="$1"
+    local config=$(get_package_config "$package_name")
+    echo "${config##*:}"
+}
+
 # 로그 함수 (확장)
 log_info() {
     echo -e "${BLUE}ℹ️  $1${NC}" >&2
+}
+
+# 사용 가능한 패키지 목록 표시
+show_available_packages() {
+    echo -e "${BLUE}📦 Available packages:${NC}"
+    printf "${CYAN}┌──────────────────────────────────────────────────────────────┐${NC}\n"
+    local i=1
+    for package in $(get_all_packages); do
+        local config=$(get_package_config "$package")
+        local path="${config%%:*}"
+        local remote="${config##*:}"
+        printf "${CYAN}│${NC} %d. %-20s ${YELLOW}%s${NC} → ${GREEN}%s${NC} ${CYAN}│${NC}\n" "$i" "$package" "$path" "$remote"
+        ((i++))
+    done
+    printf "${CYAN}└──────────────────────────────────────────────────────────────┘${NC}\n"
+    echo ""
+}
+
+# 패키지 선택 함수
+select_package() {
+    local prompt="${1:-Choose package}"
+    show_available_packages
+    
+    local packages=($(get_all_packages))
+    local choice
+    choice=$(safe_select "${YELLOW}❓ $prompt (1-${#packages[@]}):${NC}" ${#packages[@]} "1" "false" "true")
+    
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#packages[@]} ]]; then
+        echo "${packages[$((choice-1))]}"
+    else
+        log_error "Invalid package selection"
+        return 1
+    fi
 }
 
 log_success() {
@@ -111,17 +188,16 @@ print_header() {
     echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║                  Git Subtree Sync Script                      ║${NC}"
     echo -e "${CYAN}║              cross-sdk-js ↔ cross-connect                     ║${NC}"
-    echo -e "${CYAN}║                    Universal Provider Sync                    ║${NC}"
+    echo -e "${CYAN}║                  Multi-Package Sync System                    ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "${BLUE}📋 Target Repository:${NC}"
-    echo "   • cross-connect → Universal Provider"
-    echo ""
-    echo -e "${BLUE}📂 Local Path:${NC}"
-    echo "   • providers/universal-provider"
-    echo ""
-    echo -e "${BLUE}🎯 Remote Path:${NC}"
-    echo "   • providers/universal-provider"
+    echo -e "${BLUE}📦 Supported Packages:${NC}"
+    for package in $(get_all_packages); do
+        local config=$(get_package_config "$package")
+        local path="${config%%:*}"
+        local remote="${config##*:}"
+        echo "   • $package: $path ↔ $remote"
+    done
     echo ""
     echo -e "${BLUE}💾 Backup Management:${NC}"
     echo "   • Session backups: $BACKUP_SESSION_DIR"
@@ -140,11 +216,32 @@ show_exclusions() {
     echo ""
 }
 
-# 현재 디렉토리가 프로젝트 루트인지 확인 (수정)
+# 현재 디렉토리가 프로젝트 루트인지 확인 (다중 패키지 지원)
 check_project_root() {
-    if [[ ! -f "package.json" ]] || [[ ! -d "providers/universal-provider" ]]; then
+    if [[ ! -f "package.json" ]]; then
         log_error "스크립트는 cross-sdk-js 프로젝트 루트에서 실행해야 합니다."
-        log_error "현재 위치에 package.json과 providers/universal-provider 디렉토리가 있는지 확인하세요."
+        log_error "현재 위치에 package.json이 있는지 확인하세요."
+        exit 1
+    fi
+    
+    # 설정된 패키지들 중 하나라도 존재하는지 확인
+    local found_package=false
+    for package_name in $(get_all_packages); do
+        local config=$(get_package_config "$package_name")
+        local package_path="${config%%:*}"
+        if [[ -d "$package_path" ]]; then
+            found_package=true
+            break
+        fi
+    done
+    
+    if [[ "$found_package" == "false" ]]; then
+        log_error "설정된 패키지 중 존재하는 패키지가 없습니다:"
+        for package_name in $(get_all_packages); do
+            local config=$(get_package_config "$package_name")
+            local package_path="${config%%:*}"
+            echo "   • $package_name: $package_path (없음)"
+        done
         exit 1
     fi
 }
@@ -344,7 +441,7 @@ apply_exclusions() {
     echo "   🗑️  Removed files matching exclude patterns"
 }
 
-# GitHub PR 자동 생성 (수정)
+# GitHub PR 자동 생성 (범용)
 create_pull_request() {
     local branch_name=$1
     local package_name=$2
@@ -352,29 +449,33 @@ create_pull_request() {
     
     log_info "🤖 Creating PR with GitHub CLI..."
     
+    # 패키지 설정에서 경로 가져오기
+    local config=$(get_package_config "$package_name")
+    local package_path="${config%%:*}"
+    
     local pr_title="sync($package_name): Update from cross-sdk-js"
     local pr_body="## 🔄 Package Sync from cross-sdk-js
 
 **Package:** \`$package_name\`
-**Source:** cross-sdk-js/providers/$package_name
+**Source:** cross-sdk-js/$package_path
 **Target Repository:** \`$target_repo\`
 **Target Branch:** \`$branch_name\`
 **Backup Session:** \`$(basename "$BACKUP_SESSION_DIR")\`
 
 ### 📝 Recent Changes
-$(git log --oneline -3 --pretty=format:"- %s" -- "providers/$package_name" | head -3)
+$(git log --oneline -3 --pretty=format:"- %s" -- "$package_path" | head -3)
 
 ### 🚫 Excluded Files
-- NX configuration files (project.json, .nx/)
 - Build artifacts and node_modules
 - IDE and system files
+- Turborepo configuration files
 
 ### 💾 Backup Information
 - Backup session: \`$BACKUP_SESSION_DIR\`
 - Package backup available for rollback if needed
 
 ### ✅ Checklist
-- [x] NX-specific files excluded
+- [x] Build files excluded
 - [x] Source code synchronized
 - [x] Backup created
 - [ ] CI/CD tests passed
@@ -601,11 +702,21 @@ ensure_subtree_connection() {
     local remote_name="cross-connect"
     local package_path="providers/$package_name"
     
-    log_info "🔗 Subtree 연결 상태 확인 중..."
+    ensure_subtree_connection_generic "$package_name" "$package_path" "$remote_name"
+}
+
+# 범용 subtree 연결 함수
+ensure_subtree_connection_generic() {
+    local package_name=$1
+    local package_path=$2
+    local remote_name=$3
+    local default_branch="${4:-main}"
+    
+    log_info "🔗 $package_name Subtree 연결 상태 확인 중..."
     
     # .git/subtree-cache 또는 git log로 subtree 연결 확인
     if git log --grep="git-subtree-dir: $package_path" --oneline -1 &>/dev/null; then
-        log_success "기존 subtree 연결 확인됨"
+        log_success "기존 $package_name subtree 연결 확인됨"
         return 0
     fi
     
@@ -628,13 +739,13 @@ ensure_subtree_connection() {
     fi
     
     # 새로운 subtree 연결
-    log_info "🔗 새로운 subtree 연결 중..."
+    log_info "🔗 새로운 $package_name subtree 연결 중..."
     
-    if git subtree add --prefix="$package_path" "$remote_name" main --squash; then
-        log_success "Subtree 연결 완료: $package_path ↔ $remote_name"
+    if git subtree add --prefix="$package_path" "$remote_name" "$default_branch" --squash; then
+        log_success "$package_name Subtree 연결 완료: $package_path ↔ $remote_name"
         return 0
     else
-        log_error "Subtree 연결 실패"
+        log_error "$package_name Subtree 연결 실패"
         return 1
     fi
 }
@@ -691,15 +802,30 @@ ensure_remote_branch() {
     fi
 }
 
-# Subtree Pull (외부 저장소 → cross-sdk-js) - universal-provider 전용
+# Subtree Pull (외부 저장소 → cross-sdk-js) - 범용
 pull_from_external() {
-    local package_name="universal-provider"
-    local remote_name="cross-connect"
-    local branch=${1:-}
+    local package_name="${1:-}"
+    local branch="${2:-}"
+    
+    # 패키지가 지정되지 않았으면 선택
+    if [[ -z "$package_name" ]]; then
+        package_name=$(select_package "Select package to pull")
+    fi
+    
+    # 패키지 설정 확인
+    if [[ -z "$(get_package_config "$package_name")" ]]; then
+        log_error "Unknown package: $package_name"
+        return 1
+    fi
+    
+    local config=$(get_package_config "$package_name")
+    local package_path="${config%%:*}"
+    local remote_name="${config##*:}"
+    local default_branch=$(get_package_default_branch "$package_name")
     
     # 브랜치가 지정되지 않았으면 선택
     if [[ -z "$branch" ]]; then
-        branch=$(select_branch "$remote_name" "main")
+        branch=$(select_branch "$remote_name" "$default_branch")
     fi
     
     # 작업 확인
@@ -708,11 +834,10 @@ pull_from_external() {
     fi
     
     log_info "📥 $package_name 패키지를 $remote_name/$branch에서 가져오는 중..."
-    
-    local package_path="providers/$package_name"
+    echo "   📂 Target: $package_path"
     
     # Subtree 연결 확인
-    if ! ensure_subtree_connection; then
+    if ! ensure_subtree_connection_generic "$package_name" "$package_path" "$remote_name"; then
         log_error "Subtree 연결에 실패했습니다"
         return 1
     fi
@@ -723,7 +848,7 @@ pull_from_external() {
         --squash \
         "$remote_name" "$branch" \
         --strategy=subtree \
-        -X subtree="providers/$package_name/"; then
+        -X subtree="$package_path/"; then
         
         log_success "$package_name 패키지 업데이트 완료"
         return 0
@@ -733,15 +858,30 @@ pull_from_external() {
     fi
 }
 
-# Subtree Push (cross-sdk-js → 외부 저장소) - universal-provider 전용
+# Subtree Push (cross-sdk-js → 외부 저장소) - 범용
 push_to_external() {
-    local package_name="universal-provider"
-    local remote_name="cross-connect"
-    local branch=${1:-}
+    local package_name="${1:-}"
+    local branch="${2:-}"
+    
+    # 패키지가 지정되지 않았으면 선택
+    if [[ -z "$package_name" ]]; then
+        package_name=$(select_package "Select package to push")
+    fi
+    
+    # 패키지 설정 확인
+    if [[ -z "$(get_package_config "$package_name")" ]]; then
+        log_error "Unknown package: $package_name"
+        return 1
+    fi
+    
+    local config=$(get_package_config "$package_name")
+    local package_path="${config%%:*}"
+    local remote_name="${config##*:}"
+    local default_branch=$(get_package_default_branch "$package_name")
     
     # 브랜치가 지정되지 않았으면 선택 (push용)
     if [[ -z "$branch" ]]; then
-        branch=$(enhanced_select_branch "$remote_name" "main" "true")
+        branch=$(enhanced_select_branch "$remote_name" "$default_branch" "true")
     fi
     
     # 작업 확인
@@ -749,19 +889,17 @@ push_to_external() {
         return 1
     fi
     
-    local package_path="providers/$package_name"
-    
     echo -e "\n${CYAN}╔══════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║${NC} Processing Push: ${YELLOW}$package_name${NC} ${CYAN}║${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════╝${NC}"
     
     echo "   📂 Source: $package_path"
-    echo "   🎯 Target: $remote_name/$branch (providers/universal-provider)"
+    echo "   🎯 Target: $remote_name/$branch ($package_path)"
     echo "   🔗 Repository: https://github.com/to-nexus/$remote_name.git"
     echo ""
     
     # Subtree 연결 확인
-    if ! ensure_subtree_connection; then
+    if ! ensure_subtree_connection_generic "$package_name" "$package_path" "$remote_name"; then
         log_error "Subtree 연결에 실패했습니다"
         return 1
     fi
@@ -943,8 +1081,11 @@ EOF
 
 To restore a package from backup:
 \`\`\`bash
-# Example: Restore core package
-cp -r "$BACKUP_SESSION_DIR/core-operation-HHMMSS" sdk/packages/core
+# Example: Restore universal-provider package
+cp -r "$BACKUP_SESSION_DIR/universal-provider-operation-HHMMSS" providers/universal-provider
+
+# Example: Restore sign-client package  
+cp -r "$BACKUP_SESSION_DIR/sign-client-operation-HHMMSS" packages/sign-client
 \`\`\`
 
 ## Next Steps
@@ -956,7 +1097,7 @@ cp -r "$BACKUP_SESSION_DIR/core-operation-HHMMSS" sdk/packages/core
 
 ## Excluded Files During Push
 
-- NX configuration files (project.json, .nx/)
+- Turborepo configuration files (.turbo/, turbo.json)
 - Build artifacts (dist/, coverage/)
 - Node.js dependencies (node_modules/)
 - IDE configuration files (.vscode/, .idea/)
@@ -964,34 +1105,56 @@ cp -r "$BACKUP_SESSION_DIR/core-operation-HHMMSS" sdk/packages/core
 - Log and temporary files (*.log, *.tmp)
 
 ---
-Generated by crossWallet-rn sync system  
+Generated by cross-sdk-js sync system  
 ⏰ Report generated: $(date -Iseconds)
 EOF
 
     echo "   📄 Summary saved: $summary_file"
 }
 
-# 기존 패키지 백업 (수정)
+# 기존 패키지 백업 (배열 기반)
 backup_existing_packages() {
-    log_info "🔒 기존 universal-provider 패키지를 백업 중..."
+    log_info "🔒 기존 패키지들을 백업 중..."
     
-    # universal-provider 백업 생성
-    if [[ -d "providers/universal-provider" ]]; then
-        create_package_backup "providers/universal-provider" "universal-provider" "backup"
-    fi
+    for package_name in $(get_all_packages); do
+        local config=$(get_package_config "$package_name")
+        local package_path="${config%%:*}"
+        
+        if [[ -d "$package_path" ]]; then
+            log_info "📦 Backing up $package_name..."
+            create_package_backup "$package_path" "$package_name" "backup"
+        else
+            log_warning "패키지 $package_name not found at $package_path"
+        fi
+    done
     
     log_success "백업 완료: $BACKUP_SESSION_DIR"
 }
 
-# 외부 저장소와 비교 - universal-provider 전용
+# 외부 저장소와 비교 - 범용
 compare_with_external() {
-    local package_name="universal-provider"
-    local remote_name="cross-connect"
-    local branch=${1:-}
+    local package_name="${1:-}"
+    local branch="${2:-}"
+    
+    # 패키지가 지정되지 않았으면 선택
+    if [[ -z "$package_name" ]]; then
+        package_name=$(select_package "Select package to compare")
+    fi
+    
+    # 패키지 설정 확인
+    if [[ -z "$(get_package_config "$package_name")" ]]; then
+        log_error "Unknown package: $package_name"
+        return 1
+    fi
+    
+    local config=$(get_package_config "$package_name")
+    local package_path="${config%%:*}"
+    local remote_name="${config##*:}"
+    local default_branch=$(get_package_default_branch "$package_name")
     
     # 브랜치가 지정되지 않았으면 선택
     if [[ -z "$branch" ]]; then
-        branch=$(select_branch "$remote_name" "main")
+        branch=$(select_branch "$remote_name" "$default_branch")
     fi
     
     log_info "🔍 $package_name 패키지를 외부 저장소 $remote_name/$branch와 비교 중..."
@@ -999,18 +1162,18 @@ compare_with_external() {
     local temp_dir=$(mktemp -d)
     git clone "https://github.com/to-nexus/$remote_name.git" "$temp_dir" --depth=1 --branch="$branch"
     
-    if [[ -d "$temp_dir/providers/$package_name" ]] && [[ -d "providers/$package_name" ]]; then
-        echo "=== 현재 로컬 버전 ==="
-        find "providers/$package_name" -name "*.json" -exec basename {} \; | sort
+    if [[ -d "$temp_dir/$package_path" ]] && [[ -d "$package_path" ]]; then
+        echo "=== 현재 로컬 버전 ($package_name) ==="
+        find "$package_path" -name "*.json" -exec basename {} \; | sort
         echo ""
         echo "=== 외부 저장소 버전 ($remote_name/$branch) ==="
-        find "$temp_dir/providers/$package_name" -name "*.json" -exec basename {} \; | sort
+        find "$temp_dir/$package_path" -name "*.json" -exec basename {} \; | sort
         echo ""
         
         # package.json 버전 비교
-        if [[ -f "providers/$package_name/package.json" ]] && [[ -f "$temp_dir/providers/$package_name/package.json" ]]; then
-            local local_version=$(grep '"version"' "providers/$package_name/package.json" | head -1)
-            local remote_version=$(grep '"version"' "$temp_dir/providers/$package_name/package.json" | head -1)
+        if [[ -f "$package_path/package.json" ]] && [[ -f "$temp_dir/$package_path/package.json" ]]; then
+            local local_version=$(grep '"version"' "$package_path/package.json" | head -1)
+            local remote_version=$(grep '"version"' "$temp_dir/$package_path/package.json" | head -1)
             echo "로컬 버전: $local_version"
             echo "원격 버전: $remote_version"
         fi
@@ -1021,51 +1184,75 @@ compare_with_external() {
     rm -rf "$temp_dir"
 }
 
-# 안전한 동기화 (백업 후 진행) - universal-provider 전용
+# 안전한 동기화 (백업 후 진행) - 범용
 safe_sync() {
     local use_interactive=${1:-true}
+    local package_name="${2:-}"
+    local branch="${3:-}"
     
     log_info "🛡️  안전한 동기화 시작..."
     
     # 1. 백업 생성
     backup_existing_packages
     
-    # 2. 브랜치 선택 및 비교
+    # 2. 패키지별 브랜치 선택 및 비교
     log_info "📊 패키지 버전 비교..."
     
-    # universal-provider 패키지
-    local provider_branch
-    if [[ "$use_interactive" == "true" ]]; then
-        echo "=== Universal Provider 패키지 브랜치 선택 ==="
-        provider_branch=$(select_branch "cross-connect" "main")
+    if [[ -n "$package_name" ]]; then
+        # 특정 패키지가 지정된 경우
+        local selected_branch="$branch"
+        if [[ -z "$selected_branch" && "$use_interactive" == "true" ]]; then
+            local config=$(get_package_config "$package_name")
+            local remote_name="${config##*:}"
+            local default_branch=$(get_package_default_branch "$package_name")
+            selected_branch=$(select_branch "$remote_name" "$default_branch")
+        fi
+        compare_with_external "$package_name" "$selected_branch"
     else
-        provider_branch="main"
+        # 패키지 선택
+        if [[ "$use_interactive" == "true" ]]; then
+            package_name=$(select_package "Select package to sync")
+            local config=$(get_package_config "$package_name")
+            local remote_name="${config##*:}"
+            local default_branch=$(get_package_default_branch "$package_name")
+            branch=$(select_branch "$remote_name" "$default_branch")
+        else
+            package_name="universal-provider"
+            branch="main"
+        fi
+        compare_with_external "$package_name" "$branch"
     fi
-    compare_with_external "$provider_branch"
     echo ""
     
     # 3. 사용자 확인
     echo ""
-    log_warning "기존 universal-provider 패키지가 덮어씌워집니다."
+    log_warning "기존 $package_name 패키지가 덮어씌워집니다."
     if ! safe_confirm_explicit "${YELLOW}❓ 계속 진행하시겠습니까?${NC}"; then
         log_info "동기화를 취소했습니다."
         exit 0
     fi
     
     # 4. 기존 패키지 제거 및 새로 가져오기
-    if [[ -d "providers/universal-provider" ]]; then
-        log_info "기존 universal-provider 패키지 제거 중..."
-        rm -rf "providers/universal-provider"
+    local config=$(get_package_config "$package_name")
+    local package_path="${config%%:*}"
+    
+    if [[ -d "$package_path" ]]; then
+        log_info "기존 $package_name 패키지 제거 중..."
+        rm -rf "$package_path"
     fi
-    pull_from_external "$provider_branch"
+    pull_from_external "$package_name" "$branch"
     
     log_success "🎉 안전한 동기화 완료!"
 }
 
 # 향상된 전체 작업 함수들
 pull_all_enhanced() {
+    log_info "🔄 Multiple package pull operation..."
+    show_available_packages
+    
     local packages_input
-    packages_input=$(safe_select "${YELLOW}❓ 가져올 패키지를 선택하세요 (예: core,sign-client,walletkit):${NC}" 999 "" "true" "false")
+    local package_names=($(get_all_packages))
+    packages_input=$(safe_select "${YELLOW}❓ 가져올 패키지를 선택하세요 (쉼표로 구분, 예: universal-provider,sign-client):${NC}" 999 "" "true" "false")
     
     # 패키지 목록을 배열로 변환
     IFS=',' read -ra selected_packages <<< "$packages_input"
@@ -1073,20 +1260,28 @@ pull_all_enhanced() {
     log_info "🔄 Pulling ${#selected_packages[@]} package(s) from external repositories..."
     
     for package in "${selected_packages[@]}"; do
-        local remote_name
-        case $package in
-            "core"|"sign-client") remote_name="cross-connect" ;;
-            "walletkit") remote_name="cross-walletkit" ;;
-        esac
+        # 공백 제거
+        package=$(echo "$package" | xargs)
         
-        if pull_from_external "$package" "$remote_name"; then
-            SUCCESSFUL_OPERATIONS+=("Pull: $package ← $remote_name")
+        # 패키지 설정 확인
+        if [[ -z "$(get_package_config "$package")" ]]; then
+            log_error "Unknown package: $package"
+            FAILED_OPERATIONS+=("Pull: $package (unknown package)")
+            continue
+        fi
+        
+        local config=$(get_package_config "$package")
+        local remote_name="${config##*:}"
+        local default_branch=$(get_package_default_branch "$package")
+        
+        if pull_from_external "$package" "$default_branch"; then
+            SUCCESSFUL_OPERATIONS+=("Pull: $package ← $remote_name/$default_branch")
         else
-            FAILED_OPERATIONS+=("Pull: $package ← $remote_name")
+            FAILED_OPERATIONS+=("Pull: $package ← $remote_name/$default_branch")
         fi
     done
     
-    log_success "🎉 모든 Pull 작업 완료!"
+    log_success " 모든 Pull 작업 완료!"
 }
 
 # 정리 함수 (스크립트 종료 시 호출)
@@ -1290,40 +1485,45 @@ safe_confirm_explicit() {
     done
 }
 
-# 사용법 출력 (수정)
+# 사용법 출력 (업데이트)
 usage() {
-    echo -e "${CYAN}Usage: $0 {pull|push|setup|compare|backup|safe-sync} [branch]${NC}"
+    echo -e "${CYAN}Usage: $0 {pull|push|setup|compare|backup|safe-sync} [package] [branch]${NC}"
     echo ""
     echo -e "${BLUE}🔧 Core Commands:${NC}"
-    echo "  setup                - Remote 저장소 설정"
-    echo "  compare              - 로컬과 외부 저장소 패키지 비교"
-    echo "  backup               - 기존 universal-provider 패키지 백업"
-    echo "  safe-sync            - 백업 후 외부 저장소와 안전한 동기화"
+    echo "  setup                      - Remote 저장소 설정"
+    echo "  compare [package] [branch] - 로컬과 외부 저장소 패키지 비교"
+    echo "  backup                     - 기존 패키지들 백업"
+    echo "  safe-sync                  - 백업 후 외부 저장소와 안전한 동기화"
     echo ""
     echo -e "${BLUE}🔄 Sync Operations:${NC}"
-    echo "  pull                 - cross-connect에서 universal-provider 가져오기"
-    echo "  push                 - cross-connect로 universal-provider 푸시하기"
+    echo "  pull [package] [branch]    - 외부 저장소에서 패키지 가져오기"
+    echo "  push [package] [branch]    - 외부 저장소로 패키지 푸시하기"
     echo ""
-    echo -e "${BLUE}📝 Options:${NC}"
-    echo "  [branch]             - 대상 브랜치 지정 (생략시 대화형 선택)"
+    echo -e "${BLUE}📦 Available Packages:${NC}"
+    for package in $(get_all_packages); do
+        local config=$(get_package_config "$package")
+        local path="${config%%:*}"
+        local remote="${config##*:}"
+        echo "  • $package: $path ↔ $remote"
+    done
     echo ""
     echo -e "${BLUE}💡 Examples:${NC}"
-    echo "  $0 setup             # 🔧 처음 설정 시"
-    echo "  $0 compare           # 🔍 버전 비교 (브랜치 선택)"
-    echo "  $0 safe-sync         # 🛡️  안전한 동기화 (브랜치 선택)"
-    echo "  $0 pull main         # 📥 main 브랜치에서 universal-provider 가져오기"
-    echo "  $0 push feat/new     # 📤 universal-provider를 새 브랜치로 푸시"
+    echo "  $0 setup                          # 🔧 처음 설정 시"
+    echo "  $0 compare                        # 🔍 패키지 선택 후 비교"
+    echo "  $0 compare universal-provider     # 🔍 특정 패키지 비교"
+    echo "  $0 pull sign-client main          # 📥 sign-client를 main에서 가져오기"
+    echo "  $0 push universal-provider        # 📤 universal-provider 푸시 (브랜치 선택)"
     echo ""
     echo -e "${BLUE}🎯 Features:${NC}"
     echo "  • 🔒 자동 백업 및 복원"
-    echo "  • 🗑️  NX 파일 자동 제외 (push 시)"
+    echo "  • 🗑️  빌드 파일 자동 제외 (push 시)"
     echo "  • 🤖 GitHub PR 자동 생성"
     echo "  • 📊 상세한 작업 리포트"
     echo "  • 🧹 오래된 백업 자동 정리"
     echo ""
     echo -e "${BLUE}📂 Target Paths:${NC}"
-    echo "  • Local:  providers/universal-provider"
-    echo "  • Remote: providers/universal-provider (cross-connect repo)"
+    echo "  • universal-provider: providers/universal-provider ↔ cross-connect"
+    echo "  • sign-client: packages/sign-client ↔ cross-connect"
 }
 
 # 메인 실행 로직 (수정)
@@ -1334,7 +1534,8 @@ main() {
     check_project_root
     
     local command="${1:-}"
-    local branch="${2:-}"
+    local package="${2:-}"
+    local branch="${3:-}"
     
     # 헤더 출력 (명령어가 있을 때만)
     if [[ -n "$command" && "$command" != "setup" ]]; then
@@ -1355,8 +1556,13 @@ main() {
         compare)
             check_git_status
             setup_remotes
-            log_info "📊 universal-provider 패키지 비교 시작..."
-            compare_with_external "$branch"
+            if [[ -n "$package" ]]; then
+                log_info "📊 $package 패키지 비교 시작..."
+                compare_with_external "$package" "$branch"
+            else
+                log_info "📊 패키지 비교 시작..."
+                compare_with_external
+            fi
             ;;
         backup)
             backup_existing_packages
@@ -1364,21 +1570,25 @@ main() {
         safe-sync)
             check_git_status
             setup_remotes
-            if [[ -n "$branch" ]]; then
-                # 브랜치가 지정된 경우 비대화형 모드
-                safe_sync false
+            if [[ -n "$package" ]]; then
+                # 패키지가 지정된 경우 비대화형 모드
+                safe_sync false "$package" "$branch"
             else
-                # 브랜치가 지정되지 않은 경우 대화형 모드
-                safe_sync true
+                # 패키지가 지정되지 않은 경우 대화형 모드
+                safe_sync true "$package" "$branch"
             fi
             ;;
         pull)
             check_git_status
             setup_remotes
-            if pull_from_external "$branch"; then
-                SUCCESSFUL_OPERATIONS+=("Pull: universal-provider ← cross-connect")
+            if [[ -n "$package" ]]; then
+                if pull_from_external "$package" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Pull: $package ← $branch")
+                else
+                    FAILED_OPERATIONS+=("Pull: $package ← $branch")
+                fi
             else
-                FAILED_OPERATIONS+=("Pull: universal-provider ← cross-connect")
+                pull_all_enhanced
             fi
             ;;
         push)
@@ -1389,10 +1599,14 @@ main() {
                 log_info "⏭️  Push operation cancelled"
                 exit 0
             fi
-            if push_to_external "$branch"; then
-                SUCCESSFUL_OPERATIONS+=("Push: universal-provider → cross-connect")
+            if [[ -n "$package" ]]; then
+                if push_to_external "$package" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Push: $package → $branch")
+                else
+                    FAILED_OPERATIONS+=("Push: $package → $branch")
+                fi
             else
-                FAILED_OPERATIONS+=("Push: universal-provider → cross-connect")
+                push_to_external "$branch"
             fi
             ;;
         *)
