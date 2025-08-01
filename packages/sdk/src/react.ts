@@ -12,7 +12,10 @@ import {
   bscTestnet,
   contractData,
   crossMainnet,
-  crossTestnet
+  crossTestnet,
+  kaiaMainnet,
+  kaiaTestnet,
+  networkList
 } from '@to-nexus/appkit/networks'
 import {
   createAppKit,
@@ -54,6 +57,8 @@ type SupportedNetworks =
   | typeof crossMainnet
   | typeof bscTestnet
   | typeof bscMainnet
+  | typeof kaiaTestnet
+  | typeof kaiaMainnet
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -94,7 +99,7 @@ const initCrossSdk = (
 
   return createAppKit({
     adapters: [ethersAdapter],
-    networks: [crossTestnet, crossMainnet, bscTestnet, bscMainnet],
+    networks: networkList,
     defaultNetwork,
     metadata: mergedMetadata,
     projectId,
@@ -147,6 +152,8 @@ export {
   crossTestnet,
   bscMainnet,
   bscTestnet,
+  kaiaMainnet,
+  kaiaTestnet,
   UniversalProvider,
   getUniversalProvider,
   ConstantsUtil,

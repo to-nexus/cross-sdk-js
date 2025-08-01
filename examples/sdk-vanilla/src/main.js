@@ -1,5 +1,14 @@
-import { initCrossSdkWithParams, useAppKitWallet } from '@to-nexus/sdk'
-import { bscMainnet, bscTestnet, crossMainnet, crossTestnet } from '@to-nexus/sdk'
+import {
+  bscMainnet,
+  bscTestnet,
+  contractData,
+  crossMainnet,
+  crossTestnet,
+  initCrossSdkWithParams,
+  kaiaMainnet,
+  kaiaTestnet,
+  useAppKitWallet
+} from '@to-nexus/sdk'
 import {
   AccountController,
   ConnectionController,
@@ -69,13 +78,15 @@ const availableNetworks = [
   { id: 'cross-mainnet', name: 'Cross Mainnet', network: crossMainnet },
   { id: 'cross-testnet', name: 'Cross Testnet', network: crossTestnet },
   { id: 'bsc-mainnet', name: 'BSC Mainnet', network: bscMainnet },
-  { id: 'bsc-testnet', name: 'BSC Testnet', network: bscTestnet }
+  { id: 'bsc-testnet', name: 'BSC Testnet', network: bscTestnet },
+  { id: 'kaia-mainnet', name: 'Kaia Mainnet', network: kaiaMainnet },
+  { id: 'kaia-testnet', name: 'Kaia Testnet', network: kaiaTestnet }
 ]
 
 // Contract addresses and constants
-const ERC20_ADDRESS = '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3'
+let ERC20_ADDRESS = ''
 const ERC20_DECIMALS = 18
-const ERC721_ADDRESS = '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
+let ERC721_ADDRESS = ''
 const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
 const SEND_ERC20_AMOUNT = 1
 const SEND_CROSS_AMOUNT = 1
@@ -669,6 +680,8 @@ crossSdk.subscribeNetwork(state => {
   networkState = state
   document.getElementById('networkState').textContent = JSON.stringify(state, null, 2)
   document.getElementById('switch-network').textContent = networkState.caipNetwork.name
+  ERC20_ADDRESS = contractData[networkState?.caipNetwork?.id]?.erc20 || ''
+  ERC721_ADDRESS = contractData[networkState?.caipNetwork?.id]?.erc721 || ''
 })
 
 crossSdk.subscribeState(state => {

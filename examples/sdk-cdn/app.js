@@ -64,6 +64,9 @@ async function initializeApp() {
       crossTestnet,
       bscMainnet,
       bscTestnet,
+      kaiaMainnet,
+      kaiaTestnet,
+      contractData,
       AccountController,
       ConnectionController,
       ConstantsUtil,
@@ -75,29 +78,6 @@ async function initializeApp() {
       description: 'Cross SDK for HTML',
       url: 'https://to.nexus',
       icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
-    }
-
-    const contractData = {
-      612044: {
-        erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
-        erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
-        network: crossTestnet
-      },
-      612055: {
-        erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
-        erc721: '',
-        network: crossMainnet
-      },
-      97: {
-        erc20: '',
-        erc721: '',
-        network: bscTestnet
-      },
-      56: {
-        erc20: '',
-        erc721: '',
-        network: bscMainnet
-      }
     }
 
     // Your unique project id provided by Cross Team. If you don't have one, please contact us.
@@ -120,7 +100,9 @@ async function initializeApp() {
       { id: 'cross-mainnet', name: 'Cross Mainnet', network: crossMainnet },
       { id: 'cross-testnet', name: 'Cross Testnet', network: crossTestnet },
       { id: 'bsc-mainnet', name: 'BSC Mainnet', network: bscMainnet },
-      { id: 'bsc-testnet', name: 'BSC Testnet', network: bscTestnet }
+      { id: 'bsc-testnet', name: 'BSC Testnet', network: bscTestnet },
+      { id: 'kaia-mainnet', name: 'Kaia Mainnet', network: kaiaMainnet },
+      { id: 'kaia-testnet', name: 'Kaia Testnet', network: kaiaTestnet }
     ]
 
     // Contract addresses and constants

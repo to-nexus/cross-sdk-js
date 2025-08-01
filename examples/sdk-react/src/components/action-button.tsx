@@ -6,9 +6,15 @@ import {
   ConstantsUtil,
   SendController,
   UniversalProvider,
+  bscMainnet,
+  bscTestnet,
   contractData,
+  crossMainnet,
+  crossTestnet,
   getUniversalProvider,
   initCrossSdk,
+  kaiaMainnet,
+  kaiaTestnet,
   useAppKit,
   useAppKitAccount,
   useAppKitNetwork,
@@ -136,6 +142,12 @@ export function ActionButtonList() {
     showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
   }
 
+  function handleSwitchNetworkKaia() {
+    const targetNetwork =
+      import.meta.env['VITE_NODE_ENV'] === 'production' ? kaiaMainnet : kaiaTestnet
+    switchNetwork(targetNetwork)
+    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+  }
   // used for provider request
   async function handleProviderRequest() {
     if (!account?.isConnected) {
@@ -705,6 +717,7 @@ Check console for full details.`
         <button onClick={handleDisconnect}>Disconnect</button>
         <button onClick={handleSwitchNetwork}>Switch to Cross</button>
         <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
+        <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSendNative}>Send 1 CROSS</button>

@@ -9,7 +9,16 @@ import {
   type ThemeMode
 } from '@to-nexus/appkit-core'
 import { createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
-import { bscMainnet, bscTestnet, crossMainnet, crossTestnet } from '@to-nexus/appkit/networks'
+import {
+  bscMainnet,
+  bscTestnet,
+  contractData,
+  crossMainnet,
+  crossTestnet,
+  kaiaMainnet,
+  kaiaTestnet,
+  networkList
+} from '@to-nexus/appkit/networks'
 import UniversalProvider from '@to-nexus/universal-provider'
 
 export type {
@@ -37,6 +46,8 @@ type SupportedNetworks =
   | typeof crossMainnet
   | typeof bscTestnet
   | typeof bscMainnet
+  | typeof kaiaTestnet
+  | typeof kaiaMainnet
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -77,7 +88,7 @@ const initCrossSdk = (
 
   return createAppKit({
     adapters: [ethersAdapter],
-    networks: [crossTestnet, crossMainnet, bscTestnet, bscMainnet],
+    networks: networkList,
     defaultNetwork,
     metadata: mergedMetadata,
     projectId,
@@ -126,6 +137,9 @@ export {
   crossTestnet,
   bscMainnet,
   bscTestnet,
+  kaiaMainnet,
+  kaiaTestnet,
   UniversalProvider,
-  ConstantsUtil
+  ConstantsUtil,
+  contractData
 }
