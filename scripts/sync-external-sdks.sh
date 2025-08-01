@@ -802,10 +802,146 @@ ensure_remote_branch() {
     fi
 }
 
+# 선택적 파일 업데이트 함수 (새로 추가)
+selective_pull_from_external() {
+    local package_name="${1:-}"
+    local branch="${2:-}"
+    local selective_files=("src/" "package.json")
+    
+    # 패키지가 지정되지 않았으면 선택
+    if [[ -z "$package_name" ]]; then
+        package_name=$(select_package "Select package to pull selectively")
+    fi
+    
+    # 패키지 설정 확인
+    if [[ -z "$(get_package_config "$package_name")" ]]; then
+        log_error "Unknown package: $package_name"
+        return 1
+    fi
+    
+    local config=$(get_package_config "$package_name")
+    local package_path="${config%%:*}"
+    local remote_name="${config##*:}"
+    local default_branch=$(get_package_default_branch "$package_name")
+    
+    # 브랜치가 지정되지 않았으면 선택
+    if [[ -z "$branch" ]]; then
+        branch=$(select_branch "$remote_name" "$default_branch")
+    fi
+    
+    # 작업 확인
+    if ! confirm_branch_operation "Selective Pull (src + package.json)" "$package_name" "$remote_name" "$branch"; then
+        return 1
+    fi
+    
+    log_info "📥 $package_name 패키지의 src 폴더와 package.json만 업데이트 중..."
+    echo "   📂 Target: $package_path"
+    echo "   📁 Files: src/, package.json"
+    echo "   🌿 From: $remote_name/$branch"
+    
+    # 임시 디렉토리 생성
+    local temp_dir=$(mktemp -d)
+    local clone_success=false
+    
+    # 외부 저장소 clone
+    log_info "📥 Cloning external repository..."
+    if git clone --depth=1 --branch="$branch" "https://github.com/to-nexus/$remote_name.git" "$temp_dir" 2>/dev/null; then
+        clone_success=true
+        log_success "External repository cloned successfully"
+    else
+        log_error "Failed to clone external repository"
+        rm -rf "$temp_dir"
+        return 1
+    fi
+    
+    # 백업 생성
+    local backup_path
+    if ! backup_path=$(create_package_backup "$package_path" "$package_name" "selective-pull"); then
+        log_error "Failed to create backup, aborting selective pull"
+        rm -rf "$temp_dir"
+        return 1
+    fi
+    
+    # 패키지 디렉토리가 없으면 생성
+    if [[ ! -d "$package_path" ]]; then
+        log_info "📁 Creating package directory: $package_path"
+        mkdir -p "$package_path"
+    fi
+    
+    # 선택적 파일 복사
+    local copy_success=true
+    local copied_files=()
+    
+    for file in "${selective_files[@]}"; do
+        local source_file="$temp_dir/$file"
+        local target_file="$package_path/$file"
+        
+        if [[ -e "$source_file" ]]; then
+            log_info "📄 Updating $file..."
+            
+            if [[ -d "$source_file" ]]; then
+                # 디렉토리인 경우
+                if [[ -d "$target_file" ]]; then
+                    rm -rf "$target_file"
+                fi
+                if cp -r "$source_file" "$target_file"; then
+                    copied_files+=("$file (directory)")
+                    echo "   ✅ $file directory updated"
+                else
+                    log_error "Failed to copy $file directory"
+                    copy_success=false
+                fi
+            else
+                # 파일인 경우
+                if cp "$source_file" "$target_file"; then
+                    copied_files+=("$file")
+                    echo "   ✅ $file updated"
+                else
+                    log_error "Failed to copy $file"
+                    copy_success=false
+                fi
+            fi
+        else
+            log_warning "$file not found in external repository"
+        fi
+    done
+    
+    # 임시 디렉토리 정리
+    rm -rf "$temp_dir"
+    
+    if $copy_success && [[ ${#copied_files[@]} -gt 0 ]]; then
+        log_success "$package_name 선택적 업데이트 완료"
+        echo ""
+        echo -e "${BLUE}📋 Updated files:${NC}"
+        for file in "${copied_files[@]}"; do
+            echo "   • $file"
+        done
+        echo ""
+        echo -e "${BLUE}💾 Backup available at:${NC} $backup_path"
+        return 0
+    else
+        log_error "Selective pull failed or no files were updated"
+        
+        # 실패 시 백업에서 복원
+        if [[ -d "$backup_path" ]]; then
+            log_info "🔄 Restoring from backup..."
+            restore_from_backup "$package_path" "$backup_path" "$package_name"
+        fi
+        return 1
+    fi
+}
+
 # Subtree Pull (외부 저장소 → cross-sdk-js) - 범용
 pull_from_external() {
     local package_name="${1:-}"
     local branch="${2:-}"
+    local selective="${3:-false}"  # 선택적 업데이트 플래그 추가
+    
+    # 선택적 업데이트인 경우 새 함수로 리다이렉트
+    if [[ "$selective" == "true" ]]; then
+        selective_pull_from_external "$package_name" "$branch"
+        return $?
+    fi
     
     # 패키지가 지정되지 않았으면 선택
     if [[ -z "$package_name" ]]; then
@@ -1252,6 +1388,23 @@ pull_all_enhanced() {
     log_info "🔄 Multiple package pull operation..."
     show_available_packages
     
+    # 선택적 업데이트 옵션 추가
+    echo -e "${BLUE}📝 Pull Options:${NC}"
+    echo "   1. Full pull (전체 패키지)"
+    echo "   2. Selective pull (src + package.json only)"
+    echo ""
+    
+    local pull_type
+    pull_type=$(safe_select "${YELLOW}❓ Pull 방식을 선택하세요${NC}" 2 1 "false" "true")
+    
+    local selective_mode="false"
+    if [[ "$pull_type" == "2" ]]; then
+        selective_mode="true"
+        log_info "🎯 선택적 업데이트 모드 (src + package.json)"
+    else
+        log_info "📦 전체 업데이트 모드"
+    fi
+    
     local packages_input
     local package_names=($(get_all_packages))
     packages_input=$(safe_select "${YELLOW}❓ 가져올 패키지를 선택하세요 (쉼표로 구분, 예: universal-provider,sign-client):${NC}" 999 "" "true" "false")
@@ -1276,14 +1429,22 @@ pull_all_enhanced() {
         local remote_name="${config##*:}"
         local default_branch=$(get_package_default_branch "$package")
         
-        if pull_from_external "$package" "$default_branch"; then
-            SUCCESSFUL_OPERATIONS+=("Pull: $package ← $remote_name/$default_branch")
+        if [[ "$selective_mode" == "true" ]]; then
+            if selective_pull_from_external "$package" "$default_branch"; then
+                SUCCESSFUL_OPERATIONS+=("Selective Pull: $package ← $remote_name/$default_branch (src + package.json)")
+            else
+                FAILED_OPERATIONS+=("Selective Pull: $package ← $remote_name/$default_branch")
+            fi
         else
-            FAILED_OPERATIONS+=("Pull: $package ← $remote_name/$default_branch")
+            if pull_from_external "$package" "$default_branch"; then
+                SUCCESSFUL_OPERATIONS+=("Pull: $package ← $remote_name/$default_branch")
+            else
+                FAILED_OPERATIONS+=("Pull: $package ← $remote_name/$default_branch")
+            fi
         fi
     done
     
-    log_success " 모든 Pull 작업 완료!"
+    log_success "모든 Pull 작업 완료!"
 }
 
 # 정리 함수 (스크립트 종료 시 호출)
@@ -1489,7 +1650,7 @@ safe_confirm_explicit() {
 
 # 사용법 출력 (업데이트)
 usage() {
-    echo -e "${CYAN}Usage: $0 {pull|push|setup|compare|backup|safe-sync} [package] [branch]${NC}"
+    echo -e "${CYAN}Usage: $0 {pull|push|setup|compare|backup|safe-sync|selective-pull} [package] [branch]${NC}"
     echo ""
     echo -e "${BLUE}🔧 Core Commands:${NC}"
     echo "  setup                      - Remote 저장소 설정"
@@ -1499,6 +1660,7 @@ usage() {
     echo ""
     echo -e "${BLUE}🔄 Sync Operations:${NC}"
     echo "  pull [package] [branch]    - 외부 저장소에서 패키지 가져오기"
+    echo "  selective-pull [package] [branch] - src 폴더와 package.json만 업데이트"
     echo "  push [package] [branch]    - 외부 저장소로 패키지 푸시하기"
     echo ""
     echo -e "${BLUE}📦 Available Packages:${NC}"
@@ -1514,10 +1676,12 @@ usage() {
     echo "  $0 compare                        # 🔍 패키지 선택 후 비교"
     echo "  $0 compare universal-provider     # 🔍 특정 패키지 비교"
     echo "  $0 pull sign-client main          # 📥 sign-client를 main에서 가져오기"
+    echo "  $0 selective-pull universal-provider # 📥 universal-provider의 src+package.json만 업데이트"
     echo "  $0 push universal-provider        # 📤 universal-provider 푸시 (브랜치 선택)"
     echo ""
     echo -e "${BLUE}🎯 Features:${NC}"
     echo "  • 🔒 자동 백업 및 복원"
+    echo "  • 🎯 선택적 파일 업데이트 (src + package.json)"
     echo "  • 🗑️  빌드 파일 자동 제외 (push 시)"
     echo "  • 🤖 GitHub PR 자동 생성"
     echo "  • 📊 상세한 작업 리포트"
@@ -1526,6 +1690,10 @@ usage() {
     echo -e "${BLUE}📂 Target Paths:${NC}"
     echo "  • universal-provider: providers/universal-provider ↔ cross-connect"
     echo "  • sign-client: packages/sign-client ↔ cross-connect"
+    echo ""
+    echo -e "${BLUE}📁 Selective Pull Files:${NC}"
+    echo "  • src/ (전체 소스 디렉토리)"
+    echo "  • package.json (패키지 설정 파일)"
 }
 
 # 메인 실행 로직 (수정)
@@ -1591,6 +1759,25 @@ main() {
                 fi
             else
                 pull_all_enhanced
+            fi
+            ;;
+        selective-pull)
+            check_git_status
+            setup_remotes
+            if [[ -n "$pkg_name" ]]; then
+                if selective_pull_from_external "$pkg_name" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Pull: $pkg_name ← $branch (src + package.json)")
+                else
+                    FAILED_OPERATIONS+=("Selective Pull: $pkg_name ← $branch")
+                fi
+            else
+                log_info "🎯 선택적 업데이트 모드 시작..."
+                pkg_name=$(select_package "Select package for selective pull")
+                if selective_pull_from_external "$pkg_name" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Pull: $pkg_name ← $branch (src + package.json)")
+                else
+                    FAILED_OPERATIONS+=("Selective Pull: $pkg_name ← $branch")
+                fi
             fi
             ;;
         push)

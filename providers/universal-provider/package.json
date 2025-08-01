@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/universal-provider",
   "description": "Universal Provider for Cross Connect Protocol",
-  "version": "2.19.10",
+  "version": "2.19.8",
   "author": "Nexus",
   "homepage": "https://github.com/to-nexus/cross-connect",
   "repository": {
@@ -44,7 +44,7 @@
     "prettier": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'"
   },
   "dependencies": {
-    "@to-nexus/sign-client": "^2.19.10",
+    "@to-nexus/sign-client": "workspace:*",
     "@walletconnect/events": "1.0.1",
     "@walletconnect/jsonrpc-http-connection": "1.0.8",
     "@walletconnect/jsonrpc-provider": "1.0.14",
@@ -58,9 +58,14 @@
     "lodash": "4.17.21"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "cosmos-wallet": "1.2.0",
     "ethereum-test-network": "0.1.6",
     "ethers": "5.7.0",
+    "rollup": "^4.45.1",
+    "rollup-plugin-esbuild": "^6.2.1",
     "uint8arrays": "3.0.0",
     "web3": "1.7.5"
   }
