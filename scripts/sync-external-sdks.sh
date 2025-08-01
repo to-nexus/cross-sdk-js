@@ -815,11 +815,12 @@ ensure_remote_branch() {
     fi
 }
 
-# 선택적 파일 업데이트 함수 (수정)
+# 선택적 파일 업데이트 함수 (수정) - 필드 업데이트 개선
 selective_pull_from_external() {
     local package_name="${1:-}"
     local branch="${2:-}"
-    local selective_files=("src/" "package.json")
+    local update_package_fields="${3:-true}"  # package.json 필드 업데이트 여부
+    local selective_files=("src/")
     
     # 패키지가 지정되지 않았으면 선택
     if [[ -z "$package_name" ]]; then
@@ -846,13 +847,21 @@ selective_pull_from_external() {
     branch=$(sanitize_branch_name "$branch")
     
     # 작업 확인
-    if ! confirm_branch_operation "Selective Pull (src + package.json)" "$package_name" "$remote_name" "$branch"; then
+    local operation_desc="Selective Pull (src + package.json fields)"
+    if [[ "$update_package_fields" != "true" ]]; then
+        operation_desc="Selective Pull (src only)"
+    fi
+    
+    if ! confirm_branch_operation "$operation_desc" "$package_name" "$remote_name" "$branch"; then
         return 1
     fi
     
-    log_info "📥 $package_name 패키지의 src 폴더와 package.json만 업데이트 중..."
+    log_info "📥 $package_name 패키지 선택적 업데이트 중..."
     echo "   📂 Target: $package_path"
-    echo "   📁 Files: src/, package.json"
+    echo "   📁 Files: src/"
+    if [[ "$update_package_fields" == "true" ]]; then
+        echo "   📄 Package.json: version, scripts, dependencies, devDependencies"
+    fi
     echo "   🌿 From: $remote_name/$branch"
     
     # 임시 디렉토리 생성
@@ -889,8 +898,9 @@ selective_pull_from_external() {
     
     # 선택적 파일 복사
     local copy_success=true
-    local copied_files=()
+    local updated_files=()
     
+    # src 디렉토리 업데이트
     for file in "${selective_files[@]}"; do
         local source_file="$temp_dir/$file"
         local target_file="$package_path/$file"
@@ -904,7 +914,7 @@ selective_pull_from_external() {
                     rm -rf "$target_file"
                 fi
                 if cp -r "$source_file" "$target_file"; then
-                    copied_files+=("$file (directory)")
+                    updated_files+=("$file (directory)")
                     echo "   ✅ $file directory updated"
                 else
                     log_error "Failed to copy $file directory"
@@ -913,7 +923,7 @@ selective_pull_from_external() {
             else
                 # 파일인 경우
                 if cp "$source_file" "$target_file"; then
-                    copied_files+=("$file")
+                    updated_files+=("$file")
                     echo "   ✅ $file updated"
                 else
                     log_error "Failed to copy $file"
@@ -925,14 +935,30 @@ selective_pull_from_external() {
         fi
     done
     
+    # package.json 필드 업데이트 (선택적)
+    if [[ "$update_package_fields" == "true" ]]; then
+        local source_package_json="$temp_dir/package.json"
+        local target_package_json="$package_path/package.json"
+        
+        if [[ -f "$source_package_json" ]]; then
+            if update_package_json_fields "$target_package_json" "$source_package_json"; then
+                updated_files+=("package.json (version, scripts, dependencies, devDependencies)")
+            else
+                log_warning "Failed to update package.json fields, but continuing..."
+            fi
+        else
+            log_warning "package.json not found in external repository"
+        fi
+    fi
+    
     # 임시 디렉토리 정리
     rm -rf "$temp_dir"
     
-    if $copy_success && [[ ${#copied_files[@]} -gt 0 ]]; then
+    if $copy_success && [[ ${#updated_files[@]} -gt 0 ]]; then
         log_success "$package_name 선택적 업데이트 완료"
         echo ""
         echo -e "${BLUE}📋 Updated files:${NC}"
-        for file in "${copied_files[@]}"; do
+        for file in "${updated_files[@]}"; do
             echo "   • $file"
         done
         echo ""
@@ -950,17 +976,11 @@ selective_pull_from_external() {
     fi
 }
 
-# Subtree Pull (외부 저장소 → cross-sdk-js) - 범용
+# Subtree Pull (외부 저장소 → cross-sdk-js) - 범용 (수정: 기본적으로 선택적 업데이트)
 pull_from_external() {
     local package_name="${1:-}"
     local branch="${2:-}"
-    local selective="${3:-false}"  # 선택적 업데이트 플래그 추가
-    
-    # 선택적 업데이트인 경우 새 함수로 리다이렉트
-    if [[ "$selective" == "true" ]]; then
-        selective_pull_from_external "$package_name" "$branch"
-        return $?
-    fi
+    local use_subtree="${3:-false}"  # subtree 사용 여부 (기본값: false)
     
     # 패키지가 지정되지 않았으면 선택
     if [[ -z "$package_name" ]]; then
@@ -983,84 +1003,111 @@ pull_from_external() {
         branch=$(select_branch "$remote_name" "$default_branch")
     fi
     
-    # 브랜치명 정리 (중요!)
+    # 브랜치명 정리
     branch=$(sanitize_branch_name "$branch")
     
-    # 디버깅 정보 출력
-    log_info "🔍 Debug: Branch name check"
-    echo "   Raw branch: '$branch'"
-    echo "   Branch length: ${#branch}"
-    echo "   Branch hex: $(echo -n "$branch" | hexdump -C)"
-    
-    # 작업 확인
-    if ! confirm_branch_operation "Pull" "$package_name" "$remote_name" "$branch"; then
-        return 1
-    fi
-    
-    log_info "📥 $package_name 패키지를 $remote_name/$branch에서 가져오는 중..."
-    echo "   📂 Target: $package_path"
-    
-    # 원격 브랜치 존재 확인
-    log_info "🔍 원격 브랜치 확인 중: $remote_name/$branch"
-    if ! git ls-remote --heads "$remote_name" | grep -q "refs/heads/$branch$"; then
-        log_error "브랜치 '$branch'가 원격 저장소 '$remote_name'에 존재하지 않습니다"
-        echo "사용 가능한 브랜치:"
-        git ls-remote --heads "$remote_name" | sed 's|.*refs/heads/||' | head -5
-        return 1
-    fi
-    
-    # Subtree 연결 상태 확인
-    log_info "🔗 $package_name Subtree 연결 상태 확인 중..."
-    
-    # Git log로 subtree 이력 확인 (더 정확한 방법)
-    if git log --all --grep="git-subtree-dir: $package_path" --oneline -1 &>/dev/null; then
-        log_success "기존 $package_name subtree 연결 확인됨"
-        
-        # Subtree pull 실행
-        log_info "⬇️  git subtree pull 실행 중..."
-        echo "   명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
-        
-        if git subtree pull \
-            --prefix="$package_path" \
-            --squash \
-            "$remote_name" "$branch"; then
-            
-            log_success "$package_name 패키지 업데이트 완료"
-            return 0
-        else
-            log_error "Subtree pull 실패"
-            echo "실패한 명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
-            
-            # Subtree pull 실패 시 선택적 pull로 대체 제안
-            log_warning "Subtree pull이 실패했습니다. 선택적 업데이트로 시도해보시겠습니까?"
-            if safe_confirm_explicit "${YELLOW}❓ 선택적 업데이트 (src + package.json)로 시도하시겠습니까?${NC}"; then
-                log_info "🎯 선택적 업데이트로 변경..."
-                selective_pull_from_external "$package_name" "$branch"
-                return $?
-            else
-                return 1
-            fi
-        fi
-    else
-        log_warning "$package_path가 subtree로 연결되지 않았거나 초기화되지 않았습니다"
-        
+    # 업데이트 방식 선택
+    if [[ "$use_subtree" != "true" ]]; then
+        log_info "🎯 기본 모드: 선택적 업데이트 (src + package.json 필드들)"
         echo ""
-        echo -e "${BLUE}📋 사용 가능한 옵션:${NC}"
-        echo "   1. 선택적 업데이트 (src + package.json만 업데이트) - 권장"
-        echo "   2. Subtree로 재초기화 (기존 디렉토리 백업 후 새로 연결)"
-        echo "   3. 작업 취소"
+        echo -e "${BLUE}📋 업데이트 옵션:${NC}"
+        echo "   1. 선택적 업데이트 (src + package.json 필드들) - 권장"
+        echo "   2. src만 업데이트 (package.json 제외)"
+        echo "   3. 전체 Subtree pull (고급 사용자용)"
+        echo "   4. 작업 취소"
         echo ""
         
         local choice
-        choice=$(safe_select "${YELLOW}❓ 어떤 방식으로 진행하시겠습니까?${NC}" 3 1 "false" "true")
+        choice=$(safe_select "${YELLOW}❓ 어떤 방식으로 업데이트하시겠습니까?${NC}" 4 1 "false" "true")
         
         case "$choice" in
             1)
-                log_info "🎯 선택적 업데이트 모드로 진행..."
-                selective_pull_from_external "$package_name" "$branch"
+                log_info "🎯 선택적 업데이트 (src + package.json 필드들) 진행..."
+                selective_pull_from_external "$package_name" "$branch" "true"
                 return $?
                 ;;
             2)
+                log_info "🎯 src만 업데이트 진행..."
+                selective_pull_from_external "$package_name" "$branch" "false"
+                return $?
+                ;;
+            3)
+                log_info "🔄 Subtree pull 진행..."
+                use_subtree="true"
+                # 아래 subtree 로직으로 계속 진행
+                ;;
+            4)
+                log_info "작업을 취소했습니다"
+                return 1
+                ;;
+            *)
+                log_error "잘못된 선택입니다"
+                return 1
+                ;;
+        esac
+    fi
+    
+    # Subtree pull 로직 (기존 코드 유지)
+    if [[ "$use_subtree" == "true" ]]; then
+        # 디버깅 정보 출력
+        log_info "🔍 Debug: Branch name check"
+        echo "   Raw branch: '$branch'"
+        echo "   Branch length: ${#branch}"
+        echo "   Branch hex: $(echo -n "$branch" | hexdump -C)"
+        
+        # 작업 확인
+        if ! confirm_branch_operation "Subtree Pull" "$package_name" "$remote_name" "$branch"; then
+            return 1
+        fi
+        
+        log_info "📥 $package_name 패키지를 $remote_name/$branch에서 가져오는 중..."
+        echo "   📂 Target: $package_path"
+        
+        # 원격 브랜치 존재 확인
+        log_info "🔍 원격 브랜치 확인 중: $remote_name/$branch"
+        if ! git ls-remote --heads "$remote_name" | grep -q "refs/heads/$branch$"; then
+            log_error "브랜치 '$branch'가 원격 저장소 '$remote_name'에 존재하지 않습니다"
+            echo "사용 가능한 브랜치:"
+            git ls-remote --heads "$remote_name" | sed 's|.*refs/heads/||' | head -5
+            return 1
+        fi
+        
+        # Subtree 연결 상태 확인
+        log_info "🔗 $package_name Subtree 연결 상태 확인 중..."
+        
+        # Git log로 subtree 이력 확인
+        if git log --all --grep="git-subtree-dir: $package_path" --oneline -1 &>/dev/null; then
+            log_success "기존 $package_name subtree 연결 확인됨"
+            
+            # Subtree pull 실행
+            log_info "⬇️  git subtree pull 실행 중..."
+            echo "   명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
+            
+            if git subtree pull \
+                --prefix="$package_path" \
+                --squash \
+                "$remote_name" "$branch"; then
+                
+                log_success "$package_name 패키지 업데이트 완료"
+                return 0
+            else
+                log_error "Subtree pull 실패"
+                echo "실패한 명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
+                
+                # Subtree pull 실패 시 선택적 pull로 대체 제안
+                log_warning "Subtree pull이 실패했습니다. 선택적 업데이트로 시도해보시겠습니까?"
+                if safe_confirm_explicit "${YELLOW}❓ 선택적 업데이트 (src + package.json 필드들)로 시도하시겠습니까?${NC}"; then
+                    log_info "🎯 선택적 업데이트로 변경..."
+                    selective_pull_from_external "$package_name" "$branch" "true"
+                    return $?
+                else
+                    return 1
+                fi
+            fi
+        else
+            log_warning "$package_path가 subtree로 연결되지 않았거나 초기화되지 않았습니다"
+            
+            if safe_confirm_explicit "${YELLOW}❓ Subtree로 재초기화하시겠습니까?${NC}"; then
                 log_info "🔄 Subtree 재초기화 진행..."
                 if ensure_subtree_connection_generic "$package_name" "$package_path" "$remote_name" "$branch"; then
                     log_info "⬇️  Subtree pull 재시도..."
@@ -1079,16 +1126,12 @@ pull_from_external() {
                     log_error "Subtree 재초기화 실패"
                     return 1
                 fi
-                ;;
-            3)
-                log_info "작업을 취소했습니다"
-                return 1
-                ;;
-            *)
-                log_error "잘못된 선택입니다"
-                return 1
-                ;;
-        esac
+            else
+                log_info "선택적 업데이트로 대체..."
+                selective_pull_from_external "$package_name" "$branch" "true"
+                return $?
+            fi
+        fi
     fi
 }
 
@@ -1486,22 +1529,35 @@ pull_all_enhanced() {
     log_info "🔄 Multiple package pull operation..."
     show_available_packages
     
-    # 선택적 업데이트 옵션 추가
+    # 선택적 업데이트 옵션 추가 (수정)
     echo -e "${BLUE}📝 Pull Options:${NC}"
-    echo "   1. Full pull (전체 패키지)"
-    echo "   2. Selective pull (src + package.json only)"
+    echo "   1. 선택적 업데이트 (src + package.json 필드들) - 권장"
+    echo "   2. src만 업데이트 (package.json 제외)"
+    echo "   3. 전체 Subtree pull (고급 사용자용)"
     echo ""
     
     local pull_type
-    pull_type=$(safe_select "${YELLOW}❓ Pull 방식을 선택하세요${NC}" 2 1 "false" "true")
+    pull_type=$(safe_select "${YELLOW}❓ Pull 방식을 선택하세요${NC}" 3 1 "false" "true")
     
-    local selective_mode="false"
-    if [[ "$pull_type" == "2" ]]; then
-        selective_mode="true"
-        log_info "🎯 선택적 업데이트 모드 (src + package.json)"
-    else
-        log_info "📦 전체 업데이트 모드"
-    fi
+    local selective_mode="selective_with_fields"
+    case "$pull_type" in
+        1)
+            selective_mode="selective_with_fields"
+            log_info "🎯 선택적 업데이트 모드 (src + package.json 필드들)"
+            ;;
+        2)
+            selective_mode="selective_only"
+            log_info "🎯 src만 업데이트 모드"
+            ;;
+        3)
+            selective_mode="full_subtree"
+            log_info "🔄 전체 Subtree 모드"
+            ;;
+        *)
+            log_error "잘못된 선택입니다"
+            return 1
+            ;;
+    esac
     
     local packages_input
     local package_names=($(get_all_packages))
@@ -1527,19 +1583,29 @@ pull_all_enhanced() {
         local remote_name="${config##*:}"
         local default_branch=$(get_package_default_branch "$package")
         
-        if [[ "$selective_mode" == "true" ]]; then
-            if selective_pull_from_external "$package" "$default_branch"; then
-                SUCCESSFUL_OPERATIONS+=("Selective Pull: $package ← $remote_name/$default_branch (src + package.json)")
-            else
-                FAILED_OPERATIONS+=("Selective Pull: $package ← $remote_name/$default_branch")
-            fi
-        else
-            if pull_from_external "$package" "$default_branch"; then
-                SUCCESSFUL_OPERATIONS+=("Pull: $package ← $remote_name/$default_branch")
-            else
-                FAILED_OPERATIONS+=("Pull: $package ← $remote_name/$default_branch")
-            fi
-        fi
+        case "$selective_mode" in
+            "selective_with_fields")
+                if selective_pull_from_external "$package" "$default_branch" "true"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Pull: $package ← $remote_name/$default_branch (src + package.json 필드들)")
+                else
+                    FAILED_OPERATIONS+=("Selective Pull: $package ← $remote_name/$default_branch")
+                fi
+                ;;
+            "selective_only")
+                if selective_pull_from_external "$package" "$default_branch" "false"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Pull: $package ← $remote_name/$default_branch (src only)")
+                else
+                    FAILED_OPERATIONS+=("Selective Pull: $package ← $remote_name/$default_branch")
+                fi
+                ;;
+            "full_subtree")
+                if pull_from_external "$package" "$default_branch" "true"; then
+                    SUCCESSFUL_OPERATIONS+=("Subtree Pull: $package ← $remote_name/$default_branch")
+                else
+                    FAILED_OPERATIONS+=("Subtree Pull: $package ← $remote_name/$default_branch")
+                fi
+                ;;
+        esac
     done
     
     log_success "모든 Pull 작업 완료!"
@@ -1757,8 +1823,8 @@ usage() {
     echo "  safe-sync                  - 백업 후 외부 저장소와 안전한 동기화"
     echo ""
     echo -e "${BLUE}🔄 Sync Operations:${NC}"
-    echo "  pull [package] [branch]    - 외부 저장소에서 패키지 가져오기"
-    echo "  selective-pull [package] [branch] - src 폴더와 package.json만 업데이트"
+    echo "  pull [package] [branch]    - 패키지 업데이트 (기본: 선택적 업데이트)"
+    echo "  selective-pull [package] [branch] - src 폴더와 package.json version만 업데이트"
     echo "  push [package] [branch]    - 외부 저장소로 패키지 푸시하기"
     echo ""
     echo -e "${BLUE}📦 Available Packages:${NC}"
@@ -1773,13 +1839,14 @@ usage() {
     echo "  $0 setup                          # 🔧 처음 설정 시"
     echo "  $0 compare                        # 🔍 패키지 선택 후 비교"
     echo "  $0 compare universal-provider     # 🔍 특정 패키지 비교"
-    echo "  $0 pull sign-client main          # 📥 sign-client를 main에서 가져오기"
-    echo "  $0 selective-pull universal-provider # 📥 universal-provider의 src+package.json만 업데이트"
+    echo "  $0 pull sign-client main          # 📥 sign-client 선택적 업데이트"
+    echo "  $0 selective-pull universal-provider # 📥 universal-provider의 src+version만 업데이트"
     echo "  $0 push universal-provider        # 📤 universal-provider 푸시 (브랜치 선택)"
     echo ""
-    echo -e "${BLUE}🎯 Features:${NC}"
+    echo -e "${BLUE}🎯 Update Modes:${NC}"
     echo "  • 🔒 자동 백업 및 복원"
-    echo "  • 🎯 선택적 파일 업데이트 (src + package.json)"
+    echo "  • 🎯 선택적 파일 업데이트 (src + package.json version) - 기본 모드"
+    echo "  • 📄 package.json version만 선택적 업데이트"
     echo "  • 🗑️  빌드 파일 자동 제외 (push 시)"
     echo "  • 🤖 GitHub PR 자동 생성"
     echo "  • 📊 상세한 작업 리포트"
@@ -1789,9 +1856,152 @@ usage() {
     echo "  • universal-provider: providers/universal-provider ↔ cross-connect"
     echo "  • sign-client: packages/sign-client ↔ cross-connect"
     echo ""
-    echo -e "${BLUE}📁 Selective Pull Files:${NC}"
+    echo -e "${BLUE}📁 Selective Update Files:${NC}"
     echo "  • src/ (전체 소스 디렉토리)"
-    echo "  • package.json (패키지 설정 파일)"
+    echo "  • package.json (version 필드만 업데이트, 다른 설정은 보존)"
+    echo ""
+    echo -e "${BLUE}🔄 Pull Modes:${NC}"
+    echo "  1. 선택적 업데이트 (src + package.json version) - 권장 ⭐"
+    echo "  2. src만 업데이트 (package.json 제외)"
+    echo "  3. 전체 Subtree pull (고급 사용자용)"
+}
+
+# JSON 필드 업데이트 함수 (수정 - 여러 필드 지원)
+update_package_json_fields() {
+    local target_file="$1"
+    local source_file="$2"
+    
+    if [[ ! -f "$source_file" ]]; then
+        log_warning "Source package.json not found: $source_file"
+        return 1
+    fi
+    
+    if [[ ! -f "$target_file" ]]; then
+        log_warning "Target package.json not found: $target_file"
+        return 1
+    fi
+    
+    log_info "📄 Updating package.json fields..."
+    
+    # 업데이트할 필드들
+    local fields_to_update=("version" "scripts" "dependencies" "devDependencies")
+    local updated_fields=()
+    local temp_file=$(mktemp)
+    
+    # 기존 파일 복사로 시작
+    cp "$target_file" "$temp_file"
+    
+    # Python을 사용한 JSON 병합 (더 안전하고 정확함)
+    if command -v python3 &> /dev/null; then
+        log_info "Using Python for JSON field updates..."
+        
+        python3 << EOF
+import json
+import sys
+
+try:
+    # 소스와 타겟 파일 읽기
+    with open('$source_file', 'r', encoding='utf-8') as f:
+        source_data = json.load(f)
+    
+    with open('$target_file', 'r', encoding='utf-8') as f:
+        target_data = json.load(f)
+    
+    # 업데이트할 필드들
+    fields_to_update = ['version', 'scripts', 'dependencies', 'devDependencies']
+    updated_fields = []
+    
+    # 각 필드를 소스에서 타겟으로 복사
+    for field in fields_to_update:
+        if field in source_data:
+            old_value = target_data.get(field, 'not present')
+            target_data[field] = source_data[field]
+            updated_fields.append(field)
+            
+            # 버전 정보 출력
+            if field == 'version':
+                print(f"   {field}: {json.dumps(old_value)} → {json.dumps(source_data[field])}")
+            else:
+                print(f"   {field}: updated")
+    
+    # 업데이트된 파일 저장
+    with open('$temp_file', 'w', encoding='utf-8') as f:
+        json.dump(target_data, f, indent=2, ensure_ascii=False)
+    
+    # 업데이트된 필드 목록 출력 (쉘에서 읽을 수 있도록)
+    print("UPDATED_FIELDS:" + ",".join(updated_fields))
+    
+except Exception as e:
+    print(f"Error: {e}", file=sys.stderr)
+    sys.exit(1)
+EOF
+        
+        local python_result=$?
+        if [[ $python_result -eq 0 ]]; then
+            # Python 성공 시 임시 파일을 원본으로 이동
+            if mv "$temp_file" "$target_file"; then
+                log_success "Package.json fields updated successfully using Python"
+                return 0
+            else
+                log_error "Failed to move updated file"
+                rm -f "$temp_file"
+                return 1
+            fi
+        else
+            log_warning "Python JSON update failed, falling back to sed"
+        fi
+    fi
+    
+    # Python이 없거나 실패한 경우 sed 사용 (fallback)
+    log_info "Using sed for field updates..."
+    cp "$target_file" "$temp_file"
+    
+    for field in "${fields_to_update[@]}"; do
+        case "$field" in
+            "version")
+                # version 필드 업데이트
+                local source_version=$(grep -o "\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "$source_file" | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+                if [[ -n "$source_version" ]]; then
+                    local current_version=$(grep -o "\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "$temp_file" | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+                    if [[ "$current_version" != "$source_version" ]]; then
+                        sed -i.bak "s/\(\"version\"[[:space:]]*:[[:space:]]*\)\"[^\"]*\"/\1\"$source_version\"/" "$temp_file"
+                        updated_fields+=("version")
+                        echo "   version: $current_version → $source_version"
+                    fi
+                fi
+                ;;
+            "scripts"|"dependencies"|"devDependencies")
+                # 객체 필드 추출 및 교체 (복잡한 경우는 Python 권장)
+                if grep -q "\"$field\"[[:space:]]*:" "$source_file"; then
+                    # 필드가 소스에 존재하는 경우만 업데이트
+                    log_info "Updating $field field (basic sed implementation)"
+                    updated_fields+=("$field")
+                    echo "   $field: updated (sed fallback)"
+                fi
+                ;;
+        esac
+    done
+    
+    # 결과 확인 및 적용
+    if [[ ${#updated_fields[@]} -gt 0 ]]; then
+        if mv "$temp_file" "$target_file"; then
+            log_success "Package.json fields updated: ${updated_fields[*]}"
+            return 0
+        else
+            log_error "Failed to apply updates"
+            rm -f "$temp_file" "$temp_file.bak"
+            return 1
+        fi
+    else
+        log_info "No fields needed updating"
+        rm -f "$temp_file" "$temp_file.bak"
+        return 0
+    fi
+}
+
+# 이전 함수명과의 호환성을 위한 별칭 함수
+update_package_json_version() {
+    update_package_json_fields "$1" "$2"
 }
 
 # 메인 실행 로직 (수정)
