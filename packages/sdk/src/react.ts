@@ -7,10 +7,14 @@ import {
   SendController,
   type ThemeMode
 } from '@to-nexus/appkit-core'
-import type { AppKitNetwork } from '@to-nexus/appkit/networks'
-import { bscMainnet, bscTestnet, crossMainnet, crossTestnet } from '@to-nexus/appkit/networks'
 import {
-  type AppKit as AppKitType,
+  bscMainnet,
+  bscTestnet,
+  contractData,
+  crossMainnet,
+  crossTestnet
+} from '@to-nexus/appkit/networks'
+import {
   createAppKit,
   getUniversalProvider,
   useAppKit,
@@ -63,84 +67,17 @@ export type CrossSdkParams = {
   redirectUrl?: string
   metadata?: Metadata
   themeMode?: ThemeMode
+  defaultNetwork?: SupportedNetworks
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode } = params
+  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork } = params
 
-  return initCrossSdk(projectId, redirectUrl, metadata, themeMode)
+  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork)
 }
 
 // Create modal
 const initCrossSdk = (
-  projectId: string,
-  redirectUrl?: string,
-  metadata?: Metadata,
-  themeMode?: ThemeMode
-) => {
-  const mergedMetadata = {
-    ...defaultMetadata,
-    ...metadata,
-    redirect: {
-      universal: redirectUrl
-    }
-  }
-
-  // 기존 코드 수정
-  const changeNetwork = () => {
-    const allNetworks = [crossMainnet, crossTestnet, bscTestnet, bscMainnet]
-
-    if (!crossTestnet?.id) {
-      return allNetworks as unknown as [AppKitNetwork, ...AppKitNetwork[]]
-    }
-
-    const matchedNetwork = allNetworks.find(network => network.id === crossTestnet.id)
-    const otherNetworks = allNetworks.filter(network => network.id !== crossTestnet.id)
-
-    return (matchedNetwork ? [matchedNetwork, ...otherNetworks] : allNetworks) as unknown as [
-      AppKitNetwork,
-      ...AppKitNetwork[]
-    ]
-  }
-
-  const networks = changeNetwork()
-
-  return createAppKit({
-    adapters: [ethersAdapter],
-    networks,
-    defaultNetwork: crossTestnet,
-    metadata: mergedMetadata,
-    projectId,
-    themeMode: themeMode || 'light',
-    features: {
-      swaps: false,
-      onramp: false,
-      receive: false,
-      send: false,
-      email: false,
-      emailShowWallets: false,
-      socials: false,
-      history: false,
-      analytics: false,
-      legalCheckbox: false
-    },
-    enableCoinbase: false,
-    customWallets: [
-      {
-        id: 'cross_wallet',
-        name: 'Cross Wallet',
-        image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
-        mobile_link: 'crossx://',
-        app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
-        play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet'
-      }
-    ],
-    allWallets: 'HIDE'
-  })
-}
-
-// Create modal
-const configureNetwork = (
   projectId: string,
   redirectUrl?: string,
   metadata?: Metadata,
@@ -155,29 +92,9 @@ const configureNetwork = (
     }
   }
 
-  console.log('###?? initCrossSdk : defaultNetwork ', defaultNetwork)
-
-  const changeNetwork = () => {
-    const allNetworks = [crossMainnet, crossTestnet, bscTestnet, bscMainnet]
-
-    if (!defaultNetwork?.id) {
-      return allNetworks as unknown as [AppKitNetwork, ...AppKitNetwork[]]
-    }
-
-    const matchedNetwork = allNetworks.find(network => network.id === defaultNetwork.id)
-    const otherNetworks = allNetworks.filter(network => network.id !== defaultNetwork.id)
-
-    return (matchedNetwork ? [matchedNetwork, ...otherNetworks] : allNetworks) as unknown as [
-      AppKitNetwork,
-      ...AppKitNetwork[]
-    ]
-  }
-
-  const networks = changeNetwork()
-
   return createAppKit({
     adapters: [ethersAdapter],
-    networks,
+    networks: [crossTestnet, crossMainnet, bscTestnet, bscMainnet],
     defaultNetwork,
     metadata: mergedMetadata,
     projectId,
@@ -212,7 +129,6 @@ const configureNetwork = (
 export {
   initCrossSdkWithParams,
   initCrossSdk,
-  configureNetwork,
   useAppKit,
   useAppKitState,
   useAppKitTheme,
@@ -234,5 +150,5 @@ export {
   UniversalProvider,
   getUniversalProvider,
   ConstantsUtil,
-  type AppKitType
+  contractData
 }

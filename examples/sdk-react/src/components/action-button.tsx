@@ -2,16 +2,11 @@ import { useEffect, useState } from 'react'
 
 import {
   AccountController,
-  type AppKitType,
   ConnectionController,
   ConstantsUtil,
   SendController,
   UniversalProvider,
-  bscMainnet,
-  bscTestnet,
-  configureNetwork,
-  crossMainnet,
-  crossTestnet,
+  contractData,
   getUniversalProvider,
   initCrossSdk,
   useAppKit,
@@ -67,29 +62,6 @@ const metadata = {
   icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
 }
 
-const contractData = {
-  612044: {
-    erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
-    erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
-    network: crossTestnet
-  },
-  612055: {
-    erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
-    erc721: '',
-    network: crossMainnet
-  },
-  97: {
-    erc20: '',
-    erc721: '',
-    network: bscTestnet
-  },
-  56: {
-    erc20: '',
-    erc721: '',
-    network: bscMainnet
-  }
-}
-
 initCrossSdk(projectId, redirectUrl, metadata, 'dark')
 
 export function ActionButtonList() {
@@ -103,7 +75,6 @@ export function ActionButtonList() {
   const { connect } = useAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
 
-  const [appKitClient, setAppKitClient] = useState<AppKitType | null>(null)
   // erc20 token contract address
   const ERC20_ADDRESS = contractData[network.chainId as keyof typeof contractData]
     .erc20 as `0x${string}`
@@ -131,17 +102,6 @@ export function ActionButtonList() {
   useEffect(() => {
     console.log('contractArgs', JSON.stringify(contractArgs?.args))
   }, [contractArgs?.args])
-
-  useEffect(() => {
-    const targetNetwork = contractData[network.chainId as keyof typeof contractData].network
-    if (!appKitClient) {
-      const appKit = configureNetwork(projectId, redirectUrl, metadata, 'dark', targetNetwork)
-      setAppKitClient(appKit)
-    } else {
-      switchNetwork(targetNetwork)
-    }
-    //
-  }, [network.chainId])
 
   // used for connecting wallet with wallet list
   function handleConnect() {
