@@ -547,27 +547,27 @@ enhanced_select_branch() {
         sleep 1
         
         local choice
-        choice=$(safe_select "${YELLOW}❓ Choose option (1-5):${NC}" 5 1 "false" "true")
+        choice=$(safe_select "브랜치를 선택하세요" 5 1 "false" "true")
         
         case "$choice" in
             1)
-                echo "sync/$(date +%Y%m%d-%H%M)-$(git rev-parse --short HEAD)"
+                printf "sync/$(date +%Y%m%d-%H%M)-$(git rev-parse --short HEAD)"
                 ;;
             2)
                 local commit_msg=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "update")
-                echo "feat/$(echo "$commit_msg" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')"
+                printf "feat/$(echo "$commit_msg" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')"
                 ;;
             3)
-                echo "update/crosswallet-rn-$(date +%Y%m%d-%H%M)"
+                printf "update/crosswallet-rn-$(date +%Y%m%d-%H%M)"
                 ;;
             4)
-                echo "hotfix/urgent-$(date +%m%d-%H%M)"
+                printf "hotfix/urgent-$(date +%m%d-%H%M)"
                 ;;
             5)
                 local custom_branch
-                custom_branch=$(safe_select "${YELLOW}❓ 새 브랜치명을 입력하세요:${NC}" 999 "" "true" "false")
+                custom_branch=$(safe_select "새 브랜치명을 입력하세요" 999 "" "true" "false")
                 if [[ -n "$custom_branch" ]]; then
-                    echo "$custom_branch"
+                    printf "%s" "$custom_branch"
                 else
                     log_error "브랜치명을 입력해주세요."
                     exit 1
@@ -582,46 +582,44 @@ enhanced_select_branch() {
         # Pull용: 기존 브랜치 선택
         if [[ ${#branches[@]} -eq 0 ]]; then
             log_warning "브랜치 목록을 가져올 수 없습니다. 기본 브랜치 '$default_branch' 사용"
-            echo "$default_branch"
+            printf "%s" "$default_branch"
             return
         fi
         
         echo ""
-        echo "=== $remote_name 저장소의 사용 가능한 브랜치 ==="
+        echo "=== $remote_name 저장소의 사용 가능한 브랜치 ===" >&2
+        local default_position=1
         for i in "${!branches[@]}"; do
             local branch="${branches[$i]}"
             if [[ "$branch" == "$default_branch" ]]; then
-                echo "  $((i+1)). $branch (기본)"
+                echo "  $((i+1)). $branch [DEFAULT]" >&2
+                default_position=$((i+1))
             else
-                echo "  $((i+1)). $branch"
+                echo "  $((i+1)). $branch" >&2
             fi
         done
-        echo "  0. 새로운 브랜치명 직접 입력"
-        echo ""
+        echo "  0. 새로운 브랜치명 직접 입력" >&2
+        echo "" >&2
+        
+        # 강제 출력 플러시
+        exec 2>&2
+        sleep 1
         
         local choice
-        choice=$(safe_select "${YELLOW}❓ 브랜치를 선택하세요:${NC}" ${#branches[@]} "1" "true" "true")
+        choice=$(safe_select "브랜치를 선택하세요" ${#branches[@]} "$default_position" "true" "true")
         
-        # 기본값 처리 (1번 선택 = 첫 번째 브랜치, 보통 기본 브랜치)
-        if [[ "$choice" == "1" ]]; then
-            # 기본 브랜치를 찾아서 반환
-            for branch in "${branches[@]}"; do
-                if [[ "$branch" == "$default_branch" ]]; then
-                    echo "$default_branch"
-                    return
-                fi
-            done
-            # 기본 브랜치가 없으면 첫 번째 브랜치
-            echo "${branches[0]}"
+        # 기본값 처리 (기본 브랜치 위치로 선택)
+        if [[ "$choice" == "$default_position" ]]; then
+            printf "%s" "$default_branch"
             return
         fi
         
         # 새 브랜치명 직접 입력
         if [[ "$choice" == "0" ]]; then
             local new_branch
-            new_branch=$(safe_select "${YELLOW}❓ 새 브랜치명을 입력하세요:${NC}" 999 "" "true" "false")
+            new_branch=$(safe_select "새 브랜치명을 입력하세요" 999 "" "true" "false")
             if [[ -n "$new_branch" ]]; then
-                echo "$new_branch"
+                printf "%s" "$new_branch"
                 return
             else
                 log_error "브랜치명을 입력해주세요."
@@ -632,14 +630,14 @@ enhanced_select_branch() {
         # 숫자로 선택
         if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#branches[@]} ]]; then
             local selected_branch="${branches[$((choice-1))]}"
-            echo "$selected_branch"
+            printf "%s" "$selected_branch"
             return
         fi
         
         # 브랜치명 직접 입력 확인
         for branch in "${branches[@]}"; do
             if [[ "$branch" == "$choice" ]]; then
-                echo "$choice"
+                printf "%s" "$choice"
                 return
             fi
         done
@@ -654,7 +652,9 @@ select_branch() {
     local remote_name=$1
     local default_branch=${2:-main}
     
-    enhanced_select_branch "$remote_name" "$default_branch" "false"
+    local result
+    result=$(enhanced_select_branch "$remote_name" "$default_branch" "false")
+    printf "%s" "$result"
 }
 
 # 브랜치별 작업 확인
@@ -1155,9 +1155,11 @@ compare_with_external() {
     # 브랜치가 지정되지 않았으면 선택
     if [[ -z "$branch" ]]; then
         branch=$(select_branch "$remote_name" "$default_branch")
+        # 개행 문자 제거
+        branch=$(echo "$branch" | tr -d '\n\r')
     fi
     
-    log_info "🔍 $package_name 패키지를 외부 저장소 $remote_name/$branch와 비교 중..."
+    log_info "🔍 $package_name 패키지를 외부 저장소 ${remote_name}/${branch}와 비교 중..."
     
     local temp_dir=$(mktemp -d)
     git clone "https://github.com/to-nexus/$remote_name.git" "$temp_dir" --depth=1 --branch="$branch"
@@ -1358,7 +1360,7 @@ clear_input_buffer() {
 safe_read() {
     local prompt="$1"
     local var_name="$2"
-    local timeout=${3:-30}  # 기본 30초 타임아웃
+    local timeout=${3:-60}  # 기본 60초 타임아웃
     
     # 입력 버퍼 정리
     clear_input_buffer
@@ -1424,9 +1426,9 @@ safe_select() {
     while true; do
         local display_prompt="$prompt"
         if [[ "$allow_default" == "true" && -n "$default" ]]; then
-            display_prompt="${prompt} (default: $default) "
+            display_prompt="${prompt} (default $default): "
         else
-            display_prompt="${prompt} "
+            display_prompt="${prompt}: "
         fi
         
         if safe_read "$display_prompt" choice; then
@@ -1534,7 +1536,7 @@ main() {
     check_project_root
     
     local command="${1:-}"
-    local package="${2:-}"
+    local pkg_name="${2:-}"
     local branch="${3:-}"
     
     # 헤더 출력 (명령어가 있을 때만)
@@ -1556,9 +1558,9 @@ main() {
         compare)
             check_git_status
             setup_remotes
-            if [[ -n "$package" ]]; then
-                log_info "📊 $package 패키지 비교 시작..."
-                compare_with_external "$package" "$branch"
+            if [[ -n "$pkg_name" ]]; then
+                log_info "📊 $pkg_name 패키지 비교 시작..."
+                compare_with_external "$pkg_name" "$branch"
             else
                 log_info "📊 패키지 비교 시작..."
                 compare_with_external
@@ -1570,22 +1572,22 @@ main() {
         safe-sync)
             check_git_status
             setup_remotes
-            if [[ -n "$package" ]]; then
+            if [[ -n "$pkg_name" ]]; then
                 # 패키지가 지정된 경우 비대화형 모드
-                safe_sync false "$package" "$branch"
+                safe_sync false "$pkg_name" "$branch"
             else
                 # 패키지가 지정되지 않은 경우 대화형 모드
-                safe_sync true "$package" "$branch"
+                safe_sync true "$pkg_name" "$branch"
             fi
             ;;
         pull)
             check_git_status
             setup_remotes
-            if [[ -n "$package" ]]; then
-                if pull_from_external "$package" "$branch"; then
-                    SUCCESSFUL_OPERATIONS+=("Pull: $package ← $branch")
+            if [[ -n "$pkg_name" ]]; then
+                if pull_from_external "$pkg_name" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Pull: $pkg_name ← $branch")
                 else
-                    FAILED_OPERATIONS+=("Pull: $package ← $branch")
+                    FAILED_OPERATIONS+=("Pull: $pkg_name ← $branch")
                 fi
             else
                 pull_all_enhanced
@@ -1599,11 +1601,11 @@ main() {
                 log_info "⏭️  Push operation cancelled"
                 exit 0
             fi
-            if [[ -n "$package" ]]; then
-                if push_to_external "$package" "$branch"; then
-                    SUCCESSFUL_OPERATIONS+=("Push: $package → $branch")
+            if [[ -n "$pkg_name" ]]; then
+                if push_to_external "$pkg_name" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Push: $pkg_name → $branch")
                 else
-                    FAILED_OPERATIONS+=("Push: $package → $branch")
+                    FAILED_OPERATIONS+=("Push: $pkg_name → $branch")
                 fi
             else
                 push_to_external "$branch"

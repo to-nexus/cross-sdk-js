@@ -50,7 +50,11 @@
     "run:examples": "pnpm run build && cd examples && pnpm run examples",
     "packages:version:switch": "node scripts/dependency-switcher.cjs",
     "push:external": "bash scripts/sync-external-sdks.sh push",
-    "pull:external": "bash scripts/sync-external-sdks.sh pull"
+    "pull:external": "bash scripts/sync-external-sdks.sh pull",
+    "pull:external:sign-client": "bash scripts/sync-external-sdks.sh pull sign-client",
+    "pull:external:universal": "bash scripts/sync-external-sdks.sh pull universal-provider",
+    "compare:external:sign-client": "bash scripts/sync-external-sdks.sh compare sign-client",
+    "compare:external:universal": "bash scripts/sync-external-sdks.sh compare universal-provider"
   },
   "devDependencies": {
     "@changesets/changelog-github": "0.5.0",
