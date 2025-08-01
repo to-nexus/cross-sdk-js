@@ -1000,12 +1000,6 @@ pull_from_external() {
     log_info "📥 $package_name 패키지를 $remote_name/$branch에서 가져오는 중..."
     echo "   📂 Target: $package_path"
     
-    # Subtree 연결 확인
-    if ! ensure_subtree_connection_generic "$package_name" "$package_path" "$remote_name"; then
-        log_error "Subtree 연결에 실패했습니다"
-        return 1
-    fi
-    
     # 원격 브랜치 존재 확인
     log_info "🔍 원격 브랜치 확인 중: $remote_name/$branch"
     if ! git ls-remote --heads "$remote_name" | grep -q "refs/heads/$branch$"; then
@@ -1015,21 +1009,86 @@ pull_from_external() {
         return 1
     fi
     
-    # Subtree pull 실행
-    log_info "⬇️  git subtree pull 실행 중..."
-    echo "   명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
+    # Subtree 연결 상태 확인
+    log_info "🔗 $package_name Subtree 연결 상태 확인 중..."
     
-    if git subtree pull \
-        --prefix="$package_path" \
-        --squash \
-        "$remote_name" "$branch"; then
+    # Git log로 subtree 이력 확인 (더 정확한 방법)
+    if git log --all --grep="git-subtree-dir: $package_path" --oneline -1 &>/dev/null; then
+        log_success "기존 $package_name subtree 연결 확인됨"
         
-        log_success "$package_name 패키지 업데이트 완료"
-        return 0
+        # Subtree pull 실행
+        log_info "⬇️  git subtree pull 실행 중..."
+        echo "   명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
+        
+        if git subtree pull \
+            --prefix="$package_path" \
+            --squash \
+            "$remote_name" "$branch"; then
+            
+            log_success "$package_name 패키지 업데이트 완료"
+            return 0
+        else
+            log_error "Subtree pull 실패"
+            echo "실패한 명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
+            
+            # Subtree pull 실패 시 선택적 pull로 대체 제안
+            log_warning "Subtree pull이 실패했습니다. 선택적 업데이트로 시도해보시겠습니까?"
+            if safe_confirm_explicit "${YELLOW}❓ 선택적 업데이트 (src + package.json)로 시도하시겠습니까?${NC}"; then
+                log_info "🎯 선택적 업데이트로 변경..."
+                selective_pull_from_external "$package_name" "$branch"
+                return $?
+            else
+                return 1
+            fi
+        fi
     else
-        log_error "Subtree pull 실패"
-        echo "실패한 명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
-        return 1
+        log_warning "$package_path가 subtree로 연결되지 않았거나 초기화되지 않았습니다"
+        
+        echo ""
+        echo -e "${BLUE}📋 사용 가능한 옵션:${NC}"
+        echo "   1. 선택적 업데이트 (src + package.json만 업데이트) - 권장"
+        echo "   2. Subtree로 재초기화 (기존 디렉토리 백업 후 새로 연결)"
+        echo "   3. 작업 취소"
+        echo ""
+        
+        local choice
+        choice=$(safe_select "${YELLOW}❓ 어떤 방식으로 진행하시겠습니까?${NC}" 3 1 "false" "true")
+        
+        case "$choice" in
+            1)
+                log_info "🎯 선택적 업데이트 모드로 진행..."
+                selective_pull_from_external "$package_name" "$branch"
+                return $?
+                ;;
+            2)
+                log_info "🔄 Subtree 재초기화 진행..."
+                if ensure_subtree_connection_generic "$package_name" "$package_path" "$remote_name" "$branch"; then
+                    log_info "⬇️  Subtree pull 재시도..."
+                    if git subtree pull \
+                        --prefix="$package_path" \
+                        --squash \
+                        "$remote_name" "$branch"; then
+                        
+                        log_success "$package_name 패키지 업데이트 완료"
+                        return 0
+                    else
+                        log_error "Subtree pull 재시도 실패"
+                        return 1
+                    fi
+                else
+                    log_error "Subtree 재초기화 실패"
+                    return 1
+                fi
+                ;;
+            3)
+                log_info "작업을 취소했습니다"
+                return 1
+                ;;
+            *)
+                log_error "잘못된 선택입니다"
+                return 1
+                ;;
+        esac
     fi
 }
 
