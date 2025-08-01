@@ -982,9 +982,7 @@ pull_from_external() {
     if git subtree pull \
         --prefix="$package_path" \
         --squash \
-        "$remote_name" "$branch" \
-        --strategy=subtree \
-        -X subtree="$package_path/"; then
+        "$remote_name" "$branch"; then
         
         log_success "$package_name 패키지 업데이트 완료"
         return 0
