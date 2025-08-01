@@ -647,6 +647,17 @@ enhanced_select_branch() {
     fi
 }
 
+# 브랜치명 정리 함수 (추가)
+sanitize_branch_name() {
+    local branch_name="$1"
+    # 앞뒤 공백, 탭, 개행 문자 제거
+    branch_name=$(echo "$branch_name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    # 제어 문자 제거
+    branch_name=$(echo "$branch_name" | tr -d '[:cntrl:]')
+    # 결과 출력
+    echo "$branch_name"
+}
+
 # 브랜치 선택 함수 (기존 함수 교체)
 select_branch() {
     local remote_name=$1
@@ -654,6 +665,8 @@ select_branch() {
     
     local result
     result=$(enhanced_select_branch "$remote_name" "$default_branch" "false")
+    # 브랜치명 정리
+    result=$(sanitize_branch_name "$result")
     printf "%s" "$result"
 }
 
@@ -802,7 +815,7 @@ ensure_remote_branch() {
     fi
 }
 
-# 선택적 파일 업데이트 함수 (새로 추가)
+# 선택적 파일 업데이트 함수 (수정)
 selective_pull_from_external() {
     local package_name="${1:-}"
     local branch="${2:-}"
@@ -829,6 +842,9 @@ selective_pull_from_external() {
         branch=$(select_branch "$remote_name" "$default_branch")
     fi
     
+    # 브랜치명 정리 (중요!)
+    branch=$(sanitize_branch_name "$branch")
+    
     # 작업 확인
     if ! confirm_branch_operation "Selective Pull (src + package.json)" "$package_name" "$remote_name" "$branch"; then
         return 1
@@ -845,11 +861,14 @@ selective_pull_from_external() {
     
     # 외부 저장소 clone
     log_info "📥 Cloning external repository..."
+    echo "   명령어: git clone --depth=1 --branch=\"$branch\" \"https://github.com/to-nexus/$remote_name.git\" \"$temp_dir\""
+    
     if git clone --depth=1 --branch="$branch" "https://github.com/to-nexus/$remote_name.git" "$temp_dir" 2>/dev/null; then
         clone_success=true
         log_success "External repository cloned successfully"
     else
         log_error "Failed to clone external repository"
+        echo "실패한 명령어: git clone --depth=1 --branch=\"$branch\" \"https://github.com/to-nexus/$remote_name.git\" \"$temp_dir\""
         rm -rf "$temp_dir"
         return 1
     fi
@@ -964,6 +983,15 @@ pull_from_external() {
         branch=$(select_branch "$remote_name" "$default_branch")
     fi
     
+    # 브랜치명 정리 (중요!)
+    branch=$(sanitize_branch_name "$branch")
+    
+    # 디버깅 정보 출력
+    log_info "🔍 Debug: Branch name check"
+    echo "   Raw branch: '$branch'"
+    echo "   Branch length: ${#branch}"
+    echo "   Branch hex: $(echo -n "$branch" | hexdump -C)"
+    
     # 작업 확인
     if ! confirm_branch_operation "Pull" "$package_name" "$remote_name" "$branch"; then
         return 1
@@ -978,7 +1006,19 @@ pull_from_external() {
         return 1
     fi
     
+    # 원격 브랜치 존재 확인
+    log_info "🔍 원격 브랜치 확인 중: $remote_name/$branch"
+    if ! git ls-remote --heads "$remote_name" | grep -q "refs/heads/$branch$"; then
+        log_error "브랜치 '$branch'가 원격 저장소 '$remote_name'에 존재하지 않습니다"
+        echo "사용 가능한 브랜치:"
+        git ls-remote --heads "$remote_name" | sed 's|.*refs/heads/||' | head -5
+        return 1
+    fi
+    
     # Subtree pull 실행
+    log_info "⬇️  git subtree pull 실행 중..."
+    echo "   명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
+    
     if git subtree pull \
         --prefix="$package_path" \
         --squash \
@@ -988,6 +1028,7 @@ pull_from_external() {
         return 0
     else
         log_error "Subtree pull 실패"
+        echo "실패한 명령어: git subtree pull --prefix=\"$package_path\" --squash \"$remote_name\" \"$branch\""
         return 1
     fi
 }
