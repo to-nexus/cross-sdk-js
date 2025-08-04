@@ -186,9 +186,9 @@ log_header() {
 # 아름다운 헤더 출력
 print_header() {
     echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                  Git Subtree Sync Script                      ║${NC}"
-    echo -e "${CYAN}║              cross-sdk-js ↔ cross-connect                     ║${NC}"
-    echo -e "${CYAN}║                  Multi-Package Sync System                    ║${NC}"
+    echo -e "${CYAN}║                  Git Subtree Sync Script                       ║${NC}"
+    echo -e "${CYAN}║              cross-sdk-js ↔ cross-connect                      ║${NC}"
+    echo -e "${CYAN}║                  Multi-Package Sync System                     ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${BLUE}📦 Supported Packages:${NC}"
@@ -860,7 +860,7 @@ selective_pull_from_external() {
     echo "   📂 Target: $package_path"
     echo "   📁 Files: src/"
     if [[ "$update_package_fields" == "true" ]]; then
-        echo "   📄 Package.json: version, scripts, dependencies, devDependencies"
+        echo "   📄 Package.json: version, scripts, dependencies"
     fi
     echo "   🌿 From: $remote_name/$branch"
     
@@ -937,17 +937,30 @@ selective_pull_from_external() {
     
     # package.json 필드 업데이트 (선택적)
     if [[ "$update_package_fields" == "true" ]]; then
-        local source_package_json="$temp_dir/package.json"
+        # 수정: 패키지별 package.json 경로 사용
+        local source_package_json="$temp_dir/providers/$package_name/package.json"
         local target_package_json="$package_path/package.json"
+        
+        # universal-provider와 sign-client에 따라 경로 조정
+        if [[ "$package_name" == "sign-client" ]]; then
+            source_package_json="$temp_dir/packages/$package_name/package.json"
+        elif [[ "$package_name" == "universal-provider" ]]; then
+            source_package_json="$temp_dir/providers/$package_name/package.json"
+        fi
+        
+        log_info "📄 Source package.json: $source_package_json"
+        log_info "📄 Target package.json: $target_package_json"
         
         if [[ -f "$source_package_json" ]]; then
             if update_package_json_fields "$target_package_json" "$source_package_json"; then
-                updated_files+=("package.json (version, scripts, dependencies, devDependencies)")
+                updated_files+=("package.json (version, scripts, dependencies)")
             else
                 log_warning "Failed to update package.json fields, but continuing..."
             fi
         else
-            log_warning "package.json not found in external repository"
+            log_warning "Package-specific package.json not found at: $source_package_json"
+            log_info "Available files in external repo:"
+            find "$temp_dir" -name "package.json" -type f | head -5
         fi
     fi
     
@@ -1135,157 +1148,153 @@ pull_from_external() {
     fi
 }
 
-# Subtree Push (cross-sdk-js → 외부 저장소) - 범용
-push_to_external() {
+# 선택적 Push 함수 (새로 추가)
+selective_push_to_external() {
     local package_name="${1:-}"
     local branch="${2:-}"
-    
-    # 패키지가 지정되지 않았으면 선택
-    if [[ -z "$package_name" ]]; then
-        package_name=$(select_package "Select package to push")
-    fi
-    
-    # 패키지 설정 확인
-    if [[ -z "$(get_package_config "$package_name")" ]]; then
-        log_error "Unknown package: $package_name"
-        return 1
-    fi
+    local push_package_fields="${3:-true}"  # package.json 필드 push 여부
     
     local config=$(get_package_config "$package_name")
     local package_path="${config%%:*}"
     local remote_name="${config##*:}"
-    local default_branch=$(get_package_default_branch "$package_name")
     
-    # 브랜치가 지정되지 않았으면 선택 (push용)
-    if [[ -z "$branch" ]]; then
-        branch=$(enhanced_select_branch "$remote_name" "$default_branch" "true")
-    fi
-    
-    # 작업 확인
-    if ! confirm_branch_operation "Push" "$package_name" "$remote_name" "$branch"; then
-        return 1
-    fi
-    
-    echo -e "\n${CYAN}╔══════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC} Processing Push: ${YELLOW}$package_name${NC} ${CYAN}║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════╝${NC}"
-    
+    log_info "📤 $package_name 패키지 선택적 Push 중..."
     echo "   📂 Source: $package_path"
-    echo "   🎯 Target: $remote_name/$branch ($package_path)"
-    echo "   🔗 Repository: https://github.com/to-nexus/$remote_name.git"
-    echo ""
+    echo "   📁 Files: src/"
+    if [[ "$push_package_fields" == "true" ]]; then
+        echo "   📄 Package.json: version, scripts, dependencies"
+    fi
+    echo "   🎯 To: $remote_name/$branch"
     
-    # Subtree 연결 확인
-    if ! ensure_subtree_connection_generic "$package_name" "$package_path" "$remote_name"; then
-        log_error "Subtree 연결에 실패했습니다"
+    # 임시 디렉토리 생성
+    local temp_dir=$(mktemp -d)
+    
+    # 원격 저장소 clone
+    log_info "📥 Cloning target repository..."
+    if ! git clone "https://github.com/to-nexus/$remote_name.git" "$temp_dir/repo" --depth=1 --branch="$branch" 2>/dev/null; then
+        log_error "Failed to clone target repository"
+        rm -rf "$temp_dir"
         return 1
     fi
     
-    # 원격 브랜치 확인 및 생성
-    if ! ensure_remote_branch "$remote_name" "$branch"; then
-        log_error "원격 브랜치 준비에 실패했습니다"
+    # 패키지별 경로 설정
+    local target_package_path="$temp_dir/repo"
+    if [[ "$package_name" == "sign-client" ]]; then
+        target_package_path="$temp_dir/repo/packages/$package_name"
+    elif [[ "$package_name" == "universal-provider" ]]; then
+        target_package_path="$temp_dir/repo/providers/$package_name"
+    fi
+    
+    # 타겟 패키지 디렉토리 확인/생성
+    if [[ ! -d "$target_package_path" ]]; then
+        log_info "📁 Creating target package directory in remote repo"
+        mkdir -p "$target_package_path"
+    fi
+    
+    # 백업 생성 (로컬)
+    local backup_path
+    if ! backup_path=$(create_package_backup "$package_path" "$package_name" "selective-push"); then
+        log_error "Failed to create backup, aborting selective push"
+        rm -rf "$temp_dir"
         return 1
     fi
     
-    # 변경사항 확인
-    log_info "🔍 Checking recent changes in $package_name..."
-    if git diff --quiet HEAD~5 HEAD -- "$package_path" 2>/dev/null; then
-        log_warning "No recent changes in last 5 commits"
-        if ! safe_confirm_explicit "${YELLOW}❓ Push anyway?${NC}"; then
-            log_info "⏭️  Skipped $package_name"
-            return 0
+    # 선택적 파일 복사
+    local copy_success=true
+    local pushed_files=()
+    
+    # src 디렉토리 복사
+    if [[ -d "$package_path/src" ]]; then
+        log_info "📄 Copying src directory..."
+        if [[ -d "$target_package_path/src" ]]; then
+            rm -rf "$target_package_path/src"
+        fi
+        if cp -r "$package_path/src" "$target_package_path/src"; then
+            pushed_files+=("src/ (directory)")
+            echo "   ✅ src directory copied"
+        else
+            log_error "Failed to copy src directory"
+            copy_success=false
         fi
     else
-        log_success "Recent changes found:"
-        git log --oneline -3 --pretty=format:"   ${GREEN}%h${NC} %s ${YELLOW}(%cr)${NC}" -- "$package_path"
-        echo ""
+        log_warning "src directory not found in local package"
     fi
     
-    # 백업 생성
-    local backup_path
-    if ! backup_path=$(create_package_backup "$package_path" "$package_name" "push"); then
-        log_error "Failed to create backup, aborting push"
-        return 1
-    fi
-    
-    # 제외 파일들 임시 제거
-    apply_exclusions "$package_path"
-    
-    # Git에 변경사항 스테이징
-    git add "$package_path"
-    
-    # 변경사항이 있는지 확인
-    if git diff --cached --quiet; then
-        log_warning "No changes to commit after exclusions"
-        restore_from_backup "$package_path" "$backup_path" "$package_name"
-        return 0
-    fi
-    
-    # 임시 커밋 생성
-    local temp_commit_msg="temp: prepare $package_name for subtree push (exclude build files)"
-    git commit -m "$temp_commit_msg"
-    
-    # Subtree 푸시 실행
-    log_info "⬆️  Pushing $package_name to $remote_name/$branch..."
-    echo "   🌿 Branch: $branch"
-    echo "   📤 This may take a moment..."
-    echo ""
-    
-    local push_success=false
-    
-    if git subtree push \
-        --prefix="$package_path" \
-        "$remote_name" \
-        "$branch"; then
+    # package.json 필드 업데이트 (선택적)
+    if [[ "$push_package_fields" == "true" ]]; then
+        local source_package_json="$package_path/package.json"
+        local target_package_json="$target_package_path/package.json"
         
-        log_success "$package_name pushed successfully!"
-        push_success=true
-        
-        # 성공한 작업 기록
-        SUCCESSFUL_OPERATIONS+=("Push: $package_name → $remote_name/$branch")
-        
-        # 성공 통계
-        echo -e "${BLUE}📊 Push Summary:${NC}"
-        echo "   📦 Package: $package_name"
-        echo "   🎯 Repository: $remote_name"
-        echo "   🌿 Branch: $branch" 
-        echo "   💾 Backup: $backup_path"
-        echo "   🗑️  Excluded build and config files"
-        echo "   ⏰ Completed: $(date)"
-        
-    else
-        log_error "Failed to push $package_name"
-        push_success=false
-        FAILED_OPERATIONS+=("Push: $package_name → $remote_name/$branch")
-    fi
-    
-    # 백업에서 복원
-    log_info "🔄 Restoring original files..."
-    git reset HEAD~1 --hard  # 임시 커밋 제거
-    
-    if ! restore_from_backup "$package_path" "$backup_path" "$package_name"; then
-        log_warning "Failed to restore from backup, but backup is available at: $backup_path"
-    fi
-    
-    if $push_success; then
-        log_success "🔗 Next steps:"
-        echo "   1. 🌐 View branch: https://github.com/to-nexus/$remote_name/tree/$branch"
-        echo "   2. 🔀 Create PR: https://github.com/to-nexus/$remote_name/compare/main...$branch"
-        echo ""
-        
-        # GitHub CLI PR 생성 확인
-        if command -v gh &> /dev/null; then
-            if safe_confirm_explicit "${YELLOW}❓ Create PR automatically with GitHub CLI?${NC}"; then
-                create_pull_request "$branch" "$package_name" "$remote_name"
+        if [[ -f "$source_package_json" ]]; then
+            # 타겟 package.json이 없으면 생성
+            if [[ ! -f "$target_package_json" ]]; then
+                log_info "Creating new package.json in target"
+                echo '{}' > "$target_package_json"
+            fi
+            
+            if update_package_json_fields "$target_package_json" "$source_package_json"; then
+                pushed_files+=("package.json (version, scripts, dependencies)")
+            else
+                log_warning "Failed to update package.json fields, but continuing..."
             fi
         else
-            log_warning "Install GitHub CLI (gh) for automatic PR creation"
+            log_warning "Local package.json not found at: $source_package_json"
+        fi
+    fi
+    
+    if $copy_success && [[ ${#pushed_files[@]} -gt 0 ]]; then
+        # Git에 변경사항 추가 및 커밋
+        cd "$temp_dir/repo"
+        git add .
+        
+        if git diff --cached --quiet; then
+            log_warning "No changes to commit"
+            rm -rf "$temp_dir"
+            return 0
         fi
         
-        return 0
-    else
+        local commit_message="feat($package_name): selective update from cross-sdk-js
+
+Updated files:
+$(printf '- %s\n' "${pushed_files[@]}")
+
+Source: cross-sdk-js/$package_path
+Generated by selective push at $(date -Iseconds)"
+        
+        git commit -m "$commit_message"
+        
+        # 원격에 푸시
+        log_info "⬆️ Pushing changes to $remote_name/$branch..."
+        if git push origin HEAD:"$branch"; then
+            log_success "$package_name 선택적 Push 완료"
+            echo ""
+            echo -e "${BLUE}📋 Pushed files:${NC}"
+            for file in "${pushed_files[@]}"; do
+                echo "   • $file"
+            done
+            echo ""
+            echo -e "${BLUE}💾 Backup available at:${NC} $backup_path"
+            echo -e "${BLUE}🔗 View changes:${NC} https://github.com/to-nexus/$remote_name/tree/$branch"
+            
+            # 성공한 작업 기록
+            SUCCESSFUL_OPERATIONS+=("Selective Push: $package_name → $remote_name/$branch")
+            
+            rm -rf "$temp_dir"
+            return 0
+        else
+            log_error "Failed to push changes"
+            copy_success=false
+        fi
+    fi
+    
+    if ! $copy_success; then
+        log_error "Selective push failed"
+        FAILED_OPERATIONS+=("Selective Push: $package_name → $remote_name/$branch")
+        rm -rf "$temp_dir"
         return 1
     fi
+    
+    rm -rf "$temp_dir"
 }
 
 # 세션 요약 생성
@@ -1814,7 +1823,7 @@ safe_confirm_explicit() {
 
 # 사용법 출력 (업데이트)
 usage() {
-    echo -e "${CYAN}Usage: $0 {pull|push|setup|compare|backup|safe-sync|selective-pull} [package] [branch]${NC}"
+    echo -e "${CYAN}Usage: $0 {pull|push|setup|compare|backup|safe-sync|selective-pull|selective-push} [package] [branch]${NC}"
     echo ""
     echo -e "${BLUE}🔧 Core Commands:${NC}"
     echo "  setup                      - Remote 저장소 설정"
@@ -1824,8 +1833,9 @@ usage() {
     echo ""
     echo -e "${BLUE}🔄 Sync Operations:${NC}"
     echo "  pull [package] [branch]    - 패키지 업데이트 (기본: 선택적 업데이트)"
-    echo "  selective-pull [package] [branch] - src 폴더와 package.json version만 업데이트"
-    echo "  push [package] [branch]    - 외부 저장소로 패키지 푸시하기"
+    echo "  selective-pull [package] [branch] - src 폴더와 package.json 필드들 업데이트 (version, scripts, dependencies)"
+    echo "  push [package] [branch]    - 외부 저장소로 패키지 푸시하기 (기본: 선택적 Push)"
+    echo "  selective-push [package] [branch] - src 폴더와 package.json 필드들만 푸시 (version, scripts, dependencies)"
     echo ""
     echo -e "${BLUE}📦 Available Packages:${NC}"
     for package in $(get_all_packages); do
@@ -1842,11 +1852,12 @@ usage() {
     echo "  $0 pull sign-client main          # 📥 sign-client 선택적 업데이트"
     echo "  $0 selective-pull universal-provider # 📥 universal-provider의 src+version만 업데이트"
     echo "  $0 push universal-provider        # 📤 universal-provider 푸시 (브랜치 선택)"
+    echo "  $0 selective-push sign-client     # 📤 sign-client의 src+필드들만 푸시"
     echo ""
     echo -e "${BLUE}🎯 Update Modes:${NC}"
     echo "  • 🔒 자동 백업 및 복원"
-    echo "  • 🎯 선택적 파일 업데이트 (src + package.json version) - 기본 모드"
-    echo "  • 📄 package.json version만 선택적 업데이트"
+    echo "  • 🎯 선택적 파일 업데이트 (src + package.json 필드들) - 기본 모드"
+    echo "  • 📄 package.json 필드들만 선택적 업데이트 (version, scripts, dependencies)"
     echo "  • 🗑️  빌드 파일 자동 제외 (push 시)"
     echo "  • 🤖 GitHub PR 자동 생성"
     echo "  • 📊 상세한 작업 리포트"
@@ -1858,12 +1869,25 @@ usage() {
     echo ""
     echo -e "${BLUE}📁 Selective Update Files:${NC}"
     echo "  • src/ (전체 소스 디렉토리)"
-    echo "  • package.json (version 필드만 업데이트, 다른 설정은 보존)"
+    echo "  • package.json (패키지별 package.json에서 version, scripts, dependencies 필드만 업데이트)"
     echo ""
     echo -e "${BLUE}🔄 Pull Modes:${NC}"
-    echo "  1. 선택적 업데이트 (src + package.json version) - 권장 ⭐"
+    echo "  1. 선택적 업데이트 (src + package.json 필드들) - 권장 ⭐"
     echo "  2. src만 업데이트 (package.json 제외)"
     echo "  3. 전체 Subtree pull (고급 사용자용)"
+    echo ""
+    echo -e "${BLUE}📤 Push Modes:${NC}"
+    echo "  1. 선택적 Push (src + package.json 필드들) - 권장 ⭐"
+    echo "  2. src만 Push (package.json 제외)"
+    echo "  3. 전체 Subtree push (기존 방식)"
+    echo ""
+    echo -e "${BLUE}📄 Package.json Update Details:${NC}"
+    echo "  • Source: 외부 저장소의 패키지별 package.json"
+    echo "    - universal-provider: cross-connect/providers/universal-provider/package.json"
+    echo "    - sign-client: cross-connect/packages/sign-client/package.json"
+    echo "  • Target: 로컬 패키지의 package.json"
+    echo "  • Updated fields: version, scripts, dependencies"
+    echo "  • Preserved fields: 기타 모든 설정 (name, description, license 등)"
 }
 
 # JSON 필드 업데이트 함수 (수정 - 여러 필드 지원)
@@ -1883,8 +1907,8 @@ update_package_json_fields() {
     
     log_info "📄 Updating package.json fields..."
     
-    # 업데이트할 필드들
-    local fields_to_update=("version" "scripts" "dependencies" "devDependencies")
+    # 업데이트할 필드들 (devDependencies 제외)
+    local fields_to_update=("version" "scripts" "dependencies")
     local updated_fields=()
     local temp_file=$(mktemp)
     
@@ -1908,7 +1932,7 @@ try:
         target_data = json.load(f)
     
     # 업데이트할 필드들
-    fields_to_update = ['version', 'scripts', 'dependencies', 'devDependencies']
+    fields_to_update = ['version', 'scripts', 'dependencies']
     updated_fields = []
     
     # 각 필드를 소스에서 타겟으로 복사
@@ -1970,7 +1994,7 @@ EOF
                     fi
                 fi
                 ;;
-            "scripts"|"dependencies"|"devDependencies")
+            "scripts"|"dependencies")
                 # 객체 필드 추출 및 교체 (복잡한 경우는 Python 권장)
                 if grep -q "\"$field\"[[:space:]]*:" "$source_file"; then
                     # 필드가 소스에 존재하는 경우만 업데이트
@@ -2104,6 +2128,30 @@ main() {
                 fi
             else
                 push_to_external "$branch"
+            fi
+            ;;
+        selective-push)
+            check_git_status
+            setup_remotes
+            show_exclusions
+            if ! safe_confirm_explicit "${YELLOW}❓ Proceed with selective push operation?${NC}"; then
+                log_info "⏭️  Selective push operation cancelled"
+                exit 0
+            fi
+            if [[ -n "$pkg_name" ]]; then
+                if selective_push_to_external "$pkg_name" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Push: $pkg_name → $branch")
+                else
+                    FAILED_OPERATIONS+=("Selective Push: $pkg_name → $branch")
+                fi
+            else
+                log_info "🎯 선택적 파일 푸시 모드 시작..."
+                pkg_name=$(select_package "Select package for selective push")
+                if selective_push_to_external "$pkg_name" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Push: $pkg_name → $branch")
+                else
+                    FAILED_OPERATIONS+=("Selective Push: $pkg_name → $branch")
+                fi
             fi
             ;;
         *)
