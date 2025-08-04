@@ -70,11 +70,13 @@ export const EthersMethods = {
     if (!provider) {
       throw new Error('signMessage - provider is undefined')
     }
+    console.log('###?? signMessage : start EthersMethods : ', new Date().toLocaleTimeString())
     const hexMessage = isHexString(message) ? message : hexlify(toUtf8Bytes(message))
     const signature = await provider.request({
       method: 'personal_sign',
       params: [hexMessage, address, customData]
     })
+    console.log('###?? signMessage : end EthersMethods : ', new Date().toLocaleTimeString())
 
     return signature as `0x${string}`
   },
@@ -316,11 +318,13 @@ export const EthersMethods = {
 
     const txToSign = { ...txParams, from }
     const hexSign = browserProvider.getRpcTransaction(txToSign)
-
+    console.log('###?? sendTransaction : hexSign : ', hexSign)
+    console.log('Provider:', provider)
     const hash = await provider.request({
       method: 'eth_sendTransaction',
       params: [hexSign, data.customData]
     })
+    console.log('###?? sendTransaction : hash : ', hash)
 
     return await pollingTx(hash as `0x${string}`, signer)
   },

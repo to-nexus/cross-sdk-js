@@ -1,5 +1,16 @@
 # @reown/appkit-core
 
+## 1.12.0
+
+### Minor Changes
+
+- Fix network setup errors on dapp init
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit-wallet@1.12.0
+
 ## 1.6.9
 
 ### Patch Changes

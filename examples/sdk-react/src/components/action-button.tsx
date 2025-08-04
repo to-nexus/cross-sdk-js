@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   AccountController,
@@ -8,11 +8,13 @@ import {
   UniversalProvider,
   bscMainnet,
   bscTestnet,
+  contractData,
   crossMainnet,
   crossTestnet,
   getUniversalProvider,
   initCrossSdk,
-  initCrossSdkWithParams,
+  kaiaMainnet,
+  kaiaTestnet,
   useAppKit,
   useAppKitAccount,
   useAppKitNetwork,
@@ -20,14 +22,7 @@ import {
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
-import type {
-  AssetFilterType,
-  SignTypedDataV4Args,
-  TypedDataDomain,
-  TypedDataTypes,
-  WriteContractArgs
-} from '@to-nexus/sdk/react'
-import { Signature, ethers } from 'ethers'
+import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { sampleEIP712 } from '../contracts/sample-eip712'
@@ -72,7 +67,8 @@ const metadata = {
   url: 'https://to.nexus',
   icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
 }
-initCrossSdk(projectId, redirectUrl, metadata, 'dark', crossMainnet)
+
+initCrossSdk(projectId, redirectUrl, metadata, 'dark')
 
 export function ActionButtonList() {
   const appKit = useAppKit()
@@ -84,14 +80,17 @@ export function ActionButtonList() {
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
   const { connect } = useAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
+
   // erc20 token contract address
-  const ERC20_ADDRESS = '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3'
+  const ERC20_ADDRESS = contractData[network.chainId as keyof typeof contractData]
+    .erc20 as `0x${string}`
   // define decimals of erc20 token (ERC20 standard is 18)
   const ERC20_DECIMALS = 18
   // erc20 token contract address in caip format - eip155:{chainId}:{address}
   const ERC20_CAIP_ADDRESS = `${network.caipNetworkId}:${ERC20_ADDRESS}`
   // erc721 token contract address
-  const ERC721_ADDRESS = '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
+  const ERC721_ADDRESS = contractData[network.chainId as keyof typeof contractData]
+    .erc721 as `0x${string}`
   // address to send erc20 token or cross
   const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
   // address of wallet owner
@@ -143,6 +142,12 @@ export function ActionButtonList() {
     showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
   }
 
+  function handleSwitchNetworkKaia() {
+    const targetNetwork =
+      import.meta.env['VITE_NODE_ENV'] === 'production' ? kaiaMainnet : kaiaTestnet
+    switchNetwork(targetNetwork)
+    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+  }
   // used for provider request
   async function handleProviderRequest() {
     if (!account?.isConnected) {
@@ -450,6 +455,13 @@ Check console for full details.`
       return
     }
 
+    const address = contractData[network.chainId as keyof typeof contractData].erc20
+
+    if (address === '') {
+      showError('Error in getBalanceOfERC20', 'Contract does not exist.')
+      return
+    }
+
     const amount = (await ConnectionController.readContract({
       contractAddress: ERC20_ADDRESS,
       method: 'balanceOf',
@@ -489,6 +501,13 @@ Check console for full details.`
   }
 
   async function getBalanceOfNFT() {
+    const address = contractData[network.chainId as keyof typeof contractData].erc721
+
+    if (address === '') {
+      showError('Error in getBalanceOfNFT', 'Contract does not exist.')
+      return
+    }
+
     const amount = await ConnectionController.readContract({
       contractAddress: ERC721_ADDRESS,
       method: 'balanceOf',
@@ -698,6 +717,7 @@ Check console for full details.`
         <button onClick={handleDisconnect}>Disconnect</button>
         <button onClick={handleSwitchNetwork}>Switch to Cross</button>
         <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
+        <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSendNative}>Send 1 CROSS</button>

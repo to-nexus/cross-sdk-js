@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["./src/**/*"],
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "./dist/types",
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "verbatimModuleSyntax": false, // 추가
+    "noImplicitOverride": false, // 추가
+    "skipLibCheck": true, // 추가
+    "noImplicitAny": false, // 추가
+    "strict": false // 추가
+  }
+}

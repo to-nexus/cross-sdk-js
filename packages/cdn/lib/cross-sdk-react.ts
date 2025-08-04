@@ -2,33 +2,35 @@
  * Cross SDK React CDN Entry Point
  * Exports all Cross SDK React functionality for browser usage
  */
-// @ts-ignore
+// @ts-expect-error
 import {
-  initCrossSdk,
-  initCrossSdkWithParams,
-  useAppKit,
-  useAppKitState,
-  useAppKitTheme,
-  useAppKitEvents,
-  useAppKitAccount,
-  useWalletInfo,
-  useAppKitNetwork,
-  useDisconnect,
-  useAppKitProvider,
-  useAppKitWallet,
-  ConnectionController,
-  SendController,
   AccountController,
-  crossMainnet,
-  crossTestnet,
-  bscMainnet,
-  bscTestnet,
-  UniversalProvider,
-  getUniversalProvider,
+  ConnectionController,
   ConstantsUtil,
   type CrossSdkParams,
-  type Metadata
-  // @ts-ignore
+  type Metadata,
+  // @ts-expect-error
+  SendController,
+  UniversalProvider,
+  bscMainnet,
+  bscTestnet,
+  crossMainnet,
+  crossTestnet,
+  getUniversalProvider,
+  initCrossSdk,
+  initCrossSdkWithParams,
+  kaiaMainnet,
+  kaiaTestnet,
+  useAppKit,
+  useAppKitAccount,
+  useAppKitEvents,
+  useAppKitNetwork,
+  useAppKitProvider,
+  useAppKitState,
+  useAppKitTheme,
+  useAppKitWallet,
+  useDisconnect,
+  useWalletInfo
 } from '@to-nexus/sdk/react'
 
 // Export all SDK React functionality
@@ -52,6 +54,8 @@ export {
   crossTestnet,
   bscMainnet,
   bscTestnet,
+  kaiaMainnet,
+  kaiaTestnet,
   UniversalProvider,
   getUniversalProvider,
   ConstantsUtil
@@ -82,6 +86,8 @@ declare global {
       crossTestnet: typeof crossTestnet
       bscMainnet: typeof bscMainnet
       bscTestnet: typeof bscTestnet
+      kaiaMainnet: typeof kaiaMainnet
+      kaiaTestnet: typeof kaiaTestnet
       UniversalProvider: typeof UniversalProvider
       getUniversalProvider: typeof getUniversalProvider
       ConstantsUtil: typeof ConstantsUtil
@@ -111,8 +117,10 @@ if (typeof window !== 'undefined') {
     crossTestnet,
     bscMainnet,
     bscTestnet,
+    kaiaMainnet,
+    kaiaTestnet,
     UniversalProvider,
     getUniversalProvider,
     ConstantsUtil
   }
-} 
+}

@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["./src/**/*"],
+  "compilerOptions": {
+    "noPropertyAccessFromIndexSignature": false,
+    "noImplicitReturns": false,
+    "rootDir": "src",
+    "outDir": "./dist/types",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "verbatimModuleSyntax": false
+  }
+}

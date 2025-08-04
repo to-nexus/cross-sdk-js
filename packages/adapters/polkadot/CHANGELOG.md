@@ -1,5 +1,13 @@
 # @reown/appkit-adapter-polkadot
 
+## 1.12.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit@1.12.0
+  - @to-nexus/appkit-core@1.12.0
+
 ## 1.5.2
 
 ### Patch Changes

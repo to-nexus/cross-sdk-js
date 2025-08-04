@@ -1,6 +1,12 @@
+import type { AppKitNetwork, CaipNetwork } from '@to-nexus/appkit-common'
 import type { Assign, ChainFormatters, Prettify } from 'viem'
 
-import type { CaipNetwork } from '@to-nexus/appkit-common'
+import { bscMainnet } from './bsc/bscMainnet.js'
+import { bscTestnet } from './bsc/bscTestnet.js'
+import { crossMainnet } from './cross/crossMainnet.js'
+import { crossTestnet } from './cross/crossTestnet.js'
+import { kaiaMainnet } from './kaia/kaiaMainnet.js'
+import { kaiaTestnet } from './kaia/kaiaTestnet.js'
 
 export function defineChain<
   formatters extends ChainFormatters,
@@ -12,4 +18,45 @@ export function defineChain<
     serializers: undefined,
     ...chain
   } as Assign<CaipNetwork<undefined>, chain>
+}
+
+export const networkList: [AppKitNetwork, ...AppKitNetwork[]] = [
+  crossTestnet,
+  crossMainnet,
+  bscTestnet,
+  bscMainnet,
+  kaiaTestnet,
+  kaiaMainnet
+]
+export const contractData = {
+  612044: {
+    erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
+    erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
+    network: crossTestnet
+  },
+  612055: {
+    erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
+    erc721: '',
+    network: crossMainnet
+  },
+  97: {
+    erc20: '',
+    erc721: '',
+    network: bscTestnet
+  },
+  56: {
+    erc20: '',
+    erc721: '',
+    network: bscMainnet
+  },
+  1001: {
+    erc20: '0xd4846dddf83278d10b92bf6c169c5951d6f5abb8',
+    erc721: '',
+    network: kaiaTestnet
+  },
+  8217: {
+    erc20: '',
+    erc721: '',
+    network: kaiaMainnet
+  }
 }

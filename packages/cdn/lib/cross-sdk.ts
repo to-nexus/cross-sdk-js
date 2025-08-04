@@ -3,21 +3,23 @@
  * Exports all Cross SDK functionality for browser usage
  */
 import {
-  initCrossSdk,
-  initCrossSdkWithParams,
-  useAppKitWallet,
-  ConnectionController,
-  SendController,
   AccountController,
-  crossMainnet,
-  crossTestnet,
-  bscMainnet,
-  bscTestnet,
-  UniversalProvider,
+  ConnectionController,
   ConstantsUtil,
   type CrossSdkParams,
-  type Metadata
-  // @ts-ignore
+  type Metadata,
+  // @ts-expect-error
+  SendController,
+  UniversalProvider,
+  bscMainnet,
+  bscTestnet,
+  crossMainnet,
+  crossTestnet,
+  initCrossSdk,
+  initCrossSdkWithParams,
+  kaiaMainnet,
+  kaiaTestnet,
+  useAppKitWallet
 } from '@to-nexus/sdk'
 
 // Export all SDK functionality
@@ -32,6 +34,8 @@ export {
   crossTestnet,
   bscMainnet,
   bscTestnet,
+  kaiaMainnet,
+  kaiaTestnet,
   UniversalProvider,
   ConstantsUtil
 }
@@ -52,6 +56,8 @@ declare global {
       crossTestnet: typeof crossTestnet
       bscMainnet: typeof bscMainnet
       bscTestnet: typeof bscTestnet
+      kaiaMainnet: typeof kaiaMainnet
+      kaiaTestnet: typeof kaiaTestnet
       UniversalProvider: typeof UniversalProvider
       ConstantsUtil: typeof ConstantsUtil
     }
@@ -71,7 +77,9 @@ if (typeof window !== 'undefined') {
     crossTestnet,
     bscMainnet,
     bscTestnet,
+    kaiaMainnet,
+    kaiaTestnet,
     UniversalProvider,
     ConstantsUtil
   }
-} 
+}

@@ -130,26 +130,30 @@ let isInitialized = false
 
 function getEnv(): string {
   // ✅ Vite 환경 (import.meta.env.MODE 사용)
-  if (typeof import.meta !== 'undefined' && import.meta.env?.['VITE_ENV_MODE']) {
+  if (import.meta?.env?.['VITE_ENV_MODE']) {
     console.log('getEnv(), import.meta.env.VITE_ENV_MODE', import.meta.env['VITE_ENV_MODE'])
+
     return import.meta.env['VITE_ENV_MODE']
   }
 
   // ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
-  if (typeof process !== 'undefined' && process.env?.['NEXT_PUBLIC_ENV_MODE']) {
+  if (process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
     console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env['NEXT_PUBLIC_ENV_MODE'])
+
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
   // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
-  if (typeof process !== 'undefined' && process.env?.['NODE_ENV']) {
+  if (process?.env?.['NODE_ENV']) {
     console.log('getEnv(), process.env.NODE_ENV', process.env['NODE_ENV'])
+
     return process.env['NODE_ENV']
   }
 
   // ✅ 브라우저에서 직접 주입된 환경 변수 (globalThis 사용)
 
   console.log('getEnv(), development')
+
   return 'development'
 }
 
@@ -203,7 +207,7 @@ export class AppKit {
     this.defaultCaipNetwork = this.extendDefaultCaipNetwork(options)
     this.chainAdapters = this.createAdapters(options.adapters as AdapterBlueprint[])
     this.initialize(options)
-    // this.sendInitializeEvent(options)
+    // This.sendInitializeEvent(options)
   }
 
   public static getInstance() {
@@ -211,6 +215,7 @@ export class AppKit {
   }
 
   private async initialize(options: AppKitOptionsWithSdk) {
+    console.log('###?? initialize : start ', new Date().toLocaleTimeString())
     this.initControllers(options)
     await this.initChainAdapters()
     await this.injectModalUi()
@@ -237,6 +242,7 @@ export class AppKit {
 
   // -- Public -------------------------------------------------------------------
   public async open(options?: OpenOptions) {
+    console.log('###?? open : start ', new Date().toLocaleTimeString())
     await this.injectModalUi()
     if (options?.uri && this.universalProvider) {
       ConnectionController.setUri(options.uri)
@@ -250,6 +256,7 @@ export class AppKit {
   }
 
   public async close() {
+    console.log('###?? close : start ', new Date().toLocaleTimeString())
     await this.injectModalUi()
     ModalController.close()
   }
@@ -268,6 +275,7 @@ export class AppKit {
   }
 
   public async switchNetwork(appKitNetwork: AppKitNetwork) {
+    console.log('###?? switchNetwork : start ', new Date().toLocaleTimeString())
     const network = this.caipNetworks?.find(n => n.id === appKitNetwork.id)
 
     if (!network) {
@@ -677,6 +685,7 @@ export class AppKit {
   }
 
   public async disconnect() {
+    console.log('###?? disconnect : start ', new Date().toLocaleTimeString())
     await ConnectionController.disconnect()
   }
 
@@ -879,8 +888,11 @@ export class AppKit {
   }
 
   private async initializeBlockchainApiController() {
-    // TODO: implement api
-    // await BlockchainApiController.getSupportedNetworks()
+    console.log('###?? initializeBlockchainApiController : start ', new Date().toLocaleTimeString())
+    /*
+     * TODO: implement api
+     * await BlockchainApiController.getSupportedNetworks()
+     */
   }
 
   private initControllers(options: AppKitOptionsWithSdk) {
@@ -950,6 +962,7 @@ export class AppKit {
   private createClients() {
     this.connectionControllerClient = {
       connectWalletConnect: async () => {
+        console.log('###?? connectWalletConnect : start ', new Date().toLocaleTimeString())
 
         const adapter = this.getAdapter(ChainController.state.activeChain)
 
@@ -965,6 +978,7 @@ export class AppKit {
         await this.syncWalletConnectAccount()
       },
       connectExternal: async ({ id, info, type, provider, chain, caipNetwork }) => {
+        console.log('###?? connectExternal : start ', new Date().toLocaleTimeString())
         console.log(`connectExternal`)
 
         const activeChain = ChainController.state.activeChain as ChainNamespace
@@ -1006,6 +1020,7 @@ export class AppKit {
         this.setAllAccounts(accounts, chainToUse)
       },
       reconnectExternal: async ({ id, info, type, provider }) => {
+        console.log('###?? reconnectExternal : start ', new Date().toLocaleTimeString())
         const namespace = ChainController.state.activeChain as ChainNamespace
         const adapter = this.getAdapter(namespace)
         if (adapter?.reconnect) {
@@ -1014,6 +1029,7 @@ export class AppKit {
         }
       },
       disconnect: async () => {
+        console.log('###?? disconnect : start ', new Date().toLocaleTimeString())
         const namespace = ChainController.state.activeChain as ChainNamespace
         const adapter = this.getAdapter(namespace)
         const provider = ProviderUtil.getProvider(namespace)
@@ -1038,6 +1054,7 @@ export class AppKit {
         return ids.some(id => Boolean(window.ethereum?.[String(id)]))
       },
       signMessage: async (params: { message: string; customData?: CustomData }) => {
+        console.log('###?? signMessage : start appkit : ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const result = await adapter?.signMessage({
           message: params.message,
@@ -1049,6 +1066,7 @@ export class AppKit {
         return result?.signature || ''
       },
       signEIP712: async (args: SignEIP712Args) => {
+        console.log('###?? signEIP712 : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
         const result = await adapter?.signEIP712({
@@ -1070,6 +1088,7 @@ export class AppKit {
         return result?.signature || ''
       },
       sendTransaction: async (args: SendTransactionArgs) => {
+        console.log('###?? sendTransaction : start ', new Date().toLocaleTimeString())
         if (args.chainNamespace === ConstantsUtil.CHAIN.EVM) {
           const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
@@ -1078,8 +1097,8 @@ export class AppKit {
           )
           const result = await adapter?.sendTransaction({ ...args, provider })
 
-          // update native balance
-          this.updateNativeBalance(true) // ignoreCache after sendTransaction
+          // Update native balance
+          this.updateNativeBalance(true) // IgnoreCache after sendTransaction
 
           return result?.hash ? { hash: `${result.hash}` as `0x${string}` } : null
         }
@@ -1087,6 +1106,7 @@ export class AppKit {
         return null
       },
       estimateGas: async (args: EstimateGasTransactionArgs) => {
+        console.log('###?? estimateGas : start ', new Date().toLocaleTimeString())
         if (args.chainNamespace === ConstantsUtil.CHAIN.EVM) {
           const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
           const provider = ProviderUtil.getProvider(
@@ -1109,6 +1129,7 @@ export class AppKit {
         return 0n
       },
       getEnsAvatar: async () => {
+        console.log('###?? getEnsAvatar : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const result = await adapter?.getProfile({
           address: AccountController.state.address as string,
@@ -1118,6 +1139,7 @@ export class AppKit {
         return result?.profileImage || false
       },
       getEnsAddress: async (name: string) => {
+        console.log('###?? getEnsAddress : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const caipNetwork = this.getCaipNetwork()
         if (!caipNetwork) {
@@ -1131,6 +1153,7 @@ export class AppKit {
         return result?.address || false
       },
       writeContract: async (args: WriteContractArgs) => {
+        console.log('###?? writeContract : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const caipNetwork = this.getCaipNetwork()
         const caipAddress = this.getCaipAddress()
@@ -1142,9 +1165,11 @@ export class AppKit {
         }
 
         const result = await adapter?.writeContract({ ...args, caipNetwork, provider, caipAddress })
+
         return result ? { hash: result?.hash as `0x${string}` } : null
       },
       readContract: async (args: ReadContractArgs) => {
+        console.log('###?? readContract : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const caipNetwork = this.getCaipNetwork()
         const provider = ProviderUtil.getProvider(
@@ -1159,6 +1184,7 @@ export class AppKit {
           'Appkit ReadContract result',
           JSON.stringify(result, (key, val) => (typeof val === 'bigint' ? val.toString() : val))
         )
+
         return result
       },
       parseUnits: (value: string, decimals: number) => {
@@ -1172,16 +1198,19 @@ export class AppKit {
         return adapter?.formatUnits({ value, decimals }) ?? '0'
       },
       getCapabilities: async (params: AdapterBlueprint.GetCapabilitiesParams) => {
+        console.log('###?? getCapabilities : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
         return await adapter?.getCapabilities(params)
       },
       grantPermissions: async (params: AdapterBlueprint.GrantPermissionsParams) => {
+        console.log('###?? grantPermissions : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
         return await adapter?.grantPermissions(params)
       },
       revokePermissions: async (params: AdapterBlueprint.RevokePermissionsParams) => {
+        console.log('###?? revokePermissions : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
         if (adapter?.revokePermissions) {
@@ -1191,6 +1220,7 @@ export class AppKit {
         return '0x'
       },
       walletGetAssets: async (params: AdapterBlueprint.WalletGetAssetsParams) => {
+        console.log('###?? walletGetAssets : start ', new Date().toLocaleTimeString())
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
         return (await adapter?.walletGetAssets(params)) ?? {}
@@ -1199,6 +1229,7 @@ export class AppKit {
 
     this.networkControllerClient = {
       switchCaipNetwork: async caipNetwork => {
+        console.log('###?? switchCaipNetwork : start ', new Date().toLocaleTimeString())
         if (!caipNetwork) {
           return
         }
@@ -1347,13 +1378,15 @@ export class AppKit {
           : (`${user.chainId}:${user.address}` as CaipAddress)
       this.setSmartAccountDeployed(Boolean(user.smartAccountDeployed), namespace)
 
-      // if (!HelpersUtil.isLowerCaseMatch(user.address, AccountController.state.address)) {
-      //   this.syncIdentity({
-      //     address: user.address,
-      //     chainId: user.chainId,
-      //     chainNamespace: namespace
-      //   })
-      // }
+      /*
+       * If (!HelpersUtil.isLowerCaseMatch(user.address, AccountController.state.address)) {
+       *   this.syncIdentity({
+       *     address: user.address,
+       *     chainId: user.chainId,
+       *     chainNamespace: namespace
+       *   })
+       * }
+       */
 
       this.setCaipAddress(caipAddress, namespace)
       this.setUser({ ...(AccountController.state.user || {}), email: user.email }, namespace)
@@ -1404,6 +1437,7 @@ export class AppKit {
   }
 
   private async syncAuthConnector(provider: W3mFrameProvider) {
+    console.log('###?? syncAuthConnector : start ', new Date().toLocaleTimeString())
     this.setLoading(true)
     const isLoginEmailUsed = provider.getLoginEmailUsed()
     this.setLoading(isLoginEmailUsed)
@@ -1493,6 +1527,10 @@ export class AppKit {
       })
 
       this.universalProvider.on('session_event', (callbackData: unknown) => {
+        console.log(
+          'this.universalProvider ###?? session_event : start ',
+          new Date().toLocaleTimeString()
+        )
         if (WcHelpersUtil.isSessionEventData(callbackData)) {
           const { name, data } = callbackData.params.event
 
@@ -1585,7 +1623,8 @@ export class AppKit {
     })
   }
 
-  private async updateNativeBalance(ignoreCache: boolean = false) {
+  private async updateNativeBalance(ignoreCache = false) {
+    console.log('###?? updateNativeBalance : start ', new Date().toLocaleTimeString())
     const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
     if (adapter && ChainController.state.activeChain && AccountController.state.address) {
       const balance = await adapter.getBalance({
@@ -1593,7 +1632,7 @@ export class AppKit {
         chainId: ChainController.state.activeCaipNetwork?.id as string | number,
         caipNetwork: this.getCaipNetwork(),
         tokens: this.options.tokens,
-        ignoreCache: ignoreCache
+        ignoreCache
       })
       console.log(
         `chainId: ${ChainController.state.activeCaipNetwork?.id} native balance: ${JSON.stringify(balance)} tokens: ${JSON.stringify(this.options.tokens, (key, val) => (typeof val === 'bigint' ? val.toString() : val))}`
@@ -1616,6 +1655,7 @@ export class AppKit {
   }
 
   private async syncWalletConnectAccount() {
+    console.log('###?? syncWalletConnectAccount : start ', new Date().toLocaleTimeString())
     const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
     this.chainNamespaces.forEach(async chainNamespace => {
@@ -1717,6 +1757,7 @@ export class AppKit {
       chainNamespace: ChainNamespace
     }
   ) {
+    console.log('###?? syncAccount : start ', new Date().toLocaleTimeString())
     const { address, chainId, chainNamespace } = params
 
     const { chainId: activeChainId } = StorageUtil.getActiveNetworkProps()
@@ -1776,11 +1817,13 @@ export class AppKit {
       // Only update state when needed
       if (!HelpersUtil.isLowerCaseMatch(address, AccountController.state.address)) {
         this.setCaipAddress(`${chainNamespace}:${network?.id}:${address}`, chainNamespace)
-        // await this.syncIdentity({
-        //   address,
-        //   chainId: network?.id as string | number,
-        //   chainNamespace
-        // })
+        /*
+         * Await this.syncIdentity({
+         *   address,
+         *   chainId: network?.id as string | number,
+         *   chainNamespace
+         * })
+         */
       }
       await this.syncBalance({ address, chainId: network?.id, chainNamespace })
     }
@@ -1791,6 +1834,7 @@ export class AppKit {
     chainId: string | number | undefined
     chainNamespace: ChainNamespace
   }) {
+    console.log('###?? syncBalance : start ', new Date().toLocaleTimeString())
     const caipNetwork = NetworkUtil.getNetworksByNamespace(
       this.caipNetworks,
       params.chainNamespace
@@ -1864,6 +1908,7 @@ export class AppKit {
   }: Pick<AdapterBlueprint.ConnectResult, 'address' | 'chainId'> & {
     chainNamespace: ChainNamespace
   }) {
+    console.log('###?? syncIdentity : start ', new Date().toLocaleTimeString())
     const caipNetworkId: CaipNetworkId = `${chainNamespace}:${chainId}`
     const activeCaipNetwork = this.caipNetworks?.find(n => n.caipNetworkId === caipNetworkId)
 
@@ -1909,6 +1954,7 @@ export class AppKit {
   }
 
   private async syncReownName(address: string, chainNamespace: ChainNamespace) {
+    console.log('###?? syncReownName : start ', new Date().toLocaleTimeString())
     try {
       const registeredWcNames = await this.getReownName(address)
       if (registeredWcNames[0]) {
@@ -1923,6 +1969,7 @@ export class AppKit {
   }
 
   private async syncAdapterConnection(namespace: ChainNamespace) {
+    console.log('###?? syncAdapterConnection : start ', new Date().toLocaleTimeString())
     const adapter = this.getAdapter(namespace)
     const connectorId = StorageUtil.getConnectedConnectorId(namespace)
     const caipNetwork = this.getCaipNetwork()
@@ -1967,6 +2014,7 @@ export class AppKit {
   }
 
   private async syncNamespaceConnection(namespace: ChainNamespace) {
+    console.log('###?? syncNamespaceConnection : start ', new Date().toLocaleTimeString())
     try {
       const connectorId = StorageUtil.getConnectedConnectorId(namespace)
       const isEmailUsed = this.authProvider?.getLoginEmailUsed()
@@ -1994,6 +2042,7 @@ export class AppKit {
   }
 
   private async syncExistingConnection() {
+    console.log('###?? syncExistingConnection : start ', new Date().toLocaleTimeString())
     await Promise.allSettled(
       this.chainNamespaces.map(namespace => this.syncNamespaceConnection(namespace))
     )
@@ -2040,6 +2089,7 @@ export class AppKit {
   }
 
   private async initializeUniversalAdapter() {
+    console.log('###?? initializeUniversalAdapter : start ', new Date().toLocaleTimeString())
     const logger = LoggerUtil.createLogger((error, ...args) => {
       if (error) {
         this.handleAlertError(error)
@@ -2080,6 +2130,7 @@ export class AppKit {
   }
 
   public async getUniversalProvider() {
+    console.log('###?? getUniversalProvider : start ', new Date().toLocaleTimeString())
     if (!this.universalProvider) {
       try {
         await this.createUniversalProvider()
@@ -2123,6 +2174,7 @@ export class AppKit {
   }
 
   private async createUniversalProviderForAdapter(chainNamespace: ChainNamespace) {
+    console.log('###?? createUniversalProviderForAdapter : start ', new Date().toLocaleTimeString())
     await this.getUniversalProvider()
 
     if (this.universalProvider) {
@@ -2200,6 +2252,7 @@ export class AppKit {
   }
 
   private async initChainAdapter(namespace: ChainNamespace) {
+    console.log('###?? initChainAdapter : start ', new Date().toLocaleTimeString())
     this.onConnectors(namespace)
     this.listenAdapter(namespace)
     this.chainAdapters?.[namespace].syncConnectors(this.options, this)
@@ -2208,6 +2261,7 @@ export class AppKit {
   }
 
   private async initChainAdapters() {
+    console.log('###?? initChainAdapters : start ', new Date().toLocaleTimeString())
     await Promise.all(
       this.chainNamespaces.map(async namespace => {
         await this.initChainAdapter(namespace)
@@ -2260,6 +2314,7 @@ export class AppKit {
   }
 
   private async injectModalUi() {
+    console.log('###?? injectModalUi : start ', new Date().toLocaleTimeString())
     if (!this.initPromise && !isInitialized && CoreHelperUtil.isClient()) {
       isInitialized = true
       this.initPromise = new Promise<void>(async resolve => {
@@ -2279,6 +2334,7 @@ export class AppKit {
   }
 
   private async checkExistingSocialConnection() {
+    console.log('###?? checkExistingSocialConnection : start ', new Date().toLocaleTimeString())
     try {
       if (!CoreHelperUtil.isTelegram()) {
         return

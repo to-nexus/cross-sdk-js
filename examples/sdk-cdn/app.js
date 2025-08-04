@@ -2,11 +2,9 @@
  * Cross SDK CDN Sample Application
  * Vanilla JavaScript sample using Cross SDK via CDN
  */
-
 /**
  * TypeScript-style type definitions using JSDoc for better code safety
  */
-
 /**
  * @typedef {Object} TypedDataDomain
  * @property {string} name
@@ -14,17 +12,14 @@
  * @property {number} chainId
  * @property {string} verifyingContract
  */
-
 /**
  * @typedef {Object} TypedDataField
  * @property {string} name
  * @property {string} type
  */
-
 /**
  * @typedef {Object.<string, TypedDataField[]>} TypedDataTypes
  */
-
 /**
  * @typedef {Object} EIP712TypedData
  * @property {TypedDataDomain} domain
@@ -32,53 +27,51 @@
  * @property {string} primaryType
  * @property {Object} message
  */
-
-
-
-
-
 // ethers import from CDN
 import { ethers } from 'https://cdn.skypack.dev/ethers@5.7.2'
 import { v4 as uuidv4 } from 'https://cdn.skypack.dev/uuid@9.0.0'
 
 // SDK 로딩을 기다리는 함수
 function waitForSDK() {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (window.CrossSdk) {
-      resolve(window.CrossSdk);
+      resolve(window.CrossSdk)
     } else {
       const checkSDK = () => {
         if (window.CrossSdk) {
-          resolve(window.CrossSdk);
+          resolve(window.CrossSdk)
         } else {
-          setTimeout(checkSDK, 100);
+          setTimeout(checkSDK, 100)
         }
-      };
-      checkSDK();
+      }
+      checkSDK()
     }
-  });
+  })
 }
 
 // SDK 로딩 후 초기화
 async function initializeApp() {
   try {
-    console.log('Waiting for SDK to load...');
-    const CrossSdk = await waitForSDK();
-    console.log('SDK loaded successfully:', CrossSdk);
+    console.log('Waiting for SDK to load...')
+    const CrossSdk = await waitForSDK()
+    console.log('SDK loaded successfully:', CrossSdk)
 
     // CDN SDK에서 필요한 함수들을 import
-    const { 
-      initCrossSdkWithParams, 
+    const {
+      initCrossSdkWithParams,
       useAppKitWallet,
-      crossMainnet, 
-      crossTestnet, 
-      bscMainnet, 
+      crossMainnet,
+      crossTestnet,
+      bscMainnet,
       bscTestnet,
-      AccountController, 
-      ConnectionController, 
-      ConstantsUtil, 
+      kaiaMainnet,
+      kaiaTestnet,
+      contractData,
+      AccountController,
+      ConnectionController,
+      ConstantsUtil,
       SendController
-    } = CrossSdk;
+    } = CrossSdk
 
     const metadata = {
       name: 'Cross SDK',
@@ -96,7 +89,8 @@ async function initializeApp() {
       projectId,
       redirectUrl,
       metadata,
-      themeMode: 'light'
+      themeMode: 'light',
+      defaultNetwork: crossTestnet
     })
 
     const appkitWallet = useAppKitWallet()
@@ -106,13 +100,15 @@ async function initializeApp() {
       { id: 'cross-mainnet', name: 'Cross Mainnet', network: crossMainnet },
       { id: 'cross-testnet', name: 'Cross Testnet', network: crossTestnet },
       { id: 'bsc-mainnet', name: 'BSC Mainnet', network: bscMainnet },
-      { id: 'bsc-testnet', name: 'BSC Testnet', network: bscTestnet }
+      { id: 'bsc-testnet', name: 'BSC Testnet', network: bscTestnet },
+      { id: 'kaia-mainnet', name: 'Kaia Mainnet', network: kaiaMainnet },
+      { id: 'kaia-testnet', name: 'Kaia Testnet', network: kaiaTestnet }
     ]
 
     // Contract addresses and constants
-    const ERC20_ADDRESS = '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3'
+    const ERC20_ADDRESS = contractData[network.chainId].erc20
     const ERC20_DECIMALS = 18
-    const ERC721_ADDRESS = '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
+    const ERC721_ADDRESS = contractData[network.chainId].erc721
     const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
     const SEND_ERC20_AMOUNT = 1
     const SEND_CROSS_AMOUNT = 1
@@ -145,17 +141,17 @@ async function initializeApp() {
     function createNetworkModal() {
       const modal = document.getElementById('network-modal')
       const networkList = document.getElementById('network-list')
-      
+
       // 기존 네트워크 리스트 초기화
       networkList.innerHTML = ''
-      
+
       // 네트워크 리스트 생성
       availableNetworks.forEach(networkInfo => {
         const networkItem = document.createElement('div')
         const isCurrentNetwork = networkState?.caipNetwork?.id === networkInfo.network.id
-        
+
         networkItem.className = `network-item ${isCurrentNetwork ? 'current' : ''}`
-        
+
         const networkName = document.createElement('span')
         networkName.className = 'network-name'
         networkName.textContent = networkInfo.name
@@ -196,14 +192,14 @@ async function initializeApp() {
     function setupNetworkModalEvents() {
       const modal = document.getElementById('network-modal')
       const closeBtn = document.getElementById('network-modal-close')
-      
+
       // 모달 외부 클릭 시 닫기
-      modal.addEventListener('click', (e) => {
+      modal.addEventListener('click', e => {
         if (e.target === modal) {
           closeNetworkModal()
         }
       })
-      
+
       // 닫기 버튼 클릭 시 닫기
       closeBtn.addEventListener('click', closeNetworkModal)
     }
@@ -251,22 +247,25 @@ async function initializeApp() {
       try {
         console.log('Requesting typed data from API...')
         const FROM_ADDRESS = getFROM_ADDRESS()
-        
+
         // Get typed data from API
-        const response = await fetch('https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user', {
-          method: 'POST',
-          headers: {
-            'accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            account: FROM_ADDRESS,
-            amount: "1",
-            direction: true,
-            pair_id: 1,
-            project_id: "nexus-ramp-v1"
-          })
-        })
+        const response = await fetch(
+          'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
+          {
+            method: 'POST',
+            headers: {
+              accept: 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              account: FROM_ADDRESS,
+              amount: '1',
+              direction: true,
+              pair_id: 1,
+              project_id: 'nexus-ramp-v1'
+            })
+          }
+        )
 
         if (!response.ok) {
           throw new Error(`API response: ${response.status} ${response.statusText}`)
@@ -302,7 +301,7 @@ async function initializeApp() {
         }
 
         console.log('Signature result:', signature)
-        
+
         // Show detailed results
         alert(`✅ Signature successful!
 
@@ -314,14 +313,11 @@ async function initializeApp() {
 📋 Contract: ${paramsData.domain.verifyingContract}
 
 Check console for full details.`)
-
       } catch (error) {
         console.error('Error in handleSignTypedDataV4:', error)
         alert(`❌ Error: ${error.message}`)
       }
     }
-
-
 
     async function handleProviderRequest() {
       if (!accountState.isConnected) {
@@ -366,7 +362,8 @@ Check console for full details.`)
             metadata: {
               activity: 'You are about to send custom transaction to the contract.',
               currentFormat: 'This is a JSON formatted custom data.',
-              providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
+              providedFormat:
+                'Plain text(string), HTML(string), JSON(key value object) are supported.',
               txTime: new Date().toISOString(),
               randomValue: uuidv4()
             }
@@ -401,7 +398,8 @@ Check console for full details.`)
           sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
           decimals: '18',
           customData: {
-            metadata: 'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+            metadata:
+              'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
           },
           type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
         })
@@ -462,7 +460,8 @@ Check console for full details.`)
             metadata: {
               activity: 'You are about to send custom transaction to the contract.',
               currentFormat: 'This is a JSON formatted custom data.',
-              providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
+              providedFormat:
+                'Plain text(string), HTML(string), JSON(key value object) are supported.',
               txTime: new Date().toISOString(),
               randomValue: uuidv4()
             }
@@ -497,7 +496,8 @@ Check console for full details.`)
           sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
           decimals: '18',
           customData: {
-            metadata: 'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+            metadata:
+              'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
           },
           type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
         })
@@ -581,7 +581,9 @@ Check console for full details.`)
         if (showResult)
           alert(
             `updated erc20 balance: ${JSON.stringify(
-              accountState?.tokenBalance?.find(token => token.address === ERC20_ADDRESS.toLowerCase()),
+              accountState?.tokenBalance?.find(
+                token => token.address === ERC20_ADDRESS.toLowerCase()
+              ),
               (key, value) => (typeof value === 'bigint' ? value.toString() : value),
               2
             )}`
@@ -611,17 +613,26 @@ Check console for full details.`)
     // Subscribe to state changes
     crossSdk.subscribeAccount(state => {
       accountState = state
-      document.getElementById('accountState').textContent = JSON.stringify(accountState, (key, value) => (typeof value === 'bigint' ? value.toString() : value), 2)
+      document.getElementById('accountState').textContent = JSON.stringify(
+        accountState,
+        (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+        2
+      )
       // connect-wallet 버튼 텍스트 업데이트
-      document.getElementById('connect-wallet').textContent = accountState.isConnected ? 'Connected' : 'Connect Wallet'
-      
+      document.getElementById('connect-wallet').textContent = accountState.isConnected
+        ? 'Connected'
+        : 'Connect Wallet'
+
       // 주소가 변경되었을 때만 토큰 잔액을 가져옵니다
       if (accountState.caipAddress && accountState.caipAddress !== previousCaipAddress) {
         previousCaipAddress = accountState.caipAddress
         const fetchTokenBalance = async () => {
           try {
             await AccountController.fetchTokenBalance()
-            console.log('Token balance fetched successfully for new address:', accountState.caipAddress)
+            console.log(
+              'Token balance fetched successfully for new address:',
+              accountState.caipAddress
+            )
           } catch (error) {
             console.error('Error fetching token balance:', error)
           }
@@ -666,7 +677,7 @@ Check console for full details.`)
       if (accountState.isConnected) {
         await appkitWallet.disconnect()
       } else {
-        await appkitWallet.connect("cross_wallet")
+        await appkitWallet.connect('cross_wallet')
       }
     })
 
@@ -691,12 +702,20 @@ Check console for full details.`)
     document.getElementById('send-native')?.addEventListener('click', handleSendNative)
     document.getElementById('send-erc20')?.addEventListener('click', handleSendERC20Token)
     document.getElementById('send-transaction')?.addEventListener('click', handleSendTransaction)
-    document.getElementById('send-native-dynamic')?.addEventListener('click', handleSendNativeWithDynamicFee)
-    document.getElementById('send-erc20-dynamic')?.addEventListener('click', handleSendERC20TokenWithDynamicFee)
-    document.getElementById('send-transaction-dynamic')?.addEventListener('click', handleSendTransactionWithDynamicFee)
+    document
+      .getElementById('send-native-dynamic')
+      ?.addEventListener('click', handleSendNativeWithDynamicFee)
+    document
+      .getElementById('send-erc20-dynamic')
+      ?.addEventListener('click', handleSendERC20TokenWithDynamicFee)
+    document
+      .getElementById('send-transaction-dynamic')
+      ?.addEventListener('click', handleSendTransactionWithDynamicFee)
 
     document.getElementById('get-balance-native')?.addEventListener('click', getBalanceOfNative)
-    document.getElementById('get-balance-erc20')?.addEventListener('click', () => getBalanceOfERC20())
+    document
+      .getElementById('get-balance-erc20')
+      ?.addEventListener('click', () => getBalanceOfERC20())
     document.getElementById('get-balance-nft')?.addEventListener('click', getBalanceOfNFT)
 
     // Initialize contract args when account and network are ready
@@ -735,145 +754,144 @@ Check console for full details.`)
       setTimeout(initializeContractArgs, 100)
     })
 
-    console.log('App initialized successfully!');
-
+    console.log('App initialized successfully!')
   } catch (error) {
-    console.error('Failed to initialize app:', error);
+    console.error('Failed to initialize app:', error)
   }
 }
 
 // Contract ABIs (simplified versions)
 const sampleErc20ABI = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
+        internalType: 'address',
+        name: 'to',
+        type: 'address'
       },
       {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256'
       }
     ],
-    "name": "transfer",
-    "outputs": [
+    name: 'transfer',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
+        internalType: 'bool',
+        name: '',
+        type: 'bool'
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'nonpayable',
+    type: 'function'
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: 'address',
+        name: 'account',
+        type: 'address'
       }
     ],
-    "name": "balanceOf",
-    "outputs": [
+    name: 'balanceOf',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function'
   }
 ]
 
 const sampleErc721ABI = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
+        internalType: 'address',
+        name: 'to',
+        type: 'address'
       },
       {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256'
       }
     ],
-    "name": "mintTo",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'mintTo',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function'
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
+        internalType: 'address',
+        name: 'owner',
+        type: 'address'
       }
     ],
-    "name": "balanceOf",
-    "outputs": [
+    name: 'balanceOf',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function'
   }
 ]
 
 const sampleEIP712 = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
+        internalType: 'address',
+        name: 'owner',
+        type: 'address'
       },
       {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
+        internalType: 'address',
+        name: 'spender',
+        type: 'address'
       },
       {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: 'value',
+        type: 'uint256'
       },
       {
-        "internalType": "uint256",
-        "name": "deadline",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: 'deadline',
+        type: 'uint256'
       },
       {
-        "internalType": "uint8",
-        "name": "v",
-        "type": "uint8"
+        internalType: 'uint8',
+        name: 'v',
+        type: 'uint8'
       },
       {
-        "internalType": "bytes32",
-        "name": "r",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 'r',
+        type: 'bytes32'
       },
       {
-        "internalType": "bytes32",
-        "name": "s",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 's',
+        type: 'bytes32'
       }
     ],
-    "name": "permit",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'permit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function'
   }
 ]
 
 // DOM이 로드된 후 앱 초기화
-document.addEventListener('DOMContentLoaded', initializeApp); 
+document.addEventListener('DOMContentLoaded', initializeApp)

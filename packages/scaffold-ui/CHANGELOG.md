@@ -1,5 +1,15 @@
 # @reown/appkit-scaffold-ui
 
+## 1.12.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit-utils@1.12.0
+  - @to-nexus/appkit-wallet@1.12.0
+  - @to-nexus/appkit-core@1.12.0
+  - @to-nexus/appkit-ui@1.11.0
+
 ## 1.6.9
 
 ### Patch Changes

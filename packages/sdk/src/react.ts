@@ -1,14 +1,22 @@
 import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
 import {
-  ApiController,
   AccountController,
+  ApiController,
   ConnectionController,
   ConstantsUtil,
   SendController,
-  type ThemeMode,
-  type AssetFilterType
+  type ThemeMode
 } from '@to-nexus/appkit-core'
-import { bscMainnet, bscTestnet, crossMainnet, crossTestnet } from '@to-nexus/appkit/networks'
+import {
+  bscMainnet,
+  bscTestnet,
+  contractData,
+  crossMainnet,
+  crossTestnet,
+  kaiaMainnet,
+  kaiaTestnet,
+  networkList
+} from '@to-nexus/appkit/networks'
 import {
   createAppKit,
   getUniversalProvider,
@@ -25,12 +33,11 @@ import {
 } from '@to-nexus/appkit/react'
 import UniversalProvider from '@to-nexus/universal-provider'
 
-export type { 
-  SendTransactionArgs, 
-  WriteContractArgs, 
+export type {
+  SendTransactionArgs,
+  WriteContractArgs,
   AssetFilterType,
   SignTypedDataV4Args,
-
   TypedDataDomain,
   TypedDataTypes,
   TypedDataField
@@ -45,7 +52,13 @@ export type Metadata = {
   icons: string[]
 }
 
-type SupportedNetworks = typeof crossTestnet | typeof crossMainnet | typeof bscTestnet | typeof bscMainnet
+type SupportedNetworks =
+  | typeof crossTestnet
+  | typeof crossMainnet
+  | typeof bscTestnet
+  | typeof bscMainnet
+  | typeof kaiaTestnet
+  | typeof kaiaMainnet
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -64,6 +77,7 @@ export type CrossSdkParams = {
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
   const { projectId, redirectUrl, metadata, themeMode, defaultNetwork } = params
+
   return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork)
 }
 
@@ -85,8 +99,8 @@ const initCrossSdk = (
 
   return createAppKit({
     adapters: [ethersAdapter],
-    networks: [crossTestnet, crossMainnet, bscTestnet, bscMainnet],
-    defaultNetwork: defaultNetwork,
+    networks: networkList,
+    defaultNetwork,
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
@@ -138,7 +152,10 @@ export {
   crossTestnet,
   bscMainnet,
   bscTestnet,
+  kaiaMainnet,
+  kaiaTestnet,
   UniversalProvider,
   getUniversalProvider,
-  ConstantsUtil
+  ConstantsUtil,
+  contractData
 }

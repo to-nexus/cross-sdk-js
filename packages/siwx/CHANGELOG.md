@@ -1,5 +1,13 @@
 # @reown/appkit-siwx
 
+## 1.12.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit-utils@1.12.0
+  - @to-nexus/appkit-core@1.12.0
+
 ## 1.6.9
 
 ### Patch Changes
