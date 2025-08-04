@@ -1,5 +1,14 @@
 # @reown/appkit-experimental
 
+## 1.12.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit@1.12.0
+  - @to-nexus/appkit-core@1.12.0
+  - @to-nexus/appkit-ui@1.11.0
+
 ## 1.6.9
 
 ### Patch Changes

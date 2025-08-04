@@ -1,5 +1,11 @@
 # @reown/appkit-wallet
 
+## 1.12.0
+
+### Minor Changes
+
+- Fix network setup errors on dapp init
+
 ## 1.6.9
 
 ### Patch Changes
