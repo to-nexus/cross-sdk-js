@@ -301,6 +301,15 @@ export abstract class AdapterBlueprint<
   ): Promise<AdapterBlueprint.SignMessageResult>
 
   /**
+   * Signs a message with the connected wallet.
+   * @param {AdapterBlueprint.EtherSignMessageParams} params - Parameters including message to sign, address, and optional provider
+   * @returns {Promise<AdapterBlueprint.EtherSignMessageResult>} Object containing the signature
+   */
+  public abstract etherSignMessage(
+    params: AdapterBlueprint.EtherSignMessageParams
+  ): Promise<AdapterBlueprint.EtherSignMessageResult>
+
+  /**
    * Signs an EIP712 message with the connected wallet.
    * @param {AdapterBlueprint.SignEIP712Params} params - Parameters including domain, types, message, and optional provider
    * @returns {Promise<AdapterBlueprint.SignEIP712Result>} Object containing the signature
@@ -480,6 +489,16 @@ export namespace AdapterBlueprint {
     address: string
     provider?: AppKitConnector['provider']
     customData?: CustomData
+  }
+
+  export type EtherSignMessageParams = {
+    message: string
+    address: string
+    provider?: AppKitConnector['provider']
+  }
+
+  export type EtherSignMessageResult = {
+    signature: string
   }
 
   export type SignMessageResult = {

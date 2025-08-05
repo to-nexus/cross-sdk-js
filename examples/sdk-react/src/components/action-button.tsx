@@ -23,6 +23,8 @@ import {
   useDisconnect
 } from '@to-nexus/sdk/react'
 import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
+import Caver from 'caver-js'
+import { ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
 import { sampleEIP712 } from '../contracts/sample-eip712'
@@ -176,6 +178,49 @@ export function ActionButtonList() {
       }
     })
     showSuccess('Sign Message Successful!', `signedMessage: ${signedMessage}`)
+  }
+
+  async function handleEtherSignMessage() {
+    if (!account?.isConnected) {
+      showError('Error in handleEtherSignMessage', 'Please connect wallet first.')
+      return
+    }
+    const caver = new Caver(
+      'https://kaia-testnet.crosstoken.io/fda0d5a47e2d0768e9329444295a3f0681fff365'
+    )
+    const nonce = await caver.rpc.klay.getTransactionCount(FROM_ADDRESS)
+    const tx = caver.transaction.feeDelegatedSmartContractExecution.create({
+      nonce: nonce,
+      input:
+        '0x5fd262de00000000000000000000000000000000000000000000000000000000000956cc000000000000000000000000d4846dddf83278d10b92bf6c169c5951d6f5abb8000000000000000000000000920a31f0e48739c3fbb790d992b0690f7f5c42ea00000000000000000000000000000000000000000000001b1ae4d6e2ef5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000000',
+      from: '0x920a31f0e48739c3fbb790d992b0690f7f5c42ea',
+      gas: '0x1ef3d',
+      gasPrice: '0xba43b7400',
+      to: '0xd180c16ee4544c125e1125c1e6dc827ea341f0d5',
+      value: '0x0'
+    })
+    const messageToSign = tx.getSenderTxHash()
+    console.log('Transaction hash:', messageToSign)
+    const signedMessage = await ConnectionController.etherSignMessage({
+      message: messageToSign,
+      address: FROM_ADDRESS
+    })
+
+    console.log('signedMessage', signedMessage)
+
+    // v 값을 Kaia 스타일로 변환
+    if (!signedMessage) {
+      showError('Error in handleEtherSignMessage', 'Signature is undefined')
+      return
+    }
+
+    const recovered = ethers.recoverAddress(messageToSign, signedMessage)
+    console.log('recovered', recovered)
+
+    showSuccess(
+      'Sign Message With Custom Data Successful!',
+      `signedMessage: ${signedMessage}, recovered: ${recovered}`
+    )
   }
 
   // NEW: Generic EIP-712 signing using universal signTypedDataV4 method
@@ -731,6 +776,7 @@ Check console for full details.`
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSignMessage}>Sign Message</button>
+        <button onClick={handleEtherSignMessage}>Sign Message with Ether Sign</button>
         <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
         <button onClick={handleProviderRequest}>Provider Request</button>
       </div>

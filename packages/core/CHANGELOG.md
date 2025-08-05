@@ -1,5 +1,16 @@
 # @reown/appkit-core
 
+## 1.13.0
+
+### Minor Changes
+
+- add eth sign method
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit-wallet@1.13.0
+
 ## 1.12.0
 
 ### Minor Changes

@@ -37,7 +37,6 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   private async createEthersConfig(options: AppKitOptions) {
-    console.log('###?? createEthersConfig : start ', new Date().toLocaleTimeString())
     if (!options.metadata) {
       return undefined
     }
@@ -110,7 +109,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async signMessage(
     params: AdapterBlueprint.SignMessageParams
   ): Promise<AdapterBlueprint.SignMessageResult> {
-    console.log('###?? signMessage : start ethers adapter : ', new Date().toLocaleTimeString())
     const { message, address, provider } = params
 
     if (!provider) {
@@ -130,27 +128,42 @@ export class EthersAdapter extends AdapterBlueprint {
     }
   }
 
+  public async etherSignMessage(
+    params: AdapterBlueprint.EtherSignMessageParams
+  ): Promise<AdapterBlueprint.EtherSignMessageResult> {
+    const { message, address, provider } = params
+    if (!provider) {
+      throw new Error('Provider is undefined')
+    }
+    try {
+      const signature = await EthersMethods.etherSignMessage(message, address, provider as Provider)
+
+      return { signature }
+    } catch (error) {
+      throw new Error('EthersAdapter:etherSignMessage - Sign message failed')
+    }
+  }
+
   /**
    * @description Legacy EIP-712 signing method for ERC-2612 permit signatures only
-   * 
+   *
    * ⚠️ DEPRECATED: This method is limited to ERC-2612 permit signatures and should not be used
    * for new implementations. Use signTypedDataV4 instead for a generic, standards-compliant solution.
-   * 
+   *
    * This adapter method specifically handles token permit signatures with hardcoded structure:
    * - Only works with ERC-2612 permit domain/message format
    * - Cannot handle arbitrary EIP-712 typed data structures
    * - Limited to specific contractAddress/spenderAddress/value scenarios
-   * 
+   *
    * @param {AdapterBlueprint.SignEIP712Params} params - ERC-2612 permit-specific parameters
    * @returns {Promise<AdapterBlueprint.SignEIP712Result>} Object containing the permit signature
-   * 
+   *
    * @deprecated Use signTypedDataV4 for new implementations
    * @see signTypedDataV4 for the improved, generic alternative
    */
   public async signEIP712(
     params: AdapterBlueprint.SignEIP712Params
   ): Promise<AdapterBlueprint.SignEIP712Result> {
-    console.log('###?? signEIP712 : start ', new Date().toLocaleTimeString())
     try {
       const signature = await EthersMethods.signEIP712(
         {
@@ -176,27 +189,27 @@ export class EthersAdapter extends AdapterBlueprint {
 
   /**
    * @description Universal EIP-712 typed data signing method using Ethers.js
-   * 
+   *
    * This is the recommended method for all EIP-712 signatures. It provides a generic,
-   * flexible solution that can handle any EIP-712 structured data, replacing the 
+   * flexible solution that can handle any EIP-712 structured data, replacing the
    * limited signEIP712 method which only works with ERC-2612 permits.
-   * 
+   *
    * Key advantages over signEIP712:
    * - ✅ Accepts any EIP-712 typed data structure from any source (API, client-side, etc.)
    * - ✅ Follows standard eth_signTypedData_v4 RPC specification exactly
    * - ✅ Compatible with pre-formatted typed data (API responses, external libraries)
    * - ✅ Works with custom domain separators and message types
    * - ✅ Maintains full backward compatibility
-   * 
+   *
    * The method expects paramsData in the format: [signerAddress, typedDataStructure]
    * which directly matches the eth_signTypedData_v4 RPC call parameters.
-   * 
+   *
    * @param {AdapterBlueprint.SignTypedDataV4Params} params - Generic typed data parameters
    * @param {[string, any]} params.paramsData - Tuple of [address, typedData] matching RPC params
    * @param {Provider} [params.provider] - Ethers provider instance
    * @param {CustomData} [params.customData] - Optional metadata for the signature request
    * @returns {Promise<AdapterBlueprint.SignTypedDataV4Result>} Object containing the signature
-   * 
+   *
    * @example
    * // Using pre-formatted typed data (e.g., from API response)
    * const apiResponse = await fetch('/api/signature-request');
@@ -205,7 +218,7 @@ export class EthersAdapter extends AdapterBlueprint {
    *   provider: ethersProvider,
    *   customData: { description: 'API signature request' }
    * });
-   * 
+   *
    * @example
    * // Using manually constructed typed data
    * const result = await adapter.signTypedDataV4({
@@ -240,7 +253,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async sendTransaction(
     params: AdapterBlueprint.SendTransactionParams
   ): Promise<AdapterBlueprint.SendTransactionResult> {
-    console.log('###?? sendTransaction : start ', new Date().toLocaleTimeString())
     if (!params.provider) {
       throw new Error('Provider is undefined')
     }
@@ -269,7 +281,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async writeContract(
     params: AdapterBlueprint.WriteContractParams
   ): Promise<AdapterBlueprint.WriteContractResult> {
-    console.log('###?? writeContract : start ', new Date().toLocaleTimeString())
     if (!params.provider) {
       throw new Error('Provider is undefined')
     }
@@ -297,7 +308,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async readContract(
     params: AdapterBlueprint.ReadContractParams
   ): Promise<AdapterBlueprint.ReadContractResult> {
-    console.log('###?? readContract : start ', new Date().toLocaleTimeString())
     const { provider } = params
     if (!provider) {
       throw new Error('Provider is undefined')
@@ -314,7 +324,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async estimateGas(
     params: AdapterBlueprint.EstimateGasTransactionArgs
   ): Promise<AdapterBlueprint.EstimateGasTransactionResult> {
-    console.log('###?? estimateGas : start ', new Date().toLocaleTimeString())
     const { provider, caipNetwork, address } = params
     if (!provider) {
       throw new Error('Provider is undefined')
@@ -341,7 +350,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async getEnsAddress(
     params: AdapterBlueprint.GetEnsAddressParams
   ): Promise<AdapterBlueprint.GetEnsAddressResult> {
-    console.log('###?? getEnsAddress : start ', new Date().toLocaleTimeString())
     const { name, caipNetwork } = params
     if (caipNetwork) {
       const result = await EthersMethods.getEnsAddress(name, caipNetwork)
@@ -365,7 +373,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async syncConnection(
     params: AdapterBlueprint.SyncConnectionParams
   ): Promise<AdapterBlueprint.ConnectResult> {
-    console.log('###?? syncConnection : start ', new Date().toLocaleTimeString())
     const { id, chainId } = params
 
     const connector = this.connectors.find(c => c.id === id)
@@ -404,7 +411,6 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   override async syncConnectors(options: AppKitOptions): Promise<void> {
-    console.log('###?? syncConnectors : start ', new Date().toLocaleTimeString())
     this.ethersConfig = await this.createEthersConfig(options)
 
     if (this.ethersConfig?.EIP6963) {
@@ -485,7 +491,6 @@ export class EthersAdapter extends AdapterBlueprint {
     type,
     chainId
   }: AdapterBlueprint.ConnectParams): Promise<AdapterBlueprint.ConnectResult> {
-    console.log('###?? connect : start ', new Date().toLocaleTimeString())
     const connector = this.connectors.find(c => c.id === id)
     const selectedProvider = connector?.provider as Provider
 
@@ -544,7 +549,6 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   public override async reconnect(params: AdapterBlueprint.ConnectParams): Promise<void> {
-    console.log('###?? reconnect : start ', new Date().toLocaleTimeString())
     const { id, chainId } = params
 
     const connector = this.connectors.find(c => c.id === id)
@@ -560,7 +564,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async getAccounts(
     params: AdapterBlueprint.GetAccountsParams
   ): Promise<AdapterBlueprint.GetAccountsResult> {
-    console.log('###?? getAccounts : start ', new Date().toLocaleTimeString())
     const connector = this.connectors.find(c => c.id === params.id)
     const selectedProvider = connector?.provider as Provider
 
@@ -589,7 +592,6 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   public async disconnect(params: AdapterBlueprint.DisconnectParams): Promise<void> {
-    console.log('###?? disconnect : start ', new Date().toLocaleTimeString())
     if (!params.provider || !params.providerType) {
       throw new Error('Provider or providerType not provided')
     }
@@ -597,7 +599,7 @@ export class EthersAdapter extends AdapterBlueprint {
     switch (params.providerType) {
       case 'WALLET_CONNECT':
         if ((params.provider as UniversalProvider).session) {
-          ; (params.provider as UniversalProvider).disconnect()
+          ;(params.provider as UniversalProvider).disconnect()
         }
         break
       case 'AUTH':
@@ -615,7 +617,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async getBalance(
     params: AdapterBlueprint.GetBalanceParams
   ): Promise<AdapterBlueprint.GetBalanceResult> {
-    console.log('###?? getBalance : start ', new Date().toLocaleTimeString())
     const caipNetwork = this.caipNetworks?.find((c: CaipNetwork) => c.id === params.chainId)
 
     if (caipNetwork && caipNetwork.chainNamespace === 'eip155') {
@@ -676,7 +677,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async getProfile(
     params: AdapterBlueprint.GetProfileParams
   ): Promise<AdapterBlueprint.GetProfileResult> {
-    console.log('###?? getProfile : start ', new Date().toLocaleTimeString())
     if (params.chainId === 1) {
       const ensProvider = new InfuraProvider('mainnet')
       const name = await ensProvider.lookupAddress(params.address)
@@ -738,7 +738,6 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   public override async switchNetwork(params: AdapterBlueprint.SwitchNetworkParams): Promise<void> {
-    console.log('###?? switchNetwork : start ', new Date().toLocaleTimeString())
     const { caipNetwork, provider, providerType } = params
 
     if (providerType === 'AUTH') {
@@ -776,7 +775,6 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   private async revokeProviderPermissions(provider: Provider | CombinedProvider) {
-    console.log('###?? revokeProviderPermissions : start ', new Date().toLocaleTimeString())
     try {
       const permissions: { parentCapability: string }[] = await provider.request({
         method: 'wallet_getPermissions'
@@ -798,7 +796,6 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   public async getCapabilities(params: AdapterBlueprint.GetCapabilitiesParams): Promise<unknown> {
-    console.log('###?? getCapabilities : start ', new Date().toLocaleTimeString())
     const provider = ProviderUtil.getProvider(CommonConstantsUtil.CHAIN.EVM)
 
     if (!provider) {
@@ -818,7 +815,6 @@ export class EthersAdapter extends AdapterBlueprint {
   }
 
   public async grantPermissions(params: AdapterBlueprint.GrantPermissionsParams): Promise<unknown> {
-    console.log('###?? grantPermissions : start ', new Date().toLocaleTimeString())
     const provider = ProviderUtil.getProvider(CommonConstantsUtil.CHAIN.EVM)
 
     if (!provider) {
@@ -831,7 +827,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async revokePermissions(
     params: AdapterBlueprint.RevokePermissionsParams
   ): Promise<`0x${string}`> {
-    console.log('###?? revokePermissions : start ', new Date().toLocaleTimeString())
     const provider = ProviderUtil.getProvider(CommonConstantsUtil.CHAIN.EVM)
 
     if (!provider) {
@@ -844,7 +839,6 @@ export class EthersAdapter extends AdapterBlueprint {
   public async walletGetAssets(
     params: AdapterBlueprint.WalletGetAssetsParams
   ): Promise<AdapterBlueprint.WalletGetAssetsResponse> {
-    console.log('###?? walletGetAssets : start ', new Date().toLocaleTimeString())
     const provider = ProviderUtil.getProvider(CommonConstantsUtil.CHAIN.EVM)
 
     if (!provider) {

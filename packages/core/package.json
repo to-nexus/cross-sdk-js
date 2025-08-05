@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-core",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",

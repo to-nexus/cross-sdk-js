@@ -1,5 +1,13 @@
 # @reown/appkit-utils
 
+## 1.13.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit-wallet@1.13.0
+  - @to-nexus/appkit-core@1.13.0
+
 ## 1.12.0
 
 ### Minor Changes

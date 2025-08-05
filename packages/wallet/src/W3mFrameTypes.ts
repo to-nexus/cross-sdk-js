@@ -1,6 +1,5 @@
-import { z } from 'zod'
-
 import type { CaipNetworkId } from '@to-nexus/appkit-common'
+import { z } from 'zod'
 
 import type { W3mFrameRpcConstants } from './W3mFrameConstants.js'
 import {
@@ -66,6 +65,7 @@ import {
   RpcEthSendTransactionRequest,
   RpcEthSignTypedDataV4,
   RpcEthSyncing,
+  RpcEtherSignMessageRequest,
   RpcPersonalSignRequest,
   RpcResponse,
   RpcSolanaSignAllTransactionsRequest,
@@ -178,6 +178,7 @@ export namespace W3mFrameTypes {
     | z.infer<typeof RpcEthSyncing>
     | z.infer<typeof RpcUnistallFilter>
     | z.infer<typeof RpcPersonalSignRequest>
+    | z.infer<typeof RpcEtherSignMessageRequest>
     | z.infer<typeof RpcEthSignTypedDataV4>
     | z.infer<typeof RpcEthSendTransactionRequest>
     | z.infer<typeof RpcSolanaSignMessageRequest>

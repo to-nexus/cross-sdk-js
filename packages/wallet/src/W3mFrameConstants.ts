@@ -1,5 +1,4 @@
-export const SECURE_SITE_SDK =
-  'https://secure.walletconnect.org/sdk'
+export const SECURE_SITE_SDK = 'https://secure.walletconnect.org/sdk'
 
 export const DEFAULT_LOG_LEVEL = 'error'
 
@@ -148,6 +147,7 @@ export const W3mFrameRpcConstants = {
     'wallet_getAssets'
   ],
   NOT_SAFE_RPC_METHODS: [
+    'eth_sign',
     'personal_sign',
     'eth_signTypedData_v4',
     'eth_sendTransaction',

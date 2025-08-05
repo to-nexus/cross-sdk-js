@@ -1,5 +1,15 @@
 # @to-nexus/sdk-example-react
 
+## 1.13.0
+
+### Minor Changes
+
+- add eth sign method
+
+### Patch Changes
+
+- @to-nexus/sdk@1.13.0
+
 ## 1.12.0
 
 ### Minor Changes

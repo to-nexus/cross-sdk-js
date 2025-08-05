@@ -1,6 +1,5 @@
-import { z } from 'zod'
-
 import type { AdapterType, AppKitSdkVersion, SdkFramework } from '@to-nexus/appkit-common'
+import { z } from 'zod'
 
 import { W3mFrameConstants, W3mFrameRpcConstants } from './W3mFrameConstants.js'
 
@@ -306,6 +305,11 @@ export const RpcUnistallFilter = z.object({
 
 export const RpcPersonalSignRequest = z.object({
   method: z.literal('personal_sign'),
+  params: z.array(z.any())
+})
+
+export const RpcEtherSignMessageRequest = z.object({
+  method: z.literal('eth_sign'),
   params: z.array(z.any())
 })
 

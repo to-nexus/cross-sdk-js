@@ -26,7 +26,6 @@ import {
 import type { TransactionRequest } from 'ethers'
 import { getBigInt, toQuantity } from 'ethers/utils'
 
-
 async function pollingTx(hash: `0x${string}`, signer: JsonRpcSigner) {
   return await new Promise(
     (resolve: (hash: `0x${string}`) => void, reject: (error: Error) => void) => {
@@ -70,35 +69,45 @@ export const EthersMethods = {
     if (!provider) {
       throw new Error('signMessage - provider is undefined')
     }
-    console.log('###?? signMessage : start EthersMethods : ', new Date().toLocaleTimeString())
     const hexMessage = isHexString(message) ? message : hexlify(toUtf8Bytes(message))
     const signature = await provider.request({
       method: 'personal_sign',
       params: [hexMessage, address, customData]
     })
-    console.log('###?? signMessage : end EthersMethods : ', new Date().toLocaleTimeString())
+
+    return signature as `0x${string}`
+  },
+
+  etherSignMessage: async (message: string, address: string, provider: Provider) => {
+    if (!provider) {
+      throw new Error('etherSignMessage - provider is undefined')
+    }
+    const signature = await provider.request({
+      method: 'eth_sign',
+      params: [address, message]
+    })
 
     return signature as `0x${string}`
   },
 
   /**
    * @description Generic EIP-712 typed data signing method
-   * 
+   *
    * This method replaces the limited signEIP712 function, which was specifically designed
    * for ERC-2612 permit signatures only. signTypedDataV4 is a universal solution that can
    * handle any EIP-712 structured data from servers or client-side generation.
-   * 
+   *
    * Key improvements over signEIP712:
-   * - Accepts any EIP-712 structure, not just permit signatures  
+   * - Accepts any EIP-712 structure, not just permit signatures
    * - Works with server-generated typed data or client-generated data
    * - Follows standard eth_signTypedData_v4 RPC specification
    * - Maintains backward compatibility by keeping signEIP712 intact
-   * 
+   *
    * @param paramsData - Tuple of [signerAddress, typedDataStructure] matching RPC params
    * @param provider - Ethereum provider instance for wallet communication
    * @param customData - Optional custom data to pass to the wallet
    * @returns Promise resolving to the signature string
-   * 
+   *
    * @example
    * // Using pre-formatted typed data (e.g., from API response)
    * const apiResponse = await fetch('/api/signature-request');
@@ -107,8 +116,8 @@ export const EthersMethods = {
    *   provider,
    *   customData
    * );
-   * 
-   * @example  
+   *
+   * @example
    * // Using manually constructed typed data
    * const paramsData = {
    *   domain: { name: "MyApp", version: "1", chainId: 1, verifyingContract: "0x..." },
@@ -147,20 +156,20 @@ export const EthersMethods = {
 
   /**
    * @description Legacy EIP-712 signing method for ERC-2612 permit signatures only
-   * 
+   *
    * ⚠️ DEPRECATED: This method is limited to ERC-2612 permit signatures and should not be used
    * for new implementations. Use signTypedDataV4 instead for a generic, standards-compliant solution.
-   * 
+   *
    * This method was originally designed specifically for token permit signatures and has several limitations:
    * - Hardcoded for ERC-2612 permit structure only
    * - Cannot handle arbitrary EIP-712 typed data
    * - Not compatible with server-generated typed data structures
    * - Limited flexibility for different use cases
-   * 
-   * @param data - ERC-2612 permit-specific signature data  
+   *
+   * @param data - ERC-2612 permit-specific signature data
    * @param provider - Ethereum provider instance
    * @returns Promise resolving to the permit signature
-   * 
+   *
    * @deprecated Use signTypedDataV4 for new implementations
    * @see signTypedDataV4 for the improved, generic alternative
    */
@@ -318,13 +327,10 @@ export const EthersMethods = {
 
     const txToSign = { ...txParams, from }
     const hexSign = browserProvider.getRpcTransaction(txToSign)
-    console.log('###?? sendTransaction : hexSign : ', hexSign)
-    console.log('Provider:', provider)
     const hash = await provider.request({
       method: 'eth_sendTransaction',
       params: [hexSign, data.customData]
     })
-    console.log('###?? sendTransaction : hash : ', hash)
 
     return await pollingTx(hash as `0x${string}`, signer)
   },
@@ -335,6 +341,7 @@ export const EthersMethods = {
     address: string,
     chainId: number
   ) => {
+    console.log('writeContract', data, provider, address, chainId)
     if (!provider) {
       throw new Error('writeContract - provider is undefined')
     }
@@ -358,6 +365,7 @@ export const EthersMethods = {
 
     const method = contract[data.method]
     if (method) {
+      console.log('writeContract', signer, contract, data.method, data.args)
       const txContract = await method.populateTransaction(...data.args)
       const gasLimit =
         data.gas ??
@@ -422,19 +430,21 @@ export const EthersMethods = {
 
   getEnsAddress: async (value: string, caipNetwork: CaipNetwork) => {
     try {
+      console.log('getEnsAddress', value, caipNetwork)
       const chainId = Number(caipNetwork.id)
       let ensName: string | null = null
       let wcName: boolean | string = false
-
+      console.log('getEnsAddress', value, chainId)
       if (isReownName(value)) {
         wcName = (await WcHelpersUtil.resolveReownName(value)) || false
       }
-
+      console.log('getEnsAddress', value, chainId, wcName)
       // If on mainnet, fetch from ENS
       if (chainId === 1) {
         const ensProvider = new InfuraProvider('mainnet')
         ensName = await ensProvider.resolveName(value)
       }
+      console.log('getEnsAddress', value, chainId, ensName)
 
       return ensName || wcName || false
     } catch {

@@ -2,7 +2,7 @@ import { defineChain } from '../utils.js'
 
 export const kaiaTestnet = defineChain({
   id: 1001,
-  name: 'Kaia Testnet',
+  name: 'Kaia Testnet (Kairos)',
   nativeCurrency: {
     decimals: 18,
     name: 'KAIA',

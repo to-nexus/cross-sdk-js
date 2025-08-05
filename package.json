@@ -103,5 +103,8 @@
   },
   "@parcel/resolver-default": {
     "packageExports": true
+  },
+  "dependencies": {
+    "caver-js": "^1.12.2"
   }
 }
