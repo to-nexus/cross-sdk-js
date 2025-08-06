@@ -1,5 +1,11 @@
 # @to-nexus/sdk-example-react
 
+## 1.13.2
+
+### Patch Changes
+
+- fix cavor build error
+
 ## 1.13.1
 
 ### Patch Changes
