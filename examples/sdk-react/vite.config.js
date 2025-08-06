@@ -6,16 +6,11 @@ export default defineConfig({
   plugins: [react()],
   base: process.env.NODE_ENV === 'production' ? '/react/' : '/',
   define: {
-    'import.meta.env.VITE_NODE_ENV': JSON.stringify(process.env.VITE_NODE_ENV || 'development'),
-    global: 'globalThis',
-    'process.env': {}
+    'import.meta.env.VITE_NODE_ENV': JSON.stringify(process.env.VITE_NODE_ENV || 'development')
   },
   build: {
     outDir: 'dist',
-    emptyOutDir: true,
-    rollupOptions: {
-      external: ['http', 'https', 'crypto', 'stream', 'util', 'fs', 'path', 'os']
-    }
+    emptyOutDir: true
   },
   resolve: {
     alias: [
@@ -29,37 +24,6 @@ export default defineConfig({
         replacement: path.resolve(__dirname, '../../packages/sdk/dist/esm/index.js')
       }
     ]
-  },
-  optimizeDeps: {
-    include: ['caver-js'],
-    exclude: [],
-    esbuildOptions: {
-      define: {
-        global: 'globalThis'
-      },
-      plugins: [
-        {
-          name: 'node-modules-polyfill',
-          setup(build) {
-            // Node.js 내장 모듈들을 빈 모듈로 대체
-            const modules = ['http', 'https', 'crypto', 'stream', 'util', 'fs', 'path', 'os']
-            modules.forEach(mod => {
-              build.onResolve({ filter: new RegExp(`^${mod}$`) }, () => ({
-                path: mod,
-                namespace: 'node-module-polyfill'
-              }))
-              build.onLoad({ filter: /.*/, namespace: 'node-module-polyfill' }, () => ({
-                contents:
-                  'export default {}; export const createServer = () => ({}); export const request = () => ({}); export const Agent = class {}; export const globalAgent = {};'
-              }))
-            })
-          }
-        }
-      ]
-    }
-  },
-  ssr: {
-    noExternal: ['caver-js']
   },
   server: {
     // 필요한 경우 HMR 관련 설정 추가

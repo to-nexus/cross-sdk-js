@@ -133,6 +133,18 @@ importers:
       '@vitejs/plugin-react':
         specifier: 4.2.1
         version: 4.2.1(vite@5.4.12(@types/node@22.13.4)(terser@5.43.1))
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
+      crypto-browserify:
+        specifier: ^3.12.1
+        version: 3.12.1
+      stream-browserify:
+        specifier: ^3.0.0
+        version: 3.0.0
+      util:
+        specifier: ^0.12.5
+        version: 0.12.5
       vite:
         specifier: 5.4.12
         version: 5.4.12(@types/node@22.13.4)(terser@5.43.1)
