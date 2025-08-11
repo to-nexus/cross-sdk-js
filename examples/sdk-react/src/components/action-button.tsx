@@ -120,13 +120,62 @@ export function ActionButtonList() {
 
   // used for connecting wallet with wallet list
   function handleConnect() {
+    console.log('🔄 Connecting wallet...')
     appKit.connect()
   }
 
   // used for connecting cross wallet directly
   function handleConnectWallet() {
+    console.log('🔄 Connecting Cross wallet directly...')
     connect('cross_wallet')
   }
+
+  // 토픽 정보를 로깅하는 함수
+  const logTopicInfo = async () => {
+    try {
+      const universalProvider = await getUniversalProvider()
+      if (universalProvider?.session) {
+        console.log('📡 Session Topic:', universalProvider.session.topic)
+        console.log('🔗 Pairing Topic:', universalProvider.session.pairingTopic)
+        console.log('📋 Full Session Info:', universalProvider.session)
+        
+        // 현재 활성화된 세션들의 토픽도 확인
+        if (universalProvider.client?.session) {
+          const allSessions = universalProvider.client.session.getAll()
+          console.log('📚 All Active Sessions:', allSessions.map(session => ({
+            topic: session.topic,
+            pairingTopic: session.pairingTopic,
+            peer: session.peer?.metadata?.name
+          })))
+        }
+
+        // 성공 메시지 표시
+        showSuccess(
+          'Topic Information Retrieved!',
+          `Session Topic: ${universalProvider.session.topic}\nPairing Topic: ${universalProvider.session.pairingTopic}\n\nCheck console for full details.`
+        )
+      } else {
+        console.log('❌ No active session found')
+        showError('No Session Found', 'Please connect a wallet first to get topic information.')
+      }
+    } catch (error) {
+      console.error('❌ Error getting topic info:', error)
+      showError('Error Getting Topic Info', error instanceof Error ? error.message : 'Unknown error')
+    }
+  }
+
+  // 연결 상태 변화 감지 및 토픽 로깅
+  useEffect(() => {
+    if (account?.isConnected) {
+      console.log('✅ Wallet connected! Logging topic information...')
+      // 연결 후 약간의 지연을 두고 토픽 정보를 가져옴
+      setTimeout(() => {
+        logTopicInfo()
+      }, 1000)
+    } else {
+      console.log('🔌 Wallet disconnected')
+    }
+  }, [account?.isConnected])
 
   async function handleDisconnect() {
     try {
@@ -804,6 +853,7 @@ Check console for full details.`
         <button onClick={handleEtherSignMessage}>Sign Message with Ether Sign</button>
         <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
         <button onClick={handleProviderRequest}>Provider Request</button>
+        <button onClick={logTopicInfo}>Get Topic Info</button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>

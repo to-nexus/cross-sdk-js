@@ -219,7 +219,48 @@ export class AppKit {
     await this.initChainAdapters()
     await this.injectModalUi()
     await this.syncExistingConnection()
+    
+    // 🔥 지갑이 연결되어 있고 네트워크가 다르면 자동 변경
+    await this.autoSwitchWalletNetwork()
+    
     PublicStateController.set({ initialized: true })
+  }
+
+  /**
+   * 지갑이 연결되어 있을 때 SDK의 기본 네트워크로 자동 변경
+   */
+  private async autoSwitchWalletNetwork() {
+    if (!AccountController.state.address || !this.defaultCaipNetwork) {
+      return
+    }
+
+    try {
+      const currentChainId = await this.getCurrentWalletChainId()
+      
+      if (currentChainId && currentChainId !== this.defaultCaipNetwork.id) {
+        console.log(`🔄 Auto-switching wallet network from ${currentChainId} to ${this.defaultCaipNetwork.id}`)
+        await this.switchNetwork(this.defaultCaipNetwork)
+      }
+    } catch (error) {
+      console.warn('Failed to auto-switch wallet network:', error)
+    }
+  }
+
+  /**
+   * 현재 지갑의 체인 ID를 가져옴
+   */
+  private async getCurrentWalletChainId(): Promise<number | undefined> {
+    try {
+      const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
+      const provider = ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace)
+      
+      if (provider) {
+        return await provider.request({ method: 'eth_chainId' })
+      }
+    } catch (error) {
+      console.warn('Failed to get current wallet chain ID:', error)
+    }
+    return undefined
   }
 
   private sendInitializeEvent(options: AppKitOptionsWithSdk) {
