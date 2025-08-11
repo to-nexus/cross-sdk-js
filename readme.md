@@ -276,4 +276,3 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
-For more information, visit [Cross Documentation](https://cross.readme.io/update/docs/js/) or join our [Discord](https://discord.gg/cross).
