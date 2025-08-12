@@ -12,7 +12,6 @@ import { createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
 import {
   bscMainnet,
   bscTestnet,
-  contractData,
   crossMainnet,
   crossTestnet,
   kaiaMainnet,
@@ -141,5 +140,4 @@ export {
   kaiaTestnet,
   UniversalProvider,
   ConstantsUtil,
-  contractData
 }

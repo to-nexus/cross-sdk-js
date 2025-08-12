@@ -518,6 +518,8 @@ export class EthersAdapter extends AdapterBlueprint {
         method: 'eth_chainId'
       })
 
+      console.log(`EthersAdapter:connect - eth_chainId from wallet: ${requestChainId} connecting chainId: ${chainId}`)
+
       if (requestChainId !== chainId) {
         const caipNetwork = this.caipNetworks?.find(n => n.id === chainId)
 

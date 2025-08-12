@@ -10,7 +10,6 @@ import type { AppKitNetwork } from '@to-nexus/appkit/networks'
 
 import { AppKit } from '../src/client.js'
 import { getAppKit } from '../src/library/react/index.js'
-import { contractData } from '../src/networks/utils.js'
 import type { AppKitOptions } from '../src/utils/TypesUtil.js'
 import { PACKAGE_VERSION } from './constants.js'
 
@@ -60,14 +59,6 @@ export function useAppKitNetwork(): UseAppKitNetworkReturn {
   function switchNetwork(network: AppKitNetwork) {
     modal?.switchNetwork(network)
   }
-
-  useEffect(() => {
-    if (AccountController.state.address) {
-      const targetNetwork = contractData[chainId as keyof typeof contractData].network
-      switchNetwork(targetNetwork)
-    }
-    //
-  }, [chainId, AccountController.state.address])
 
   return {
     caipNetwork,

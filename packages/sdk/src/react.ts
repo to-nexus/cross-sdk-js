@@ -10,7 +10,6 @@ import {
 import {
   bscMainnet,
   bscTestnet,
-  contractData,
   crossMainnet,
   crossTestnet,
   kaiaMainnet,
@@ -156,6 +155,5 @@ export {
   kaiaTestnet,
   UniversalProvider,
   getUniversalProvider,
-  ConstantsUtil,
-  contractData
+  ConstantsUtil
 }

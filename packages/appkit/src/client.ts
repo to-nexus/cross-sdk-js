@@ -231,11 +231,13 @@ export class AppKit {
    */
   private async autoSwitchWalletNetwork() {
     if (!AccountController.state.address || !this.defaultCaipNetwork) {
+      console.log(`autoSwitchWalletNetwork, No address or default caip network - address: ${AccountController.state?.address} defaultCaipNetwork.id: ${this.defaultCaipNetwork?.id}`)
       return
     }
 
     try {
       const currentChainId = await this.getCurrentWalletChainId()
+      console.log(`autoSwitchWalletNetwork, current wallet ChainId: ${currentChainId}`)
       
       if (currentChainId && currentChainId !== this.defaultCaipNetwork.id) {
         console.log(`🔄 Auto-switching wallet network from ${currentChainId} to ${this.defaultCaipNetwork.id}`)
