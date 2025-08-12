@@ -227,11 +227,11 @@ export class AppKit {
   }
 
   /**
-   * 지갑이 연결되어 있을 때 SDK의 기본 네트워크로 자동 변경
+   * 지갑이 연결되어 있을 때 SDK의 Active 네트워크로 자동 변경
    */
   private async autoSwitchWalletNetwork() {
-    if (!AccountController.state.address || !this.defaultCaipNetwork) {
-      console.log(`autoSwitchWalletNetwork, No address or default caip network - address: ${AccountController.state?.address} defaultCaipNetwork.id: ${this.defaultCaipNetwork?.id}`)
+    if (!AccountController.state.address || !ChainController.state.activeCaipNetwork) {
+      console.log(`autoSwitchWalletNetwork, No address or activeCaipNetwork`)
       return
     }
 
@@ -239,9 +239,11 @@ export class AppKit {
       const currentChainId = await this.getCurrentWalletChainId()
       console.log(`autoSwitchWalletNetwork, current wallet ChainId: ${currentChainId}`)
 
-      if (currentChainId && currentChainId !== this.defaultCaipNetwork.id) {
-        console.log(`🔄 Auto-switching wallet network from ${currentChainId} to ${this.defaultCaipNetwork.id}`)
-        await this.switchNetwork(this.defaultCaipNetwork)
+      if (currentChainId && currentChainId !== ChainController.state.activeCaipNetwork.id) {
+        console.log(`🔄 Auto-switching wallet network from ${currentChainId} to ${ChainController.state.activeCaipNetwork.id}`)
+        await this.switchNetwork(ChainController.state.activeCaipNetwork)
+      } else {
+        console.log(`autoSwitchWalletNetwork, current wallet ChainId: ${currentChainId} is the same as the active caip network`)
       }
     } catch (error) {
       console.warn('Failed to auto-switch wallet network:', error)
