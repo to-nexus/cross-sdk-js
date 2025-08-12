@@ -8,7 +8,6 @@ import {
   UniversalProvider,
   bscMainnet,
   bscTestnet,
-  contractData,
   crossMainnet,
   crossTestnet,
   getUniversalProvider,
@@ -23,7 +22,6 @@ import {
   useDisconnect
 } from '@to-nexus/sdk/react'
 import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
-import { ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
 import { sampleEIP712 } from '../contracts/sample-eip712'
@@ -31,6 +29,39 @@ import { sampleErc20ABI } from '../contracts/sample-erc20'
 import { sampleErc721ABI } from '../contracts/sample-erc721'
 import { useResultModal } from '../hooks/use-result-modal'
 import { ResultModal } from './result-modal'
+
+const contractData = {
+  612044: {
+    erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
+    erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
+    network: crossTestnet
+  },
+  612055: {
+    erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
+    erc721: '',
+    network: crossMainnet
+  },
+  97: {
+    erc20: '',
+    erc721: '',
+    network: bscTestnet
+  },
+  56: {
+    erc20: '',
+    erc721: '',
+    network: bscMainnet
+  },
+  1001: {
+    erc20: '0xd4846dddf83278d10b92bf6c169c5951d6f5abb8',
+    erc721: '',
+    network: kaiaTestnet
+  },
+  8217: {
+    erc20: '',
+    erc721: '',
+    network: kaiaMainnet
+  }
+}
 
 // API Response types for EIP-712 signing
 interface SignTypedDataApiResponse {
@@ -138,15 +169,18 @@ export function ActionButtonList() {
         console.log('📡 Session Topic:', universalProvider.session.topic)
         console.log('🔗 Pairing Topic:', universalProvider.session.pairingTopic)
         console.log('📋 Full Session Info:', universalProvider.session)
-        
+
         // 현재 활성화된 세션들의 토픽도 확인
         if (universalProvider.client?.session) {
           const allSessions = universalProvider.client.session.getAll()
-          console.log('📚 All Active Sessions:', allSessions.map(session => ({
-            topic: session.topic,
-            pairingTopic: session.pairingTopic,
-            peer: session.peer?.metadata?.name
-          })))
+          console.log(
+            '📚 All Active Sessions:',
+            allSessions.map(session => ({
+              topic: session.topic,
+              pairingTopic: session.pairingTopic,
+              peer: session.peer?.metadata?.name
+            }))
+          )
         }
 
         // 성공 메시지 표시
@@ -160,7 +194,10 @@ export function ActionButtonList() {
       }
     } catch (error) {
       console.error('❌ Error getting topic info:', error)
-      showError('Error Getting Topic Info', error instanceof Error ? error.message : 'Unknown error')
+      showError(
+        'Error Getting Topic Info',
+        error instanceof Error ? error.message : 'Unknown error'
+      )
     }
   }
 
@@ -234,67 +271,6 @@ export function ActionButtonList() {
       }
     })
     showSuccess('Sign Message Successful!', `signedMessage: ${signedMessage}`)
-  }
-
-  async function handleEtherSignMessage() {
-    if (!account?.isConnected) {
-      showError('Error in handleEtherSignMessage', 'Please connect wallet first.')
-      return
-    }
-
-    // 전역 Caver 사용
-    if (!window.Caver) {
-      showError('Error', 'Caver is not loaded. Please refresh the page.')
-      return
-    }
-
-    const caver = new window.Caver(
-      'https://kaia-testnet.crosstoken.io/fda0d5a47e2d0768e9329444295a3f0681fff365'
-    )
-    const nonce = await caver.rpc.klay.getTransactionCount(FROM_ADDRESS)
-    const tx = caver.transaction.feeDelegatedSmartContractExecution.create({
-      nonce: nonce,
-      input:
-        '0x5fd262de00000000000000000000000000000000000000000000000000000000000956cc000000000000000000000000d4846dddf83278d10b92bf6c169c5951d6f5abb8000000000000000000000000920a31f0e48739c3fbb790d992b0690f7f5c42ea00000000000000000000000000000000000000000000001b1ae4d6e2ef500000000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000067969458000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000096b6169612d746573746e657400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-      from: FROM_ADDRESS,
-      to: caver.utils.toChecksumAddress('0x5C1EB536d3BF86a7dbbAAD8b5dd9f2C66c6a7a0B'),
-      gasPrice: '0x5d21dba00',
-      gas: '0x1ef3d'
-    })
-
-    console.log('tx:', tx)
-    const messageToSign = tx.getSenderTxHash()
-    console.log('messageToSign:', messageToSign)
-
-    setIsLoading(true)
-    try {
-      console.log('etherSignMessage 2 ', messageToSign)
-      const signedMessage = await ConnectionController.etherSignMessage({
-        message: messageToSign,
-        address: FROM_ADDRESS
-      })
-      console.log('signedMessage', signedMessage)
-      if (!signedMessage) {
-        showError('Error', 'Signature is undefined')
-        return
-      }
-
-      const recovered = ethers.recoverAddress(messageToSign, signedMessage)
-      console.log('recovered', recovered)
-
-      showSuccess(
-        'Success',
-        `Transaction signed successfully\nsignedMessage ${signedMessage}\nrecovered ${recovered}`
-      )
-    } catch (error) {
-      console.error('Signing error:', error)
-      showError(
-        'Error in handleEtherSignMessage',
-        error instanceof Error ? error.message : 'Unknown error'
-      )
-    } finally {
-      setIsLoading(false)
-    }
   }
 
   // NEW: Generic EIP-712 signing using universal signTypedDataV4 method
@@ -850,7 +826,6 @@ Check console for full details.`
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSignMessage}>Sign Message</button>
-        <button onClick={handleEtherSignMessage}>Sign Message with Ether Sign</button>
         <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
         <button onClick={handleProviderRequest}>Provider Request</button>
         <button onClick={logTopicInfo}>Get Topic Info</button>

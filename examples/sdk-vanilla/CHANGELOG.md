@@ -1,5 +1,14 @@
 # @to-nexus/sdk-example-html
 
+## 1.12.2
+
+### Patch Changes
+
+- delete unnesessary contractData in sdk
+- Updated dependencies [15e526d]
+- Updated dependencies [de45924]
+  - @to-nexus/sdk@1.15.0
+
 ## 1.12.1
 
 ### Patch Changes
