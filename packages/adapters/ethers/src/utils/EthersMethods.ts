@@ -411,9 +411,10 @@ export const EthersMethods = {
 
   readContract: async (data: ReadContractArgs, provider: Provider, chainId: number) => {
     if (!provider) {
-      throw new Error('writeContract - provider is undefined')
+      throw new Error('readContract - provider is undefined')
     }
 
+    console.log(`readContract - chainId: ${chainId}`)
     const browserProvider = new BrowserProvider(provider, chainId)
     const contract = new Contract(data.contractAddress, data.abi, browserProvider)
     if (!contract || !data.method) {

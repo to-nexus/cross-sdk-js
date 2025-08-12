@@ -238,7 +238,7 @@ export class AppKit {
     try {
       const currentChainId = await this.getCurrentWalletChainId()
       console.log(`autoSwitchWalletNetwork, current wallet ChainId: ${currentChainId}`)
-      
+
       if (currentChainId && currentChainId !== this.defaultCaipNetwork.id) {
         console.log(`🔄 Auto-switching wallet network from ${currentChainId} to ${this.defaultCaipNetwork.id}`)
         await this.switchNetwork(this.defaultCaipNetwork)
@@ -1206,6 +1206,7 @@ export class AppKit {
       readContract: async (args: ReadContractArgs) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const caipNetwork = this.getCaipNetwork()
+        console.log(`Appkit ReadContract - caipNetwork: ${caipNetwork?.id}`)
         const provider = ProviderUtil.getProvider(
           ChainController.state.activeChain as ChainNamespace
         )

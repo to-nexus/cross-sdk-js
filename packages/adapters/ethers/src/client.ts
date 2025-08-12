@@ -509,6 +509,7 @@ export class EthersAdapter extends AdapterBlueprint {
       })
 
       accounts = [address]
+      console.log(`EthersAdapter:connect - type is AUTH, target chainId: ${chainId}`)
     } else {
       accounts = await selectedProvider.request({
         method: 'eth_requestAccounts'
