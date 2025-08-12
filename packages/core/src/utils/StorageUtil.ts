@@ -87,6 +87,18 @@ export const StorageUtil = {
   setActiveCaipNetworkId(caipNetworkId: CaipNetworkId) {
     try {
       console.log(`setActiveCaipNetworkId - caipNetworkId: ${caipNetworkId} now storing in storage`)
+      
+      // 이전 네트워크 ID 가져오기
+      const previousNetworkId = SafeLocalStorage.getItem(SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID)
+      
+      // 네트워크가 실제로 바뀌었는지 확인
+      if (previousNetworkId && previousNetworkId !== caipNetworkId) {
+        console.log(`Network changed from ${previousNetworkId} to ${caipNetworkId}, clearing all storage for previous network`)
+        
+        // 이전 네트워크의 모든 스토리지 제거
+        StorageUtil.clearAddressCache()
+      }
+      
       SafeLocalStorage.setItem(SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID, caipNetworkId)
       StorageUtil.setActiveNamespace(caipNetworkId.split(':')[0] as ChainNamespace)
     } catch {
@@ -371,13 +383,13 @@ export const StorageUtil = {
   },
   removeAddressFromNativeBalanceCache(caipAddress: string) {
     try {
-      const cache = StorageUtil.getBalanceCache()
+      const cache = StorageUtil.getNativeBalanceCache()
       SafeLocalStorage.setItem(
         SafeLocalStorageKeys.NATIVE_BALANCE_CACHE,
         JSON.stringify({ ...cache, [caipAddress]: undefined })
       )
     } catch {
-      console.info('Unable to remove address from balance cache', caipAddress)
+      console.info('Unable to remove address from native balance cache', caipAddress)
     }
   },
   getNativeBalanceCacheForCaipAddress(caipAddress: string) {
@@ -393,7 +405,7 @@ export const StorageUtil = {
       }
 
       console.info('Discarding cache for address', caipAddress)
-      StorageUtil.removeAddressFromBalanceCache(caipAddress)
+      StorageUtil.removeAddressFromNativeBalanceCache(caipAddress)
     } catch {
       console.info('Unable to get balance cache for address', caipAddress)
     }
