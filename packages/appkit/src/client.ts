@@ -1798,6 +1798,7 @@ export class AppKit {
     }
 
     if (chainIdToUse) {
+      console.log(`syncAccount - chainIdToUse: ${chainIdToUse}`)
       let caipNetwork = this.caipNetworks?.find(n => n.id.toString() === chainIdToUse.toString())
       let fallbackCaipNetwork = this.caipNetworks?.find(n => n.chainNamespace === chainNamespace)
 

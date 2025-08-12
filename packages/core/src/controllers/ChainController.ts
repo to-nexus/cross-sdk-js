@@ -289,6 +289,7 @@ export const ChainController = {
   },
 
   setActiveCaipNetwork(caipNetwork: AdapterNetworkState['caipNetwork']) {
+    console.log(`setActiveCaipNetwork - caipNetwork: ${caipNetwork?.id}`)
     if (!caipNetwork) {
       return
     }

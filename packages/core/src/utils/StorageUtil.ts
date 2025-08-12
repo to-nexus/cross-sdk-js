@@ -86,6 +86,7 @@ export const StorageUtil = {
 
   setActiveCaipNetworkId(caipNetworkId: CaipNetworkId) {
     try {
+      console.log(`setActiveCaipNetworkId - caipNetworkId: ${caipNetworkId} now storing in storage`)
       SafeLocalStorage.setItem(SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID, caipNetworkId)
       StorageUtil.setActiveNamespace(caipNetworkId.split(':')[0] as ChainNamespace)
     } catch {
