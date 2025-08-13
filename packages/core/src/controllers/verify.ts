@@ -37,6 +37,7 @@ export class Verify extends IVerify {
   private fetchPromise?: Promise<Jwk>;
 
   constructor(public core: ICore, public logger: Logger, public store: IKeyValueStorage) {
+    console.log("###?? constructor : ", new Date().toLocaleTimeString());
     super(core, logger, store);
     this.logger = generateChildLogger(logger, this.name);
     this.abortController = new AbortController();
@@ -45,12 +46,14 @@ export class Verify extends IVerify {
   }
 
   get storeKey(): string {
+    console.log("###?? storeKey : ", new Date().toLocaleTimeString());
     return (
       this.storagePrefix + this.version + this.core.customStoragePrefix + "//" + `verify:public:key`
     );
   }
 
   public init = async () => {
+    console.log("###?? init : ", new Date().toLocaleTimeString());
     if (this.isDevEnv) return;
     this.publicKey = await this.store.getItem(this.storeKey);
     if (this.publicKey && toMiliseconds(this.publicKey?.expiresAt) < Date.now()) {
@@ -60,6 +63,7 @@ export class Verify extends IVerify {
   };
 
   public register: IVerify["register"] = async (params) => {
+    console.log("###?? register : ", new Date().toLocaleTimeString());
     if (!isBrowser() || this.isDevEnv) return;
     const origin = window.location.origin;
     const { id, decryptedId } = params;
@@ -109,6 +113,7 @@ export class Verify extends IVerify {
   };
 
   public resolve: IVerify["resolve"] = async (params) => {
+    console.log("###?? resolve : ", new Date().toLocaleTimeString());
     if (this.isDevEnv) return "";
     const { attestationId, hash, encryptedId } = params;
     if (attestationId === "") {
@@ -134,10 +139,12 @@ export class Verify extends IVerify {
   };
 
   get context(): string {
+    console.log("###?? context : ", new Date().toLocaleTimeString());
     return getLoggerContext(this.logger);
   }
 
   private fetchAttestation = async (attestationId: string, url: string) => {
+    console.log("###?? fetchAttestation : ", new Date().toLocaleTimeString());
     this.logger.debug(`resolving attestation: ${attestationId} from url: ${url}`);
     // set artificial timeout to prevent hanging
     const timeout = this.startAbortTimer(ONE_SECOND * 5);
@@ -149,11 +156,13 @@ export class Verify extends IVerify {
   };
 
   private startAbortTimer(timer: number) {
+    console.log("###?? startAbortTimer : ", new Date().toLocaleTimeString());
     this.abortController = new AbortController();
     return setTimeout(() => this.abortController.abort(), toMiliseconds(timer));
   }
 
   private getVerifyUrl = (verifyUrl?: string) => {
+    console.log("###?? getVerifyUrl : ", new Date().toLocaleTimeString());
     let url = verifyUrl || VERIFY_SERVER;
     if (!TRUSTED_VERIFY_URLS.includes(url)) {
       this.logger.info(
@@ -165,6 +174,7 @@ export class Verify extends IVerify {
   };
 
   private fetchPublicKey = async () => {
+    console.log("###?? fetchPublicKey : ", new Date().toLocaleTimeString());
     try {
       this.logger.debug(`fetching public key from: ${this.verifyUrlV3}`);
       const timeout = this.startAbortTimer(FIVE_SECONDS);
@@ -180,18 +190,21 @@ export class Verify extends IVerify {
   };
 
   private persistPublicKey = async (publicKey: Jwk) => {
+    console.log("###?? persistPublicKey : ", new Date().toLocaleTimeString());
     this.logger.debug(`persisting public key to local storage`, publicKey);
     await this.store.setItem(this.storeKey, publicKey);
     this.publicKey = publicKey;
   };
 
   private removePublicKey = async () => {
+    console.log("###?? removePublicKey : ", new Date().toLocaleTimeString());
     this.logger.debug(`removing verify v2 public key from storage`);
     await this.store.removeItem(this.storeKey);
     this.publicKey = undefined;
   };
 
   private isValidJwtAttestation = async (attestation: string) => {
+    console.log("###?? isValidJwtAttestation : ", new Date().toLocaleTimeString());
     const key = await this.getPublicKey();
     try {
       if (key) {
@@ -216,11 +229,13 @@ export class Verify extends IVerify {
   };
 
   private getPublicKey = async () => {
+    console.log("###?? getPublicKey : ", new Date().toLocaleTimeString());
     if (this.publicKey) return this.publicKey;
     return await this.fetchAndPersistPublicKey();
   };
 
   private fetchAndPersistPublicKey = async () => {
+    console.log("###?? fetchAndPersistPublicKey : ", new Date().toLocaleTimeString());
     if (this.fetchPromise) {
       await this.fetchPromise;
       return this.publicKey;
@@ -237,6 +252,7 @@ export class Verify extends IVerify {
   };
 
   private validateAttestation = (attestation: string, key: Jwk) => {
+    console.log("###?? validateAttestation : ", new Date().toLocaleTimeString());
     const result = verifyP256Jwt<JwkPayload>(attestation, key.publicKey);
     const validation = {
       hasExpired: toMiliseconds(result.exp) < Date.now(),

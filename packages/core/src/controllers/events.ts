@@ -19,6 +19,7 @@ export class EventClient extends IEventClient {
   private events = new Map<string, EventClientTypes.Event>();
   private shouldPersist = false;
   constructor(public core: ICore, public logger: Logger, telemetryEnabled = true) {
+    console.log("###?? constructor : ", new Date().toLocaleTimeString());
     super(core, logger, telemetryEnabled);
     this.logger = generateChildLogger(logger, this.context);
     this.telemetryEnabled = telemetryEnabled;
@@ -34,12 +35,14 @@ export class EventClient extends IEventClient {
   }
 
   get storageKey() {
+    console.log("###?? storageKey : ", new Date().toLocaleTimeString());
     return (
       this.storagePrefix + this.storageVersion + this.core.customStoragePrefix + "//" + this.context
     );
   }
 
   public init: IEventClient["init"] = async () => {
+    console.log("###?? init : ", new Date().toLocaleTimeString());
     if (isTestRun()) return;
     try {
       const initEvent = {
@@ -66,6 +69,7 @@ export class EventClient extends IEventClient {
   };
 
   public createEvent: IEventClient["createEvent"] = (params) => {
+    console.log("###?? createEvent : ", new Date().toLocaleTimeString());
     const {
       event = "ERROR",
       type = "",
@@ -99,6 +103,7 @@ export class EventClient extends IEventClient {
   };
 
   public getEvent: IEventClient["getEvent"] = (params) => {
+    console.log("###?? getEvent : ", new Date().toLocaleTimeString());
     const { eventId, topic } = params;
     if (eventId) {
       return this.events.get(eventId);
@@ -116,12 +121,14 @@ export class EventClient extends IEventClient {
   };
 
   public deleteEvent: IEventClient["deleteEvent"] = (params) => {
+    console.log("###?? deleteEvent : ", new Date().toLocaleTimeString());
     const { eventId } = params;
     this.events.delete(eventId);
     this.shouldPersist = true;
   };
 
   private setEventListeners = () => {
+    console.log("###?? setEventListeners : ", new Date().toLocaleTimeString());
     this.core.heartbeat.on(HEARTBEAT_EVENTS.pulse, async () => {
       if (this.shouldPersist) await this.persist();
       // cleanup events older than EVENTS_STORAGE_CLEANUP_INTERVAL
@@ -138,6 +145,7 @@ export class EventClient extends IEventClient {
   };
 
   private setMethods = (eventId: string) => {
+    console.log("###?? setMethods : ", new Date().toLocaleTimeString());
     return {
       addTrace: (trace: string) => this.addTrace(eventId, trace),
       setError: (errorType: string) => this.setError(eventId, errorType),
@@ -145,6 +153,7 @@ export class EventClient extends IEventClient {
   };
 
   private addTrace = (eventId: string, trace: string) => {
+    console.log("###?? addTrace : ", new Date().toLocaleTimeString());
     const event = this.events.get(eventId);
     if (!event) return;
     event.props.properties.trace.push(trace);
@@ -153,6 +162,7 @@ export class EventClient extends IEventClient {
   };
 
   private setError = (eventId: string, errorType: string) => {
+    console.log("###?? setError : ", new Date().toLocaleTimeString());
     const event = this.events.get(eventId);
     if (!event) return;
     event.props.type = errorType;
@@ -162,11 +172,13 @@ export class EventClient extends IEventClient {
   };
 
   private persist = async () => {
+    console.log("###?? persist : ", new Date().toLocaleTimeString());
     await this.core.storage.setItem(this.storageKey, Array.from(this.events.values()));
     this.shouldPersist = false;
   };
 
   private restore = async () => {
+    console.log("###?? restore : ", new Date().toLocaleTimeString());
     try {
       const events =
         (await this.core.storage.getItem<EventClientTypes.Event[]>(this.storageKey)) || [];
@@ -183,6 +195,7 @@ export class EventClient extends IEventClient {
   };
 
   private submit = async () => {
+    console.log("###?? submit : ", new Date().toLocaleTimeString());
     if (!this.telemetryEnabled) return;
 
     if (this.events.size === 0) return;
@@ -211,6 +224,7 @@ export class EventClient extends IEventClient {
   };
 
   private sendEvent = async (events: EventClientTypes.Event[]) => {
+    console.log("###?? sendEvent : ", new Date().toLocaleTimeString());
     // if domain isn't available, set `sp` as `desktop` so data would be extracted on api side
     const platform = this.getAppDomain() ? "" : "&sp=desktop";
     const response = await fetch(
@@ -224,6 +238,7 @@ export class EventClient extends IEventClient {
   };
 
   private getAppDomain = () => {
+    console.log("###?? getAppDomain : ", new Date().toLocaleTimeString());
     return getAppMetadata().url;
   };
 }

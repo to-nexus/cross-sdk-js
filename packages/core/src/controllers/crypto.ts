@@ -35,12 +35,14 @@ export class Crypto implements ICrypto {
   private initialized = false;
 
   constructor(public core: ICore, public logger: Logger, keychain?: IKeyChain) {
+    console.log("###?? constructor : ", new Date().toLocaleTimeString());
     this.core = core;
     this.logger = generateChildLogger(logger, this.name);
     this.keychain = keychain || new KeyChain(this.core, this.logger);
   }
 
   public init: ICrypto["init"] = async () => {
+    console.log("###?? init : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       await this.keychain.init();
       this.initialized = true;
@@ -48,15 +50,18 @@ export class Crypto implements ICrypto {
   };
 
   get context() {
+    console.log("###?? context : ", new Date().toLocaleTimeString());
     return getLoggerContext(this.logger);
   }
 
   public hasKeys: ICrypto["hasKeys"] = (tag) => {
+    console.log("###?? hasKeys : ", new Date().toLocaleTimeString());
     this.isInitialized();
     return this.keychain.has(tag);
   };
 
   public getClientId: ICrypto["getClientId"] = async () => {
+    console.log("###?? getClientId : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const seed = await this.getClientSeed();
     const keyPair = relayAuth.generateKeyPair(seed);
@@ -65,12 +70,14 @@ export class Crypto implements ICrypto {
   };
 
   public generateKeyPair: ICrypto["generateKeyPair"] = () => {
+    console.log("###?? generateKeyPair : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const keyPair = generateKeyPairUtil();
     return this.setPrivateKey(keyPair.publicKey, keyPair.privateKey);
   };
 
   public signJWT: ICrypto["signJWT"] = async (aud) => {
+    console.log("###?? signJWT : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const seed = await this.getClientSeed();
     const keyPair = relayAuth.generateKeyPair(seed);
@@ -85,6 +92,7 @@ export class Crypto implements ICrypto {
     peerPublicKey,
     overrideTopic,
   ) => {
+    console.log("###?? generateSharedKey : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const selfPrivateKey = this.getPrivateKey(selfPublicKey);
     const symKey = deriveSymKey(selfPrivateKey, peerPublicKey);
@@ -92,6 +100,7 @@ export class Crypto implements ICrypto {
   };
 
   public setSymKey: ICrypto["setSymKey"] = async (symKey, overrideTopic) => {
+    console.log("###?? setSymKey : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const topic = overrideTopic || hashKey(symKey);
     await this.keychain.set(topic, symKey);
@@ -99,16 +108,19 @@ export class Crypto implements ICrypto {
   };
 
   public deleteKeyPair: ICrypto["deleteKeyPair"] = async (publicKey: string) => {
+    console.log("###?? deleteKeyPair : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.keychain.del(publicKey);
   };
 
   public deleteSymKey: ICrypto["deleteSymKey"] = async (topic: string) => {
+    console.log("###?? deleteSymKey : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.keychain.del(topic);
   };
 
   public encode: ICrypto["encode"] = async (topic, payload, opts) => {
+    console.log("###?? encode : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const params = validateEncoding(opts);
     const message = safeJsonStringify(payload);
@@ -129,6 +141,7 @@ export class Crypto implements ICrypto {
   };
 
   public decode: ICrypto["decode"] = async (topic, encoded, opts) => {
+    console.log("###?? decode : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const params = validateDecoding(encoded, opts);
     if (isTypeTwoEnvelope(params)) {
@@ -154,6 +167,7 @@ export class Crypto implements ICrypto {
   };
 
   public getPayloadType: ICrypto["getPayloadType"] = (encoded, encoding = BASE64) => {
+    console.log("###?? getPayloadType : ", new Date().toLocaleTimeString());
     const deserialized = deserialize({ encoded, encoding });
     return decodeTypeByte(deserialized.type);
   };
@@ -162,6 +176,7 @@ export class Crypto implements ICrypto {
     encoded,
     encoding = BASE64,
   ) => {
+    console.log("###?? getPayloadSenderPublicKey : ", new Date().toLocaleTimeString());
     const deserialized = deserialize({ encoded, encoding });
     return deserialized.senderPublicKey
       ? toString(deserialized.senderPublicKey, BASE16)
@@ -171,16 +186,19 @@ export class Crypto implements ICrypto {
   // ---------- Private ----------------------------------------------- //
 
   private async setPrivateKey(publicKey: string, privateKey: string): Promise<string> {
+    console.log("###?? setPrivateKey : ", new Date().toLocaleTimeString());
     await this.keychain.set(publicKey, privateKey);
     return publicKey;
   }
 
   private getPrivateKey(publicKey: string) {
+    console.log("###?? getPrivateKey : ", new Date().toLocaleTimeString());
     const privateKey = this.keychain.get(publicKey);
     return privateKey;
   }
 
   private async getClientSeed(): Promise<Uint8Array> {
+    console.log("###?? getClientSeed : ", new Date().toLocaleTimeString());
     let seed = "";
     try {
       seed = this.keychain.get(CRYPTO_CLIENT_SEED);
@@ -192,11 +210,13 @@ export class Crypto implements ICrypto {
   }
 
   private getSymKey(topic: string) {
+    console.log("###?? getSymKey : ", new Date().toLocaleTimeString());
     const symKey = this.keychain.get(topic);
     return symKey;
   }
 
   private isInitialized() {
+    console.log("###?? isInitialized : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       const { message } = getInternalError("NOT_INITIALIZED", this.name);
       throw new Error(message);
