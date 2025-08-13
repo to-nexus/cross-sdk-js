@@ -1,5 +1,11 @@
 # @to-nexus/core
 
+## 2.19.11
+
+### Patch Changes
+
+- network stable update
+
 ## 2.19.10
 
 ### Patch Changes

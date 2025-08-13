@@ -1,5 +1,13 @@
 # @to-nexus/sign-client
 
+## 2.19.11
+
+### Patch Changes
+
+- network stable update
+- Updated dependencies
+  - @to-nexus/core@2.19.11
+
 ## 2.19.10
 
 ### Patch Changes
