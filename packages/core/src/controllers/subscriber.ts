@@ -50,7 +50,6 @@ export class Subscriber extends ISubscriber {
   private batchSubscribeTopicsLimit = 500;
 
   constructor(public relayer: IRelayer, public logger: Logger) {
-    console.log("###?? constructor : ", new Date().toLocaleTimeString());
     super(relayer, logger);
     this.relayer = relayer;
     this.logger = generateChildLogger(logger, this.name);
@@ -58,7 +57,6 @@ export class Subscriber extends ISubscriber {
   }
 
   public init: ISubscriber["init"] = async () => {
-    console.log("###?? init : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       this.logger.trace(`Initialized`);
       this.registerEventListeners();
@@ -68,39 +66,32 @@ export class Subscriber extends ISubscriber {
   };
 
   get context() {
-    console.log("###?? context : ", new Date().toLocaleTimeString());
     return getLoggerContext(this.logger);
   }
 
   get storageKey() {
-    console.log("###?? storageKey : ", new Date().toLocaleTimeString());
     return (
       this.storagePrefix + this.version + this.relayer.core.customStoragePrefix + "//" + this.name
     );
   }
 
   get length() {
-    console.log("###?? length : ", new Date().toLocaleTimeString());
     return this.subscriptions.size;
   }
 
   get ids() {
-    console.log("###?? ids : ", new Date().toLocaleTimeString());
     return Array.from(this.subscriptions.keys());
   }
 
   get values() {
-    console.log("###?? values : ", new Date().toLocaleTimeString());
     return Array.from(this.subscriptions.values());
   }
 
   get topics() {
-    console.log("###?? topics : ", new Date().toLocaleTimeString());
     return this.topicMap.topics;
   }
 
   get hasAnyTopics() {
-    console.log("###?? hasAnyTopics : ", new Date().toLocaleTimeString());
     return (
       this.topicMap.topics.length > 0 ||
       this.pending.size > 0 ||
@@ -110,7 +101,6 @@ export class Subscriber extends ISubscriber {
   }
 
   public subscribe: ISubscriber["subscribe"] = async (topic, opts) => {
-    console.log("###?? subscribe : ", new Date().toLocaleTimeString());
     this.isInitialized();
     this.logger.debug(`Subscribing Topic`);
     this.logger.trace({ type: "method", method: "subscribe", params: { topic, opts } });
@@ -133,7 +123,6 @@ export class Subscriber extends ISubscriber {
   };
 
   public unsubscribe: ISubscriber["unsubscribe"] = async (topic, opts) => {
-    console.log("###?? unsubscribe : ", new Date().toLocaleTimeString());
     this.isInitialized();
     if (typeof opts?.id !== "undefined") {
       await this.unsubscribeById(topic, opts.id, opts);
@@ -143,7 +132,6 @@ export class Subscriber extends ISubscriber {
   };
 
   public isSubscribed: ISubscriber["isSubscribed"] = async (topic: string) => {
-    console.log("###?? isSubscribed : ", new Date().toLocaleTimeString());
     // topic subscription is already resolved
     if (this.topics.includes(topic)) return true;
     const label = `${this.pendingSubscriptionWatchLabel}_${topic}`;
@@ -171,39 +159,32 @@ export class Subscriber extends ISubscriber {
   };
 
   public on: ISubscriber["on"] = (event, listener) => {
-    console.log("###?? on : ", new Date().toLocaleTimeString());
     this.events.on(event, listener);
   };
 
   public once: ISubscriber["once"] = (event, listener) => {
-    console.log("###?? once : ", new Date().toLocaleTimeString());
     this.events.once(event, listener);
   };
 
   public off: ISubscriber["off"] = (event, listener) => {
-    console.log("###?? off : ", new Date().toLocaleTimeString());
     this.events.off(event, listener);
   };
 
   public removeListener: ISubscriber["removeListener"] = (event, listener) => {
-    console.log("###?? removeListener : ", new Date().toLocaleTimeString());
     this.events.removeListener(event, listener);
   };
 
   public start: ISubscriber["start"] = async () => {
-    console.log("###?? start : ", new Date().toLocaleTimeString());
     await this.onConnect();
   };
 
   public stop: ISubscriber["stop"] = async () => {
-    console.log("###?? stop : ", new Date().toLocaleTimeString());
     await this.onDisconnect();
   };
 
   // ---------- Private ----------------------------------------------- //
 
   private hasSubscription(id: string, topic: string) {
-    console.log("###?? hasSubscription : ", new Date().toLocaleTimeString());
     let result = false;
     try {
       const subscription = this.getSubscription(id);
@@ -215,26 +196,22 @@ export class Subscriber extends ISubscriber {
   }
 
   private reset() {
-    console.log("###?? reset : ", new Date().toLocaleTimeString());
     this.cached = [];
     this.initialized = true;
   }
 
   private onDisable() {
-    console.log("###?? onDisable : ", new Date().toLocaleTimeString());
     this.cached = this.values;
     this.subscriptions.clear();
     this.topicMap.clear();
   }
 
   private async unsubscribeByTopic(topic: string, opts?: RelayerTypes.UnsubscribeOptions) {
-    console.log("###?? unsubscribeByTopic : ", new Date().toLocaleTimeString());
     const ids = this.topicMap.get(topic);
     await Promise.all(ids.map(async (id) => await this.unsubscribeById(topic, id, opts)));
   }
 
   private async unsubscribeById(topic: string, id: string, opts?: RelayerTypes.UnsubscribeOptions) {
-    console.log("###?? unsubscribeById : ", new Date().toLocaleTimeString());
     this.logger.debug(`Unsubscribing Topic`);
     this.logger.trace({ type: "method", method: "unsubscribe", params: { topic, id, opts } });
 
@@ -258,7 +235,6 @@ export class Subscriber extends ISubscriber {
     relay: RelayerTypes.ProtocolOptions,
     opts?: RelayerTypes.SubscribeOptions,
   ) {
-    console.log("###?? rpcSubscribe : ", new Date().toLocaleTimeString());
     if (!opts || opts?.transportType === TRANSPORT_TYPES.relay) {
       await this.restartToComplete({ topic, id: topic, relay });
     }
@@ -333,7 +309,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async rpcBatchSubscribe(subscriptions: SubscriberTypes.Params[]) {
-    console.log("###?? rpcBatchSubscribe : ", new Date().toLocaleTimeString());
     if (!subscriptions.length) return;
     const relay = subscriptions[0].relay;
     const api = getRelayProtocolApi(relay!.protocol);
@@ -363,7 +338,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async rpcBatchFetchMessages(subscriptions: SubscriberTypes.Params[]) {
-    console.log("###?? rpcBatchFetchMessages : ", new Date().toLocaleTimeString());
     if (!subscriptions.length) return;
     const relay = subscriptions[0].relay;
     const api = getRelayProtocolApi(relay!.protocol);
@@ -400,7 +374,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private rpcUnsubscribe(topic: string, id: string, relay: RelayerTypes.ProtocolOptions) {
-    console.log("###?? rpcUnsubscribe : ", new Date().toLocaleTimeString());
     const api = getRelayProtocolApi(relay.protocol);
     const request: RequestArguments<RelayJsonRpc.UnsubscribeParams> = {
       method: api.unsubscribe,
@@ -415,13 +388,11 @@ export class Subscriber extends ISubscriber {
   }
 
   private onSubscribe(id: string, params: SubscriberTypes.Params) {
-    console.log("###?? onSubscribe : ", new Date().toLocaleTimeString());
     this.setSubscription(id, { ...params, id });
     this.pending.delete(params.topic);
   }
 
   private onBatchSubscribe(subscriptions: SubscriberTypes.Active[]) {
-    console.log("###?? onBatchSubscribe : ", new Date().toLocaleTimeString());
     if (!subscriptions.length) return;
     subscriptions.forEach((subscription) => {
       this.setSubscription(subscription.id, { ...subscription });
@@ -430,7 +401,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async onUnsubscribe(topic: string, id: string, reason: ErrorResponse) {
-    console.log("###?? onUnsubscribe : ", new Date().toLocaleTimeString());
     this.events.removeAllListeners(id);
     if (this.hasSubscription(id, topic)) {
       this.deleteSubscription(id, reason);
@@ -439,7 +409,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async setRelayerSubscriptions(subscriptions: SubscriberTypes.Active[]) {
-    console.log("###?? setRelayerSubscriptions : ", new Date().toLocaleTimeString());
     await this.relayer.core.storage.setItem<SubscriberTypes.Active[]>(
       this.storageKey,
       subscriptions,
@@ -447,7 +416,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async getRelayerSubscriptions() {
-    console.log("###?? getRelayerSubscriptions : ", new Date().toLocaleTimeString());
     const subscriptions = await this.relayer.core.storage.getItem<SubscriberTypes.Active[]>(
       this.storageKey,
     );
@@ -455,21 +423,18 @@ export class Subscriber extends ISubscriber {
   }
 
   private setSubscription(id: string, subscription: SubscriberTypes.Active) {
-    console.log("###?? setSubscription : ", new Date().toLocaleTimeString());
     this.logger.debug(`Setting subscription`);
     this.logger.trace({ type: "method", method: "setSubscription", id, subscription });
     this.addSubscription(id, subscription);
   }
 
   private addSubscription(id: string, subscription: SubscriberTypes.Active) {
-    console.log("###?? addSubscription : ", new Date().toLocaleTimeString());
     this.subscriptions.set(id, { ...subscription });
     this.topicMap.set(subscription.topic, id);
     this.events.emit(SUBSCRIBER_EVENTS.created, subscription);
   }
 
   private getSubscription(id: string) {
-    console.log("###?? getSubscription : ", new Date().toLocaleTimeString());
     this.logger.debug(`Getting subscription`);
     this.logger.trace({ type: "method", method: "getSubscription", id });
     const subscription = this.subscriptions.get(id);
@@ -481,7 +446,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private deleteSubscription(id: string, reason: ErrorResponse) {
-    console.log("###?? deleteSubscription : ", new Date().toLocaleTimeString());
     this.logger.debug(`Deleting subscription`);
     this.logger.trace({ type: "method", method: "deleteSubscription", id, reason });
     const subscription = this.getSubscription(id);
@@ -494,19 +458,16 @@ export class Subscriber extends ISubscriber {
   }
 
   private restart = async () => {
-    console.log("###?? restart : ", new Date().toLocaleTimeString());
     await this.restore();
     await this.onRestart();
   };
 
   private async persist() {
-    console.log("###?? persist : ", new Date().toLocaleTimeString());
     await this.setRelayerSubscriptions(this.values);
     this.events.emit(SUBSCRIBER_EVENTS.sync);
   }
 
   private async onRestart() {
-    console.log("###?? onRestart : ", new Date().toLocaleTimeString());
     if (this.cached.length) {
       const subs = [...this.cached];
       const numOfBatches = Math.ceil(this.cached.length / this.batchSubscribeTopicsLimit);
@@ -519,7 +480,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async restore() {
-    console.log("###?? restore : ", new Date().toLocaleTimeString());
     try {
       const persisted = await this.getRelayerSubscriptions();
       if (typeof persisted === "undefined") return;
@@ -540,7 +500,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async batchSubscribe(subscriptions: SubscriberTypes.Params[]) {
-    console.log("###?? batchSubscribe : ", new Date().toLocaleTimeString());
     if (!subscriptions.length) return;
 
     await this.rpcBatchSubscribe(subscriptions);
@@ -555,7 +514,6 @@ export class Subscriber extends ISubscriber {
 
   // @ts-ignore
   private async batchFetchMessages(subscriptions: SubscriberTypes.Params[]) {
-    console.log("###?? batchFetchMessages : ", new Date().toLocaleTimeString());
     if (!subscriptions.length) return;
     this.logger.trace(`Fetching batch messages for ${subscriptions.length} subscriptions`);
     const response = await this.rpcBatchFetchMessages(subscriptions);
@@ -566,18 +524,15 @@ export class Subscriber extends ISubscriber {
   }
 
   private async onConnect() {
-    console.log("###?? onConnect : ", new Date().toLocaleTimeString());
     await this.restart();
     this.reset();
   }
 
   private onDisconnect() {
-    console.log("###?? onDisconnect : ", new Date().toLocaleTimeString());
     this.onDisable();
   }
 
   private checkPending = async () => {
-    console.log("###?? checkPending : ", new Date().toLocaleTimeString());
     if (this.pending.size === 0 && (!this.initialized || !this.relayer.connected)) {
       return;
     }
@@ -590,7 +545,6 @@ export class Subscriber extends ISubscriber {
   };
 
   private registerEventListeners = () => {
-    console.log("###?? registerEventListeners : ", new Date().toLocaleTimeString());
     this.relayer.core.heartbeat.on(HEARTBEAT_EVENTS.pulse, async () => {
       await this.checkPending();
     });
@@ -609,7 +563,6 @@ export class Subscriber extends ISubscriber {
   };
 
   private isInitialized() {
-    console.log("###?? isInitialized : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       const { message } = getInternalError("NOT_INITIALIZED", this.name);
       throw new Error(message);
@@ -617,13 +570,14 @@ export class Subscriber extends ISubscriber {
   }
 
   private async restartToComplete(subscription: SubscriberTypes.Active) {
-    console.log("###?? restartToComplete : ", new Date().toLocaleTimeString());
     if (!this.relayer.connected && !this.relayer.connecting) {
       this.cached.push(subscription);
       // Avoid calling transportOpen while offline; rely on network listener to reopen
       try {
         // @ts-ignore
-        const online = await (async () => await import("@walletconnect/utils")).then(m => m.isOnline());
+        const online = await (async () => await import("@walletconnect/utils")).then((m) =>
+          m.isOnline(),
+        );
         if (!online) return;
       } catch {}
       await this.relayer.transportOpen();
@@ -631,7 +585,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async getClientId() {
-    console.log("###?? getClientId : ", new Date().toLocaleTimeString());
     if (!this.clientId) {
       this.clientId = await this.relayer.core.crypto.getClientId();
     }
@@ -639,7 +592,6 @@ export class Subscriber extends ISubscriber {
   }
 
   private async getSubscriptionId(topic: string) {
-    console.log("###?? getSubscriptionId : ", new Date().toLocaleTimeString());
     return hashMessage(topic + (await this.getClientId()));
   }
 }

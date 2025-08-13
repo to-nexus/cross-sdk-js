@@ -99,7 +99,6 @@ export class Relayer extends IRelayer {
   private requestsInFlight: string[] = [];
   private connectTimeout = toMiliseconds(ONE_SECOND * 15);
   constructor(opts: RelayerOptions) {
-    console.log("###?? constructor : ", new Date().toLocaleTimeString());
     super(opts);
     this.core = opts.core;
     this.logger =
@@ -124,7 +123,6 @@ export class Relayer extends IRelayer {
   }
 
   public async init() {
-    console.log("###?? init : ", new Date().toLocaleTimeString());
     this.logger.trace(`Initialized`);
     this.registerEventListeners();
     await Promise.all([this.messages.init(), this.subscriber.init()]);
@@ -139,18 +137,15 @@ export class Relayer extends IRelayer {
   }
 
   get context() {
-    console.log("###?? context : ", new Date().toLocaleTimeString());
     return getLoggerContext(this.logger);
   }
 
   get connected() {
-    console.log("###?? connected : ", new Date().toLocaleTimeString());
     // @ts-expect-error
     return this.provider?.connection?.socket?.readyState === 1 || false;
   }
 
   get connecting() {
-    console.log("###?? connecting : ", new Date().toLocaleTimeString());
     return (
       // @ts-expect-error
       this.provider?.connection?.socket?.readyState === 0 ||
@@ -161,7 +156,6 @@ export class Relayer extends IRelayer {
   }
 
   public async publish(topic: string, message: string, opts?: RelayerTypes.PublishOptions) {
-    console.log("###?? publish : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.publisher.publish(topic, message, opts);
     await this.recordMessageEvent({
@@ -174,7 +168,6 @@ export class Relayer extends IRelayer {
   }
 
   public async subscribe(topic: string, opts?: RelayerTypes.SubscribeOptions) {
-    console.log("###?? subscribe : ", new Date().toLocaleTimeString());
     this.isInitialized();
     if (!opts?.transportType || opts?.transportType === "relay") {
       await this.toEstablishConnection();
@@ -221,7 +214,6 @@ export class Relayer extends IRelayer {
   }
 
   public request = async (request: RequestArguments<RelayJsonRpc.SubscribeParams>) => {
-    console.log("###?? request : ", new Date().toLocaleTimeString());
     this.logger.debug(`Publishing Request Payload`);
     const id = request.id || (getBigIntRpcId().toString() as any);
     await this.toEstablishConnection();
@@ -246,33 +238,27 @@ export class Relayer extends IRelayer {
   };
 
   public async unsubscribe(topic: string, opts?: RelayerTypes.UnsubscribeOptions) {
-    console.log("###?? unsubscribe : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.subscriber.unsubscribe(topic, opts);
   }
 
   public on(event: string, listener: any) {
-    console.log("###?? on : ", new Date().toLocaleTimeString());
     this.events.on(event, listener);
   }
 
   public once(event: string, listener: any) {
-    console.log("###?? once : ", new Date().toLocaleTimeString());
     this.events.once(event, listener);
   }
 
   public off(event: string, listener: any) {
-    console.log("###?? off : ", new Date().toLocaleTimeString());
     this.events.off(event, listener);
   }
 
   public removeListener(event: string, listener: any) {
-    console.log("###?? removeListener : ", new Date().toLocaleTimeString());
     this.events.removeListener(event, listener);
   }
 
   public async transportDisconnect() {
-    console.log("###?? transportDisconnect : ", new Date().toLocaleTimeString());
     if (this.provider.disconnect && (this.hasExperiencedNetworkDisruption || this.connected)) {
       await createExpiringPromise(this.provider.disconnect(), 2000, "provider.disconnect()").catch(
         () => this.onProviderDisconnect(),
@@ -283,13 +269,11 @@ export class Relayer extends IRelayer {
   }
 
   public async transportClose() {
-    console.log("###?? transportClose : ", new Date().toLocaleTimeString());
     this.transportExplicitlyClosed = true;
     await this.transportDisconnect();
   }
 
   async transportOpen(relayUrl?: string) {
-    console.log("###?? transportOpen : ", new Date().toLocaleTimeString());
     if (!this.subscriber.hasAnyTopics) {
       this.logger.warn(
         "Starting WS connection skipped because the client has no topics to work with.",
@@ -318,7 +302,6 @@ export class Relayer extends IRelayer {
   }
 
   public async restartTransport(relayUrl?: string) {
-    console.log("###?? restartTransport : ", new Date().toLocaleTimeString());
     this.logger.debug({}, "Restarting transport...");
     if (this.connectionAttemptInProgress) return;
     this.relayUrl = relayUrl || this.relayUrl;
@@ -328,13 +311,11 @@ export class Relayer extends IRelayer {
   }
 
   public async confirmOnlineStateOrThrow() {
-    console.log("###?? confirmOnlineStateOrThrow : ", new Date().toLocaleTimeString());
     if (await isOnline()) return;
     throw new Error("No internet connection detected. Please restart your network and try again.");
   }
 
   public async handleBatchMessageEvents(messages: RelayerTypes.MessageEvent[]) {
-    console.log("###?? handleBatchMessageEvents : ", new Date().toLocaleTimeString());
     if (messages?.length === 0) {
       this.logger.trace("Batch message events is empty. Ignoring...");
       return;
@@ -355,7 +336,6 @@ export class Relayer extends IRelayer {
     messageEvent: RelayerTypes.MessageEvent,
     opts: { sessionExists: boolean },
   ) {
-    console.log("###?? onLinkMessageEvent : ", new Date().toLocaleTimeString());
     const { topic } = messageEvent;
 
     if (!opts.sessionExists) {
@@ -371,7 +351,6 @@ export class Relayer extends IRelayer {
   // ---------- Private ----------------------------------------------- //
 
   private async connect(relayUrl?: string) {
-    console.log("###?? connect : ", new Date().toLocaleTimeString());
     await this.confirmOnlineStateOrThrow();
     if (relayUrl && relayUrl !== this.relayUrl) {
       this.relayUrl = relayUrl;
@@ -425,7 +404,6 @@ export class Relayer extends IRelayer {
               });
           });
           this.hasExperiencedNetworkDisruption = false;
-          console.log("###?? connect while in : ", new Date().toLocaleTimeString());
           resolve();
         });
       } catch (e) {
@@ -455,7 +433,6 @@ export class Relayer extends IRelayer {
    * In the browser, ping/pong events are not exposed, so the above behaviour is handled by `subscribeToNetworkChange` and `isOnline` functions.
    */
   private startPingTimeout() {
-    console.log("###?? startPingTimeout : ", new Date().toLocaleTimeString());
     if (!isNode()) return;
     try {
       //@ts-expect-error - Types are divergent between the node and browser WS API
@@ -472,7 +449,6 @@ export class Relayer extends IRelayer {
   }
 
   private resetPingTimeout = () => {
-    console.log("###?? resetPingTimeout : ", new Date().toLocaleTimeString());
     if (!isNode()) return;
     try {
       clearTimeout(this.pingTimeout);
@@ -487,7 +463,6 @@ export class Relayer extends IRelayer {
   };
 
   private async createProvider() {
-    console.log("###?? createProvider : ", new Date().toLocaleTimeString());
     try {
       if (this.provider.connection) {
         this.unregisterProviderListeners();
@@ -510,7 +485,6 @@ export class Relayer extends IRelayer {
 
       this.provider = new JsonRpcProvider(wsConnection);
       this.registerProviderListeners();
-      console.log("###?? createProvider end : ", new Date().toLocaleTimeString());
     } catch (e) {
       this.logger.error(`error on ws connection: ${(e as Error)?.message}`);
       throw e;
@@ -518,16 +492,13 @@ export class Relayer extends IRelayer {
   }
 
   private async recordMessageEvent(messageEvent: RelayerTypes.MessageEvent) {
-    console.log("###?? recordMessageEvent : ", new Date().toLocaleTimeString());
     const { topic, message } = messageEvent;
     await this.messages.set(topic, message);
-    console.log("###?? recordMessageEvent end : ", new Date().toLocaleTimeString());
   }
 
   private async shouldIgnoreMessageEvent(
     messageEvent: RelayerTypes.MessageEvent,
   ): Promise<boolean> {
-    console.log("###?? shouldIgnoreMessageEvent : ", new Date().toLocaleTimeString());
     const { topic, message } = messageEvent;
 
     // Ignore if incoming `message` is clearly invalid.
@@ -551,7 +522,6 @@ export class Relayer extends IRelayer {
   }
 
   private async onProviderPayload(payload: JsonRpcPayload) {
-    console.log("###?? onProviderPayload : ", new Date().toLocaleTimeString());
     this.logger.debug(`Incoming Relay Payload`);
     this.logger.trace({ type: "payload", direction: "incoming", payload });
     if (isJsonRpcRequest(payload)) {
@@ -576,7 +546,6 @@ export class Relayer extends IRelayer {
   }
 
   private async onMessageEvent(messageEvent: RelayerTypes.MessageEvent) {
-    console.log("###?? onMessageEvent : ", new Date().toLocaleTimeString());
     if (await this.shouldIgnoreMessageEvent(messageEvent)) {
       return;
     }
@@ -585,34 +554,29 @@ export class Relayer extends IRelayer {
   }
 
   private async acknowledgePayload(payload: JsonRpcPayload) {
-    console.log("###?? acknowledgePayload : ", new Date().toLocaleTimeString());
     const response = formatJsonRpcResult(payload.id, true);
     await this.provider.connection.send(response);
   }
 
   // ---------- Events Handlers ----------------------------------------------- //
   private onPayloadHandler = (payload: JsonRpcPayload) => {
-    console.log("###?? onPayloadHandler : ", new Date().toLocaleTimeString());
     this.onProviderPayload(payload);
     this.resetPingTimeout();
   };
 
   private onConnectHandler = () => {
-    console.log("###?? onConnectHandler : ", new Date().toLocaleTimeString());
     this.logger.warn({}, "Relayer connected 🛜");
     this.startPingTimeout();
     this.events.emit(RELAYER_EVENTS.connect);
   };
 
   private onDisconnectHandler = () => {
-    console.log("###?? onDisconnectHandler : ", new Date().toLocaleTimeString());
     this.logger.warn({}, `Relayer disconnected 🛑`);
     this.requestsInFlight = [];
     this.onProviderDisconnect();
   };
 
   private onProviderErrorHandler = (error: Error) => {
-    console.log("###?? onProviderErrorHandler : ", new Date().toLocaleTimeString());
     this.logger.fatal(`Fatal socket error: ${error.message}`);
     this.events.emit(RELAYER_EVENTS.error, error);
     // close the transport when a fatal error is received as there's no way to recover from it
@@ -622,7 +586,6 @@ export class Relayer extends IRelayer {
   };
 
   private registerProviderListeners = () => {
-    console.log("###?? registerProviderListeners : ", new Date().toLocaleTimeString());
     this.provider.on(RELAYER_PROVIDER_EVENTS.payload, this.onPayloadHandler);
     this.provider.on(RELAYER_PROVIDER_EVENTS.connect, this.onConnectHandler);
     this.provider.on(RELAYER_PROVIDER_EVENTS.disconnect, this.onDisconnectHandler);
@@ -630,7 +593,6 @@ export class Relayer extends IRelayer {
   };
 
   private unregisterProviderListeners() {
-    console.log("###?? unregisterProviderListeners : ", new Date().toLocaleTimeString());
     this.provider.off(RELAYER_PROVIDER_EVENTS.payload, this.onPayloadHandler);
     this.provider.off(RELAYER_PROVIDER_EVENTS.connect, this.onConnectHandler);
     this.provider.off(RELAYER_PROVIDER_EVENTS.disconnect, this.onDisconnectHandler);
@@ -639,7 +601,6 @@ export class Relayer extends IRelayer {
   }
 
   private async registerEventListeners() {
-    console.log("###?? registerEventListeners : ", new Date().toLocaleTimeString());
     let lastConnectedState = await isOnline();
     subscribeToNetworkChange(async (connected: boolean) => {
       // sometimes the network change event is triggered multiple times so avoid reacting to the samFe value
@@ -666,7 +627,6 @@ export class Relayer extends IRelayer {
   }
 
   private async onProviderDisconnect() {
-    console.log("###?? onProviderDisconnect : ", new Date().toLocaleTimeString());
     clearTimeout(this.pingTimeout);
     this.events.emit(RELAYER_EVENTS.disconnect);
     this.connectionAttemptInProgress = false;
@@ -698,7 +658,6 @@ export class Relayer extends IRelayer {
   }
 
   private isInitialized() {
-    console.log("###?? isInitialized : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       const { message } = getInternalError("NOT_INITIALIZED", this.name);
       throw new Error(message);
@@ -706,7 +665,6 @@ export class Relayer extends IRelayer {
   }
 
   private async toEstablishConnection() {
-    console.log("###?? toEstablishConnection : ", new Date().toLocaleTimeString());
     await this.confirmOnlineStateOrThrow();
     if (this.connected) return;
     // Avoid spawning duplicate connection attempts

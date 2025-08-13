@@ -41,7 +41,6 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
     storagePrefix: string = CORE_STORAGE_PREFIX,
     getKey: Store<Key, Data>["getKey"] = undefined,
   ) {
-    console.log("###?? constructor : ", new Date().toLocaleTimeString());
     super(core, logger, name, storagePrefix);
     this.logger = generateChildLogger(logger, this.name);
     this.storagePrefix = storagePrefix;
@@ -49,7 +48,6 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   }
 
   public init: IStore<Key, Data>["init"] = async () => {
-    console.log("###?? init : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       this.logger.trace(`Initialized`);
 
@@ -73,32 +71,26 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   };
 
   get context() {
-    console.log("###?? context : ", new Date().toLocaleTimeString());
     return getLoggerContext(this.logger);
   }
 
   get storageKey() {
-    console.log("###?? storageKey : ", new Date().toLocaleTimeString());
     return this.storagePrefix + this.version + this.core.customStoragePrefix + "//" + this.name;
   }
 
   get length() {
-    console.log("###?? length : ", new Date().toLocaleTimeString());
     return this.map.size;
   }
 
   get keys() {
-    console.log("###?? keys : ", new Date().toLocaleTimeString());
     return Array.from(this.map.keys());
   }
 
   get values() {
-    console.log("###?? values : ", new Date().toLocaleTimeString());
     return Array.from(this.map.values());
   }
 
   public set: IStore<Key, Data>["set"] = async (key, value) => {
-    console.log("###?? set : ", new Date().toLocaleTimeString());
     this.isInitialized();
     if (this.map.has(key)) {
       await this.update(key, value);
@@ -111,7 +103,6 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   };
 
   public get: IStore<Key, Data>["get"] = (key) => {
-    console.log("###?? get : ", new Date().toLocaleTimeString());
     this.isInitialized();
     this.logger.debug(`Getting value`);
     this.logger.trace({ type: "method", method: "get", key });
@@ -120,7 +111,6 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   };
 
   public getAll: IStore<Key, Data>["getAll"] = (filter) => {
-    console.log("###?? getAll : ", new Date().toLocaleTimeString());
     this.isInitialized();
     if (!filter) return this.values;
 
@@ -130,7 +120,6 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   };
 
   public update: IStore<Key, Data>["update"] = async (key, update) => {
-    console.log("###?? update : ", new Date().toLocaleTimeString());
     this.isInitialized();
     this.logger.debug(`Updating value`);
     this.logger.trace({ type: "method", method: "update", key, update });
@@ -140,7 +129,6 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   };
 
   public delete: IStore<Key, Data>["delete"] = async (key, reason) => {
-    console.log("###?? delete : ", new Date().toLocaleTimeString());
     this.isInitialized();
     if (!this.map.has(key)) return;
     this.logger.debug(`Deleting value`);
@@ -153,7 +141,6 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   // ---------- Private ----------------------------------------------- //
 
   private addToRecentlyDeleted(key: Key) {
-    console.log("###?? addToRecentlyDeleted : ", new Date().toLocaleTimeString());
     this.recentlyDeleted.push(key);
     // limit the size of the recentlyDeleted array, truncate the 100 oldest entries.
     if (this.recentlyDeleted.length >= this.recentlyDeletedLimit) {
@@ -162,18 +149,15 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   }
 
   private async setDataStore(value: Data[]) {
-    console.log("###?? setDataStore : ", new Date().toLocaleTimeString());
     await this.core.storage.setItem<Data[]>(this.storageKey, value);
   }
 
   private async getDataStore() {
-    console.log("###?? getDataStore : ", new Date().toLocaleTimeString());
     const value = await this.core.storage.getItem<Data[]>(this.storageKey);
     return value;
   }
 
   private getData(key: Key) {
-    console.log("###?? getData : ", new Date().toLocaleTimeString());
     const value = this.map.get(key);
     if (!value) {
       if (this.recentlyDeleted.includes(key)) {
@@ -193,12 +177,10 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   }
 
   private async persist() {
-    console.log("###?? persist : ", new Date().toLocaleTimeString());
     await this.setDataStore(this.values);
   }
 
   private async restore() {
-    console.log("###?? restore : ", new Date().toLocaleTimeString());
     try {
       const persisted = await this.getDataStore();
       if (typeof persisted === "undefined") return;
@@ -218,7 +200,6 @@ export class Store<Key, Data extends Record<string, any>> extends IStore<Key, Da
   }
 
   private isInitialized() {
-    console.log("###?? isInitialized : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       const { message } = getInternalError("NOT_INITIALIZED", this.name);
       throw new Error(message);

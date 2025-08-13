@@ -65,14 +65,12 @@ export class Pairing implements IPairing {
   private registeredMethods: string[] = [];
 
   constructor(public core: ICore, public logger: Logger) {
-    console.log("###?? constructor : ", new Date().toLocaleTimeString());
     this.core = core;
     this.logger = generateChildLogger(logger, this.name);
     this.pairings = new Store(this.core, this.logger, this.name, this.storagePrefix);
   }
 
   public init: IPairing["init"] = async () => {
-    console.log("###?? init : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       await this.pairings.init();
       await this.cleanup();
@@ -84,18 +82,15 @@ export class Pairing implements IPairing {
   };
 
   get context() {
-    console.log("###?? context : ", new Date().toLocaleTimeString());
     return getLoggerContext(this.logger);
   }
 
   public register: IPairing["register"] = ({ methods }) => {
-    console.log("###?? register : ", new Date().toLocaleTimeString());
     this.isInitialized();
     this.registeredMethods = [...new Set([...this.registeredMethods, ...methods])];
   };
 
   public create: IPairing["create"] = async (params) => {
-    console.log("###?? create : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const symKey = generateRandomBytes32();
     const topic = await this.core.crypto.setSymKey(symKey);
@@ -120,7 +115,6 @@ export class Pairing implements IPairing {
   };
 
   public pair: IPairing["pair"] = async (params) => {
-    console.log("###?? pair : ", new Date().toLocaleTimeString());
     this.isInitialized();
 
     const event = this.core.eventClient.createEvent({
@@ -192,7 +186,6 @@ export class Pairing implements IPairing {
   };
 
   public activate: IPairing["activate"] = async ({ topic }) => {
-    console.log("###?? activate : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const expiry = calcExpiry(FIVE_MINUTES);
     this.core.expirer.set(topic, expiry);
@@ -203,7 +196,6 @@ export class Pairing implements IPairing {
    * @deprecated Ping will be removed in the next major release.
    */
   public ping: IPairing["ping"] = async (params) => {
-    console.log("###?? ping : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.isValidPing(params);
     this.logger.warn("ping() is deprecated and will be removed in the next major release.");
@@ -220,25 +212,21 @@ export class Pairing implements IPairing {
   };
 
   public updateExpiry: IPairing["updateExpiry"] = async ({ topic, expiry }) => {
-    console.log("###?? updateExpiry : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.pairings.update(topic, { expiry });
   };
 
   public updateMetadata: IPairing["updateMetadata"] = async ({ topic, metadata }) => {
-    console.log("###?? updateMetadata : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.pairings.update(topic, { peerMetadata: metadata });
   };
 
   public getPairings: IPairing["getPairings"] = () => {
-    console.log("###?? getPairings : ", new Date().toLocaleTimeString());
     this.isInitialized();
     return this.pairings.values;
   };
 
   public disconnect: IPairing["disconnect"] = async (params) => {
-    console.log("###?? disconnect : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.isValidDisconnect(params);
     const { topic } = params;
@@ -249,7 +237,6 @@ export class Pairing implements IPairing {
   };
 
   public formatUriFromPairing: IPairing["formatUriFromPairing"] = (pairing) => {
-    console.log("###?? formatUriFromPairing : ", new Date().toLocaleTimeString());
     this.isInitialized();
     const { topic, relay, expiry, methods } = pairing;
     const symKey = this.core.crypto.keychain.get(topic);
@@ -267,7 +254,6 @@ export class Pairing implements IPairing {
   // ---------- Private Helpers ----------------------------------------------- //
 
   private sendRequest: IPairingPrivate["sendRequest"] = async (topic, method, params) => {
-    console.log("###?? sendRequest : ", new Date().toLocaleTimeString());
     const payload = formatJsonRpcRequest(method, params);
     const message = await this.core.crypto.encode(topic, payload);
     const opts = PAIRING_RPC_OPTS[method].req;
@@ -277,7 +263,6 @@ export class Pairing implements IPairing {
   };
 
   private sendResult: IPairingPrivate["sendResult"] = async (id, topic, result) => {
-    console.log("###?? sendResult : ", new Date().toLocaleTimeString());
     const payload = formatJsonRpcResult(id, result);
     const message = await this.core.crypto.encode(topic, payload);
     const record = await this.core.history.get(topic, id);
@@ -288,7 +273,6 @@ export class Pairing implements IPairing {
   };
 
   private sendError: IPairingPrivate["sendError"] = async (id, topic, error) => {
-    console.log("###?? sendError : ", new Date().toLocaleTimeString());
     const payload = formatJsonRpcError(id, error);
     const message = await this.core.crypto.encode(topic, payload);
     const record = await this.core.history.get(topic, id);
@@ -303,7 +287,6 @@ export class Pairing implements IPairing {
   };
 
   private deletePairing: IPairingPrivate["deletePairing"] = async (topic, expirerHasDeleted) => {
-    console.log("###?? deletePairing : ", new Date().toLocaleTimeString());
     // Await the unsubscribe first to avoid deleting the symKey too early below.
     await this.core.relayer.unsubscribe(topic);
     await Promise.all([
@@ -314,7 +297,6 @@ export class Pairing implements IPairing {
   };
 
   private isInitialized() {
-    console.log("###?? isInitialized : ", new Date().toLocaleTimeString());
     if (!this.initialized) {
       const { message } = getInternalError("NOT_INITIALIZED", this.name);
       throw new Error(message);
@@ -322,7 +304,6 @@ export class Pairing implements IPairing {
   }
 
   private cleanup = async () => {
-    console.log("###?? cleanup : ", new Date().toLocaleTimeString());
     const expiredPairings = this.pairings.getAll().filter((pairing) => isExpired(pairing.expiry));
     await Promise.all(expiredPairings.map((pairing) => this.deletePairing(pairing.topic)));
   };
@@ -330,7 +311,6 @@ export class Pairing implements IPairing {
   // ---------- Relay Events Router ----------------------------------- //
 
   private registerRelayerEvents() {
-    console.log("###?? registerRelayerEvents : ", new Date().toLocaleTimeString());
     this.core.relayer.on(RELAYER_EVENTS.message, async (event: RelayerTypes.MessageEvent) => {
       const { topic, message, transportType } = event;
 
@@ -361,7 +341,6 @@ export class Pairing implements IPairing {
   }
 
   private onRelayEventRequest: IPairingPrivate["onRelayEventRequest"] = (event) => {
-    console.log("###?? onRelayEventRequest : ", new Date().toLocaleTimeString());
     const { topic, payload } = event;
     const reqMethod = payload.method as PairingJsonRpcTypes.WcMethod;
 
@@ -376,7 +355,6 @@ export class Pairing implements IPairing {
   };
 
   private onRelayEventResponse: IPairingPrivate["onRelayEventResponse"] = async (event) => {
-    console.log("###?? onRelayEventResponse : ", new Date().toLocaleTimeString());
     const { topic, payload } = event;
     const record = await this.core.history.get(topic, payload.id);
     const resMethod = record.request.method as PairingJsonRpcTypes.WcMethod;
@@ -393,7 +371,6 @@ export class Pairing implements IPairing {
     topic,
     payload,
   ) => {
-    console.log("###?? onPairingPingRequest : ", new Date().toLocaleTimeString());
     const { id } = payload;
     try {
       this.isValidPing({ topic });
@@ -406,7 +383,6 @@ export class Pairing implements IPairing {
   };
 
   private onPairingPingResponse: IPairingPrivate["onPairingPingResponse"] = (_topic, payload) => {
-    console.log("###?? onPairingPingResponse : ", new Date().toLocaleTimeString());
     const { id } = payload;
     // put at the end of the stack to avoid a race condition
     // where pairing_ping listener is not yet initialized
@@ -423,7 +399,6 @@ export class Pairing implements IPairing {
     topic,
     payload,
   ) => {
-    console.log("###?? onPairingDeleteRequest : ", new Date().toLocaleTimeString());
     const { id } = payload;
     try {
       this.isValidDisconnect({ topic });
@@ -439,7 +414,6 @@ export class Pairing implements IPairing {
     topic,
     payload,
   ) => {
-    console.log("###?? onUnknownRpcMethodRequest : ", new Date().toLocaleTimeString());
     const { id, method } = payload;
 
     try {
@@ -455,7 +429,6 @@ export class Pairing implements IPairing {
   };
 
   private onUnknownRpcMethodResponse: IPairingPrivate["onUnknownRpcMethodResponse"] = (method) => {
-    console.log("###?? onUnknownRpcMethodResponse : ", new Date().toLocaleTimeString());
     // Ignore if the implementing client has registered this method as known.
     if (this.registeredMethods.includes(method)) return;
     this.logger.error(getSdkError("WC_METHOD_UNSUPPORTED", method));
@@ -464,7 +437,6 @@ export class Pairing implements IPairing {
   // ---------- Expirer Events ---------------------------------------- //
 
   private registerExpirerEvents() {
-    console.log("###?? registerExpirerEvents : ", new Date().toLocaleTimeString());
     this.core.expirer.on(EXPIRER_EVENTS.expired, async (event: ExpirerTypes.Expiration) => {
       const { topic } = parseExpirerTarget(event.target);
       if (!topic) return;
@@ -477,7 +449,6 @@ export class Pairing implements IPairing {
   // ---------- Validation Helpers ----------------------------------- //
 
   private isValidPair = (params: { uri: string }, event: EventClientTypes.Event) => {
-    console.log("###?? isValidPair : ", new Date().toLocaleTimeString());
     if (!isValidParams(params)) {
       const { message } = getInternalError("MISSING_OR_INVALID", `pair() params: ${params}`);
       event.setError(EVENT_CLIENT_PAIRING_ERRORS.malformed_pairing_uri);
@@ -513,7 +484,6 @@ export class Pairing implements IPairing {
   };
 
   private isValidPing = async (params: { topic: string }) => {
-    console.log("###?? isValidPing : ", new Date().toLocaleTimeString());
     if (!isValidParams(params)) {
       const { message } = getInternalError("MISSING_OR_INVALID", `ping() params: ${params}`);
       throw new Error(message);
@@ -523,7 +493,6 @@ export class Pairing implements IPairing {
   };
 
   private isValidDisconnect = async (params: { topic: string }) => {
-    console.log("###?? isValidDisconnect : ", new Date().toLocaleTimeString());
     if (!isValidParams(params)) {
       const { message } = getInternalError("MISSING_OR_INVALID", `disconnect() params: ${params}`);
       throw new Error(message);
@@ -533,7 +502,6 @@ export class Pairing implements IPairing {
   };
 
   private isValidPairingTopic = async (topic: any) => {
-    console.log("###?? isValidPairingTopic : ", new Date().toLocaleTimeString());
     if (!isValidString(topic, false)) {
       const { message } = getInternalError(
         "MISSING_OR_INVALID",
