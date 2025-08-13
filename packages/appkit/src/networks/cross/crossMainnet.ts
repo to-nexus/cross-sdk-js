@@ -16,7 +16,7 @@ export const crossMainnet = defineChain({
       url: 'https://www.crossscan.io'
     }
   },
-  testnet: true,
+  testnet: false,
   chainNamespace: 'eip155',
   caipNetworkId: 'eip155:612055'
 })
