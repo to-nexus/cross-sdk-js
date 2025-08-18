@@ -1,5 +1,11 @@
 # @to-nexus/sdk
 
+## 1.16.1
+
+### Patch Changes
+
+- fix supported network list
+
 ## 1.16.0
 
 ### Minor Changes

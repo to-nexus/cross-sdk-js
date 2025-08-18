@@ -1,5 +1,12 @@
 # @reown/appkit-cdn
 
+## 1.16.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/sdk@1.16.1
+
 ## 1.16.0
 
 ### Minor Changes

@@ -54,7 +54,15 @@ export type Metadata = {
   icons: string[]
 }
 
-type SupportedNetworks = AppKitNetwork
+type SupportedNetworks =
+  | typeof crossMainnet
+  | typeof crossTestnet
+  | typeof bscMainnet
+  | typeof bscTestnet
+  | typeof kaiaMainnet
+  | typeof kaiaTestnet
+  | typeof etherMainnet
+  | typeof etherTestnet
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
