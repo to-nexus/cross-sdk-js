@@ -1,5 +1,18 @@
 # @to-nexus/sdk-example-react
 
+## 1.13.4
+
+### Patch Changes
+
+- add ethereum and seporia network
+- Updated dependencies [98e5310]
+- Updated dependencies [de4ba85]
+- Updated dependencies [50c2f26]
+- Updated dependencies [eed3d6d]
+- Updated dependencies
+- Updated dependencies [a6db7b1]
+  - @to-nexus/sdk@1.16.0
+
 ## 1.13.3
 
 ### Patch Changes

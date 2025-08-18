@@ -15,6 +15,8 @@ import {
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  etherMainnet,
+  etherTestnet,
   initCrossSdk,
   initCrossSdkWithParams,
   kaiaMainnet,
@@ -36,6 +38,8 @@ export {
   bscTestnet,
   kaiaMainnet,
   kaiaTestnet,
+  etherMainnet,
+  etherTestnet,
   UniversalProvider,
   ConstantsUtil
 }
@@ -58,6 +62,8 @@ declare global {
       bscTestnet: typeof bscTestnet
       kaiaMainnet: typeof kaiaMainnet
       kaiaTestnet: typeof kaiaTestnet
+      etherMainnet: typeof etherMainnet
+      etherTestnet: typeof etherTestnet
       UniversalProvider: typeof UniversalProvider
       ConstantsUtil: typeof ConstantsUtil
     }
@@ -79,6 +85,8 @@ if (typeof window !== 'undefined') {
     bscTestnet,
     kaiaMainnet,
     kaiaTestnet,
+    etherMainnet,
+    etherTestnet,
     UniversalProvider,
     ConstantsUtil
   }

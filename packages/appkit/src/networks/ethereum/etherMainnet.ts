@@ -1,33 +1,33 @@
 import { defineChain } from '../utils.js'
 
-export const kaiaMainnet = defineChain({
-  id: 8217,
-  name: 'Kaia Mainnet',
+export const etherMainnet = defineChain({
+  id: 1,
+  name: 'Ether Mainnet',
   nativeCurrency: {
     decimals: 18,
-    name: 'KAIA',
-    symbol: 'KAIA'
+    name: 'Ether',
+    symbol: 'ETH'
   },
-  network: 'kaia',
+  network: 'ethereum',
   rpcUrls: {
     default: {
-      http: ['https://kaia-mainnet-ext.crosstoken.io/815b8a6e389b34a4f82cfd1e501692dee2f4e8f5']
+      http: ['https://eth-mainnet.crosstoken.io/fad29a23391f6d6e8fb41fb8eecbcca82343b378']
     }
   },
   blockExplorers: {
     default: {
-      name: 'Kaia Scan',
-      url: 'https://kaiascan.io/'
+      name: 'Ether scan',
+      url: 'https://etherscan.io/'
       // ApiUrl: 'https://api.bscscan.com/api'
     }
   },
   contracts: {
     multicall3: {
       address: '0xca11bde05977b3631167028862be2a173976ca11',
-      blockCreated: 96002415
+      blockCreated: 14353601
     }
   },
   testnet: false,
   chainNamespace: 'eip155',
-  caipNetworkId: 'eip155:8217'
+  caipNetworkId: 'eip155:1'
 })

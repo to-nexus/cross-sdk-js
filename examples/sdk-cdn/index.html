@@ -42,7 +42,7 @@
       </div>
 
       <div class="action-button-list">
-        <button id="send-native">Send 1 CROSS</button>
+        <button id="send-native">Send <span id="coin-amount"></span></button>
         <button id="send-erc20">Send 1 ERC20</button>
         <button id="send-transaction">Mint ERC721 NFT</button>
       </div>
@@ -100,11 +100,15 @@
         <div class="footer-links">
           <a href="https://to.nexus" target="_blank" rel="noreferrer"> Nexus </a>
           •
-          <a href="https://cross.readme.io/update/docs/integration/" target="_blank" rel="noreferrer"> Docs </a>
-          •
-          <a href="https://github.com/to-nexus/sdk" target="_blank" rel="noreferrer">
-            GitHub
+          <a
+            href="https://cross.readme.io/update/docs/integration/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Docs
           </a>
+          •
+          <a href="https://github.com/to-nexus/sdk" target="_blank" rel="noreferrer"> GitHub </a>
         </div>
         <p class="warning">Get your own project ID from Nexus Team.</p>
       </div>
@@ -123,12 +127,12 @@
 
     <!-- Load Cross SDK from CDN -->
     <script type="module">
-        // Import all SDK functions from CDN
-        import * as CrossSdk from '../../packages/cdn/dist/cross-sdk.js';
+      // Import all SDK functions from CDN
+      import * as CrossSdk from '../../packages/cdn/dist/cross-sdk.js'
 
-        // Make SDK available globally
-        window.CrossSdk = CrossSdk;
+      // Make SDK available globally
+      window.CrossSdk = CrossSdk
     </script>
     <script type="module" src="app.js"></script>
   </body>
-</html> 
+</html>

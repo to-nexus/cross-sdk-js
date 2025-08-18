@@ -66,6 +66,8 @@ async function initializeApp() {
       bscTestnet,
       kaiaMainnet,
       kaiaTestnet,
+      etherMainnet,
+      etherTestnet,
       AccountController,
       ConnectionController,
       ConstantsUtil,
@@ -74,34 +76,52 @@ async function initializeApp() {
 
     const contractData = {
       612044: {
+        coin: 'CROSS',
         erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
         erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
         network: crossTestnet
       },
       612055: {
+        coin: 'CROSS',
         erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
         erc721: '',
         network: crossMainnet
       },
       97: {
+        coin: 'BNB',
         erc20: '',
         erc721: '',
         network: bscTestnet
       },
       56: {
+        coin: 'BNB',
         erc20: '',
         erc721: '',
         network: bscMainnet
       },
       1001: {
+        coin: 'KAIA',
         erc20: '0xd4846dddf83278d10b92bf6c169c5951d6f5abb8',
         erc721: '',
         network: kaiaTestnet
       },
       8217: {
+        coin: 'KAIA',
         erc20: '',
         erc721: '',
         network: kaiaMainnet
+      },
+      1: {
+        coin: 'ETH',
+        erc20: '',
+        erc721: '',
+        network: etherMainnet
+      },
+      11155111: {
+        coin: 'ETH',
+        erc20: '',
+        erc721: '',
+        network: etherTestnet
       }
     }
 
@@ -134,7 +154,9 @@ async function initializeApp() {
       { id: 'bsc-mainnet', name: 'BSC Mainnet', network: bscMainnet },
       { id: 'bsc-testnet', name: 'BSC Testnet', network: bscTestnet },
       { id: 'kaia-mainnet', name: 'Kaia Mainnet', network: kaiaMainnet },
-      { id: 'kaia-testnet', name: 'Kaia Testnet', network: kaiaTestnet }
+      { id: 'kaia-testnet', name: 'Kaia Testnet', network: kaiaTestnet },
+      { id: 'ethereum-mainnet', name: 'Ethereum Mainnet', network: etherMainnet },
+      { id: 'ethereum-testnet', name: 'Ethereum Testnet', network: etherTestnet }
     ]
 
     // Contract addresses and constants
@@ -423,11 +445,16 @@ Check console for full details.`)
         return
       }
 
+      console.log('SEND_CROSS_AMOUNT', SEND_CROSS_AMOUNT)
+
       try {
         const resTx = await SendController.sendNativeToken({
           data: '0x',
           receiverAddress: RECEIVER_ADDRESS,
-          sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
+          sendTokenAmount:
+            networkState.caipNetwork.chainId === 1 || networkState.caipNetwork.chainId === 11155111
+              ? 0.0001
+              : SEND_CROSS_AMOUNT, // in eth (not wei)
           decimals: '18',
           customData: {
             metadata:
@@ -675,6 +702,10 @@ Check console for full details.`)
 
     crossSdk.subscribeNetwork(state => {
       networkState = state
+      document.getElementById('coin-amount').textContent =
+        networkState.chainId === 1 || networkState.chainId === 11155111
+          ? '0.0001 ETH'
+          : '1 ' + contractData[networkState?.chainId]?.coin || 'CROSS'
       document.getElementById('networkState').textContent = JSON.stringify(state, null, 2)
       document.getElementById('switch-network').textContent = networkState.caipNetwork.name
     })
@@ -730,6 +761,11 @@ Check console for full details.`)
     document.getElementById('sign-message')?.addEventListener('click', handleSignMessage)
     document.getElementById('sign-typed-data-v4')?.addEventListener('click', handleSignTypedDataV4)
     document.getElementById('provider-request')?.addEventListener('click', handleProviderRequest)
+
+    document.getElementById('coin-amount').textContent =
+      networkState.chainId === 1 || networkState.chainId === 11155111
+        ? '0.0001 ETH'
+        : '1 ' + contractData[networkState?.chainId]?.coin || 'CROSS'
 
     document.getElementById('send-native')?.addEventListener('click', handleSendNative)
     document.getElementById('send-erc20')?.addEventListener('click', handleSendERC20Token)

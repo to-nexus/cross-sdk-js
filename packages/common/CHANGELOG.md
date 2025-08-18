@@ -1,5 +1,18 @@
 # @reown/appkit-common
 
+## 1.16.0
+
+### Minor Changes
+
+- eed3d6d: disable testnet property of crossMainnet
+
+### Patch Changes
+
+- 98e5310: add logs of detected chain id
+- de4ba85: Remove unmatched native balance cache
+- 50c2f26: add logs for chain id storing procedure
+- a6db7b1: auto switch wallet network uses active network, not default network
+
 ## 1.6.9
 
 ### Patch Changes

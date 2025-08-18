@@ -1,5 +1,6 @@
 import { createAppKit } from '@to-nexus/appkit'
 import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
+import type { AppKitNetwork } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ApiController,
@@ -14,6 +15,8 @@ import {
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  etherMainnet,
+  etherTestnet,
   kaiaMainnet,
   kaiaTestnet,
   networkList
@@ -40,13 +43,7 @@ export type Metadata = {
   icons: string[]
 }
 
-type SupportedNetworks =
-  | typeof crossTestnet
-  | typeof crossMainnet
-  | typeof bscTestnet
-  | typeof bscMainnet
-  | typeof kaiaTestnet
-  | typeof kaiaMainnet
+type SupportedNetworks = AppKitNetwork
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -138,6 +135,8 @@ export {
   bscTestnet,
   kaiaMainnet,
   kaiaTestnet,
+  etherMainnet,
+  etherTestnet,
   UniversalProvider,
-  ConstantsUtil,
+  ConstantsUtil
 }

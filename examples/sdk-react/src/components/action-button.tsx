@@ -10,6 +10,8 @@ import {
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  etherMainnet,
+  etherTestnet,
   getUniversalProvider,
   initCrossSdk,
   kaiaMainnet,
@@ -32,34 +34,52 @@ import { ResultModal } from './result-modal'
 
 const contractData = {
   612044: {
+    coin: 'CROSS',
     erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
     erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
     network: crossTestnet
   },
   612055: {
+    coin: 'CROSS',
     erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
     erc721: '',
     network: crossMainnet
   },
   97: {
+    coin: 'BNB',
     erc20: '',
     erc721: '',
     network: bscTestnet
   },
   56: {
+    coin: 'BNB',
     erc20: '',
     erc721: '',
     network: bscMainnet
   },
   1001: {
+    coin: 'KAIA',
     erc20: '0xd4846dddf83278d10b92bf6c169c5951d6f5abb8',
     erc721: '',
     network: kaiaTestnet
   },
   8217: {
+    coin: 'KAIA',
     erc20: '',
     erc721: '',
     network: kaiaMainnet
+  },
+  1: {
+    coin: 'ETH',
+    erc20: '',
+    erc721: '',
+    network: etherMainnet
+  },
+  11155111: {
+    coin: 'ETH',
+    erc20: '',
+    erc721: '',
+    network: etherTestnet
   }
 }
 
@@ -143,7 +163,7 @@ export function ActionButtonList() {
     ERC20_DECIMALS
   )
   // amount of cross to send
-  const SEND_CROSS_AMOUNT = 1
+  const SEND_CROSS_AMOUNT = network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : 1
 
   useEffect(() => {
     console.log('contractArgs', JSON.stringify(contractArgs?.args))
@@ -240,6 +260,13 @@ export function ActionButtonList() {
   function handleSwitchNetworkKaia() {
     const targetNetwork =
       import.meta.env['VITE_NODE_ENV'] === 'production' ? kaiaMainnet : kaiaTestnet
+    switchNetwork(targetNetwork)
+    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+  }
+  function handleSwitchNetworkEther() {
+    const targetNetwork =
+      import.meta.env['VITE_NODE_ENV'] === 'production' ? etherMainnet : etherTestnet
+    console.log('targetNetwork', targetNetwork)
     switchNetwork(targetNetwork)
     showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
   }
@@ -414,7 +441,8 @@ Check console for full details.`
     const resTx = await SendController.sendNativeToken({
       data: '0x',
       receiverAddress: RECEIVER_ADDRESS,
-      sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
+      sendTokenAmount:
+        network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : SEND_CROSS_AMOUNT, // in eth (not wei)
       decimals: '18',
       customData: {
         metadata:
@@ -813,9 +841,12 @@ Check console for full details.`
         <button onClick={handleSwitchNetwork}>Switch to Cross</button>
         <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
         <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
+        <button onClick={handleSwitchNetworkEther}>Switch to Ether</button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
-        <button onClick={handleSendNative}>Send 1 CROSS</button>
+        <button onClick={handleSendNative}>
+          Send {SEND_CROSS_AMOUNT} {contractData[network.chainId as keyof typeof contractData].coin}
+        </button>
         <button onClick={handleSendERC20Token}>Send 1 ERC20</button>
         <button onClick={handleSendTransaction}>Send Custom Transaction</button>
         <button onClick={handleSendNativeWithDynamicFee}>Send 1 CROSS with Dynamic Fee</button>

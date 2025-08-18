@@ -2,20 +2,20 @@
  * Cross SDK React CDN Entry Point
  * Exports all Cross SDK React functionality for browser usage
  */
-// @ts-expect-error
 import {
   AccountController,
   ConnectionController,
   ConstantsUtil,
   type CrossSdkParams,
   type Metadata,
-  // @ts-expect-error
   SendController,
   UniversalProvider,
   bscMainnet,
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  etherMainnet,
+  etherTestnet,
   getUniversalProvider,
   initCrossSdk,
   initCrossSdkWithParams,
@@ -56,6 +56,8 @@ export {
   bscTestnet,
   kaiaMainnet,
   kaiaTestnet,
+  etherMainnet,
+  etherTestnet,
   UniversalProvider,
   getUniversalProvider,
   ConstantsUtil
@@ -88,6 +90,8 @@ declare global {
       bscTestnet: typeof bscTestnet
       kaiaMainnet: typeof kaiaMainnet
       kaiaTestnet: typeof kaiaTestnet
+      etherMainnet: typeof etherMainnet
+      etherTestnet: typeof etherTestnet
       UniversalProvider: typeof UniversalProvider
       getUniversalProvider: typeof getUniversalProvider
       ConstantsUtil: typeof ConstantsUtil
@@ -119,6 +123,8 @@ if (typeof window !== 'undefined') {
     bscTestnet,
     kaiaMainnet,
     kaiaTestnet,
+    etherMainnet,
+    etherTestnet,
     UniversalProvider,
     getUniversalProvider,
     ConstantsUtil

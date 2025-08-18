@@ -17,14 +17,14 @@ export const kaiaTestnet = defineChain({
   blockExplorers: {
     default: {
       name: 'Kairos Scan',
-      url: 'https://kairos.io/'
+      url: 'https://kairos.kaiascan.io/'
       // ApiUrl: 'https://api-testnet.bscscan.com/api'
     }
   },
   contracts: {
     multicall3: {
       address: '0xca11bde05977b3631167028862be2a173976ca11',
-      blockCreated: 17422483
+      blockCreated: 123390593
     }
   },
   testnet: true,

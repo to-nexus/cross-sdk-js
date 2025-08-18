@@ -5,6 +5,8 @@ import { bscMainnet } from './bsc/bscMainnet.js'
 import { bscTestnet } from './bsc/bscTestnet.js'
 import { crossMainnet } from './cross/crossMainnet.js'
 import { crossTestnet } from './cross/crossTestnet.js'
+import { etherMainnet } from './ethereum/etherMainnet.js'
+import { etherTestnet } from './ethereum/etherTestnet.js'
 import { kaiaMainnet } from './kaia/kaiaMainnet.js'
 import { kaiaTestnet } from './kaia/kaiaTestnet.js'
 
@@ -26,5 +28,7 @@ export const networkList: [AppKitNetwork, ...AppKitNetwork[]] = [
   bscTestnet,
   bscMainnet,
   kaiaTestnet,
-  kaiaMainnet
+  kaiaMainnet,
+  etherTestnet,
+  etherMainnet
 ]
