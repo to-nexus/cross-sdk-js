@@ -1,5 +1,11 @@
 # @to-nexus/sdk-example-html
 
+## 1.12.5
+
+### Patch Changes
+
+- @to-nexus/sdk@1.16.2
+
 ## 1.12.4
 
 ### Patch Changes

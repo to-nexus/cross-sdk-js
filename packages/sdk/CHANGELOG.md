@@ -1,5 +1,13 @@
 # @to-nexus/sdk
 
+## 1.16.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit@1.16.2
+  - @to-nexus/appkit-adapter-ethers@1.16.2
+
 ## 1.16.1
 
 ### Patch Changes

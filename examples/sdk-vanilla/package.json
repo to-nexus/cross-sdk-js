@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/sdk-example-html",
   "private": true,
-  "version": "1.12.4",
+  "version": "1.12.5",
   "scripts": {
     "dev": "vite --port 3013",
     "build": "vite build"

@@ -1,5 +1,11 @@
 # @to-nexus/appkit
 
+## 1.16.2
+
+### Patch Changes
+
+- delete unnesessary log
+
 ## 1.16.0
 
 ### Minor Changes

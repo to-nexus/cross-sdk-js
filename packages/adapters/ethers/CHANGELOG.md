@@ -1,5 +1,12 @@
 # @reown/appkit-adapter-ethers
 
+## 1.16.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/appkit@1.16.2
+
 ## 1.16.0
 
 ### Minor Changes

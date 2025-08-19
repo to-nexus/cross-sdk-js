@@ -1,5 +1,11 @@
 # @to-nexus/sdk-example-react
 
+## 1.13.6
+
+### Patch Changes
+
+- @to-nexus/sdk@1.16.2
+
 ## 1.13.5
 
 ### Patch Changes

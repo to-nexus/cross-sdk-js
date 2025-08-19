@@ -30,8 +30,6 @@ export let modal: AppKit | undefined = undefined
 export type CreateAppKit = Omit<AppKitOptions, 'sdkType' | 'sdkVersion'>
 
 export function createAppKit(options: CreateAppKit) {
-  console.log('getDefaultChain ::: createAppKit ::: options ', options)
-
   if (!modal) {
     modal = new AppKit({
       ...options,
