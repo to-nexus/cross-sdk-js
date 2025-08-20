@@ -162,13 +162,13 @@ Cross SDK CDN supports multiple versioning strategies:
 
 ```html
 <!-- Specific version (recommended for production) -->
-<script src="https://test-sdk-cdn.crosstoken.io/cross-sdk/1.8.1/cross-sdk.js"></script>
+<script src="https://sdk-cdn.crosstoken.io/cross-sdk/1.15.0/cross-sdk.js"></script>
 
 <!-- Latest version (for development/testing) -->
-<script src="https://test-sdk-cdn.crosstoken.io/cross-sdk/latest/cross-sdk.js"></script>
+<script src="https://sdk-cdn.crosstoken.io/cross-sdk/latest/cross-sdk.js"></script>
 
 <!-- React SDK -->
-<script src="https://test-sdk-cdn.crosstoken.io/cross-sdk/1.8.1/cross-sdk-react.js"></script>
+<script src="https://sdk-cdn.crosstoken.io/cross-sdk/1.15.0/cross-sdk-react.js"></script>
 ```
 
 ### Version Strategy Recommendations
