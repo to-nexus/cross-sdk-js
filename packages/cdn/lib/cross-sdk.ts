@@ -8,7 +8,6 @@ import {
   ConstantsUtil,
   type CrossSdkParams,
   type Metadata,
-  // @ts-expect-error
   SendController,
   UniversalProvider,
   bscMainnet,
