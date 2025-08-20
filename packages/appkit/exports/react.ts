@@ -58,6 +58,12 @@ export function useAppKitNetwork(): UseAppKitNetworkReturn {
     modal?.switchNetwork(network)
   }
 
+  useEffect(() => {
+    if (AccountController.state.address && caipNetwork) {
+      switchNetwork(caipNetwork)
+    }
+  }, [AccountController.state.address, caipNetwork])
+
   return {
     caipNetwork,
     caipNetworkId,
