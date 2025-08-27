@@ -419,6 +419,8 @@ export type CustomWallet = Pick<
   | 'webapp_link'
   | 'app_store'
   | 'play_store'
+  | 'rdns'
+  | 'injected'
 >
 
 // -- EventsController Types ----------------------------------------------------
@@ -1018,14 +1020,14 @@ export type EstimateGasTransactionArgs =
 
 /**
  * @description Legacy ERC-2612 permit signature arguments
- * 
+ *
  * ⚠️ DEPRECATED: This interface is limited to ERC-2612 permit signatures only.
  * Use SignTypedDataV4Args instead for a generic, flexible EIP-712 implementation
  * that can handle any typed data structure.
- * 
+ *
  * This interface was designed specifically for token permit operations and lacks
  * the flexibility needed for modern dApp requirements.
- * 
+ *
  * @deprecated Use SignTypedDataV4Args for new implementations
  * @see SignTypedDataV4Args for the improved, generic alternative
  */
@@ -1313,4 +1315,3 @@ export interface SignTypedDataV4Args {
   /** Actual data values to be signed, matching the primaryType structure */
   message: Record<string, any>
 }
-

@@ -1,10 +1,15 @@
 /* eslint-disable consistent-return */
 import { useCallback, useEffect } from 'react'
 
-import { useSnapshot } from 'valtio'
-
 import type { ParsedCaipAddress } from '@to-nexus/appkit-common'
-import { ChainController, type Connector, ConnectorController, OptionsController } from '@to-nexus/appkit-core'
+import {
+  ChainController,
+  type Connector,
+  ConnectorController,
+  OptionsController,
+  RouterController
+} from '@to-nexus/appkit-core'
+import { useSnapshot } from 'valtio'
 
 import { ApiController } from '../src/controllers/ApiController.js'
 import { WalletButtonController } from '../src/controllers/WalletButtonController.js'
@@ -86,7 +91,6 @@ export function useAppKitWallet(parameters?: {
   const connect = useCallback(
     async (wallet: Wallet) => {
       try {
-
         WalletButtonController.setPending(true)
         WalletButtonController.setError(undefined)
 
@@ -98,7 +102,6 @@ export function useAppKitWallet(parameters?: {
 
         const walletButton = WalletUtil.getWalletButton(wallet)
 
-
         const connector = walletButton
           ? ConnectorController.getConnector(walletButton.id, walletButton.rdns)
           : undefined
@@ -107,23 +110,52 @@ export function useAppKitWallet(parameters?: {
 
           return
         }
-        // added by sonny-nexus for direct access to cross desktop wallet
-        // 1. If an announced wallet (Cross desktop wallet) exists, connect to the desktop wallet
-        // 2. If not, connect to the cross wallet app
-        const crossWalletDesktopId = 'nexus.to.crosswallet.desktop' //rdns | name | uuid
-        const currentConnectors = ConnectorController.state.connectors
-        const announced = currentConnectors.filter(c => c.type === 'ANNOUNCED' && c.id === crossWalletDesktopId)
-        if (announced && announced.length > 0) {
-          const crossWalletConnector = announced[0];
-          if (crossWalletConnector) {
-            await ConnectorUtil.connectExternal(crossWalletConnector).then(handleSuccess)
 
-            return
-          }
-        }
         // added by Harvey-Probe for direct access to custom wallets
+        console.log('커스텀 지갑 직접 접근 시작')
         const { customWallets } = OptionsController.state
+        console.log('customWallets:', customWallets)
         const customWallet = customWallets?.find(w => w.id === wallet)
+        console.log('찾은 customWallet:', customWallet)
+
+        // Cross Wallet 특별 처리: w3modal에서 Browser/QR 탭 선택하게 하기
+        if (customWallet && (wallet === 'cross_wallet' || wallet === 'cross_wallet_extension')) {
+          console.log('🎯 Cross Wallet 감지됨 - w3modal 열기:', wallet)
+
+          await ConnectorUtil.connectWalletConnect({
+            walletConnect: wallet === 'cross_wallet',
+            connector: connectors.find(c => c.id === wallet) as Connector | undefined,
+            wallet: customWallet
+          }).then(handleSuccess)
+          return
+        }
+
+        // 다른 브라우저 익스텐션의 경우 직접 연결 시도
+        if (
+          customWallet?.rdns &&
+          wallet !== 'cross_wallet' &&
+          wallet !== 'cross_wallet_extension'
+        ) {
+          console.log('🔍 다른 브라우저 확장 프로그램 감지됨, rdns:', customWallet.rdns)
+          const currentConnectors = ConnectorController.state.connectors
+          const announced = currentConnectors.filter(
+            c => c.type === 'ANNOUNCED' && c.id === customWallet.rdns
+          )
+
+          if (announced && announced.length > 0) {
+            const browserConnector = announced[0]
+            if (browserConnector) {
+              console.log('🚀 브라우저 커넥터로 직접 연결 시도 중...')
+              await ConnectorUtil.connectExternal(browserConnector).then(handleSuccess)
+              console.log('✅ 브라우저 커넥터 연결 성공!')
+              return
+            }
+          }
+
+          throw new Error(
+            `${customWallet.name} extension not found. Please install the ${customWallet.name} browser extension.`
+          )
+        }
 
         await ConnectorUtil.connectWalletConnect({
           walletConnect: wallet === 'cross_wallet',

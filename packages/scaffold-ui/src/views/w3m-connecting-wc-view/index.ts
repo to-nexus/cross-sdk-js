@@ -2,6 +2,7 @@ import type { BaseError, Platform } from '@to-nexus/appkit-core'
 import {
   ChainController,
   ConnectionController,
+  ConnectorController,
   ConstantsUtil,
   CoreHelperUtil,
   EventsController,
@@ -112,6 +113,35 @@ export class W3mConnectingWcView extends LitElement {
     })
   }
 
+  private isCrossWalletInstalled(rdns: string): boolean {
+    // 1차 체크: ANNOUNCED 커넥터에서 찾기 (더 신뢰할 수 있음)
+    const currentConnectors = ConnectorController.state.connectors
+    console.log('현재 커넥터들:', currentConnectors)
+    const announced = currentConnectors.filter(c => c.type === 'ANNOUNCED' && c.id === rdns)
+    console.log('필터링된 announced 커넥터들:', announced)
+
+    if (announced && announced.length > 0) {
+      console.log('ANNOUNCED 커넥터에서 Cross Wallet 발견됨')
+      const browserConnector = announced[0]
+      console.log('선택된 브라우저 커넥터:', browserConnector)
+      return true
+    }
+
+    // 2차 체크: window.ethereum에서 Cross Wallet 전용 체크
+    const isCrossWalletInWindow =
+      typeof window !== 'undefined' && (window as any).ethereum && (window as any).ethereum[rdns]
+
+    console.log('window.ethereum에서 Cross Wallet 체크:', !!isCrossWalletInWindow)
+
+    if (isCrossWalletInWindow) {
+      console.log('window.ethereum에서 Cross Wallet 발견됨')
+      return true
+    }
+
+    console.log('Cross Wallet 브라우저 확장 프로그램을 찾을 수 없음')
+    return false
+  }
+
   private determinePlatforms() {
     if (!this.wallet) {
       this.platforms.push('qrcode')
@@ -134,7 +164,55 @@ export class W3mConnectingWcView extends LitElement {
     const isBrowserWc = isBrowser && isBrowserInstalled
     const isDesktopWc = desktop_link && !CoreHelperUtil.isMobile()
 
-    // Populate all preferences
+    // chuck added code
+    // Special handling for Cross Wallet - provide both browser and QR options
+    const isCrossWallet =
+      this.wallet.name?.includes('Cross Wallet') || rdns === 'nexus.to.crosswallet.desktop'
+
+    if (isCrossWallet && rdns) {
+      console.log('Cross Wallet detected')
+
+      // Safari나 모바일은 브라우저 익스텐션을 지원하지 않으므로 QR 코드만 표시
+      const isSafari = CoreHelperUtil.isSafari()
+      const isMobile = CoreHelperUtil.isMobile()
+
+      if (isSafari || isMobile) {
+        console.log('Safari나 모바일 환경 - QR 코드만 표시')
+        this.platforms.push('qrcode')
+        this.platform = 'qrcode'
+        return
+      }
+
+      // 익스텐션 지원 브라우저(Chrome, Firefox 등)에서만 브라우저 탭 체크
+      if (isBrowser && !ChainController.state.noAdapters) {
+        console.log('익스텐션 지원 브라우저에서 Cross Wallet 설치 확인...')
+        const isCrossWalletFound = this.isCrossWalletInstalled(rdns)
+
+        if (isCrossWalletFound) {
+          // 브라우저 탭을 먼저 추가 (UI에서 먼저 보이게 하기 위해)
+          this.platforms.push('browser')
+          // QR 코드 옵션도 추가
+          this.platforms.push('qrcode')
+          // Default to browser if extension is available
+          this.platform = 'browser'
+          console.log('Cross Wallet 확장프로그램 발견 - 브라우저 탭 우선 표시')
+        } else {
+          // 확장프로그램이 없으면 QR 코드만 (unsupported 탭은 제거)
+          this.platforms.push('qrcode')
+          this.platform = 'qrcode'
+          console.log('Cross Wallet 확장프로그램 없음 - QR 코드만 표시')
+        }
+      } else {
+        // 브라우저 환경이 아닌 경우 QR 코드만
+        this.platforms.push('qrcode')
+        this.platform = 'qrcode'
+        console.log('Non-browser environment - QR only')
+      }
+
+      return
+    }
+
+    // Standard logic for other wallets
     if (isBrowserWc && !ChainController.state.noAdapters) {
       this.platforms.push('browser')
     }
