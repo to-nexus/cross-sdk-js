@@ -119,7 +119,7 @@ export function useAppKitWallet(parameters?: {
         console.log('찾은 customWallet:', customWallet)
 
         // Cross Wallet 특별 처리: w3modal에서 Browser/QR 탭 선택하게 하기
-        if (customWallet && (wallet === 'cross_wallet' || wallet === 'cross_wallet_extension')) {
+        if (customWallet && wallet === 'cross_wallet') {
           console.log('🎯 Cross Wallet 감지됨 - w3modal 열기:', wallet)
 
           await ConnectorUtil.connectWalletConnect({
@@ -131,11 +131,7 @@ export function useAppKitWallet(parameters?: {
         }
 
         // 다른 브라우저 익스텐션의 경우 직접 연결 시도
-        if (
-          customWallet?.rdns &&
-          wallet !== 'cross_wallet' &&
-          wallet !== 'cross_wallet_extension'
-        ) {
+        if (customWallet?.rdns && wallet !== 'cross_wallet') {
           console.log('🔍 다른 브라우저 확장 프로그램 감지됨, rdns:', customWallet.rdns)
           const currentConnectors = ConnectorController.state.connectors
           const announced = currentConnectors.filter(

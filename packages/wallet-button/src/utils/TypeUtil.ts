@@ -6,4 +6,3 @@ export type Wallet =
   | SocialProvider
   | 'walletConnect'
   | 'cross_wallet'
-  | 'cross_wallet_extension'

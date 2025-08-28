@@ -100,7 +100,6 @@ const projectId = import.meta.env['VITE_PROJECT_ID']
 // Redirect URL to return to after wallet app interaction
 const redirectUrl = window.location.href
 
-console.log(`redirectUrl: ${redirectUrl}`)
 // Initialize SDK here
 // initCrossSdkWithParams({
 //   projectId,
@@ -137,7 +136,7 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
-  const { connect, walletInfo } = useAppKitWallet()
+  const { connect } = useAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -166,7 +165,7 @@ export function ActionButtonList() {
   const SEND_CROSS_AMOUNT = network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : 1
 
   useEffect(() => {
-    console.log('contractArgs', JSON.stringify(contractArgs?.args))
+    // contractArgs change tracking
   }, [contractArgs?.args])
 
   // used for connecting wallet with wallet list
@@ -184,23 +183,6 @@ export function ActionButtonList() {
     try {
       const universalProvider = await getUniversalProvider()
       if (universalProvider?.session) {
-        console.log('📡 Session Topic:', universalProvider.session.topic)
-        console.log('🔗 Pairing Topic:', universalProvider.session.pairingTopic)
-        console.log('📋 Full Session Info:', universalProvider.session)
-
-        // 현재 활성화된 세션들의 토픽도 확인
-        if (universalProvider.client?.session) {
-          const allSessions = universalProvider.client.session.getAll()
-          console.log(
-            '📚 All Active Sessions:',
-            allSessions.map(session => ({
-              topic: session.topic,
-              pairingTopic: session.pairingTopic,
-              peer: session.peer?.metadata?.name
-            }))
-          )
-        }
-
         // 성공 메시지 표시
         showSuccess(
           'Topic Information Retrieved!',
@@ -232,13 +214,10 @@ export function ActionButtonList() {
   // 연결 상태 변화 감지 및 토픽 로깅
   useEffect(() => {
     if (account?.isConnected) {
-      console.log('✅ Wallet connected! Logging topic information...')
       // 연결 후 약간의 지연을 두고 토픽 정보를 가져옴
       setTimeout(() => {
         logTopicInfo()
       }, 1000)
-    } else {
-      console.log('🔌 Wallet disconnected')
     }
   }, [account?.isConnected])
 
@@ -274,7 +253,6 @@ export function ActionButtonList() {
   function handleSwitchNetworkEther() {
     const targetNetwork =
       import.meta.env['VITE_NODE_ENV'] === 'production' ? etherMainnet : etherTestnet
-    console.log('targetNetwork', targetNetwork)
     switchNetwork(targetNetwork)
     showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
   }
@@ -316,8 +294,6 @@ export function ActionButtonList() {
     }
 
     try {
-      console.log('Requesting typed data from API...')
-
       // Example: Get typed data from API (can be any source)
       const response = await fetch(
         'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
@@ -342,7 +318,6 @@ export function ActionButtonList() {
       }
 
       const apiData: SignTypedDataApiResponse = await response.json()
-      console.log('API response:', JSON.stringify(apiData, null, 2))
 
       if (!apiData.data?.params) {
         throw new Error('Invalid API response: missing params data')
@@ -351,10 +326,6 @@ export function ActionButtonList() {
       // Extract only the typedData (second element) from API response params
       const tupleParams = apiData.data.params as [string, SignTypedDataV4Args]
       const paramsData = tupleParams[1]
-      console.log(
-        'Extracted typedData for signing (address removed):',
-        JSON.stringify(paramsData, null, 2)
-      )
 
       // Use the new universal signTypedDataV4 method
       const signature = await ConnectionController.signTypedDataV4(paramsData, {
@@ -375,8 +346,6 @@ export function ActionButtonList() {
         showError('Error in handleSignTypedDataV4', 'Signature is undefined')
         return
       }
-
-      console.log('Signature result:', signature)
 
       // Show detailed results
       showSuccess(
@@ -599,7 +568,6 @@ Check console for full details.`
       abi: sampleErc20ABI,
       args: [FROM_ADDRESS as `0x${string}`]
     })) as string
-    console.log(`getBalanceOfERC20 - amount: ${amount}`)
 
     const balance = account?.tokenBalance?.map(token => {
       if (token.address === ERC20_ADDRESS.toLowerCase()) {
@@ -616,7 +584,6 @@ Check console for full details.`
     })
 
     if (!balance) {
-      console.log('balance not found')
       return
     }
     await AccountController.updateTokenBalance(balance)
@@ -656,7 +623,6 @@ Check console for full details.`
     }
 
     const chainFilter = [`0x${network?.chainId?.toString(16)}`] as `0x${string}`[]
-    console.log(`getBalanceFromWallet - chainFilter: ${chainFilter}`)
 
     const tokens = await ConnectionController.walletGetAssets({
       account: FROM_ADDRESS,
@@ -676,7 +642,6 @@ Check console for full details.`
 
     // 현재 체인 ID를 16진수 형태로 변환
     const chainIdHex = `0x${network?.chainId?.toString(16)}` as `0x${string}`
-    console.log(`getSpecificTokensBalance - chainId: ${chainIdHex}`)
 
     // assetFilter 구성
     const assetFilter = {
@@ -690,8 +655,6 @@ Check console for full details.`
       ]
     } as AssetFilterType
 
-    console.log(`getSpecificTokensBalance - assetFilter:`, FROM_ADDRESS, assetFilter)
-
     try {
       // assetFilter를 사용하여 특정 토큰 잔액 요청
       const tokens = await ConnectionController.walletGetAssets({
@@ -699,7 +662,6 @@ Check console for full details.`
         assetFilter: assetFilter
       })
 
-      console.log(`getSpecificTokensBalance - tokens:`, tokens)
       // bigint를 문자열로 변환하여 JSON으로 출력
       showSuccess(
         'Get Specific Token Balance from Wallet Successful!',
@@ -738,8 +700,6 @@ Check console for full details.`
       // BSC test
       '0x61': [{ address: 'native', type: 'native' }]
     } as AssetFilterType
-
-    console.log('getMultiChainTokensBalance - assetFilter:', assetFilter)
 
     try {
       // 여러 체인의 특정 토큰 잔액 요청
@@ -803,7 +763,6 @@ Check console for full details.`
 
       const uuidHex = uuidv4().replace(/-/g, '')
       const tokenId = BigInt(`0x${uuidHex}`).toString()
-      console.log(`tokenId to create next NFT: ${tokenId}`)
 
       const buildArgs: WriteContractArgs = {
         fromAddress: FROM_ADDRESS,
@@ -828,11 +787,10 @@ Check console for full details.`
 
     const accessUniversalProvider = async () => {
       const universalProvider = await getUniversalProvider()
-      const res = await universalProvider?.request({
+      await universalProvider?.request({
         method: 'eth_requestAccounts',
         params: []
       })
-      console.log(`eth_requestAccounts res: ${JSON.stringify(res)}`)
     }
 
     accessUniversalProvider()

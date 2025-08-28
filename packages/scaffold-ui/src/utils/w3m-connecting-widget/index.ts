@@ -65,27 +65,19 @@ export class W3mConnectingWidget extends LitElement {
   public constructor() {
     super()
 
-    console.log('🔥 [Widget Base] W3mConnectingWidget 생성자')
-    console.log('🔥 [Widget Base] this.wallet:', this.wallet)
-    console.log('🔥 [Widget Base] this.connector:', this.connector)
-
     this.unsubscribe.push(
       ...[
         ConnectionController.subscribeKey('wcUri', val => {
-          console.log('🔥 [Widget Base] wcUri 변경됨:', val)
           this.uri = val
           if (this.isRetrying && this.onRetry) {
-            console.log('🔥 [Widget Base] 재시도 중 - onConnect 호출')
             this.isRetrying = false
             this.onConnect?.()
           }
         }),
         ConnectionController.subscribeKey('wcError', val => {
-          console.log('🔥 [Widget Base] wcError 변경됨:', val)
           this.error = val
         }),
         ConnectionController.subscribeKey('buffering', val => {
-          console.log('🔥 [Widget Base] buffering 변경됨:', val)
           this.buffering = val
         })
       ]
@@ -96,20 +88,15 @@ export class W3mConnectingWidget extends LitElement {
       CoreHelperUtil.isIos() &&
       ConnectionController.state.wcUri
     ) {
-      console.log('🔥 [Widget Base] iOS Safari/Telegram 환경 - 즉시 onConnect 호출')
       this.onConnect?.()
     }
   }
 
   public override firstUpdated() {
-    console.log('🔥 [Widget Base] firstUpdated 호출됨')
-    console.log('🔥 [Widget Base] onAutoConnect 함수 있음:', !!this.onAutoConnect)
     if (this.onAutoConnect) {
-      console.log('🔥 [Widget Base] onAutoConnect 호출 중...')
       this.onAutoConnect?.()
     }
     this.showRetry = !this.onAutoConnect
-    console.log('🔥 [Widget Base] showRetry 설정됨:', this.showRetry)
   }
 
   public override disconnectedCallback() {
@@ -220,23 +207,15 @@ export class W3mConnectingWidget extends LitElement {
   }
 
   protected onTryAgain() {
-    console.log('🔥 [Widget Base] onTryAgain 호출됨')
-    console.log('🔥 [Widget Base] buffering 상태:', this.buffering)
-
     if (!this.buffering) {
-      console.log('🔥 [Widget Base] setWcError(false) 호출')
       ConnectionController.setWcError(false)
 
       if (this.onRetry) {
-        console.log('🔥 [Widget Base] onRetry 호출 (재시도)')
         this.isRetrying = true
         this.onRetry?.()
       } else {
-        console.log('🔥 [Widget Base] onConnect 호출 (다시 연결)')
         this.onConnect?.()
       }
-    } else {
-      console.log('🔥 [Widget Base] buffering 중이라서 재시도 안함')
     }
   }
 
