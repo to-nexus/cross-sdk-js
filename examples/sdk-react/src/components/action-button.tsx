@@ -137,7 +137,7 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
-  const { connect } = useAppKitWallet()
+  const { connect, walletInfo } = useAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -171,13 +171,11 @@ export function ActionButtonList() {
 
   // used for connecting wallet with wallet list
   function handleConnect() {
-    console.log('🔄 Connecting wallet...')
     appKit.connect()
   }
 
   // used for connecting cross wallet directly
   function handleConnectWallet() {
-    console.log('🔄 Connecting Cross wallet directly...')
     connect('cross_wallet')
   }
 
@@ -209,8 +207,18 @@ export function ActionButtonList() {
           `Session Topic: ${universalProvider.session.topic}\nPairing Topic: ${universalProvider.session.pairingTopic}\n\nCheck console for full details.`
         )
       } else {
-        console.log('❌ No active session found')
-        showError('No Session Found', 'Please connect a wallet first to get topic information.')
+        // Provider Constructor로 Extension 연결 여부 확인
+        const isExtensionProvider = walletProvider?.constructor?.name === 'EIP1193Provider'
+        const hasNoSession = !universalProvider?.session
+
+        if (isExtensionProvider && hasNoSession && account?.isConnected) {
+          showSuccess(
+            'Extension Connection Detected',
+            'Connected via browser extension - Universal Provider session not available.\n\nThis is normal behavior for extension connections.'
+          )
+        } else {
+          showError('No Session Found', 'Please connect a wallet first to get topic information.')
+        }
       }
     } catch (error) {
       console.error('❌ Error getting topic info:', error)

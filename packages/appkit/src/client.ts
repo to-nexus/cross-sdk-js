@@ -219,10 +219,10 @@ export class AppKit {
     await this.initChainAdapters()
     await this.injectModalUi()
     await this.syncExistingConnection()
-    
+
     // 🔥 지갑이 연결되어 있고 네트워크가 다르면 자동 변경
     await this.autoSwitchWalletNetwork()
-    
+
     PublicStateController.set({ initialized: true })
   }
 
@@ -240,10 +240,14 @@ export class AppKit {
       console.log(`autoSwitchWalletNetwork, current wallet ChainId: ${currentChainId}`)
 
       if (currentChainId && currentChainId !== ChainController.state.activeCaipNetwork.id) {
-        console.log(`🔄 Auto-switching wallet network from ${currentChainId} to ${ChainController.state.activeCaipNetwork.id}`)
+        console.log(
+          `🔄 Auto-switching wallet network from ${currentChainId} to ${ChainController.state.activeCaipNetwork.id}`
+        )
         await this.switchNetwork(ChainController.state.activeCaipNetwork)
       } else {
-        console.log(`autoSwitchWalletNetwork, current wallet ChainId: ${currentChainId} is the same as the active caip network`)
+        console.log(
+          `autoSwitchWalletNetwork, current wallet ChainId: ${currentChainId} is the same as the active caip network`
+        )
       }
     } catch (error) {
       console.warn('Failed to auto-switch wallet network:', error)
@@ -257,7 +261,7 @@ export class AppKit {
     try {
       const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
       const provider = ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace)
-      
+
       if (provider) {
         return await provider.request({ method: 'eth_chainId' })
       }
