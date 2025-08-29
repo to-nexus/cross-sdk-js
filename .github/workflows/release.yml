@@ -73,7 +73,10 @@ jobs:
         run: pnpm run auto-changeset
 
       - name: Enter Changeset pre mode
-        run: pnpm changeset:pre
+        run: |
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "rc")
+          echo "Using preid: ${PREID}"
+          pnpm changeset pre enter ${PREID}
 
       - name: Version packages (pre)
         run: pnpm run changeset:version
