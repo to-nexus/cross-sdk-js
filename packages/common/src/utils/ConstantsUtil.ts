@@ -41,7 +41,7 @@ export const ConstantsUtil = {
   },
   RELAY_URL: {
     DEVELOPMENT: 'wss://dev-cross-relay.crosstoken.io/ws',
-    STAGE: 'wss://cross-relay.crosstoken.io/ws',
+    STAGE: 'wss://stg-cross-relay.crosstoken.io/ws',
     PRODUCTION: 'wss://cross-relay.crosstoken.io/ws'
   },
   getVerifyUrl() {
