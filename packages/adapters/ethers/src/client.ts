@@ -2,6 +2,8 @@ import { type AppKitOptions, WcConstantsUtil } from '@to-nexus/appkit'
 import type { CaipNetwork } from '@to-nexus/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil, ParseUtil } from '@to-nexus/appkit-common'
 import {
+  AccountController,
+  ChainController,
   type CombinedProvider,
   type Connector,
   type ConnectorType,
@@ -498,6 +500,18 @@ export class EthersAdapter extends AdapterBlueprint {
       throw new Error('Provider not found')
     }
 
+    // Extension 연결 시작 전 기존 연결 자동 해제 (지갑에 disconnect 이벤트 전달)
+    if (type === 'ANNOUNCED' || type === 'INJECTED' || type === 'EXTERNAL') {
+      try {
+        const isAlreadyConnected = Boolean(AccountController.state.address)
+        if (isAlreadyConnected) {
+          await ChainController.disconnect()
+        }
+      } catch (error) {
+        // 기존 연결 해제 중 오류 발생 시 계속 진행
+      }
+    }
+
     let accounts: string[] = []
 
     let requestChainId: string | undefined = undefined
@@ -515,11 +529,23 @@ export class EthersAdapter extends AdapterBlueprint {
         method: 'eth_requestAccounts'
       })
 
+      // Extension 응답 수신 시점에서 기존 연결 정리 (타이밍 이슈 방지)
+      const currentAddress = AccountController.state.address
+      if (currentAddress && currentAddress !== accounts?.[0]) {
+        try {
+          await ChainController.disconnect()
+        } catch (error) {
+          // 기존 연결 정리 중 오류 발생 시 계속 진행
+        }
+      }
+
       requestChainId = await selectedProvider.request({
         method: 'eth_chainId'
       })
 
-      console.log(`EthersAdapter:connect - eth_chainId from wallet: ${requestChainId} connecting chainId: ${chainId}`)
+      console.log(
+        `EthersAdapter:connect - eth_chainId from wallet: ${requestChainId} connecting chainId: ${chainId}`
+      )
 
       if (requestChainId !== chainId) {
         const caipNetwork = this.caipNetworks?.find(n => n.id === chainId)
@@ -601,8 +627,34 @@ export class EthersAdapter extends AdapterBlueprint {
 
     switch (params.providerType) {
       case 'WALLET_CONNECT':
-        if ((params.provider as UniversalProvider).session) {
-          ;(params.provider as UniversalProvider).disconnect()
+        const universalProvider = params.provider as UniversalProvider
+        console.log('🔥 [EthersAdapter] WALLET_CONNECT 연결 해제 시작')
+        console.log('🔥 [EthersAdapter] UniversalProvider 객체:', {
+          hasSession: !!universalProvider.session,
+          sessionTopic: universalProvider.session?.topic,
+          sessionExpiry: universalProvider.session?.expiry,
+          sessionSelf: universalProvider.session?.self,
+          sessionPeer: universalProvider.session?.peer
+        })
+
+        if (universalProvider.session) {
+          console.log('🔥 [EthersAdapter] 📋 세션 상세 정보:', {
+            topic: universalProvider.session.topic,
+            expiry: new Date(universalProvider.session.expiry * 1000).toISOString(),
+            selfPublicKey: universalProvider.session.self.publicKey,
+            peerMetadata: universalProvider.session.peer.metadata
+          })
+
+          try {
+            console.log('🔥 [EthersAdapter] UniversalProvider.disconnect() 호출 중...')
+            await universalProvider.disconnect()
+            console.log('🔥 [EthersAdapter] ✅ UniversalProvider.disconnect() 성공!')
+          } catch (error) {
+            console.log('🔥 [EthersAdapter] ❌ UniversalProvider.disconnect() 실패:', error)
+            throw error
+          }
+        } else {
+          console.log('🔥 [EthersAdapter] ⚠️ WalletConnect 세션이 없어서 disconnect 생략')
         }
         break
       case 'AUTH':
@@ -651,6 +703,7 @@ export class EthersAdapter extends AdapterBlueprint {
             async resolve => {
               const balance = await jsonRpcProvider.getBalance(params.address)
               console.log(`address: ${params.address} raw balance: ${balance}`)
+
               const formattedBalance = formatEther(balance)
 
               StorageUtil.updateNativeBalanceCache({
@@ -660,7 +713,10 @@ export class EthersAdapter extends AdapterBlueprint {
                 timestamp: Date.now()
               })
 
-              resolve({ balance: formattedBalance, symbol: caipNetwork.nativeCurrency.symbol })
+              resolve({
+                balance: formattedBalance,
+                symbol: caipNetwork.nativeCurrency.symbol
+              })
             }
           ).finally(() => {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete

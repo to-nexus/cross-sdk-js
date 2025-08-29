@@ -149,7 +149,9 @@ export const ConnectionController = {
   },
 
   async connectExternal(options: ConnectExternalOptions, chain: ChainNamespace, setChain = true) {
-    await this._getClient()?.connectExternal?.(options)
+    const client = this._getClient()
+
+    await client?.connectExternal?.(options)
 
     if (setChain) {
       ChainController.setActiveNamespace(chain)

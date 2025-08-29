@@ -1,5 +1,7 @@
 import type { BaseError } from '@to-nexus/appkit-core'
 import {
+  AccountController,
+  ChainController,
   ConnectionController,
   ConnectorController,
   EventsController,
@@ -33,6 +35,16 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
     try {
       this.error = false
       const { connectors } = ConnectorController.state
+
+      // 새로운 연결 시작 전 기존 연결 해제 (지갑에 disconnect 이벤트 전달)
+      const isAlreadyConnected = Boolean(AccountController.state.address)
+      if (isAlreadyConnected) {
+        try {
+          await ChainController.disconnect()
+        } catch (error) {
+          // 기존 연결 해제 중 오류 발생 시 계속 진행
+        }
+      }
 
       // 최종 선택된 커넥터 - 우선순위 기반 선택
       let connector = null

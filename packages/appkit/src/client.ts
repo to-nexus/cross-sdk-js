@@ -1019,10 +1019,12 @@ export class AppKit {
         await this.syncWalletConnectAccount()
       },
       connectExternal: async ({ id, info, type, provider, chain, caipNetwork }) => {
-        console.log(`connectExternal`)
-
         const activeChain = ChainController.state.activeChain as ChainNamespace
         const chainToUse = chain || activeChain
+
+        // 새로운 연결 시작 전 기존 연결 해제 (지갑에 disconnect 이벤트 전달)
+        await this.disconnectIfAlreadyConnected(chainToUse)
+
         const adapter = this.getAdapter(chainToUse)
 
         if (chain && chain !== activeChain && !caipNetwork) {
@@ -1353,6 +1355,37 @@ export class AppKit {
     ConnectionController.setClient(this.connectionControllerClient)
   }
 
+  /**
+   * 기존 연결이 있는 경우 자동으로 해제하는 헬퍼 함수
+   * 새로운 연결 시작 전에 호출하여 연결 충돌을 방지합니다.
+   */
+  private async disconnectIfAlreadyConnected(namespace: ChainNamespace = 'eip155'): Promise<void> {
+    const currentProviderType = ProviderUtil.getProviderId(namespace)
+    const isAlreadyConnected = Boolean(AccountController.state.address)
+    const adapter = this.getAdapter(namespace)
+
+    if (isAlreadyConnected && currentProviderType && adapter) {
+      try {
+        const provider = ProviderUtil.getProvider(namespace)
+
+        // 기존 연결에 disconnect 이벤트 전달 (지갑에 알림)
+        await adapter.disconnect({ provider, providerType: currentProviderType })
+
+        // 내부 상태 정리
+        StorageUtil.removeConnectedNamespace(namespace)
+        ProviderUtil.resetChain(namespace)
+        this.setUser(undefined, namespace)
+        this.setStatus('disconnected', namespace)
+      } catch (error) {
+        // 오류가 발생해도 상태는 정리
+        StorageUtil.removeConnectedNamespace(namespace)
+        ProviderUtil.resetChain(namespace)
+        this.setUser(undefined, namespace)
+        this.setStatus('disconnected', namespace)
+      }
+    }
+  }
+
   private setupAuthConnectorListeners(provider: W3mFrameProvider) {
     provider.onRpcRequest((request: W3mFrameTypes.RPCRequest) => {
       if (W3mFrameHelpers.checkIfRequestExists(request)) {
@@ -1656,18 +1689,24 @@ export class AppKit {
 
   private async updateNativeBalance(ignoreCache = false) {
     const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
-    if (adapter && ChainController.state.activeChain && AccountController.state.address) {
+    const activeChain = ChainController.state.activeChain
+    const address = AccountController.state.address
+    const chainId = ChainController.state.activeCaipNetwork?.id
+
+    if (adapter && activeChain && address) {
       const balance = await adapter.getBalance({
-        address: AccountController.state.address,
-        chainId: ChainController.state.activeCaipNetwork?.id as string | number,
+        address: address,
+        chainId: chainId as string | number,
         caipNetwork: this.getCaipNetwork(),
         tokens: this.options.tokens,
         ignoreCache
       })
+
       console.log(
         `chainId: ${ChainController.state.activeCaipNetwork?.id} native balance: ${JSON.stringify(balance)} tokens: ${JSON.stringify(this.options.tokens, (key, val) => (typeof val === 'bigint' ? val.toString() : val))}`
       )
-      this.setBalance(balance.balance, balance.symbol, ChainController.state.activeChain)
+
+      this.setBalance(balance.balance, balance.symbol, activeChain)
     }
   }
 
@@ -1844,8 +1883,12 @@ export class AppKit {
       this.syncConnectedWalletInfo(chainNamespace)
 
       // Only update state when needed
-      if (!HelpersUtil.isLowerCaseMatch(address, AccountController.state.address)) {
-        this.setCaipAddress(`${chainNamespace}:${network?.id}:${address}`, chainNamespace)
+      const currentAddress = AccountController.state.address
+      const addressChanged = !HelpersUtil.isLowerCaseMatch(address, currentAddress)
+
+      if (addressChanged) {
+        const caipAddress = `${chainNamespace}:${network?.id}:${address}` as CaipAddress
+        this.setCaipAddress(caipAddress, chainNamespace)
         /*
          * Await this.syncIdentity({
          *   address,
@@ -1854,6 +1897,7 @@ export class AppKit {
          * })
          */
       }
+
       await this.syncBalance({ address, chainId: network?.id, chainNamespace })
     }
   }

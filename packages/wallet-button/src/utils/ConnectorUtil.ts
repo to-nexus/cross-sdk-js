@@ -31,6 +31,18 @@ export const ConnectorUtil = {
     connector
   }: ConnectWalletConnect): Promise<ParsedCaipAddress> {
     return new Promise(async (resolve, reject) => {
+      // 새로운 연결 시작 전 기존 연결 해제 (지갑에 disconnect 이벤트 전달)
+      const isAlreadyConnected = Boolean(AccountController.state.address)
+      if (isAlreadyConnected) {
+        console.log('🔄 WalletConnect 연결 시작 전 기존 연결 해제 중...')
+        try {
+          await ChainController.disconnect()
+          console.log('✅ 기존 연결 해제 완료')
+        } catch (error) {
+          console.log('⚠️ 기존 연결 해제 중 오류 발생 (계속 진행):', error)
+        }
+      }
+
       if (walletConnect) {
         ConnectorController.setActiveConnector(connector)
       }
@@ -58,7 +70,17 @@ export const ConnectorUtil = {
     })
   },
   connectExternal(connector: Connector): Promise<ParsedCaipAddress> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      // 새로운 연결 시작 전 기존 연결 해제 (지갑에 disconnect 이벤트 전달)
+      const isAlreadyConnected = Boolean(AccountController.state.address)
+      if (isAlreadyConnected) {
+        try {
+          await ChainController.disconnect()
+        } catch (error) {
+          // 기존 연결 해제 중 오류 발생 시 계속 진행
+        }
+      }
+
       const unsubscribeChainController = ChainController.subscribeKey('activeCaipAddress', val => {
         if (val) {
           ModalController.close()
