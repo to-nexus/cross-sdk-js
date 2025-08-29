@@ -53,6 +53,15 @@
 
 #### 권장 적용 방식(Pre-release 모드)
 
+### Changeset 실행 트리거 정책
+
+- `release/*` 브랜치에서 Changeset 생성은 자동으로 돌지 않습니다. 수동 실행만 허용합니다.
+- 실행 방법: GitHub Actions → Release Management → Run workflow → `run_auto_changeset=true`로 실행
+- 권장 입력값
+  - `environment`: dev 또는 stage (pre 버전 증가 검증 용도)
+  - `run_auto_changeset`: true (체크 필수)
+  - main(prod) 릴리스는 Release Management 워크플로우의 나머지 단계가 수행합니다.
+
 1) release/* 브랜치 생성 시(예: `release/v1.17.0`)
 - Changeset Pre 모드 진입 및 pre 버전 범프
   - `pnpm changeset:pre` (enter)

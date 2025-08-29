@@ -23,7 +23,8 @@ function generateChangeset() {
 
     // 2) fallback: 브랜치와 설정에서 유도
     const gitRef = process.env.GITHUB_REF || '';
-    const branchMatch = gitRef.match(/refs\/heads\/release\/v?(\S+)$/);
+    const refName = process.env.GITHUB_REF_NAME || gitRef.split('/').slice(3).join('/');
+    const branchMatch = (refName || '').match(/^release\/v?(\S+)$/);
     const derivedVersion = versionData?.version || (branchMatch ? branchMatch[1] : null);
     if (!derivedVersion) {
       throw new Error('릴리스 버전을 결정할 수 없습니다. version.json 또는 release/vX.Y.Z 브랜치명을 확인하세요.');
@@ -83,9 +84,6 @@ function generateChangeset() {
   }
 }
 
-/**
- * 변경 타입에 따른 접두사 반환
- */
 function getChangePrefix(type) {
   switch (type) {
     case 'feat': return '✨';
@@ -99,9 +97,10 @@ function getChangePrefix(type) {
   }
 }
 
-// 스크립트 실행
 if (require.main === module) {
   generateChangeset();
 }
 
 module.exports = { generateChangeset };
+
+

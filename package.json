@@ -42,7 +42,7 @@
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm publish:latest",
-    "auto-changeset": "node scripts/auto-changeset.js",
+    "auto-changeset": "node scripts/auto-changeset.cjs",
     "release:prepare": "pnpm run auto-changeset && pnpm run changeset:version",
     "publish:latest": "pnpm install; pnpm build; changeset publish",
     "publish:alpha": "pnpm install; pnpm build; changeset publish --tag alpha",

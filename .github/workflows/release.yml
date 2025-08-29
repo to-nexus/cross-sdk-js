@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - release/*
   workflow_dispatch:
     inputs:
       environment:
@@ -15,6 +14,14 @@ on:
           - dev
           - stage
           - prod
+      run_auto_changeset:
+        description: "release/* 브랜치에서 Changeset 생성 실행"
+        required: false
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'
   pull_request:
     branches:
       - main
@@ -29,6 +36,7 @@ jobs:
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,8 +49,7 @@ jobs:
   auto-changeset:
     name: Auto Generate Changeset
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/heads/release/')
-    needs: sonarqube
+    if: github.event_name == 'workflow_dispatch' && inputs.run_auto_changeset == 'true' && startsWith(github.ref, 'refs/heads/release/')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
