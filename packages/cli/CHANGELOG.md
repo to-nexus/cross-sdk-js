@@ -1,5 +1,20 @@
 # @reown/appkit-cli
 
+## 1.17.0-rc.0
+
+### Minor Changes
+
+- # SDK Enhancement and New Features
+
+  SDK 기능 강화 및 새로운 어댑터 추가
+
+  ## 변경사항
+
+  ✨ 새로운 Bitcoin 어댑터 추가
+  ✨ 향상된 UI 컴포넌트 라이브러리
+  🐛 Safari 브라우저 호환성 문제 해결
+  ⚡ 번들 사이즈 최적화
+
 ## 1.6.9
 
 ### Patch Changes
