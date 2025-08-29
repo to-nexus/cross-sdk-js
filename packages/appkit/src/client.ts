@@ -127,10 +127,16 @@ interface AppKitOptionsWithSdk extends AppKitOptions {
 
 // -- Helpers -------------------------------------------------------------------
 let isInitialized = false
+export enum EnvMode {
+  DEV = 'development',
+  STAGE = 'stage',
+  PROD = 'production'
+}
 
 function getEnv(): string {
   // ✅ Vite 환경 (import.meta.env.MODE 사용)
   if (import.meta?.env?.['VITE_ENV_MODE']) {
+    console.log('getEnv(), import.meta.env', import.meta.env)
     console.log('getEnv(), import.meta.env.VITE_ENV_MODE', import.meta.env['VITE_ENV_MODE'])
 
     return import.meta.env['VITE_ENV_MODE']
@@ -151,10 +157,9 @@ function getEnv(): string {
   }
 
   // ✅ 브라우저에서 직접 주입된 환경 변수 (globalThis 사용)
-
   console.log('getEnv(), development')
 
-  return 'development'
+  return 'production'
 }
 
 // -- Client --------------------------------------------------------------------
@@ -2168,6 +2173,10 @@ export class AppKit {
     })
 
     const injectedEnv = getEnv()
+    type EnvKey = keyof typeof ConstantsUtil.VERIFY_URL
+    const envKey = injectedEnv.toUpperCase() as EnvKey
+    const verifyUrl = ConstantsUtil.VERIFY_URL[envKey]
+    const relayUrl = ConstantsUtil.RELAY_URL[envKey]
     console.log(`injected env from your project: ${injectedEnv}`)
 
     const universalProviderOptions: UniversalProviderOpts = {
@@ -2177,17 +2186,13 @@ export class AppKit {
         description: this.options?.metadata ? this.options?.metadata.description : '',
         url: this.options?.metadata ? this.options?.metadata.url : '',
         icons: this.options?.metadata ? this.options?.metadata.icons : [''],
-        verifyUrl:
-          injectedEnv === 'development'
-            ? ConstantsUtil.VERIFY_URL_DEV
-            : ConstantsUtil.VERIFY_URL_PROD,
+        verifyUrl,
         redirect: {
           universal: this.options?.metadata?.redirect?.universal
         }
       },
       logger,
-      relayUrl:
-        injectedEnv === 'development' ? ConstantsUtil.RELAY_URL_DEV : ConstantsUtil.RELAY_URL_PROD
+      relayUrl
     }
 
     console.log(`relayUrl: ${universalProviderOptions.relayUrl}`)
