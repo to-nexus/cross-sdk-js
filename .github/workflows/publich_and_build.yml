@@ -5,14 +5,41 @@ on:
     branches:
       - main
       - ci/*
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
+      services:
+        description: "배포 서비스 선택"
+        required: true
+        type: choice
+        options:
+          - all
+          - package-publish
+          - sample-page
+      dry_run:
+        description: "실제 퍼블리시/푸시/태깅 없이 검증만 수행"
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.environment || 'na' }}-${{ inputs.services || 'na' }}
+  cancel-in-progress: true
 
 jobs:
   sonarqube:
@@ -30,7 +57,12 @@ jobs:
   publish_npm:
     name: Publish to Nexus NPM
     needs: sonarqube
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
+    # Manual 배포 전용 + 브랜치/환경 가드
+    if: |
+      github.event_name == 'workflow_dispatch' && (
+        (startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
+        (github.ref == 'refs/heads/main' && inputs.environment == 'prod')
+      ) && (inputs.services == 'all' || inputs.services == 'package-publish')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -62,17 +94,97 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
-      - name: Publish package to Nexus
+      - name: Compute version
+        id: version
+        run: |
+          VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Publish package to Nexus (dev → alpha)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false'
+        run: pnpm run publish:alpha
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Publish package to Nexus (stage → beta)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false'
+        run: pnpm run publish:beta
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Publish package to Nexus (prod → latest)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
         run: pnpm run publish:latest
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Create and push release tag (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
+        run: |
+          TAG="release/v${{ steps.version.outputs.VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/v${{ steps.version.outputs.VERSION }}
+          name: Release v${{ steps.version.outputs.VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push pre-release tag (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          TAG="release/v${{ steps.version.outputs.VERSION }}-${{ inputs.environment }}.${GITHUB_RUN_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Pre-Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Pre-Release (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/v${{ steps.version.outputs.VERSION }}-${{ inputs.environment }}.${{ github.run_number }}
+          name: Pre-Release v${{ steps.version.outputs.VERSION }} (${{ inputs.environment }})
+          prerelease: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dry-run summary (no publish/tag)
+        if: inputs.dry_run == 'true'
+        run: |
+          echo "## Dry Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Service: ${{ inputs.services }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ steps.version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Actions Skipped: publish, tag, GitHub Release" >> $GITHUB_STEP_SUMMARY
   build_and_push:
     name: Build and Push Docker Image
-    needs: publish_npm
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
+    needs: sonarqube
+    # Sample Page Docker 배포는 수동 + 동일 가드 사용 (원하면 별도 워크플로우로 분리 가능)
+    if: |
+      github.event_name == 'workflow_dispatch' && (
+        (startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
+        (github.ref == 'refs/heads/main' && inputs.environment == 'prod')
+      ) && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
 
-    environment: 'prod'
+    environment: ${{ inputs.environment }}
 
     steps:
       - name: Checkout Repo
@@ -91,15 +203,19 @@ jobs:
           REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
           echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
           echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
-          echo "ECR_REPO=dev/${REPO_NAME}" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
 
       - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -107,6 +223,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
         uses: docker/build-push-action@v6
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -117,13 +234,30 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/dev/${{ steps.env.outputs.SERVICE_NAME }}:${{ steps.env.outputs.GIT_SHA }}
-            ${{ steps.login-ecr.outputs.registry }}/dev/${{ steps.env.outputs.SERVICE_NAME }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
           platforms: linux/amd64
           build-args: |
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
+
+      - name: Build Docker Image (dry run, no push)
+        if: inputs.dry_run == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}

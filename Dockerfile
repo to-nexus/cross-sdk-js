@@ -3,10 +3,12 @@ FROM node:20 AS builder
 ARG SERVICE_NAME
 ARG WORKDIR
 ARG VITE_PROJECT_ID
+ARG VITE_ENV_MODE
 
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV WORKDIR=$WORKDIR
 ENV VITE_PROJECT_ID=$VITE_PROJECT_ID
+ENV VITE_ENV_MODE=$VITE_ENV_MODE
 
 WORKDIR $WORKDIR
 
@@ -34,13 +36,15 @@ RUN pnpm run build
 
 # Build sdk-react
 WORKDIR $WORKDIR/examples/sdk-react
-RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
+RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env \
+  && echo "VITE_ENV_MODE=$VITE_ENV_MODE" >> .env
 RUN pnpm i
 RUN pnpm run build
 
 # Build sdk-vanilla  
 WORKDIR $WORKDIR/examples/sdk-vanilla
-RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
+RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env \
+  && echo "VITE_ENV_MODE=$VITE_ENV_MODE" >> .env
 RUN pnpm i
 RUN pnpm run build
 
