@@ -1681,6 +1681,7 @@ export class AppKit {
   }
 
   private async syncWalletConnectAccount() {
+    const sessionNamespaces = Object.keys(this.universalProvider?.session?.namespaces || {})
     const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
     this.chainNamespaces.forEach(async chainNamespace => {
@@ -1733,6 +1734,8 @@ export class AppKit {
           chainId,
           chainNamespace
         })
+      } else if (sessionNamespaces.includes(chainNamespace)) {
+        this.setStatus('disconnected', chainNamespace)
       }
     })
 
