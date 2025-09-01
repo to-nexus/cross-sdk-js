@@ -116,7 +116,13 @@ const initCrossSdk = (
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
         mobile_link: 'crossx://',
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
-        play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet'
+        play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
+        rdns: 'nexus.to.crosswallet.desktop',
+        injected: [
+          {
+            injected_id: 'nexus.to.crosswallet.desktop'
+          }
+        ]
       }
     ],
     allWallets: 'HIDE'

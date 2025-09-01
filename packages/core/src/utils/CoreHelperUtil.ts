@@ -55,7 +55,14 @@ export const CoreHelperUtil = {
 
     const ua = window.navigator.userAgent.toLowerCase()
 
-    return ua.includes('safari')
+    // Safari는 'safari'를 포함하지만 'chrome'이나 다른 브라우저 식별자는 포함하지 않음
+    return (
+      ua.includes('safari') &&
+      !ua.includes('chrome') &&
+      !ua.includes('crios') &&
+      !ua.includes('fxios') &&
+      !ua.includes('edgios')
+    )
   },
 
   isClient() {

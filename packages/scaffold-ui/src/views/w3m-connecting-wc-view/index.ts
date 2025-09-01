@@ -2,6 +2,7 @@ import type { BaseError, Platform } from '@to-nexus/appkit-core'
 import {
   ChainController,
   ConnectionController,
+  ConnectorController,
   ConstantsUtil,
   CoreHelperUtil,
   EventsController,
@@ -35,7 +36,6 @@ export class W3mConnectingWcView extends LitElement {
   public constructor() {
     super()
     this.determinePlatforms()
-    console.log('W3mConnectingWcView - platforms: ', JSON.stringify(this.platforms))
     this.initializeConnection()
     this.interval = setInterval(
       this.initializeConnection.bind(this),
@@ -112,6 +112,63 @@ export class W3mConnectingWcView extends LitElement {
     })
   }
 
+  private isCrossWalletInstalled(rdns: string): boolean {
+    // ANNOUNCED 커넥터에서 찾기
+    const currentConnectors = ConnectorController.state.connectors
+    const announced = currentConnectors.filter(c => c.type === 'ANNOUNCED' && c.id === rdns)
+
+    if (announced && announced.length > 0) {
+      return true
+    }
+
+    // window.ethereum에서 Cross Wallet 전용 체크
+    const isCrossWalletInWindow =
+      typeof window !== 'undefined' && (window as any).ethereum && (window as any).ethereum[rdns]
+
+    return Boolean(isCrossWalletInWindow)
+  }
+
+  private determinePlatformsForCross(params: {
+    mobile_link?: string | null
+    rdns?: string
+    isBrowser: boolean
+  }): boolean {
+    const { mobile_link, rdns, isBrowser } = params
+    const isMobile = CoreHelperUtil.isMobile()
+
+    // 모바일 환경 처리
+    if (isMobile) {
+      if (mobile_link) {
+        this.platforms.push('mobile')
+        this.platforms.push('qrcode')
+        this.platform = 'mobile'
+      } else {
+        this.platforms.push('qrcode')
+        this.platform = 'qrcode'
+      }
+      return true
+    }
+
+    // 익스텐션 지원 브라우저에서 Cross Wallet 확인
+    if (isBrowser && !ChainController.state.noAdapters && rdns) {
+      const isCrossWalletFound = this.isCrossWalletInstalled(rdns)
+
+      if (isCrossWalletFound) {
+        this.platforms.push('browser')
+        this.platforms.push('qrcode')
+        this.platform = 'browser'
+      } else {
+        this.platforms.push('qrcode')
+        this.platform = 'qrcode'
+      }
+    } else {
+      this.platforms.push('qrcode')
+      this.platform = 'qrcode'
+    }
+
+    return true
+  }
+
   private determinePlatforms() {
     if (!this.wallet) {
       this.platforms.push('qrcode')
@@ -134,7 +191,16 @@ export class W3mConnectingWcView extends LitElement {
     const isBrowserWc = isBrowser && isBrowserInstalled
     const isDesktopWc = desktop_link && !CoreHelperUtil.isMobile()
 
-    // Populate all preferences
+    // Special handling for Cross Wallet
+    const isCrossWallet =
+      this.wallet.name?.includes('Cross Wallet') || rdns === 'nexus.to.crosswallet.desktop'
+
+    if (isCrossWallet && rdns) {
+      this.determinePlatformsForCross({ mobile_link, rdns, isBrowser: Boolean(isBrowser) })
+      return
+    }
+
+    // Standard logic for other wallets
     if (isBrowserWc && !ChainController.state.noAdapters) {
       this.platforms.push('browser')
     }
@@ -155,7 +221,6 @@ export class W3mConnectingWcView extends LitElement {
   }
 
   private platformTemplate() {
-    console.log('this.platform', this.platform)
     switch (this.platform) {
       case 'browser':
         return html`<cross-w3m-connecting-wc-browser></cross-w3m-connecting-wc-browser>`

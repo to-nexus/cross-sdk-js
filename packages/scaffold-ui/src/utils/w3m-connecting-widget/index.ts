@@ -64,6 +64,7 @@ export class W3mConnectingWidget extends LitElement {
 
   public constructor() {
     super()
+
     this.unsubscribe.push(
       ...[
         ConnectionController.subscribeKey('wcUri', val => {
@@ -73,8 +74,12 @@ export class W3mConnectingWidget extends LitElement {
             this.onConnect?.()
           }
         }),
-        ConnectionController.subscribeKey('wcError', val => (this.error = val)),
-        ConnectionController.subscribeKey('buffering', val => (this.buffering = val))
+        ConnectionController.subscribeKey('wcError', val => {
+          this.error = val
+        }),
+        ConnectionController.subscribeKey('buffering', val => {
+          this.buffering = val
+        })
       ]
     )
     // The uri should be preloaded in the tg ios context so we can safely init as the subscribeKey won't trigger
@@ -88,7 +93,9 @@ export class W3mConnectingWidget extends LitElement {
   }
 
   public override firstUpdated() {
-    this.onAutoConnect?.()
+    if (this.onAutoConnect) {
+      this.onAutoConnect?.()
+    }
     this.showRetry = !this.onAutoConnect
   }
 
@@ -202,6 +209,7 @@ export class W3mConnectingWidget extends LitElement {
   protected onTryAgain() {
     if (!this.buffering) {
       ConnectionController.setWcError(false)
+
       if (this.onRetry) {
         this.isRetrying = true
         this.onRetry?.()

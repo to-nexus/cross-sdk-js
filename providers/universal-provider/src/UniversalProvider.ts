@@ -124,10 +124,16 @@ export class UniversalProvider implements IUniversalProvider {
     if (!this.session) {
       throw new Error('Please call connect() before enable()')
     }
-    await this.client.disconnect({
-      topic: this.session?.topic,
-      reason: getSdkError('USER_DISCONNECTED')
-    })
+
+    try {
+      await this.client.disconnect({
+        topic: this.session?.topic,
+        reason: getSdkError('USER_DISCONNECTED')
+      })
+    } catch (error) {
+      throw error
+    }
+
     await this.cleanup()
   }
 
@@ -442,7 +448,9 @@ export class UniversalProvider implements IUniversalProvider {
 
     this.client.on('session_delete', async payload => {
       await this.cleanup()
+
       this.events.emit('session_delete', payload)
+
       this.events.emit('disconnect', {
         ...getSdkError('USER_DISCONNECTED'),
         data: payload.topic
