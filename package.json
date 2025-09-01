@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "version:set": "node scripts/set-version.js",
     "prebuild": "node scripts/inject-version.js",
     "build:clean": "turbo run build:clean --filter={./packages/*}",
     "build:sample-apps": "turbo run build --filter={./examples/*}",
