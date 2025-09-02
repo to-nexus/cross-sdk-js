@@ -6,7 +6,6 @@ const ROOT = process.cwd()
 const PKG_DIRS = [path.join(ROOT, 'packages'), path.join(ROOT, 'providers')]
 // 과거 패키지명 → 현재 워크스페이스 패키지명 매핑
 const RENAME_MAP = {
-  '@to-nexus/core': '@to-nexus/appkit-core',
   '@to-nexus/common': '@to-nexus/appkit-common',
   '@to-nexus/utils': '@to-nexus/appkit-utils'
 }
