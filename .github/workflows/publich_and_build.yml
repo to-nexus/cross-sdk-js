@@ -168,6 +168,7 @@ jobs:
 
   version_bump:
     name: Version Bump (reusable)
+    needs: [changeset_prepare]
     # Runs for dev/stage on release/* and for prod on main when relevant services selected
     if: |
       github.event_name == 'workflow_dispatch' && (
