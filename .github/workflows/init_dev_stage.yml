@@ -16,6 +16,19 @@ on:
         description: "Dist-tag to use in target registry (default: env → alpha/beta)"
         required: false
         default: ""
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      packages:
+        required: false
+        type: string
+        default: "core,universal,sign-client,sdk"
+      tag:
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
