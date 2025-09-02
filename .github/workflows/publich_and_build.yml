@@ -270,7 +270,7 @@ jobs:
 
       - name: Build packages (dlx turbo)
         run: |
-          pnpm -w dlx turbo run build --filter '!@to-nexus/sdk-cdn'
+          pnpm -w dlx turbo run build --filter './packages/**' --filter '!@to-nexus/sdk-cdn'
           pnpm -w --filter @to-nexus/sdk-cdn run build
 
       - name: Compute version (prefer branch for release/*)
