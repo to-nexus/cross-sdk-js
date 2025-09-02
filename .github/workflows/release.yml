@@ -1,0 +1,243 @@
+name: Release Management
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: false
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
+      run_auto_changeset:
+        description: "release/* 브랜치에서 Changeset 생성 실행"
+        required: false
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  sonarqube:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  # Release 브랜치에서 자동 changeset 생성
+  auto-changeset:
+    name: Auto Generate Changeset
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.run_auto_changeset == 'true' && startsWith(github.ref, 'refs/heads/release/')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Align internal package dependency versions
+        run: |
+          pnpm run workspace:align || true
+          pnpm run packages:version:switch || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: align internal dependency versions"
+            git push
+          else
+            echo "No internal dependency changes"
+          fi
+
+      - name: Generate changeset from version.json
+        run: pnpm run auto-changeset
+
+      - name: Ensure not in pre mode (best-effort)
+        run: pnpm changeset pre exit || true
+
+      - name: Bump workspace packages to latest (@reown/* and @cross/*)
+        run: |
+          pnpm -r up "@reown/*@latest" -P || true
+          pnpm -r up "@cross/*@latest" -P || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: bump workspace deps to latest"
+            git push
+          else
+            echo "No dependency changes to commit"
+          fi
+
+      - name: Enter Changeset pre mode
+        run: |
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "rc")
+          echo "Using preid: ${PREID}"
+          pnpm changeset pre enter ${PREID}
+
+      - name: Version packages (pre)
+        run: pnpm run changeset:version
+
+      - name: Commit changeset
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: auto-generate changeset from version.json"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Compute pre-release tag
+        id: pre_tag
+        run: |
+          VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "TAG=release/v${VERSION}-rc.${GITHUB_RUN_NUMBER}" >> $GITHUB_OUTPUT
+
+      # Removed pre-release tagging and GitHub Pre-Release creation for release/*
+
+  # Main 브랜치에서 릴리스 실행
+  release:
+    name: Release to NPM
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: sonarqube
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Configure npm scopes for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@reown:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+          echo "@cross:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build packages
+        run: pnpm run build
+
+      - name: Exit Changeset pre mode (if active)
+        run: pnpm changeset:pre:exit || true
+
+      - name: Create Release Pull Request or Publish
+        uses: changesets/action@v1.4.1
+        with:
+          version: pnpm run changeset:version
+          publish: pnpm run changeset:publish
+          title: "Release: Version Packages"
+          commit: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
+
+      - name: Compute release tag
+        id: prod_tag
+        run: |
+          VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "TAG=release/v${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Create and push release tag
+        run: |
+          TAG="${{ steps.prod_tag.outputs.TAG }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.prod_tag.outputs.TAG }}
+          name: Release v${{ steps.prod_tag.outputs.VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # PR에서 빌드 테스트
+  test:
+    name: Test Build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run linting
+        run: pnpm run lint
+
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Build packages
+        run: pnpm run build

@@ -5,19 +5,151 @@ on:
     branches:
       - main
       - ci/*
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
+      services:
+        description: "배포 서비스 선택"
+        required: true
+        type: choice
+        options:
+          - all
+          - changeset
+          - package-publish
+          - sample-page
+          - cdn-publish
+      dry_run:
+        description: "실제 퍼블리시/푸시/태깅 없이 검증만 수행"
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   packages: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.environment || 'na' }}-${{ inputs.services || 'na' }}
+  cancel-in-progress: true
+
 jobs:
+  changeset_prepare:
+    name: Prepare Changeset (auto for preview)
+    # release/* 전용, dev|stage에서 다른 서비스 실행 전 자동 수행
+    if: |
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish' || inputs.services == 'changeset')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Pre-align workspace deps (before install)
+        run: |
+          node scripts/align-workspace-deps.cjs || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              git commit -m "chore: pre-align workspace deps before install"
+              git push
+            else
+              echo "Dry-run: pre-align changes not committed"
+            fi
+          fi
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Ensure not in pre mode (best-effort)
+        run: pnpm changeset pre exit || true
+
+      - name: Align internal package dependency versions
+        run: |
+          pnpm run workspace:align || true
+          pnpm run packages:version:switch || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              git commit -m "chore: align internal dependency versions"
+              git push
+            else
+              echo "Dry-run: internal dependency changes detected but not committed"
+            fi
+          else
+            echo "No internal dependency changes"
+          fi
+
+      - name: Bump @to-nexus/* to latest (workspace)
+        run: |
+          pnpm -r up "@to-nexus/*@latest" -P || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              git commit -m "chore: bump @to-nexus/* to latest"
+              git push
+            else
+              echo "Dry-run: dependency bump detected but not committed"
+            fi
+          else
+            echo "No dependency changes to commit"
+          fi
+
+      - name: Generate changeset from version.json or branch
+        run: pnpm run auto-changeset
+
+      - name: Enter Changeset pre mode
+        run: |
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "rc")
+          echo "Using preid: ${PREID}"
+          pnpm changeset pre enter ${PREID}
+
+      - name: Version packages (pre)
+        run: pnpm run changeset:version
+
+      - name: Commit changeset
+        if: inputs.dry_run == 'false'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: auto-generate changeset"
+            git push
+          else
+            echo "No changes to commit"
+          fi
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,10 +159,12 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  publish_npm:
-    name: Publish to Nexus NPM
-    needs: sonarqube
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
+  publish_npm_preview:
+    name: Publish to Nexus NPM (preview)
+    needs: changeset_prepare
+    # release/* 의 dev|stage 전용
+    if: |
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -59,20 +193,228 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build packages
-        run: pnpm run build
+      - name: Align internal package dependency versions
+        run: |
+          pnpm run packages:version:switch || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              git commit -m "chore: align internal dependency versions"
+              git push
+            else
+              echo "Dry-run: internal dependency changes detected but not committed"
+            fi
+          else
+            echo "No internal dependency changes"
+          fi
 
-      - name: Publish package to Nexus
+      - name: Bump @to-nexus/* to latest (workspace)
+        run: |
+          pnpm -r up "@to-nexus/*@latest" -P || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              git commit -m "chore: bump @to-nexus/* to latest"
+              git push
+            else
+              echo "Dry-run: dependency bump detected but not committed"
+            fi
+          else
+            echo "No dependency changes to commit"
+          fi
+
+      - name: Build packages
+        run: |
+          pnpm -w run build --filter '!@to-nexus/sdk-cdn'
+          pnpm -w --filter @to-nexus/sdk-cdn run build
+
+      - name: Compute version (prefer branch for release/*)
+        id: version
+        run: |
+          REF_NAME="${GITHUB_REF_NAME}"
+          if [[ "$REF_NAME" == release/* ]]; then
+            REF_VERSION="${REF_NAME#release/}"
+            echo "Using version from ref: $REF_VERSION"
+            echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
+            pnpm run workspace:set-version ${REF_VERSION}
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add -A
+            if [ -n "$(git status --porcelain)" ]; then
+              if [ "${{ inputs.dry_run }}" = "false" ]; then
+                git commit -m "chore: set workspace version to ${REF_VERSION}"
+                git push
+              else
+                echo "Dry-run: workspace version change detected but not committed"
+              fi
+            fi
+          else
+            VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+            echo "Using version from files: $VERSION"
+            echo "REF_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish package to Nexus (dev → alpha)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false'
+        run: pnpm run publish:alpha
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Publish package to Nexus (stage → beta)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false'
+        run: pnpm run publish:beta
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Publish package to Nexus (prod → latest)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
         run: pnpm run publish:latest
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
-  build_and_push:
-    name: Build and Push Docker Image
-    needs: publish_npm
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
+
+      - name: Create and push release tag (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
+        run: |
+          TAG="release/${{ steps.version.outputs.REF_VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.REF_VERSION }}
+          name: Release ${{ steps.version.outputs.REF_VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push pre-release tag (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "rc")
+          TAG="release/${{ steps.version.outputs.REF_VERSION }}-${PREID}.${GITHUB_RUN_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Pre-Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Pre-Release (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.REF_VERSION }}-${{ inputs.environment == 'stage' && 'beta' || 'rc' }}.${{ github.run_number }}
+          name: Pre-Release ${{ steps.version.outputs.REF_VERSION }} (${{ inputs.environment }})
+          prerelease: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dry-run summary (no publish/tag)
+        if: inputs.dry_run == 'true'
+        run: |
+          echo "## Dry Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Service: ${{ inputs.services }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ steps.version.outputs.REF_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Actions Skipped: publish, tag, GitHub Release" >> $GITHUB_STEP_SUMMARY
+
+  publish_npm_prod:
+    name: Publish to Nexus NPM (prod)
+    needs: sonarqube
+    if: |
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+      
+      - name: Verify npm authentication
+        run: cat .npmrc
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+      
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      
+      - name: Build packages
+        run: |
+          pnpm -w run build --filter '!@to-nexus/sdk-cdn'
+          pnpm -w --filter @to-nexus/sdk-cdn run build
+      
+      - name: Compute version
+        id: version
+        run: |
+          VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+      
+      - name: Publish package to Nexus (prod → latest)
+        if: inputs.dry_run == 'false'
+        run: pnpm run publish:latest
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+      
+      - name: Create and push release tag (prod)
+        if: inputs.dry_run == 'false'
+        run: |
+          TAG="release/v${{ steps.version.outputs.VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+      
+      - name: Create GitHub Release (prod)
+        if: inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/v${{ steps.version.outputs.VERSION }}
+          name: Release v${{ steps.version.outputs.VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_and_push_preview:
+    name: Build and Push Docker Image (preview)
+    needs: changeset_prepare
+    # release/* 의 dev|stage 전용
+    if: |
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
 
-    environment: 'prod'
+    environment: ${{ inputs.environment }}
 
     steps:
       - name: Checkout Repo
@@ -91,15 +433,19 @@ jobs:
           REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
           echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
           echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
-          echo "ECR_REPO=dev/${REPO_NAME}" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
 
       - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -107,6 +453,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
         uses: docker/build-push-action@v6
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -117,13 +464,198 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/dev/${{ steps.env.outputs.SERVICE_NAME }}:${{ steps.env.outputs.GIT_SHA }}
-            ${{ steps.login-ecr.outputs.registry }}/dev/${{ steps.env.outputs.SERVICE_NAME }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
           platforms: linux/amd64
           build-args: |
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
+
+      - name: Build Docker Image (dry run, no push)
+        if: inputs.dry_run == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+
+  build_and_push_prod:
+    name: Build and Push Docker Image (prod)
+    needs: sonarqube
+    if: |
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'sample-page')
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Get Service Name
+        id: env
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+  cdn_publish_manual:
+    name: CDN Publish (prod)
+    needs: sonarqube
+    if: |
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'cdn-publish')
+    runs-on: ubuntu-latest
+
+    environment: 'prod'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Extract version from package.json
+        id: extract_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Current version: ${VERSION}"
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.CDN_ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Check existing versions in S3
+        if: inputs.dry_run == 'false'
+        id: check_versions
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 ls s3://${BUCKET_NAME}/cross-sdk/ --recursive | grep -E "cross-sdk/[0-9]+\.[0-9]+\.[0-9]+" | sed -E 's/.*cross-sdk\/([0-9]+\.[0-9]+\.[0-9]+)\/.*/\1/' | sort -V | uniq > existing_versions.txt || true
+          if [ -s existing_versions.txt ]; then
+            LATEST_VERSION=$(tail -n 1 existing_versions.txt)
+            echo "LATEST_S3_VERSION=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+            if [ "${CURRENT_VERSION}" = "${LATEST_VERSION}" ]; then
+              echo "VERSION_EXISTS=true" >> $GITHUB_OUTPUT
+            else
+              echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+            fi
+            if printf '%s\n%s\n' "${LATEST_VERSION}" "${CURRENT_VERSION}" | sort -V -C; then
+              echo "IS_NEWER=true" >> $GITHUB_OUTPUT
+            else
+              echo "IS_NEWER=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+            echo "IS_NEWER=true" >> $GITHUB_OUTPUT
+            echo "LATEST_S3_VERSION=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build CDN packages
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: pnpm run build
+
+      - name: Upload to S3 with version prefix
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 sync packages/cdn/dist/ s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ --delete --cache-control "public, max-age=31536000, immutable" --metadata-directive REPLACE
+
+      - name: Update latest if current version is newest
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 sync s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ s3://${BUCKET_NAME}/cross-sdk/latest/ --delete --cache-control "public, max-age=3600" --metadata-directive REPLACE
+
+      - name: Invalidate CloudFront cache
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          aws cloudfront create-invalidation --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" --paths "/cross-sdk/${CURRENT_VERSION}/*" "/cross-sdk/latest/*"
+
+      - name: CDN summary
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          echo "## CDN Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${CURRENT_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry-run: ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY

@@ -5,34 +5,19 @@ on:
     branches:
       - main
       # - "ci/*"
+  pull_request:
+    branches:
+      - main
 
 permissions:
   id-token: write
-  contents: write
+  contents: read
   packages: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  sonarqube:
-    name: SonarQube Analysis
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          
   cdn_upload:
     name: Build and Upload CDN to S3
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: sonarqube
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
     runs-on: ubuntu-latest
     
     environment: 'prod'
@@ -224,30 +209,6 @@ jobs:
             echo "- **Latest Updated:** No (newer version exists)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "- **CloudFront:** Cache invalidated" >> $GITHUB_STEP_SUMMARY
-
-      - name: Create and push release tag (prod)
-        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
-        run: |
-          VERSION=${{ steps.extract_version.outputs.CURRENT_VERSION }}
-          TAG="release/v${VERSION}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping"
-          else
-            git tag -a "$TAG" -m "Release $TAG"
-            git push origin "$TAG"
-          fi
-
-      - name: Create GitHub Release (prod)
-        if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: release/v${{ steps.extract_version.outputs.CURRENT_VERSION }}
-          name: Release v${{ steps.extract_version.outputs.CURRENT_VERSION }}
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Skip upload - Version unchanged
         if: steps.version_changed.outputs.VERSION_CHANGED == 'false'

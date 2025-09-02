@@ -1,0 +1,36 @@
+name: trigger
+
+on:
+  push:
+    branches:
+      - dev
+      - stage
+      - master
+      - "ci/*"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  dev-deploy:
+    if: github.ref == 'refs/heads/dev' || contains(github.ref, 'refs/heads/ci')
+    uses: ./.github/workflows/common.yml
+    with:
+      environment: dev
+    secrets: inherit
+
+  stage-deploy:
+    if: github.ref == 'refs/heads/stage'
+    uses: ./.github/workflows/common.yml
+    with:
+      environment: stage
+    secrets: inherit
+
+  release-deploy:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/common.yml
+    with:
+      environment: prod
+    secrets: inherit
+
