@@ -42,6 +42,7 @@
     "prettier": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'"
   },
   "dependencies": {
+    "@to-nexus/appkit-core": "*",
     "@walletconnect/events": "1.0.1",
     "@walletconnect/heartbeat": "1.2.2",
     "@walletconnect/jsonrpc-utils": "1.0.8",
@@ -49,8 +50,7 @@
     "@walletconnect/time": "1.0.2",
     "@walletconnect/types": "2.19.0",
     "@walletconnect/utils": "2.19.0",
-    "events": "3.3.0",
-    "@to-nexus/appkit-core": "workspace:*"
+    "events": "3.3.0"
   },
   "devDependencies": {
     "@aws-sdk/client-cloudwatch": "3.450.0"

@@ -35,25 +35,25 @@
     }
   },
   "dependencies": {
-    "@to-nexus/appkit": "workspace:*",
-    "@to-nexus/appkit-adapter-ethers": "workspace:*",
-    "@to-nexus/appkit-common": "workspace:*",
-    "@to-nexus/appkit-core": "workspace:*",
-    "@to-nexus/appkit-scaffold-ui": "workspace:*",
-    "@to-nexus/appkit-ui": "workspace:*",
-    "@to-nexus/appkit-wallet": "workspace:*",
-    "@to-nexus/appkit-wallet-button": "workspace:*",
-    "vite": "5.4.12",
-    "valtio": "^1.10.5",
-    "big.js": "^6.2.1",
-    "viem": "^1.19.9",
+    "@to-nexus/appkit": "*",
+    "@to-nexus/appkit-adapter-ethers": "*",
+    "@to-nexus/appkit-common": "*",
+    "@to-nexus/appkit-core": "*",
+    "@to-nexus/appkit-scaffold-ui": "*",
+    "@to-nexus/appkit-ui": "*",
+    "@to-nexus/appkit-wallet": "*",
+    "@to-nexus/appkit-wallet-button": "*",
+    "@to-nexus/universal-provider": "*",
     "@walletconnect/logger": "^2.0.1",
-    "dayjs": "^1.11.10",
-    "zod": "^3.22.4",
+    "big.js": "^6.2.1",
     "bs58": "^5.0.0",
+    "dayjs": "^1.11.10",
     "lit": "^3.0.0",
     "qrcode": "^1.5.3",
-    "@to-nexus/universal-provider": "workspace:*"
+    "valtio": "^1.10.5",
+    "viem": "^1.19.9",
+    "vite": "5.4.12",
+    "zod": "^3.22.4"
   },
   "peerDependencies": {
     "ethers": "^6.13.0",
@@ -64,7 +64,7 @@
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "4.2.1",
-    "vite": "5.4.12",
-    "ethers": "6.13.2"
+    "ethers": "6.13.2",
+    "vite": "5.4.12"
   }
 }
