@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-siwe",
-  "version": "1.16.6",
+  "version": "1.17.0-rc.0",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -17,11 +17,11 @@
     "test": "vitest run --dir tests --coverage.enabled=true --coverage.reporter=json --coverage.reporter=json-summary --coverage.reportOnFailure=true"
   },
   "dependencies": {
-    "@to-nexus/appkit-common": "*",
-    "@to-nexus/appkit-core": "*",
-    "@to-nexus/appkit-ui": "*",
-    "@to-nexus/appkit-utils": "*",
-    "@to-nexus/appkit-wallet": "*",
+    "@to-nexus/appkit-common": "1.17.0-rc.0",
+    "@to-nexus/appkit-core": "1.17.0-rc.0",
+    "@to-nexus/appkit-ui": "1.17.0-rc.0",
+    "@to-nexus/appkit-utils": "1.17.0-rc.0",
+    "@to-nexus/appkit-wallet": "1.17.0-rc.0",
     "@walletconnect/utils": "2.18.0",
     "lit": "3.1.0",
     "valtio": "1.13.2",

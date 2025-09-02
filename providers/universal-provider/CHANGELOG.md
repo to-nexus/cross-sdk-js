@@ -1,5 +1,11 @@
 # @to-nexus/universal-provider
 
+## 2.19.11-rc.0
+
+### Patch Changes
+
+- @to-nexus/sign-client@2.19.11-rc.0
+
 ## 2.19.3
 
 ### Patch Changes
