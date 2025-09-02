@@ -81,8 +81,8 @@ jobs:
         with:
           version: 9.5.0
 
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+      - name: Install dependencies (packages only)
+        run: pnpm -w --filter '{./packages/*}' install --no-frozen-lockfile
 
       - name: Ensure not in pre mode (best-effort)
         run: pnpm changeset pre exit || true
@@ -196,8 +196,8 @@ jobs:
         with:
           version: 9.5.0
 
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+      - name: Install dependencies (packages only)
+        run: pnpm -w --filter '{./packages/*}' install --no-frozen-lockfile
 
       - name: Align internal package dependency versions
         run: |
