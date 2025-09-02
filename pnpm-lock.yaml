@@ -824,9 +824,9 @@ importers:
 
   packages/sign-client:
     dependencies:
-      '@to-nexus/core':
-        specifier: '*'
-        version: 2.19.11(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.76)
+      '@to-nexus/appkit-core':
+        specifier: workspace:*
+        version: link:../core
       '@walletconnect/events':
         specifier: 1.0.1
         version: 1.0.1
@@ -3446,10 +3446,10 @@ packages:
       react-dom: ^18.0.0
 
   '@to-nexus/sign-client@2.19.11':
-    resolution: {integrity: sha512-j7DX0VAniy5wB0Xj+HlClpMqfSMbNwo3xMx5pemvy9KG3HixH1X2ZXXeHr5zscpDBwnAP7o34KUlHZ6IGNnW7Q==, tarball: https://package.cross-nexus.com/repository/cross-sdk-js/@to-nexus/sign-client/-/sign-client-2.19.11.tgz}
+    resolution: {integrity: sha512-j7DX0VAniy5wB0Xj+HlClpMqfSMbNwo3xMx5pemvy9KG3HixH1X2ZXXeHr5zscpDBwnAP7o34KUlHZ6IGNnW7Q==}
 
   '@to-nexus/universal-provider@2.19.11':
-    resolution: {integrity: sha512-xJPlWc35UgowgfBfmKlOk0c+/3Q0Z4fx1q3Np9ED+AOOlw3QKUxYXAXeK5KIZ3W+il7Qt7mPemjHfn34WNQg2Q==, tarball: https://package.cross-nexus.com/repository/cross-sdk-js/@to-nexus/universal-provider/-/universal-provider-2.19.11.tgz}
+    resolution: {integrity: sha512-xJPlWc35UgowgfBfmKlOk0c+/3Q0Z4fx1q3Np9ED+AOOlw3QKUxYXAXeK5KIZ3W+il7Qt7mPemjHfn34WNQg2Q==}
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
