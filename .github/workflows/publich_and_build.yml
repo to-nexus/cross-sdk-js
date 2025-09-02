@@ -627,6 +627,7 @@ jobs:
       environment: ${{ inputs.environment }}
       packages: "core,universal,sign-client,sdk"
       tag: ""
+    secrets: inherit
       
   cdn_publish_manual:
     name: CDN Publish (prod)

@@ -63,16 +63,31 @@ jobs:
             TARGET_URL="${STAGE_VAR:-$STAGE_SECRET}"
             DEF_TAG=beta
           fi
+          if [ -z "$TARGET_URL" ]; then
+            echo "ERROR: TARGET registry URL is not configured for environment '${{ inputs.environment }}' (check vars/secrets NEXUS_DEV_REGISTRY_URL or NEXUS_STAGE_REGISTRY_URL)." >&2
+            exit 1
+          fi
           echo "TARGET_REG=${TARGET_URL}" >> $GITHUB_OUTPUT
           echo "DEF_TAG=${DEF_TAG}" >> $GITHUB_OUTPUT
           # Prod registry (source)
-          echo "PROD_REG=${PROD_SECRET}" >> $GITHUB_OUTPUT
+          PROD_URL="${PROD_VAR:-$PROD_SECRET}"
+          if [ -z "$PROD_URL" ]; then
+            PROD_URL="${PROD_ALT_VAR:-$PROD_ALT_SECRET}"
+          fi
+          if [ -z "$PROD_URL" ]; then
+            echo "ERROR: PROD registry URL is not configured (set vars/secrets NEXUS_REGISTRY_URL or NEXUS_PROD_REGISTRY_URL)." >&2
+            exit 1
+          fi
+          echo "PROD_REG=${PROD_URL}" >> $GITHUB_OUTPUT
         env:
           DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
           DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
           STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
           STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_VAR: ${{ vars.NEXUS_REGISTRY_URL }}
           PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+          PROD_ALT_VAR: ${{ vars.NEXUS_PROD_REGISTRY_URL }}
+          PROD_ALT_SECRET: ${{ secrets.NEXUS_PROD_REGISTRY_URL }}
 
       - name: Configure npm auth for both registries
         run: |
