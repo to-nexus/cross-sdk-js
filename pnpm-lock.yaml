@@ -824,9 +824,9 @@ importers:
 
   packages/sign-client:
     dependencies:
-      '@to-nexus/appkit-core':
-        specifier: workspace:*
-        version: link:../core
+      '@to-nexus/core':
+        specifier: '*'
+        version: 2.19.11(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.76)
       '@walletconnect/events':
         specifier: 1.0.1
         version: 1.0.1
