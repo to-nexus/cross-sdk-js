@@ -1,5 +1,13 @@
 # @to-nexus/sdk-example-html
 
+## 1.12.6-rc.0
+
+### Patch Changes
+
+- Updated dependencies [2fc415a]
+- Updated dependencies
+  - @to-nexus/sdk@1.17.0-rc.0
+
 ## 1.12.5
 
 ### Patch Changes

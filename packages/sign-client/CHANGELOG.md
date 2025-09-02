@@ -1,5 +1,13 @@
 # @to-nexus/sign-client
 
+## 2.19.11-rc.0
+
+### Patch Changes
+
+- Updated dependencies [2fc415a]
+- Updated dependencies
+  - @to-nexus/appkit-core@1.17.0-rc.0
+
 ## 2.19.3
 
 ### Patch Changes

@@ -1,5 +1,26 @@
 # @reown/appkit-adapter-solana
 
+## 1.17.0-rc.0
+
+### Minor Changes
+
+- # Release 0.0.0-owen
+
+### Patch Changes
+
+- 2fc415a: print version string
+- Updated dependencies [2fc415a]
+- Updated dependencies
+  - @to-nexus/appkit-utils@1.17.0-rc.0
+  - @to-nexus/appkit-scaffold-ui@1.17.0-rc.0
+  - @to-nexus/appkit@1.17.0-rc.0
+  - @to-nexus/appkit-common@1.17.0-rc.0
+  - @to-nexus/appkit-wallet@1.17.0-rc.0
+  - @to-nexus/appkit-core@1.17.0-rc.0
+  - @to-nexus/appkit-ui@1.17.0-rc.0
+  - @reown/appkit-polyfills@1.17.0-rc.0
+  - @to-nexus/universal-provider@2.19.11-rc.0
+
 ## 1.16.2
 
 ### Patch Changes
