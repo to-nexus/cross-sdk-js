@@ -33,6 +33,10 @@ on:
         options:
           - 'false'
           - 'true'
+      versions:
+        description: "Optional overrides (e.g. core=2.19.11,sign-client=2.19.11-alpha.2)"
+        required: false
+        default: ''
 
 permissions:
   id-token: write
@@ -130,6 +134,80 @@ jobs:
 
       - name: Generate changeset from version.json or branch
         run: pnpm run auto-changeset
+
+      - name: Resolve and apply external package versions (env/tag + overrides)
+        run: |
+          # Determine default dist-tag by environment
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            DEFAULT_TAG="alpha"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            DEFAULT_TAG="beta"
+          else
+            DEFAULT_TAG="latest"
+          fi
+
+          echo "Default dist-tag: ${DEFAULT_TAG}"
+
+          # Map short keys to full package names
+          declare -A PKG_MAP
+          PKG_MAP[core]="@to-nexus/core"
+          PKG_MAP[universal]="@to-nexus/universal-provider"
+          PKG_MAP[sign-client]="@to-nexus/sign-client"
+          PKG_MAP[sdk]="@to-nexus/sdk"
+
+          # Parse overrides input: key=version pairs separated by comma
+          IFS=',' read -ra OVRS <<< "${{ inputs.versions }}"
+          declare -A OVERRIDE
+          for item in "${OVRS[@]}"; do
+            key=$(echo "$item" | cut -d'=' -f1 | xargs)
+            val=$(echo "$item" | cut -d'=' -f2 | xargs)
+            if [ -n "$key" ] && [ -n "$val" ]; then
+              OVERRIDE[$key]="$val"
+            fi
+          done
+
+          # Helper: resolve a package version by tag with fallback to latest
+          resolve_by_tag() {
+            local pkg="$1" tag="$2"
+            local ver
+            set +e
+            ver=$(npm view "${pkg}@${tag}" version 2>/dev/null)
+            set -e
+            if [ -n "$ver" ]; then
+              echo "$ver"
+            else
+              npm view "${pkg}@latest" version
+            fi
+          }
+
+          # Build upgrade args array
+          UPGRADE_ARGS=()
+          for key in core universal sign-client sdk; do
+            pkg="${PKG_MAP[$key]}"
+            if [ -z "$pkg" ]; then continue; fi
+            desired=""
+            if [ -n "${OVERRIDE[$key]}" ]; then
+              desired="${OVERRIDE[$key]}"
+            else
+              # Resolve by environment tag with fallback to latest (only for dev/stage)
+              if [ "$DEFAULT_TAG" = "alpha" ] || [ "$DEFAULT_TAG" = "beta" ]; then
+                desired=$(resolve_by_tag "$pkg" "$DEFAULT_TAG")
+              else
+                desired=$(npm view "${pkg}@latest" version)
+              fi
+            fi
+            if [ -n "$desired" ]; then
+              UPGRADE_ARGS+=("${pkg}@${desired}")
+              echo "Resolved ${pkg} -> ${desired}" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          if [ ${#UPGRADE_ARGS[@]} -gt 0 ]; then
+            echo "Upgrading: ${UPGRADE_ARGS[*]}"
+            pnpm -r --filter ./packages/** up "${UPGRADE_ARGS[@]}" -P || true
+          else
+            echo "No external package overrides to apply"
+          fi
 
       - name: Enter Changeset pre mode
         run: |
