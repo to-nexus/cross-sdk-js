@@ -625,7 +625,7 @@ jobs:
     uses: ./.github/workflows/init_dev_stage.yml
     with:
       environment: ${{ inputs.environment }}
-      packages: "core,universal,sign-client,sdk"
+      packages: ""
       tag: ""
     secrets: inherit
       
