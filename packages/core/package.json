@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-core",
-  "version": "1.17.0-alpha.4",
+  "version": "1.17.0-alpha.5",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -44,9 +44,9 @@
     }
   },
   "dependencies": {
-    "@to-nexus/appkit-common": "workspace:*",
-    "@to-nexus/appkit-wallet": "workspace:*",
-    "@to-nexus/universal-provider": "workspace:*",
+    "@to-nexus/appkit-common": "*",
+    "@to-nexus/appkit-wallet": "*",
+    "@to-nexus/universal-provider": "*",
     "valtio": "1.13.2",
     "viem": ">=2.23"
   },

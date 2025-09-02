@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/sdk-cdn",
-  "version": "1.17.0-alpha.4",
+  "version": "1.17.0-alpha.5",
   "main": "dist/sdk.js",
   "type": "module",
   "files": [
@@ -28,7 +28,7 @@
     }
   },
   "dependencies": {
-    "@to-nexus/sdk": "workspace:*",
+    "@to-nexus/sdk": "*",
     "vite": "5.4.12"
   }
 }
