@@ -211,7 +211,7 @@ jobs:
           echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
         env:
           DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
-          DEV_SECRET: ${{ .NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
           STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
           STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
           PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
