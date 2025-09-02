@@ -28,7 +28,7 @@
     }
   },
   "dependencies": {
-    "@to-nexus/sdk": "*",
+    "@to-nexus/sdk": "workspace:*",
     "vite": "5.4.12"
   }
 }
