@@ -243,24 +243,24 @@ jobs:
       - name: Install dependencies (packages only)
         run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
 
-      - name: Align internal package dependency versions
-        run: |
-          pnpm run packages:version:switch || true
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          if [ -n "$(git status --porcelain)" ]; then
-            if [ "${{ inputs.dry_run }}" = "false" ]; then
-              git commit -m "chore: align internal dependency versions"
-              git fetch origin "${GITHUB_REF_NAME}" || true
-              git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-              git push || git push --force-with-lease
-            else
-              echo "Dry-run: internal dependency changes detected but not committed"
-            fi
-          else
-            echo "No internal dependency changes"
-          fi
+      # - name: Align internal package dependency versions
+      #   run: |
+      #     pnpm run packages:version:switch || true
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add -A
+      #     if [ -n "$(git status --porcelain)" ]; then
+      #       if [ "${{ inputs.dry_run }}" = "false" ]; then
+      #         git commit -m "chore: align internal dependency versions"
+      #         git fetch origin "${GITHUB_REF_NAME}" || true
+      #         git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+      #         git push || git push --force-with-lease
+      #       else
+      #         echo "Dry-run: internal dependency changes detected but not committed"
+      #       fi
+      #     else
+      #       echo "No internal dependency changes"
+      #     fi
 
       - name: Build packages (dlx turbo)
         run: |
