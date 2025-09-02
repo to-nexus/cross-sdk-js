@@ -151,11 +151,11 @@ jobs:
             # guard: accept only semver-looking strings
             if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then ver=""; fi
             set -e
-            # 2) If unavailable or empty, pick the most recently published version by time in prod
+            # 2) If unavailable or invalid, pick highest stable from versions list in prod
             if [ -z "$ver" ]; then
-              time_json=$(npm --userconfig .npmrc.prod view "$pkg" time --json 2>/dev/null || true)
-              if [ -n "$time_json" ] && [ "$time_json" != "null" ]; then
-                ver=$(echo "$time_json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const o=JSON.parse(s);delete o.created;delete o.modified;const e=Object.entries(o).filter(([k])=>!/-/.test(k));e.sort((a,b)=>new Date(b[1])-new Date(a[1]));if(e[0]&&/^\\d+\\.\\d+\\.\\d+([.-][0-9A-Za-z]+)*$/.test(e[0][0])) console.log(e[0][0]);}catch(e){}})")
+              versions_json=$(npm --userconfig .npmrc.prod view "$pkg" versions --json 2>/dev/null || true)
+              if [ -n "$versions_json" ] && [ "$versions_json" != "null" ]; then
+                ver=$(echo "$versions_json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const arr=JSON.parse(s)||[];const stable=arr.filter(v=>/^\\d+\\.\\d+\\.\\d+$/.test(v));if(!stable.length){process.exit(0)}stable.sort((a,b)=>{const ax=a.split('.') .map(Number);const bx=b.split('.') .map(Number);for(let i=0;i<3;i++){if(ax[i]!==bx[i]) return bx[i]-ax[i];}return 0;});console.log(stable[0]);}catch(e){}})")
               fi
             fi
             # final guard
