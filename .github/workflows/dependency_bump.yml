@@ -6,7 +6,7 @@ on:
       ref_branch:
         description: "대상 브랜치(ref)"
         required: true
-        default: "release/v0.0.0-owen"
+        default: "release/0.0.0-owen"
       dependency_name:
         description: "업데이트할 의존성 패키지명 (예: viem 또는 @to-nexus/universal-provider)"
         required: true

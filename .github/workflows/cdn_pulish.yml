@@ -229,7 +229,7 @@ jobs:
         if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
         run: |
           VERSION=${{ steps.extract_version.outputs.CURRENT_VERSION }}
-          TAG="release/v${VERSION}"
+          TAG="release/${VERSION}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -243,7 +243,7 @@ jobs:
         if: steps.version_changed.outputs.VERSION_CHANGED == 'true' && steps.check_versions.outputs.VERSION_EXISTS == 'false' && steps.check_versions.outputs.IS_NEWER == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release/v${{ steps.extract_version.outputs.CURRENT_VERSION }}
+          tag_name: release/${{ steps.extract_version.outputs.CURRENT_VERSION }}
           name: Release v${{ steps.extract_version.outputs.CURRENT_VERSION }}
           generate_release_notes: true
         env:

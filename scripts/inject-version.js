@@ -12,13 +12,15 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const packageJsonPath = path.join(__dirname, '../packages/appkit/package.json')
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+const envVersion = process.env.APP_VERSION && String(process.env.APP_VERSION).trim()
+const versionToInject = envVersion && envVersion.length > 0 ? envVersion : packageJson.version
 
 const filePath = 'packages/appkit/exports/constants.ts'
 
 const fileContent = fs.readFileSync(filePath, 'utf8')
 const updatedContent = fileContent.replace(
   /export const PACKAGE_VERSION = '.*'/,
-  `export const PACKAGE_VERSION = '${packageJson.version}'`
+  `export const PACKAGE_VERSION = '${versionToInject}'`
 )
 fs.writeFileSync(filePath, updatedContent, 'utf8')
-console.log(`Injected version ${packageJson.version} into ${filePath}`)
+console.log(`Injected version ${versionToInject} into ${filePath}`)

@@ -240,7 +240,7 @@ jobs:
             REF_VERSION="${REF_NAME#release/}"
             echo "Using version from ref: $REF_VERSION"
             echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
-            pnpm run workspace:set-version ${REF_VERSION}
+            pnpm run version:set -- "${REF_VERSION}"
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Action"
             git add -A
@@ -386,7 +386,7 @@ jobs:
       - name: Create and push release tag (prod)
         if: inputs.dry_run == 'false'
         run: |
-          TAG="release/v${{ steps.version.outputs.VERSION }}"
+          TAG="release/${{ steps.version.outputs.VERSION }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -400,7 +400,7 @@ jobs:
         if: inputs.dry_run == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release/v${{ steps.version.outputs.VERSION }}
+          tag_name: release/${{ steps.version.outputs.VERSION }}
           name: Release v${{ steps.version.outputs.VERSION }}
           generate_release_notes: true
         env:
