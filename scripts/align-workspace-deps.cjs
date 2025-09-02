@@ -34,13 +34,13 @@ function listPackageJsons(dir) {
   return results
 }
 
-function alignSection(section, workspaceNames, toExternalLatest) {
+function alignSection(section, workspaceNames, toExternalLatest, isSignClient = false) {
   if (!section) return false
   let changed = false
   for (const key of Object.keys(section)) {
     let depName = key
-    // 리네이밍 매핑 처리
-    if (RENAME_MAP[depName]) {
+    // 리네이밍 매핑 처리 (sign-client는 @to-nexus/core 예외)
+    if (RENAME_MAP[depName] && !(isSignClient && depName === '@to-nexus/core')) {
       const newName = RENAME_MAP[depName]
       const curVal = section[depName]
       if (section[newName] !== curVal) {
@@ -101,10 +101,14 @@ function run() {
   for (const base of PKG_DIRS) {
     for (const file of listPackageJsons(base)) {
       const json = readJson(file)
+      
+      // sign-client는 @to-nexus/core를 외부 패키지로 유지 (순환 참조 방지)
+      const isSignClient = json.name === '@to-nexus/sign-client'
+      
       let changed = false
-      changed = alignSection(json.dependencies, workspaceNames, toExternalLatest) || changed
-      changed = alignSection(json.devDependencies, workspaceNames, toExternalLatest) || changed
-      changed = alignSection(json.peerDependencies, workspaceNames, toExternalLatest) || changed
+      changed = alignSection(json.dependencies, workspaceNames, toExternalLatest, isSignClient) || changed
+      changed = alignSection(json.devDependencies, workspaceNames, toExternalLatest, isSignClient) || changed
+      changed = alignSection(json.peerDependencies, workspaceNames, toExternalLatest, isSignClient) || changed
       if (changed) {
         writeJson(file, json)
         console.log(`Aligned workspace deps in: ${path.relative(ROOT, file)}`)
