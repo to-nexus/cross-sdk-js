@@ -240,7 +240,7 @@ jobs:
             REF_VERSION="${REF_NAME#release/}"
             echo "Using version from ref: $REF_VERSION"
             echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
-            pnpm run version:set -- "${REF_VERSION}"
+            pnpm run version:set "${REF_VERSION#v}"
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Action"
             git add -A
@@ -262,22 +262,22 @@ jobs:
         if: inputs.environment == 'dev' && inputs.dry_run == 'false'
         run: pnpm run publish:alpha
         env:
-          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NEXUS_REGISTRY_URL: ${{ inputs.environment == 'dev' && vars.NEXUS_DEV_REGISTRY_URL}}
 
       - name: Publish package to Nexus (stage → beta)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false'
         run: pnpm run publish:beta
         env:
-          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NEXUS_REGISTRY_URL: ${{ inputs.environment == 'stage' && vars.NEXUS_STAGE_REGISTRY_URL}}
 
       - name: Publish package to Nexus (prod → latest)
-        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main'
         run: pnpm run publish:latest
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
 
       - name: Create and push release tag (prod)
-        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main'
         run: |
           TAG="release/${{ steps.version.outputs.REF_VERSION }}"
           git config user.name "github-actions[bot]"
@@ -290,7 +290,7 @@ jobs:
           fi
 
       - name: Create GitHub Release (prod)
-        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release/${{ steps.version.outputs.REF_VERSION }}
@@ -302,8 +302,8 @@ jobs:
       - name: Create and push pre-release tag (dev/stage)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
         run: |
-          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "rc")
-          TAG="release/${{ steps.version.outputs.REF_VERSION }}-${PREID}.${GITHUB_RUN_NUMBER}"
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
+          TAG="release/${{ steps.version.outputs.REF_VERSION }}-${PREID}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -317,7 +317,7 @@ jobs:
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release/${{ steps.version.outputs.REF_VERSION }}-${{ inputs.environment == 'stage' && 'beta' || 'rc' }}.${{ github.run_number }}
+          tag_name: release/${{ steps.version.outputs.REF_VERSION }}-${{ inputs.environment == 'stage' && 'beta' || 'alpha' }}
           name: Pre-Release ${{ steps.version.outputs.REF_VERSION }} (${{ inputs.environment }})
           prerelease: true
           generate_release_notes: true
