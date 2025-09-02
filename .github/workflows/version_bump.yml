@@ -30,6 +30,8 @@ permissions:
 jobs:
   bump:
     name: Apply external package versions
+    outputs:
+      can_publish: ${{ steps.resolve.outputs.CAN_PUBLISH }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,6 +53,7 @@ jobs:
         run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
 
       - name: Resolve and apply versions
+        id: resolve
         run: |
           if [ "${{ inputs.environment }}" = "dev" ]; then
             DEFAULT_TAG="alpha"
@@ -84,17 +87,42 @@ jobs:
           }
 
           UPGRADE_ARGS=()
+          FALLBACK=0
           for key in core universal sign-client sdk; do
             pkg="${PKG_MAP[$key]}"; [ -z "$pkg" ] && continue
             if [ -n "${OVERRIDE[$key]}" ]; then desired="${OVERRIDE[$key]}"; else
               if [ "$DEFAULT_TAG" = "alpha" ] || [ "$DEFAULT_TAG" = "beta" ]; then
-                desired=$(resolve_by_tag "$pkg" "$DEFAULT_TAG")
+                # try tag
+                set +e; tagver=$(npm view "${pkg}@${DEFAULT_TAG}" version 2>/dev/null); rc=$?; set -e
+                if [ $rc -eq 0 ] && [ -n "$tagver" ]; then
+                  desired="$tagver"
+                else
+                  FALLBACK=1
+                  desired=$(npm view "${pkg}@latest" version)
+                fi
               else
                 desired=$(npm view "${pkg}@latest" version)
               fi
             fi
             [ -n "$desired" ] && UPGRADE_ARGS+=("${pkg}@${desired}") && echo "Resolved ${pkg} -> ${desired}"
           done
+
+          # Gate: if dev/stage tag missing (fallback happened) => block; for prod ensure latest exists
+          if [ "$DEFAULT_TAG" != "latest" ]; then
+            if [ "$FALLBACK" -eq 1 ]; then
+              echo "CAN_PUBLISH=false" >> $GITHUB_OUTPUT
+            else
+              echo "CAN_PUBLISH=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            # prod: verify latest exists for core as a sentinel
+            set +e; latest_core=$(npm view "@to-nexus/core@latest" version 2>/dev/null); rc=$?; set -e
+            if [ $rc -eq 0 ] && [ -n "$latest_core" ]; then
+              echo "CAN_PUBLISH=true" >> $GITHUB_OUTPUT
+            else
+              echo "CAN_PUBLISH=false" >> $GITHUB_OUTPUT
+            fi
+          fi
 
           if [ ${#UPGRADE_ARGS[@]} -gt 0 ]; then
             pnpm -r --filter ./packages/** up "${UPGRADE_ARGS[@]}" -P || true

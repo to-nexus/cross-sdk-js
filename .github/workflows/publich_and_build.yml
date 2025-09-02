@@ -131,16 +131,18 @@ jobs:
       - name: Generate changeset from version.json or branch
         run: pnpm run auto-changeset
       - name: Enter Changeset pre mode
+        if: needs.version_bump.outputs.can_publish == 'true'
         run: |
           PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
           echo "Using preid: ${PREID}"
           pnpm dlx @changesets/cli@2.27.12 pre enter ${PREID}
 
       - name: Version packages (pre)
+        if: needs.version_bump.outputs.can_publish == 'true'
         run: pnpm dlx @changesets/cli@2.27.12 version
 
       - name: Commit changeset
-        if: inputs.dry_run == 'false'
+        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -244,25 +246,6 @@ jobs:
             echo "No internal dependency changes"
           fi
 
-      - name: Bump @to-nexus/* to latest (workspace)
-        run: |
-          pnpm -r up "@to-nexus/*@latest" -P || true
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          if [ -n "$(git status --porcelain)" ]; then
-            if [ "${{ inputs.dry_run }}" = "false" ]; then
-              git commit -m "chore: bump @to-nexus/* to latest"
-              git fetch origin "${GITHUB_REF_NAME}" || true
-              git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-              git push || git push --force-with-lease
-            else
-              echo "Dry-run: dependency bump detected but not committed"
-            fi
-          else
-            echo "No dependency changes to commit"
-          fi
-
       - name: Build packages
         run: |
           pnpm -w run build --filter '!@to-nexus/sdk-cdn'
@@ -297,13 +280,13 @@ jobs:
           fi
 
       - name: Publish package to Nexus (dev → alpha)
-        if: inputs.environment == 'dev' && inputs.dry_run == 'false'
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
         run: pnpm run publish:alpha
         env:
           NEXUS_REGISTRY_URL: ${{ inputs.environment == 'dev' && vars.NEXUS_DEV_REGISTRY_URL}}
 
       - name: Publish package to Nexus (stage → beta)
-        if: inputs.environment == 'stage' && inputs.dry_run == 'false'
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
         run: pnpm run publish:beta
         env:
           NEXUS_REGISTRY_URL: ${{ inputs.environment == 'stage' && vars.NEXUS_STAGE_REGISTRY_URL}}
@@ -375,7 +358,7 @@ jobs:
 
   publish_npm_prod:
     name: Publish to Nexus NPM (prod)
-    needs: [sonarqube]
+    needs: [sonarqube, version_bump]
     if: |
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish')
     runs-on: ubuntu-latest
@@ -418,13 +401,13 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
       
       - name: Publish package to Nexus (prod → latest)
-        if: inputs.dry_run == 'false'
+        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
         run: pnpm run publish:latest
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
       
       - name: Create and push release tag (prod)
-        if: inputs.dry_run == 'false'
+        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
         run: |
           TAG="release/${{ steps.version.outputs.VERSION }}"
           git config user.name "github-actions[bot]"
@@ -438,7 +421,7 @@ jobs:
           fi
       
       - name: Create GitHub Release (prod)
-        if: inputs.dry_run == 'false'
+        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release/${{ steps.version.outputs.VERSION }}
