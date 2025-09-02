@@ -79,6 +79,10 @@ jobs:
             exit 1
           fi
           echo "PROD_REG=${PROD_URL}" >> $GITHUB_OUTPUT
+
+          # Also expose other known source registries for fallback discovery
+          echo "DEV_REG=${DEV_VAR:-$DEV_SECRET}" >> $GITHUB_OUTPUT
+          echo "STAGE_REG=${STAGE_VAR:-$STAGE_SECRET}" >> $GITHUB_OUTPUT
         env:
           DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
           DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
@@ -96,11 +100,18 @@ jobs:
           echo "@to-nexus:registry=${TARGET_REG}" >> .npmrc
           # Prod auth (read). If prod also needs auth, reuse same credential
           echo "//${PROD_REG#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" >> .npmrc
+          # Add auth for fallback registries if defined
+          if [ -n "${STAGE_REG}" ]; then echo "//${STAGE_REG#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" >> .npmrc; fi
+          if [ -n "${DEV_REG}" ]; then echo "//${DEV_REG#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" >> .npmrc; fi
           echo "### Target registry: ${TARGET_REG}" >> $GITHUB_STEP_SUMMARY
           echo "### Source(prod) registry: ${PROD_REG}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${STAGE_REG}" ]; then echo "### Fallback(stage) registry: ${STAGE_REG}" >> $GITHUB_STEP_SUMMARY; fi
+          if [ -n "${DEV_REG}" ]; then echo "### Fallback(dev) registry: ${DEV_REG}" >> $GITHUB_STEP_SUMMARY; fi
         env:
           TARGET_REG: ${{ steps.regs.outputs.TARGET_REG }}
           PROD_REG: ${{ steps.regs.outputs.PROD_REG }}
+          STAGE_REG: ${{ steps.regs.outputs.STAGE_REG }}
+          DEV_REG: ${{ steps.regs.outputs.DEV_REG }}
 
       - name: Discover workspace @to-nexus/* packages (when packages input empty)
         id: discover
@@ -127,16 +138,26 @@ jobs:
           TAG=${TAG_INPUT:-${{ steps.regs.outputs.DEF_TAG }}}
           mkdir -p seed
 
+          prod_reg='${{ steps.regs.outputs.PROD_REG }}'
+
           for key in "${LIST[@]}"; do
             pkg=$(echo "$key" | xargs)
             if [ -z "$pkg" ]; then continue; fi
             echo "Resolving $pkg from prod..."
+            # 1) Prefer latest stable by dist-tag in prod
             set +e
-            ver=$(npm view "$pkg@latest" version --registry "${{ steps.regs.outputs.PROD_REG }}" 2>/dev/null)
+            ver=$(npm view "$pkg" version --registry "$prod_reg" 2>/dev/null)
             set -e
+            # 2) If unavailable or empty, pick the most recently published version by time in prod
+            if [ -z "$ver" ]; then
+              time_json=$(npm view "$pkg" time --json --registry "$prod_reg" 2>/dev/null || true)
+              if [ -n "$time_json" ] && [ "$time_json" != "null" ]; then
+                ver=$(echo "$time_json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const o=JSON.parse(s);const e=Object.entries(o).filter(([k])=>k!=='created'&&k!=='modified');e.sort((a,b)=>new Date(b[1])-new Date(a[1]));if(e[0]) console.log(e[0][0]);}catch(e){}})")
+              fi
+            fi
             if [ -z "$ver" ]; then echo "No version found on prod for $pkg"; continue; fi
-            echo "Found $pkg@$ver"
-            tgz=$(npm pack "$pkg@$ver" --registry "${{ steps.regs.outputs.PROD_REG }}" --pack-destination ./seed | tail -n 1)
+            echo "Found $pkg@$ver from $prod_reg"
+            tgz=$(npm pack "$pkg@$ver" --registry "$prod_reg" --pack-destination ./seed | tail -n 1)
             echo "Publishing $tgz to target with tag $TAG..."
             if ! npm publish "seed/$tgz" --registry "${{ steps.regs.outputs.TARGET_REG }}" --tag "$TAG"; then
               echo "Publish failed, trying to add dist-tag (maybe already present)..."
