@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/appkit-adapter-polkadot",
   "private": true,
-  "version": "1.17.0-alpha.1",
+  "version": "1.17.0-alpha.2",
   "scripts": {
     "build:clean": "rm -rf dist",
     "build": "tsc --build tsconfig.build.json",
@@ -11,9 +11,9 @@
     "test": "vitest run --dir tests --coverage.enabled=true --coverage.reporter=json --coverage.reporter=json-summary --coverage.reportOnFailure=true"
   },
   "dependencies": {
-    "@to-nexus/appkit": "workspace:*",
-    "@to-nexus/appkit-common": "workspace:*",
-    "@to-nexus/appkit-core": "workspace:*"
+    "@to-nexus/appkit": "*",
+    "@to-nexus/appkit-common": "*",
+    "@to-nexus/appkit-core": "*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "2.1.3",
