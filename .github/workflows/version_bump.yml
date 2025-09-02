@@ -1,0 +1,118 @@
+name: Version Bump (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "환경 (dev/stage/prod)"
+        required: true
+        type: choice
+        options: [dev, stage, prod]
+      versions:
+        description: "Overrides (e.g. core=2.19.11,sign-client=2.19.11-alpha.2)"
+        required: false
+        default: ''
+  workflow_call:
+    inputs:
+      environment:
+        description: "환경 (dev/stage/prod)"
+        required: true
+        type: string
+      versions:
+        description: "Overrides (e.g. core=2.19.11,sign-client=2.19.11-alpha.2)"
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: Apply external package versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install workspace (packages only)
+        run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
+
+      - name: Resolve and apply versions
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            DEFAULT_TAG="alpha"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            DEFAULT_TAG="beta"
+          else
+            DEFAULT_TAG="latest"
+          fi
+          echo "Default dist-tag: ${DEFAULT_TAG}"
+
+          declare -A PKG_MAP
+          PKG_MAP[core]="@to-nexus/core"
+          PKG_MAP[universal]="@to-nexus/universal-provider"
+          PKG_MAP[sign-client]="@to-nexus/sign-client"
+          PKG_MAP[sdk]="@to-nexus/sdk"
+
+          IFS=',' read -ra OVRS <<< "${{ inputs.versions }}"
+          declare -A OVERRIDE
+          for item in "${OVRS[@]}"; do
+            key=$(echo "$item" | cut -d'=' -f1 | xargs)
+            val=$(echo "$item" | cut -d'=' -f2 | xargs)
+            if [ -n "$key" ] && [ -n "$val" ]; then
+              OVERRIDE[$key]="$val"
+            fi
+          done
+
+          resolve_by_tag() {
+            local pkg="$1" tag="$2" ver
+            set +e; ver=$(npm view "${pkg}@${tag}" version 2>/dev/null); set -e
+            if [ -n "$ver" ]; then echo "$ver"; else npm view "${pkg}@latest" version; fi
+          }
+
+          UPGRADE_ARGS=()
+          for key in core universal sign-client sdk; do
+            pkg="${PKG_MAP[$key]}"; [ -z "$pkg" ] && continue
+            if [ -n "${OVERRIDE[$key]}" ]; then desired="${OVERRIDE[$key]}"; else
+              if [ "$DEFAULT_TAG" = "alpha" ] || [ "$DEFAULT_TAG" = "beta" ]; then
+                desired=$(resolve_by_tag "$pkg" "$DEFAULT_TAG")
+              else
+                desired=$(npm view "${pkg}@latest" version)
+              fi
+            fi
+            [ -n "$desired" ] && UPGRADE_ARGS+=("${pkg}@${desired}") && echo "Resolved ${pkg} -> ${desired}"
+          done
+
+          if [ ${#UPGRADE_ARGS[@]} -gt 0 ]; then
+            pnpm -r --filter ./packages/** up "${UPGRADE_ARGS[@]}" -P || true
+          else
+            echo "No upgrades to apply"
+          fi
+
+      - name: Commit & push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: version bump (${DEFAULT_TAG})"
+            git fetch origin "${GITHUB_REF_NAME}" || true
+            git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+            git push || git push --force-with-lease
+          else
+            echo "No changes to commit"
+          fi
+
