@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@reown/appkit-polyfills": "workspace:*",
-    "@to-nexus/appkit-common": "workspace:*",
+    "@to-nexus/appkit-common": "*",
     "@walletconnect/logger": "2.1.2",
     "zod": "3.22.4"
   },
