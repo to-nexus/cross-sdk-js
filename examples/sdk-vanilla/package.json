@@ -1,13 +1,13 @@
 {
   "name": "@to-nexus/sdk-example-html",
   "private": true,
-  "version": "1.12.6-rc.0",
+  "version": "1.12.6-alpha.1",
   "scripts": {
     "dev": "vite --port 3013",
     "build": "vite build"
   },
   "dependencies": {
-    "@to-nexus/sdk": "1.17.0-rc.0",
+    "@to-nexus/sdk": "1.17.0-alpha.1",
     "ethers": "^6.13.0",
     "uuid": "^9.0.1"
   },
