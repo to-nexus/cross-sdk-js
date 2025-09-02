@@ -1,4 +1,4 @@
-import { Store } from "@to-nexus/core";
+import { Store } from "@to-nexus/appkit-core";
 import { Logger } from "@walletconnect/logger";
 import { AuthTypes, ICore } from "@walletconnect/types";
 

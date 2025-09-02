@@ -1,4 +1,4 @@
-import { Store } from "@to-nexus/core";
+import { Store } from "@to-nexus/appkit-core";
 import { Logger } from "@walletconnect/logger";
 import { ICore, PendingRequestTypes } from "@walletconnect/types";
 import { REQUEST_CONTEXT, SIGN_CLIENT_STORAGE_PREFIX } from "../constants";

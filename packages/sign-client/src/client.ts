@@ -1,4 +1,4 @@
-import { Core } from "@to-nexus/core";
+import { Core } from "@to-nexus/appkit-core";
 import {
   generateChildLogger,
   getDefaultLoggerOptions,
