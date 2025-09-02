@@ -85,7 +85,7 @@ jobs:
         run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
 
       - name: Ensure not in pre mode (best-effort)
-        run: pnpm changeset pre exit || true
+        run: pnpm dlx @changesets/cli@2.27.12 pre exit || true
 
       - name: Align internal package dependency versions
         run: |
@@ -127,12 +127,12 @@ jobs:
 
       - name: Enter Changeset pre mode
         run: |
-          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "rc")
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
           echo "Using preid: ${PREID}"
-          pnpm changeset pre enter ${PREID}
+          pnpm dlx @changesets/cli@2.27.12 pre enter ${PREID}
 
       - name: Version packages (pre)
-        run: pnpm run changeset:version
+        run: pnpm dlx @changesets/cli@2.27.12 version
 
       - name: Commit changeset
         if: inputs.dry_run == 'false'
