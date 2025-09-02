@@ -148,14 +148,18 @@ jobs:
             # 1) Prefer latest stable by dist-tag in prod
             set +e
             ver=$(npm --userconfig .npmrc.prod view "$pkg" version 2>/dev/null)
+            # guard: accept only semver-looking strings
+            if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then ver=""; fi
             set -e
             # 2) If unavailable or empty, pick the most recently published version by time in prod
             if [ -z "$ver" ]; then
               time_json=$(npm --userconfig .npmrc.prod view "$pkg" time --json 2>/dev/null || true)
               if [ -n "$time_json" ] && [ "$time_json" != "null" ]; then
-                ver=$(echo "$time_json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const o=JSON.parse(s);delete o.created;delete o.modified;const e=Object.entries(o).filter(([k])=>!/-/.test(k));e.sort((a,b)=>new Date(b[1])-new Date(a[1]));if(e[0]) console.log(e[0][0]);}catch(e){}})")
+                ver=$(echo "$time_json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const o=JSON.parse(s);delete o.created;delete o.modified;const e=Object.entries(o).filter(([k])=>!/-/.test(k));e.sort((a,b)=>new Date(b[1])-new Date(a[1]));if(e[0]&&/^\\d+\\.\\d+\\.\\d+([.-][0-9A-Za-z]+)*$/.test(e[0][0])) console.log(e[0][0]);}catch(e){}})")
               fi
             fi
+            # final guard
+            if [[ -z "$ver" || ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then echo "No valid version resolved on prod for $pkg"; continue; fi
             if [ -z "$ver" ]; then echo "No version found on prod for $pkg"; continue; fi
             echo "Found $pkg@$ver from $prod_reg"
             tgz=$(npm --userconfig .npmrc.prod pack "$pkg@$ver" --pack-destination ./seed | tail -n 1)
