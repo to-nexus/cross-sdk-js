@@ -49,6 +49,33 @@ jobs:
         with:
           version: 9.5.0
 
+      - name: Resolve Nexus registry URL
+        id: registry
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
+          echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+
       - name: Install workspace (packages only)
         run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
 
