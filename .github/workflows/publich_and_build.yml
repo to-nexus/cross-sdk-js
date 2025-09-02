@@ -166,6 +166,24 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+  version_bump:
+    name: Version Bump (reusable)
+    # Runs for dev/stage on release/* and for prod on main when relevant services selected
+    if: |
+      github.event_name == 'workflow_dispatch' && (
+        (
+          startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') &&
+          (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
+        ) || (
+          github.ref == 'refs/heads/main' && inputs.environment == 'prod' &&
+          (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish')
+        )
+      )
+    uses: ./.github/workflows/version_bump.yml
+    with:
+      environment: ${{ inputs.environment }}
+      versions: ''
+
   publish_npm_preview:
     name: Publish to Nexus NPM (preview)
     needs: [changeset_prepare, version_bump]
