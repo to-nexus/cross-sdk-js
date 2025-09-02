@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-wallet",
-  "version": "1.17.0-alpha.2",
+  "version": "1.17.0-alpha.3",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@reown/appkit-polyfills": "workspace:*",
-    "@to-nexus/appkit-common": "*",
+    "@to-nexus/appkit-common": "workspace:*",
     "@walletconnect/logger": "2.1.2",
     "zod": "3.22.4"
   },
