@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-wallet-button",
-  "version": "1.17.0-alpha.6",
+  "version": "0.0.0-owen",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",

@@ -26,6 +26,11 @@ on:
           - sample-page
           - cdn-publish
 
+      manual_version:
+        description: "수동 버전 입력 (선택사항, 비우면 브랜치명에서 추출)"
+        required: false
+        type: string
+        
       dry_run:
         description: "실제 퍼블리시/푸시/태깅 없이 검증만 수행"
         required: false
@@ -273,32 +278,87 @@ jobs:
           pnpm -w dlx turbo run build --filter './packages/**' --filter '!@to-nexus/sdk-cdn'
           pnpm -w --filter @to-nexus/sdk-cdn run build
 
-      - name: Compute version (prefer branch for release/*)
+      - name: Compute version and resolve dependencies
         id: version
         run: |
-          REF_NAME="${GITHUB_REF_NAME}"
-          if [[ "$REF_NAME" == release/* ]]; then
-            REF_VERSION="${REF_NAME#release/}"
-            echo "Using version from ref: $REF_VERSION"
-            echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
-            pnpm run version:set "${REF_VERSION#v}"
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add -A
-            if [ -n "$(git status --porcelain)" ]; then
-              if [ "${{ inputs.dry_run }}" = "false" ]; then
-                git commit -m "chore: set workspace version to ${REF_VERSION}"
-                git fetch origin "${GITHUB_REF_NAME}" || true
-                git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-                git push || git push --force-with-lease
-              else
-                echo "Dry-run: workspace version change detected but not committed"
-              fi
-            fi
+          # 1) Manual input has highest priority
+          if [ -n "${{ inputs.manual_version }}" ]; then
+            REF_VERSION="${{ inputs.manual_version }}"
+            echo "Using manual version: $REF_VERSION"
+          # 2) Branch name for release/*
+          elif [[ "${GITHUB_REF_NAME}" == release/* ]]; then
+            REF_VERSION="${GITHUB_REF_NAME#release/}"
+            echo "Using version from branch: $REF_VERSION"
+          # 3) Fallback to files
           else
-            VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
-            echo "Using version from files: $VERSION"
-            echo "REF_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+            REF_VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+            echo "Using version from files: $REF_VERSION"
+          fi
+          echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
+          
+          # Configure npm registry for dependency resolution
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            REGISTRY_URL="${{ vars.NEXUS_DEV_REGISTRY_URL || secrets.NEXUS_DEV_REGISTRY_URL }}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            REGISTRY_URL="${{ vars.NEXUS_STAGE_REGISTRY_URL || secrets.NEXUS_STAGE_REGISTRY_URL }}"
+          else
+            REGISTRY_URL="${{ secrets.NEXUS_REGISTRY_URL }}"
+          fi
+          echo "//${REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc.temp
+          echo "@to-nexus:registry=${REGISTRY_URL}" >> .npmrc.temp
+          
+          # Apply dependency overrides if provided
+          if [ -n "${{ inputs.dependency_overrides }}" ]; then
+            echo "Applying dependency overrides: ${{ inputs.dependency_overrides }}"
+            node -e "
+              const fs = require('fs');
+              const overrides = JSON.parse('${{ inputs.dependency_overrides }}');
+              
+              // Update each package's dependencies
+              const glob = require('glob');
+              const files = glob.sync('./packages/**/package.json').concat(glob.sync('./providers/**/package.json'));
+              
+              for (const file of files) {
+                const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
+                let changed = false;
+                
+                ['dependencies', 'devDependencies', 'peerDependencies'].forEach(section => {
+                  if (pkg[section]) {
+                    Object.keys(overrides).forEach(depName => {
+                      if (pkg[section][depName]) {
+                        pkg[section][depName] = overrides[depName];
+                        changed = true;
+                        console.log(\`Updated \${file}: \${depName} -> \${overrides[depName]}\`);
+                      }
+                    });
+                  }
+                });
+                
+                if (changed) {
+                  fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
+                }
+              }
+            "
+          else
+            echo "Resolving external @to-nexus/* dependencies from registry..."
+            # Get latest versions from target registry and update dependencies
+            pnpm --userconfig .npmrc.temp -r up "@to-nexus/*@latest" -P || true
+          fi
+          
+          # Set workspace version
+          pnpm run version:set "${REF_VERSION#v}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              git commit -m "chore: set workspace version to ${REF_VERSION}"
+              git fetch origin "${GITHUB_REF_NAME}" || true
+              git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+              git push || git push --force-with-lease
+            else
+              echo "Dry-run: workspace version change detected but not committed"
+            fi
           fi
 
       - name: Publish package to Nexus (dev → alpha)
