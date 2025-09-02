@@ -86,6 +86,9 @@ jobs:
       - name: Install dependencies (packages only)
         run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
 
+      - name: Install root toolchain (turbo & scripts)
+        run: pnpm -w --filter . install --no-frozen-lockfile
+
       - name: Ensure not in pre mode (best-effort)
         run: pnpm dlx @changesets/cli@2.27.12 pre exit || true
 
