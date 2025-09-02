@@ -19,7 +19,9 @@
     "buffer": "6.0.3"
   },
   "devDependencies": {
-    "@types/node": "22.13.4"
+    "@types/node": "22.13.4",
+    "@types/react": "^18.0.0",
+    "vite": "^5.0.0"
   },
   "keywords": [
     "web3",

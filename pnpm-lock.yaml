@@ -705,6 +705,12 @@ importers:
       '@types/node':
         specifier: 22.13.4
         version: 22.13.4
+      '@types/react':
+        specifier: ^18.0.0
+        version: 18.3.24
+      vite:
+        specifier: ^5.0.0
+        version: 5.4.12(@types/node@22.13.4)(terser@5.43.1)
 
   packages/scaffold-ui:
     dependencies:
@@ -818,9 +824,9 @@ importers:
 
   packages/sign-client:
     dependencies:
-      '@to-nexus/appkit-core':
-        specifier: workspace:*
-        version: link:../core
+      '@to-nexus/core':
+        specifier: '*'
+        version: 2.19.11(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.76)
       '@walletconnect/events':
         specifier: 1.0.1
         version: 1.0.1
@@ -3440,10 +3446,10 @@ packages:
       react-dom: ^18.0.0
 
   '@to-nexus/sign-client@2.19.11':
-    resolution: {integrity: sha512-j7DX0VAniy5wB0Xj+HlClpMqfSMbNwo3xMx5pemvy9KG3HixH1X2ZXXeHr5zscpDBwnAP7o34KUlHZ6IGNnW7Q==}
+    resolution: {integrity: sha512-j7DX0VAniy5wB0Xj+HlClpMqfSMbNwo3xMx5pemvy9KG3HixH1X2ZXXeHr5zscpDBwnAP7o34KUlHZ6IGNnW7Q==, tarball: https://package.cross-nexus.com/repository/cross-sdk-js/@to-nexus/sign-client/-/sign-client-2.19.11.tgz}
 
   '@to-nexus/universal-provider@2.19.11':
-    resolution: {integrity: sha512-xJPlWc35UgowgfBfmKlOk0c+/3Q0Z4fx1q3Np9ED+AOOlw3QKUxYXAXeK5KIZ3W+il7Qt7mPemjHfn34WNQg2Q==}
+    resolution: {integrity: sha512-xJPlWc35UgowgfBfmKlOk0c+/3Q0Z4fx1q3Np9ED+AOOlw3QKUxYXAXeK5KIZ3W+il7Qt7mPemjHfn34WNQg2Q==, tarball: https://package.cross-nexus.com/repository/cross-sdk-js/@to-nexus/universal-provider/-/universal-provider-2.19.11.tgz}
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -8558,9 +8564,6 @@ packages:
 
   uint8arrays@3.1.0:
     resolution: {integrity: sha512-ei5rfKtoRO8OyOIor2Rz5fhzjThwIHJZ3uyDPnDHTXbP0aMQ1RN/6AI5B5d9dBxJOU+BvOAk7ZQ1xphsX8Lrog==}
-
-  uint8arrays@3.1.1:
-    resolution: {integrity: sha512-+QJa8QRnbdXVpHYjLoTpJIdCTiw9Ir62nocClWuXIq2JIh4Uta0cQsTSpFL678p2CN8B+XSApwcU+pQEqVpKWg==}
 
   ultron@1.1.1:
     resolution: {integrity: sha512-UIEXBNeYmKptWH6z8ZnqTeS8fV74zG0/eRU9VGkpzz+LIJNs8W/zM/L+7ctCkRrgbNnnR0xxw4bKOr0cW0N0Og==}
@@ -14205,7 +14208,7 @@ snapshots:
 
   '@types/react-dom@19.0.0':
     dependencies:
-      '@types/react': 19.0.0
+      '@types/react': 18.3.24
 
   '@types/react-dom@19.1.9(@types/react@19.0.0)':
     dependencies:
@@ -16052,7 +16055,7 @@ snapshots:
       multibase: 4.0.6
       multicodec: 3.2.1
       multihashes: 4.0.3
-      uint8arrays: 3.1.1
+      uint8arrays: 3.0.0
 
   cipher-base@1.0.6:
     dependencies:
@@ -18768,7 +18771,7 @@ snapshots:
       pem-jwk: 2.0.0
       protobufjs: 6.11.4
       secp256k1: 4.0.4
-      uint8arrays: 3.1.1
+      uint8arrays: 3.0.0
       ursa-optional: 0.10.2
 
   libsodium-wrappers@0.7.15:
@@ -19178,7 +19181,7 @@ snapshots:
 
   multicodec@3.2.1:
     dependencies:
-      uint8arrays: 3.1.1
+      uint8arrays: 3.0.0
       varint: 6.0.0
 
   multiformats@9.9.0: {}
@@ -19192,7 +19195,7 @@ snapshots:
   multihashes@4.0.3:
     dependencies:
       multibase: 4.0.6
-      uint8arrays: 3.1.1
+      uint8arrays: 3.0.0
       varint: 5.0.2
 
   multihashing-async@2.1.4:
@@ -19202,7 +19205,7 @@ snapshots:
       js-sha3: 0.8.0
       multihashes: 4.0.3
       murmurhash3js-revisited: 3.0.0
-      uint8arrays: 3.1.1
+      uint8arrays: 3.0.0
 
   murmurhash3js-revisited@3.0.0: {}
 
@@ -19771,7 +19774,7 @@ snapshots:
     dependencies:
       protocol-buffers-schema: 3.6.0
       signed-varint: 2.0.1
-      uint8arrays: 3.1.1
+      uint8arrays: 3.0.0
       varint: 5.0.2
 
   proxy-addr@2.0.7:
@@ -20912,10 +20915,6 @@ snapshots:
       multiformats: 9.9.0
 
   uint8arrays@3.1.0:
-    dependencies:
-      multiformats: 9.9.0
-
-  uint8arrays@3.1.1:
     dependencies:
       multiformats: 9.9.0
 
