@@ -85,7 +85,7 @@ jobs:
           version: 9.5.0
 
       - name: Install dependencies (packages only)
-        run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Install root toolchain (turbo & scripts)
         run: pnpm -w --filter . install --no-frozen-lockfile
@@ -115,7 +115,7 @@ jobs:
 
       - name: Bump @to-nexus/* to latest (workspace)
         run: |
-          pnpm -r --filter ./packages/** up "@to-nexus/*@latest" -P || true
+          pnpm -r up "@to-nexus/*@latest" -P || true
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
@@ -247,7 +247,7 @@ jobs:
           version: 9.5.0
 
       - name: Install dependencies (packages only)
-        run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       # - name: Align internal package dependency versions
       #   run: |
@@ -270,7 +270,7 @@ jobs:
 
       - name: Build packages (dlx turbo)
         run: |
-          pnpm -w dlx turbo run build --filter '{./packages/*}' --filter '!@to-nexus/sdk-cdn'
+          pnpm -w dlx turbo run build --filter '!@to-nexus/sdk-cdn'
           pnpm -w --filter @to-nexus/sdk-cdn run build
 
       - name: Compute version (prefer branch for release/*)
