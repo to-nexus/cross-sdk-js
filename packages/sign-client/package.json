@@ -42,7 +42,7 @@
     "prettier": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'"
   },
   "dependencies": {
-    "@to-nexus/appkit-core": "*",
+    "@to-nexus/appkit-core": "workspace:*",
     "@walletconnect/events": "1.0.1",
     "@walletconnect/heartbeat": "1.2.2",
     "@walletconnect/jsonrpc-utils": "1.0.8",
