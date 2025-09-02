@@ -198,6 +198,23 @@ jobs:
       github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish')
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve Nexus registry URL
+        id: registry
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ .NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -213,11 +230,7 @@ jobs:
           echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
           echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
         env:
-          NEXUS_REGISTRY_URL: ${{ inputs.environment == 'dev' 
-            && vars.NEXUS_DEV_REGISTRY_URL 
-            || (inputs.environment == 'stage' 
-                && vars.NEXUS_STAGE_REGISTRY_URL 
-                || secrets.NEXUS_REGISTRY_URL) }}
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
 
       - name: Verify npm authentication
         run: cat .npmrc
@@ -249,9 +262,9 @@ jobs:
             echo "No internal dependency changes"
           fi
 
-      - name: Build packages
+      - name: Build packages (dlx turbo)
         run: |
-          pnpm -w run build --filter '!@to-nexus/sdk-cdn'
+          pnpm -w dlx turbo run build --filter '{./packages/*}' --filter '!@to-nexus/sdk-cdn'
           pnpm -w --filter @to-nexus/sdk-cdn run build
 
       - name: Compute version (prefer branch for release/*)
