@@ -57,6 +57,19 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, json, 'utf8')
 }
 
+function updateSdkVersionConstant(filePath, newVersion) {
+  if (!fs.existsSync(filePath)) return false
+  const original = fs.readFileSync(filePath, 'utf8')
+  const versionRegex = /export\s+const\s+sdkVersion\s*=\s*['\"]([^'\"]+)['\"]\s*;?/m
+  const match = original.match(versionRegex)
+  if (!match) return false
+  const prev = match[1]
+  if (prev === newVersion) return false
+  const updated = original.replace(versionRegex, `export const sdkVersion = '${newVersion}';`)
+  fs.writeFileSync(filePath, updated, 'utf8')
+  return { prev, next: newVersion }
+}
+
 function setVersionForPackage(packageJsonPath, newVersion) {
   const pkg = readJson(packageJsonPath)
   if (!pkg || typeof pkg !== 'object') return false
@@ -92,6 +105,22 @@ function main() {
         err instanceof Error ? err.message : err
       )
     }
+  }
+
+  // 또한 SDK의 공개 상수 sdkVersion도 동기화합니다.
+  try {
+    const sdkExportsIndexPath = path.join(repoRoot, 'packages', 'sdk', 'exports', 'index.ts')
+    const change = updateSdkVersionConstant(sdkExportsIndexPath, versionArg)
+    if (change) {
+      results.push({
+        location: sdkExportsIndexPath,
+        name: 'sdkVersion',
+        prev: change.prev,
+        next: change.next
+      })
+    }
+  } catch (err) {
+    console.error('Failed to update sdkVersion constant:', err instanceof Error ? err.message : err)
   }
 
   if (results.length === 0) {
