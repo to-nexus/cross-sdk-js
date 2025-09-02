@@ -19,6 +19,7 @@ const PACKAGE_JSON_PATHS = [
   path.join(repoRoot, 'packages', 'appkit', 'package.json'),
   path.join(repoRoot, 'packages', 'cdn', 'package.json'),
   path.join(repoRoot, 'packages', 'common', 'package.json'),
+  path.join(repoRoot, 'packages', 'polyfills', 'package.json'),
   path.join(repoRoot, 'packages', 'core', 'package.json'),
   path.join(repoRoot, 'packages', 'experimental', 'package.json'),
   path.join(repoRoot, 'packages', 'scaffold-ui', 'package.json'),
