@@ -1,6 +1,6 @@
 {
   "name": "@reown/appkit-cli",
-  "version": "1.17.0-alpha.5",
+  "version": "1.17.0-alpha.6",
   "description": "Reown AppKit CLI",
   "main": "index.js",
   "type": "module",
