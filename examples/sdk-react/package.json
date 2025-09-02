@@ -1,13 +1,13 @@
 {
   "name": "@to-nexus/sdk-example-react",
   "private": true,
-  "version": "1.13.7-alpha.1",
+  "version": "1.13.7-alpha.2",
   "scripts": {
     "dev": "vite --port 3012",
     "build": "vite build"
   },
   "dependencies": {
-    "@to-nexus/sdk": "1.17.0-alpha.1",
+    "@to-nexus/sdk": "1.17.0-alpha.2",
     "ethers": "^6.13.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",

@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/sign-client",
   "description": "Sign Client for Cross Connect Protocol",
-  "version": "2.19.11-alpha.1",
+  "version": "2.19.11-alpha.2",
   "author": "Nexus",
   "homepage": "https://github.com/to-nexus/cross-connect",
   "license": "Apache-2.0",
