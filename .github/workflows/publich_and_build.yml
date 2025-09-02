@@ -189,6 +189,8 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       versions: ''
+    environment: ${{ inputs.environment }}
+    secrets: inherit
 
   publish_npm_preview:
     name: Publish to Nexus NPM (preview)

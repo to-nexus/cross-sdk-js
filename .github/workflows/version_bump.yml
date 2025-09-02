@@ -32,6 +32,7 @@ jobs:
     name: Apply external package versions
     outputs:
       can_publish: ${{ steps.resolve.outputs.CAN_PUBLISH }}
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
