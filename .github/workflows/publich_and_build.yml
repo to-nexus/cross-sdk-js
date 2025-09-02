@@ -614,6 +614,20 @@ jobs:
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
 
+  init_dev_stage:
+    name: Init Dev/Stage Registry from Prod
+    # release/* 전용, dev|stage 환경에서 수동 시드 서비스일 때만 실행
+    if: |
+      github.event_name == 'workflow_dispatch'
+      && startsWith(github.ref, 'refs/heads/release/')
+      && (inputs.environment == 'dev' || inputs.environment == 'stage')
+      && inputs.services == 'init_dev_stage'
+    uses: ./.github/workflows/init_dev_stage.yml
+    with:
+      environment: ${{ inputs.environment }}
+      packages: "core,universal,sign-client,sdk"
+      tag: ""
+      
   cdn_publish_manual:
     name: CDN Publish (prod)
     needs: sonarqube
