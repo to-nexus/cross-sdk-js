@@ -153,16 +153,18 @@ jobs:
             echo "  PROD_ALT_SECRET: ${{ secrets.NEXUS_PROD_REGISTRY_URL }}"
             echo "DEBUG: Contents of .npmrc.prod:"
             cat .npmrc.prod || echo "No .npmrc.prod file"
-            # 1) Prefer latest stable by dist-tag in prod
+            echo "DEBUG: Contents of main .npmrc:"
+            cat .npmrc || echo "No main .npmrc file"
+            # 1) Prefer latest stable by dist-tag in prod - use explicit registry flag instead of userconfig
             set +e
-            ver=$(npm --userconfig .npmrc.prod view "$pkg" version 2>/dev/null)
+            ver=$(npm view "$pkg" version --registry "$prod_reg" 2>/dev/null)
             echo "DEBUG: npm view $pkg version returned: '$ver'"
             # guard: accept only semver-looking strings
             if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then ver=""; fi
             set -e
             # 2) If unavailable or invalid, pick highest stable from versions list in prod
             if [ -z "$ver" ]; then
-              versions_json=$(npm --userconfig .npmrc.prod view "$pkg" versions --json 2>/dev/null || true)
+              versions_json=$(npm view "$pkg" versions --json --registry "$prod_reg" 2>/dev/null || true)
               echo "DEBUG: npm view $pkg versions --json returned: '$versions_json'"
               if [ -n "$versions_json" ] && [ "$versions_json" != "null" ]; then
                 ver=$(echo "$versions_json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const arr=JSON.parse(s)||[];const stable=arr.filter(v=>/^\\d+\\.\\d+\\.\\d+$/.test(v));if(!stable.length){process.exit(0)}stable.sort((a,b)=>{const ax=a.split('.') .map(Number);const bx=b.split('.') .map(Number);for(let i=0;i<3;i++){if(ax[i]!==bx[i]) return bx[i]-ax[i];}return 0;});console.log(stable[0]);}catch(e){}})")
@@ -173,7 +175,7 @@ jobs:
             if [[ -z "$ver" || ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then echo "No valid version resolved on prod for $pkg"; continue; fi
             if [ -z "$ver" ]; then echo "No version found on prod for $pkg"; continue; fi
             echo "Found $pkg@$ver from $prod_reg"
-            tgz=$(npm --userconfig .npmrc.prod pack "$pkg@$ver" --pack-destination ./seed | tail -n 1)
+            tgz=$(npm pack "$pkg@$ver" --registry "$prod_reg" --pack-destination ./seed | tail -n 1)
             if [ -z "$tgz" ] || [ ! -f "seed/$tgz" ]; then echo "Pack failed for $pkg@$ver"; continue; fi
             echo "Publishing $tgz to target with tag $TAG..."
             if ! npm publish "seed/$tgz" --registry "${{ steps.regs.outputs.TARGET_REG }}" --tag "$TAG"; then
