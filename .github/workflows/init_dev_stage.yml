@@ -1,0 +1,111 @@
+name: Seed packages from prod registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target env to seed (dev or stage)"
+        required: true
+        type: choice
+        options: [dev, stage]
+      packages:
+        description: "Comma-separated package list (default: core,universal,sign-client,sdk)"
+        required: false
+        default: "core,universal,sign-client,sdk"
+      tag:
+        description: "Dist-tag to use in target registry (default: env → alpha/beta)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    name: Seed from prod
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Resolve registries
+        id: regs
+        run: |
+          # Target registry by env (vars fallback to secrets)
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            TARGET_URL="${DEV_VAR:-$DEV_SECRET}"
+            DEF_TAG=alpha
+          else
+            TARGET_URL="${STAGE_VAR:-$STAGE_SECRET}"
+            DEF_TAG=beta
+          fi
+          echo "TARGET_REG=${TARGET_URL}" >> $GITHUB_OUTPUT
+          echo "DEF_TAG=${DEF_TAG}" >> $GITHUB_OUTPUT
+          # Prod registry (source)
+          echo "PROD_REG=${PROD_SECRET}" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm auth for both registries
+        run: |
+          # Target auth
+          echo "//${TARGET_REG#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@to-nexus:registry=${TARGET_REG}" >> .npmrc
+          # Prod auth (read). If prod also needs auth, reuse same credential
+          echo "//${PROD_REG#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" >> .npmrc
+          echo "### Target registry: ${TARGET_REG}" >> $GITHUB_STEP_SUMMARY
+          echo "### Source(prod) registry: ${PROD_REG}" >> $GITHUB_STEP_SUMMARY
+        env:
+          TARGET_REG: ${{ steps.regs.outputs.TARGET_REG }}
+          PROD_REG: ${{ steps.regs.outputs.PROD_REG }}
+
+      - name: Seed packages
+        run: |
+          set -e
+          declare -A MAP
+          MAP[core]="@to-nexus/core"
+          MAP[universal]="@to-nexus/universal-provider"
+          MAP[sign-client]="@to-nexus/sign-client"
+          MAP[sdk]="@to-nexus/sdk"
+
+          IFS=',' read -ra LIST <<< "${{ inputs.packages }}"
+          TAG_INPUT='${{ inputs.tag }}'
+          TAG=${TAG_INPUT:-${{ steps.regs.outputs.DEF_TAG }}}
+          mkdir -p seed
+
+          for key in "${LIST[@]}"; do
+            k=$(echo "$key" | xargs)
+            pkg="${MAP[$k]}"
+            if [ -z "$pkg" ]; then echo "Skip unknown key: $k"; continue; fi
+            echo "Resolving $pkg from prod..."
+            set +e
+            ver=$(npm view "$pkg@latest" version --registry "${{ steps.regs.outputs.PROD_REG }}" 2>/dev/null)
+            set -e
+            if [ -z "$ver" ]; then echo "No version found on prod for $pkg"; continue; fi
+            echo "Found $pkg@$ver"
+            tgz=$(npm pack "$pkg@$ver" --registry "${{ steps.regs.outputs.PROD_REG }}" --pack-destination ./seed | tail -n 1)
+            echo "Publishing $tgz to target with tag $TAG..."
+            if ! npm publish "seed/$tgz" --registry "${{ steps.regs.outputs.TARGET_REG }}" --tag "$TAG"; then
+              echo "Publish failed, trying to add dist-tag (maybe already present)..."
+              npm dist-tag add "$pkg@$ver" "$TAG" --registry "${{ steps.regs.outputs.TARGET_REG }}" || true
+            fi
+          done
+
+      - name: Done
+        run: echo "Seeding complete."
+
