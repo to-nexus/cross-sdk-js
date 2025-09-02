@@ -146,6 +146,11 @@ jobs:
             if [ -z "$pkg" ]; then continue; fi
             echo "Resolving $pkg from prod..."
             echo "DEBUG: Using prod registry: $prod_reg"
+            echo "DEBUG: All registry env vars:"
+            echo "  PROD_VAR: ${{ vars.NEXUS_REGISTRY_URL }}"
+            echo "  PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}"  
+            echo "  PROD_ALT_VAR: ${{ vars.NEXUS_PROD_REGISTRY_URL }}"
+            echo "  PROD_ALT_SECRET: ${{ secrets.NEXUS_PROD_REGISTRY_URL }}"
             echo "DEBUG: Contents of .npmrc.prod:"
             cat .npmrc.prod || echo "No .npmrc.prod file"
             # 1) Prefer latest stable by dist-tag in prod
