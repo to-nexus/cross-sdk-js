@@ -12,11 +12,11 @@ import {
   RELAYER_EVENTS,
   TRANSPORT_TYPES,
   VERIFY_SERVER
-} from '@to-nexus/appkit-core'
+} from '@to-nexus/core'
 import {
   ErrorResponse,
   JsonRpcRequest,
-  formatJsonRpcError,
+  formatJsonRpcErrorgit,
   formatJsonRpcRequest,
   formatJsonRpcResult,
   getBigIntRpcId,
