@@ -9,9 +9,9 @@ on:
         type: choice
         options: [dev, stage]
       packages:
-        description: "Comma-separated package list (default: core,universal,sign-client,sdk)"
+        description: "Comma-separated package list (full names). Empty=auto-discover workspace @to-nexus/* packages"
         required: false
-        default: "core,universal,sign-client,sdk"
+        default: ""
       tag:
         description: "Dist-tag to use in target registry (default: env → alpha/beta)"
         required: false
@@ -24,7 +24,7 @@ on:
       packages:
         required: false
         type: string
-        default: "core,universal,sign-client,sdk"
+        default: ""
       tag:
         required: false
         type: string
@@ -87,24 +87,34 @@ jobs:
           TARGET_REG: ${{ steps.regs.outputs.TARGET_REG }}
           PROD_REG: ${{ steps.regs.outputs.PROD_REG }}
 
+      - name: Discover workspace @to-nexus/* packages (when packages input empty)
+        id: discover
+        run: |
+          if [ -n "${{ inputs.packages }}" ]; then
+            echo "PKGS_INPUT=${{ inputs.packages }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          list=$(git ls-files 'packages/**/package.json' 'providers/**/package.json' | while read -r f; do node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if(p.name&&/^@to-nexus\//.test(p.name)) console.log(p.name)" "$f"; done | sort -u | tr '\n' ',')
+          list=${list%,}
+          echo "PKGS_DISCOVERED=$list" >> $GITHUB_OUTPUT
+
       - name: Seed packages
         run: |
           set -e
-          declare -A MAP
-          MAP[core]="@to-nexus/core"
-          MAP[universal]="@to-nexus/universal-provider"
-          MAP[sign-client]="@to-nexus/sign-client"
-          MAP[sdk]="@to-nexus/sdk"
-
-          IFS=',' read -ra LIST <<< "${{ inputs.packages }}"
+          # Resolve list: prefer explicit input, else discovered workspace packages
+          SRC_LIST="${{ inputs.packages }}"
+          if [ -z "$SRC_LIST" ]; then
+            SRC_LIST="${{ steps.discover.outputs.PKGS_DISCOVERED }}"
+          fi
+          echo "Packages to seed: $SRC_LIST"
+          IFS=',' read -ra LIST <<< "$SRC_LIST"
           TAG_INPUT='${{ inputs.tag }}'
           TAG=${TAG_INPUT:-${{ steps.regs.outputs.DEF_TAG }}}
           mkdir -p seed
 
           for key in "${LIST[@]}"; do
-            k=$(echo "$key" | xargs)
-            pkg="${MAP[$k]}"
-            if [ -z "$pkg" ]; then echo "Skip unknown key: $k"; continue; fi
+            pkg=$(echo "$key" | xargs)
+            if [ -z "$pkg" ]; then continue; fi
             echo "Resolving $pkg from prod..."
             set +e
             ver=$(npm view "$pkg@latest" version --registry "${{ steps.regs.outputs.PROD_REG }}" 2>/dev/null)
