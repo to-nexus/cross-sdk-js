@@ -25,6 +25,7 @@ on:
           - package-publish
           - sample-page
           - cdn-publish
+          - init_dev_stage
       dry_run:
         description: "실제 퍼블리시/푸시/태깅 없이 검증만 수행"
         required: false
