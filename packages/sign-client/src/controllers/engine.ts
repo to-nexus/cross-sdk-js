@@ -16,7 +16,7 @@ import {
 import {
   ErrorResponse,
   JsonRpcRequest,
-  formatJsonRpcErrorgit,
+  formatJsonRpcError,
   formatJsonRpcRequest,
   formatJsonRpcResult,
   getBigIntRpcId,
