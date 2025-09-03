@@ -318,9 +318,18 @@ jobs:
 
       - name: Verify npm authentication
         run: |
+          set -e
           cat .npmrc
-          npm whoami --registry "${{ steps.registry.outputs.NEXUS_URL }}" || true
-          npm ping --registry "${{ steps.registry.outputs.NEXUS_URL }}" || true
+          echo "=== Verifying auth via -/whoami ==="
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Basic ${NPM_AUTH}" "${NEXUS_REGISTRY_URL}/-/whoami")
+          if [ "$STATUS" != "200" ]; then
+            echo "Auth verification failed (HTTP $STATUS). Aborting."
+            exit 1
+          fi
+          echo "Auth OK"
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -458,7 +467,10 @@ jobs:
           echo "registry=https://registry.npmjs.org/" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
           echo "//${HOST_PATH}/:email=npm@to.nexus" >> .npmrc
           
           # Also set as environment variables for npm
@@ -478,13 +490,16 @@ jobs:
           cat .npmrc
           echo "=== NPM_CONFIG_USERCONFIG ==="
           echo "$NPM_CONFIG_USERCONFIG"
-          echo "=== Testing npm whoami ==="
-          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami failed"
+          echo "=== Verifying auth via -/whoami (gate) ==="
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Basic ${NPM_AUTH}" "${NEXUS_REGISTRY_URL}/-/whoami")
+          if [ "$STATUS" != "200" ]; then
+            echo "Auth verification failed (HTTP $STATUS). Aborting publish."
+            exit 1
+          fi
           
           # Test auth with npm login approach
-          echo "=== Attempting npm login with token ==="
-          echo "//${HOST_PATH}/:_authToken=${NPM_AUTH}" >> .npmrc
-          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "Token auth failed too"
+          echo "=== Attempting npm whoami (optional) ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami not supported with basic auth"
           
           # Try manual npm publish for each @to-nexus package with curl
           echo "=== Manual publish approach ==="
