@@ -28,16 +28,17 @@ const PACKAGE_JSON_PATHS = [
   path.join(repoRoot, 'packages', 'siwx', 'package.json'),
   path.join(repoRoot, 'packages', 'ui', 'package.json'),
   path.join(repoRoot, 'packages', 'wallet-button', 'package.json'),
-  path.join(repoRoot, 'packages', 'wallet', 'package.json'),
-  path.join(repoRoot, 'providers', 'universal-provider', 'package.json')
+  path.join(repoRoot, 'packages', 'wallet', 'package.json')
 ]
 
 function printUsageAndExit(message) {
   if (message) {
     console.error(message)
   }
-  console.log('Usage: node scripts/set-version.js <version>')
+  console.log('Usage: node scripts/set-version.js <version> [--include-reown] [--target-package=<package-name>]')
   console.log('Example: node scripts/set-version.js 1.16.6')
+  console.log('Example: node scripts/set-version.js 1.7.0 --include-reown')
+  console.log('Example: node scripts/set-version.js 1.7.0 --target-package=@reown/appkit-polyfills')
   process.exit(message ? 1 : 0)
 }
 
@@ -84,7 +85,12 @@ function setVersionForPackage(packageJsonPath, newVersion) {
 }
 
 function main() {
-  const [, , versionArg] = process.argv
+  const args = process.argv.slice(2)
+  const versionArg = args.find(arg => !arg.startsWith('--'))
+  const includeReown = args.includes('--include-reown')
+  const targetPackageArg = args.find(arg => arg.startsWith('--target-package='))
+  const targetPackage = targetPackageArg ? targetPackageArg.split('=')[1] : null
+  
   if (!versionArg) {
     printUsageAndExit('Error: version is required')
   }
@@ -97,6 +103,18 @@ function main() {
   for (const packageJsonPath of PACKAGE_JSON_PATHS) {
     if (!fs.existsSync(packageJsonPath)) continue
     try {
+      // @reown/* 스코프 패키지 처리
+      const pkgMeta = readJson(packageJsonPath)
+      if (pkgMeta?.name && String(pkgMeta.name).startsWith('@reown/')) {
+        if (targetPackage && pkgMeta.name === targetPackage) {
+          // 특정 @reown 패키지만 타겟팅
+          console.log(`Targeting specific @reown package: ${pkgMeta.name}`)
+        } else if (!includeReown) {
+          // 기본적으로 @reown 패키지 제외
+          console.log(`Skipping @reown package: ${pkgMeta.name}@${pkgMeta.version}`)
+          continue
+        }
+      }
       const result = setVersionForPackage(packageJsonPath, versionArg)
       if (result) {
         results.push({ location: path.dirname(packageJsonPath), ...result })
