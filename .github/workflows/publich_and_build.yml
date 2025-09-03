@@ -290,42 +290,6 @@ jobs:
       - name: Install dependencies (packages only)
         run: pnpm install --no-frozen-lockfile
 
-      - name: Detect changed packages since last release
-        id: changes
-        run: |
-          # Get changed packages compared to last published version
-          LAST_TAG=$(git describe --tags --abbrev=0 --match="release/*" 2>/dev/null || echo "")
-          if [ -n "$LAST_TAG" ]; then
-            echo "Comparing against last tag: $LAST_TAG"
-            CHANGED_FILES=$(git diff --name-only "$LAST_TAG"..HEAD -- packages/ providers/ | grep -E "(src/|package\.json)" | head -20)
-          else
-            echo "No previous release tag found, treating all packages as changed"
-            CHANGED_FILES=$(find packages providers -name "package.json" | head -20)
-          fi
-          
-          # Extract package names from changed files
-          CHANGED_PACKAGES=""
-          for file in $CHANGED_FILES; do
-            if [[ "$file" == */package.json ]]; then
-              pkg_name=$(node -e "try { console.log(require('./$file').name) } catch(e) {}")
-              if [[ "$pkg_name" == @to-nexus/* ]] || [[ "$pkg_name" == @reown/* ]]; then
-                CHANGED_PACKAGES="$CHANGED_PACKAGES,$pkg_name"
-              fi
-            elif [[ "$file" == packages/*/src/* ]] || [[ "$file" == providers/*/src/* ]]; then
-              dir=$(dirname "$file" | sed 's|/src.*||')
-              if [ -f "$dir/package.json" ]; then
-                pkg_name=$(node -e "try { console.log(require('./$dir/package.json').name) } catch(e) {}")
-                if [[ "$pkg_name" == @to-nexus/* ]] || [[ "$pkg_name" == @reown/* ]]; then
-                  CHANGED_PACKAGES="$CHANGED_PACKAGES,$pkg_name"
-                fi
-              fi
-            fi
-          done
-          
-          CHANGED_PACKAGES=$(echo "$CHANGED_PACKAGES" | sed 's/^,//' | tr ',' '\n' | sort -u | tr '\n' ',' | sed 's/,$//')
-          echo "CHANGED_PACKAGES=${CHANGED_PACKAGES}" >> $GITHUB_OUTPUT
-          echo "Changed packages: $CHANGED_PACKAGES"
-
       - name: Compute version and resolve dependencies
         id: version
         run: |
@@ -352,15 +316,13 @@ jobs:
             fi
           fi
           echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
-          
-          # Post-build version bump for changed packages only
-          if [ -n "${{ steps.changes.outputs.CHANGED_PACKAGES }}" ] && [ "${{ inputs.environment }}" != "prod" ]; then
-            echo "Will bump versions for changed packages after build: ${{ steps.changes.outputs.CHANGED_PACKAGES }}"
-            echo "CHANGED_PACKAGES=${{ steps.changes.outputs.CHANGED_PACKAGES }}" >> $GITHUB_OUTPUT
-          else
-            echo "Using branch-based version for deployment: ${REF_VERSION}"
-            echo "DEPLOY_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
-          fi
+
+          # Bulk set version across all packages
+          pnpm run version:set "${REF_VERSION#v}"
+
+          # Mark as bumped for downstream steps
+          echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
+
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
@@ -380,67 +342,10 @@ jobs:
           pnpm -w dlx turbo run build
           # pnpm -w --filter @to-nexus/sdk-cdn run build
 
-      - name: Version bump changed packages (post-build)
-        id: version_bump
-        run: |
-          if [ -n "${{ steps.version.outputs.CHANGED_PACKAGES }}" ] && [ "${{ inputs.environment }}" != "prod" ]; then
-            echo "Bumping versions for changed packages: ${{ steps.version.outputs.CHANGED_PACKAGES }}"
-            
-            # Create individual changesets for changed packages
-            IFS=',' read -ra PKG_LIST <<< "${{ steps.version.outputs.CHANGED_PACKAGES }}"
-            for pkg in "${PKG_LIST[@]}"; do
-              if [ -n "$pkg" ]; then
-                echo "Creating changeset for $pkg..."
-                echo "---" > .changeset/auto-${pkg//\//-}.md
-                echo "\"$pkg\": patch" >> .changeset/auto-${pkg//\//-}.md
-                echo "---" >> .changeset/auto-${pkg//\//-}.md
-                echo "" >> .changeset/auto-${pkg//\//-}.md
-                echo "Auto-generated changeset for $pkg in ${{ inputs.environment }} environment" >> .changeset/auto-${pkg//\//-}.md
-              fi
-            done
-            
-            # Enter pre-release mode and bump versions (but don't commit yet)
-            PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
-            pnpm dlx @changesets/cli@2.27.12 pre enter $PREID
-            pnpm dlx @changesets/cli@2.27.12 version
-            
-            # Store changes for potential rollback
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add -A
-            if [ -n "$(git status --porcelain)" ]; then
-              echo "VERSION_CHANGES_READY=true" >> $GITHUB_OUTPUT
-              # Create backup of current state for rollback
-              git stash push -m "version-bump-backup-$(date +%s)"
-              echo "STASH_CREATED=true" >> $GITHUB_OUTPUT
-            else
-              echo "VERSION_CHANGES_READY=false" >> $GITHUB_OUTPUT
-              echo "STASH_CREATED=false" >> $GITHUB_OUTPUT
-            fi
-            echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
-          elif [ "${{ inputs.environment }}" = "prod" ]; then
-            # Prod: use branch-based version
-            REF_VERSION="${{ steps.version.outputs.DEPLOY_VERSION }}"
-            pnpm run version:set "${REF_VERSION#v}"
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add -A
-            if [ -n "$(git status --porcelain)" ]; then
-              if [ "${{ inputs.dry_run }}" = "false" ]; then
-                git commit -m "chore: set production version to ${REF_VERSION}"
-                git fetch origin "${GITHUB_REF_NAME}" || true
-                git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-                git push || git push --force-with-lease
-              fi
-            fi
-            echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
-          else
-            echo "No version changes needed"
-            echo "VERSION_BUMPED=false" >> $GITHUB_OUTPUT
-          fi
+      # Removed per-package post-build version bump; using bulk version set above
 
       - name: Publish package to Nexus (dev → alpha)
-        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.version_bump.outputs.VERSION_BUMPED == 'true'
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_dev
         run: |
           if pnpm run publish:alpha; then
@@ -452,25 +357,9 @@ jobs:
         env:
           NEXUS_REGISTRY_URL: ${{ inputs.environment == 'dev' && vars.NEXUS_DEV_REGISTRY_URL}}
 
-      - name: Commit version changes (dev - after successful publish)
-        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version_bump.outputs.VERSION_CHANGES_READY == 'true'
-        run: |
-          git stash pop
-          git add -A
-          git commit -m "chore: bump versions for changed packages (dev)"
-          git fetch origin "${GITHUB_REF_NAME}" || true
-          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-          git push || git push --force-with-lease
-
-      - name: Rollback version changes (dev - if publish failed)
-        if: inputs.environment == 'dev' && failure() && steps.version_bump.outputs.STASH_CREATED == 'true'
-        run: |
-          echo "⚠️ Publish failed, rolling back version changes..."
-          git reset --hard HEAD
-          git stash drop || true
 
       - name: Publish package to Nexus (stage → beta)
-        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.version_bump.outputs.VERSION_BUMPED == 'true'
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_stage
         run: |
           if pnpm run publish:beta; then
@@ -481,23 +370,6 @@ jobs:
           fi
         env:
           NEXUS_REGISTRY_URL: ${{ inputs.environment == 'stage' && vars.NEXUS_STAGE_REGISTRY_URL}}
-
-      - name: Commit version changes (stage - after successful publish)
-        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version_bump.outputs.VERSION_CHANGES_READY == 'true'
-        run: |
-          git stash pop
-          git add -A
-          git commit -m "chore: bump versions for changed packages (stage)"
-          git fetch origin "${GITHUB_REF_NAME}" || true
-          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-          git push || git push --force-with-lease
-
-      - name: Rollback version changes (stage - if publish failed)
-        if: inputs.environment == 'stage' && failure() && steps.version_bump.outputs.STASH_CREATED == 'true'
-        run: |
-          echo "⚠️ Publish failed, rolling back version changes..."
-          git reset --hard HEAD
-          git stash drop || true
 
       - name: Publish package to Nexus (prod → latest)
         if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main' && steps.version_bump.outputs.VERSION_BUMPED == 'true'
