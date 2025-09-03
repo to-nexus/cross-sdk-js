@@ -475,7 +475,7 @@ jobs:
 
       # Removed per-package post-build version bump; using bulk version set above
 
-      - name: Override publishConfig.registry to env registry (dev/stage)
+      - name: Override publishConfig.registry to env registry (dev/stage, exclude sign-client)
         if: inputs.dry_run == 'false'
         run: |
           node -e '
@@ -501,6 +501,7 @@ jobs:
             for(const f of files){
               const pkg=JSON.parse(fs.readFileSync(f, "utf8"));
               if(pkg.name && /^@to-nexus\//.test(pkg.name)){
+                if(pkg.name === "@to-nexus/sign-client") continue; // exclude from any publish-related mutations
                 pkg.publishConfig = pkg.publishConfig || {};
                 if(pkg.publishConfig.registry !== target){
                   pkg.publishConfig.registry = target;
@@ -554,7 +555,10 @@ jobs:
           echo "=== Publishing via pnpm (recursive, @to-nexus/* only) ==="
           # Ensure both env vars are present for npm config resolution
           export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
-          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r --filter "@to-nexus/*" publish --access public --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
@@ -646,7 +650,10 @@ jobs:
           npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami failed"
           
           export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
-          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r --filter "@to-nexus/*" publish --access public --tag beta --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag beta --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
@@ -845,7 +852,13 @@ jobs:
       
       - name: Publish package to Nexus (prod → latest)
         if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
-        run: pnpm run publish:latest
+        run: |
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
+          pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag latest --registry "${NEXUS_REGISTRY_URL}" --no-git-checks
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
       
