@@ -464,7 +464,14 @@ jobs:
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
 
           # Publish only @to-nexus/* workspaces using pnpm recursive publish
-          if pnpm -r --filter "@to-nexus/*" publish --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+          echo "=== .npmrc contents ==="
+          cat .npmrc
+          echo "=== NPM_CONFIG_USERCONFIG ==="
+          echo "$NPM_CONFIG_USERCONFIG"
+          echo "=== Testing npm whoami ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami failed"
+          
+          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r --filter "@to-nexus/*" publish --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
@@ -507,7 +514,14 @@ jobs:
           echo "always-auth=true" >> .npmrc
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
 
-          if pnpm -r --filter "@to-nexus/*" publish --tag beta --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+          echo "=== .npmrc contents ==="
+          cat .npmrc
+          echo "=== NPM_CONFIG_USERCONFIG ==="
+          echo "$NPM_CONFIG_USERCONFIG"
+          echo "=== Testing npm whoami ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami failed"
+          
+          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r --filter "@to-nexus/*" publish --tag beta --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
