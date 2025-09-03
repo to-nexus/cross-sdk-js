@@ -238,7 +238,7 @@ jobs:
     needs: [changeset_prepare, version_bump]
     # release/* 의 dev|stage 전용
     if: |
-      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish')
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish') && needs.version_bump.outputs.can_publish == 'true'
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
@@ -326,10 +326,6 @@ jobs:
           echo "CHANGED_PACKAGES=${CHANGED_PACKAGES}" >> $GITHUB_OUTPUT
           echo "Changed packages: $CHANGED_PACKAGES"
 
-      - name: Build packages (dlx turbo)
-        run: |
-          pnpm -w dlx turbo run build
-
       - name: Compute version and resolve dependencies
         id: version
         run: |
@@ -356,55 +352,6 @@ jobs:
             fi
           fi
           echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
-          
-          # Configure npm registry for dependency resolution
-          if [ "${{ inputs.environment }}" = "dev" ]; then
-            REGISTRY_URL="${{ vars.NEXUS_DEV_REGISTRY_URL || secrets.NEXUS_DEV_REGISTRY_URL }}"
-          elif [ "${{ inputs.environment }}" = "stage" ]; then
-            REGISTRY_URL="${{ vars.NEXUS_STAGE_REGISTRY_URL || secrets.NEXUS_STAGE_REGISTRY_URL }}"
-          else
-            REGISTRY_URL="${{ secrets.NEXUS_REGISTRY_URL }}"
-          fi
-          echo "//${REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc.temp
-          echo "@to-nexus:registry=${REGISTRY_URL}" >> .npmrc.temp
-          
-          # Apply dependency overrides if provided
-          if [ -n "${{ inputs.dependency_overrides }}" ]; then
-            echo "Applying dependency overrides: ${{ inputs.dependency_overrides }}"
-            node -e "
-              const fs = require('fs');
-              const overrides = JSON.parse('${{ inputs.dependency_overrides }}');
-              
-              // Update each package's dependencies
-              const glob = require('glob');
-              const files = glob.sync('./packages/**/package.json').concat(glob.sync('./providers/**/package.json'));
-              
-              for (const file of files) {
-                const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
-                let changed = false;
-                
-                ['dependencies', 'devDependencies', 'peerDependencies'].forEach(section => {
-                  if (pkg[section]) {
-                    Object.keys(overrides).forEach(depName => {
-                      if (pkg[section][depName]) {
-                        pkg[section][depName] = overrides[depName];
-                        changed = true;
-                        console.log(\`Updated \${file}: \${depName} -> \${overrides[depName]}\`);
-                      }
-                    });
-                  }
-                });
-                
-                if (changed) {
-                  fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
-                }
-              }
-            "
-          else
-            echo "Resolving external @to-nexus/* dependencies from registry..."
-            # Get latest versions from target registry and update dependencies
-            pnpm --userconfig .npmrc.temp -r up "@to-nexus/*@latest" -P || true
-          fi
           
           # Post-build version bump for changed packages only
           if [ -n "${{ steps.changes.outputs.CHANGED_PACKAGES }}" ] && [ "${{ inputs.environment }}" != "prod" ]; then
