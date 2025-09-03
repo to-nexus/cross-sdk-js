@@ -453,6 +453,8 @@ jobs:
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
+          
+          # Create .npmrc same as changeset_prepare job
           echo "registry=https://registry.npmjs.org/" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
@@ -504,6 +506,8 @@ jobs:
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
+          
+          # Create .npmrc same as changeset_prepare job
           echo "registry=https://registry.npmjs.org/" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
