@@ -46,6 +46,12 @@ on:
         default: ''
         type: string
 
+      publish_filters:
+        description: "퍼블리시 허용 패턴(쉼표 구분). 예: @reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client"
+        required: false
+        default: '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client'
+        type: string
+
 permissions:
   id-token: write
   contents: write
@@ -354,7 +360,14 @@ jobs:
         if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_dev
         run: |
-          if pnpm run publish:alpha; then
+          FILTERS="${{ inputs.publish_filters }}"
+          FILTER_ARGS=""
+          IFS=',' read -ra ARR <<< "$FILTERS"
+          for f in "${ARR[@]}"; do
+            f=$(echo "$f" | xargs)
+            [ -n "$f" ] && FILTER_ARGS="$FILTER_ARGS --filter $f"
+          done
+          if pnpm -w $FILTER_ARGS changeset publish --tag alpha; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
@@ -368,7 +381,14 @@ jobs:
         if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_stage
         run: |
-          if pnpm run publish:beta; then
+          FILTERS="${{ inputs.publish_filters }}"
+          FILTER_ARGS=""
+          IFS=',' read -ra ARR <<< "$FILTERS"
+          for f in "${ARR[@]}"; do
+            f=$(echo "$f" | xargs)
+            [ -n "$f" ] && FILTER_ARGS="$FILTER_ARGS --filter $f"
+          done
+          if pnpm -w $FILTER_ARGS changeset publish --tag beta; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
