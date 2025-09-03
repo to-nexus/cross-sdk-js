@@ -321,9 +321,16 @@ jobs:
           set -e
           echo "::add-mask::${NPM_TOKEN}" || true
           
-          echo "=== npm whoami ==="
-          USER=$(npm whoami --registry "${NEXUS_REGISTRY_URL}")
-          echo "Logged in as: ${USER}"
+          echo "=== Verifying via -/whoami (Bearer) ==="
+          RESP=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
+          BODY=$(echo "$RESP" | head -n1)
+          STATUS=$(echo "$RESP" | tail -n1)
+          if [ "$STATUS" != "200" ]; then
+            echo "Auth verification failed (HTTP $STATUS). Aborting."
+            exit 1
+          fi
+          USER=$(printf "%s" "$BODY" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const o=JSON.parse(s);console.log(o?.username||'');}catch(e){}})")
+          if [ -n "$USER" ]; then echo "Logged in as: $USER"; else echo "Logged in (username not exposed)"; fi
           
           echo "=== Test publish to verify write access ==="
           TMP_DIR=$(mktemp -d)
