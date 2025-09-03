@@ -229,7 +229,7 @@ jobs:
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
+    if: github.event_name == 'workflow_dispatch' && (inputs.environment == 'stage' || inputs.environment == 'prod') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
     steps:
       - uses: actions/checkout@v4
         with:
@@ -904,8 +904,7 @@ jobs:
 
   build_and_push_preview:
     name: Build and Push Docker Image (preview)
-    needs: [changeset_prepare, version_bump]
-    # release/* 의 dev|stage 전용
+    # release/* 의 dev|stage 전용, sample-page는 독립 실행
     if: |
       github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
