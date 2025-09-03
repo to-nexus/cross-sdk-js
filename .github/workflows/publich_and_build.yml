@@ -329,6 +329,53 @@ jobs:
           fi
           echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
 
+          # Apply dependency overrides (package_versions) to force external versions over workspace:*
+          if [ -n "${{ inputs.package_versions }}" ]; then
+            echo "Applying dependency overrides: ${{ inputs.package_versions }}"
+            node -e '
+              const fs = require("fs");
+              const glob = require("glob");
+              const raw = `${process.env.PACKAGE_VERSIONS}`;
+              const pairs = raw.split(",").map(s => s.trim()).filter(Boolean);
+              const map = {};
+              const alias = {
+                core: "@to-nexus/core",
+                universal: "@to-nexus/universal-provider",
+                "sign-client": "@to-nexus/sign-client",
+                sdk: "@to-nexus/sdk"
+              };
+              for (const p of pairs) {
+                const [k, v] = p.split("=").map(s => s && s.trim());
+                if (!k || !v) continue;
+                const full = alias[k] || k;
+                map[full] = v;
+              }
+              const files = glob.sync("./packages/**/package.json").concat(glob.sync("./providers/**/package.json"));
+              for (const file of files) {
+                const pkg = JSON.parse(fs.readFileSync(file, "utf8"));
+                let changed = false;
+                for (const section of ["dependencies","devDependencies","peerDependencies"]) {
+                  if (!pkg[section]) continue;
+                  for (const depName of Object.keys(map)) {
+                    if (pkg[section][depName]) {
+                      if (pkg[section][depName] !== map[depName]) {
+                        pkg[section][depName] = map[depName];
+                        changed = true;
+                        console.log(`Updated ${file}: ${depName} -> ${map[depName]}`);
+                      }
+                    }
+                  }
+                }
+                if (changed) {
+                  fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + "\n");
+                }
+              }
+            ' \
+            PACKAGE_VERSIONS='${{ inputs.package_versions }}'
+          else
+            echo "No dependency overrides provided"
+          fi
+
           # Bulk set version across all packages
           pnpm run version:set "${REF_VERSION#v}"
 
