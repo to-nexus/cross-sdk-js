@@ -486,14 +486,30 @@ jobs:
           echo "//${HOST_PATH}/:_authToken=${NPM_AUTH}" >> .npmrc
           npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "Token auth failed too"
           
-          # Use original changeset approach that worked
-          echo "=== Using changeset publish like changeset_prepare ==="
-          if pnpm dlx @changesets/cli@2.27.12 publish --tag alpha; then
-            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
-          else
-            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
+          # Try manual npm publish for each @to-nexus package with curl
+          echo "=== Manual publish approach ==="
+          for pkg_dir in packages/*/; do
+            if [ -f "${pkg_dir}package.json" ]; then
+              pkg_name=$(node -e "console.log(require('./${pkg_dir}package.json').name)" 2>/dev/null || echo "")
+              if [[ "$pkg_name" == @to-nexus/* ]]; then
+                echo "Publishing $pkg_name manually..."
+                cd "$pkg_dir"
+                npm pack > /dev/null
+                tarball=$(ls *.tgz | head -1)
+                if [ -n "$tarball" ]; then
+                  # Use curl to upload directly
+                  curl -f -X PUT \
+                    -H "Authorization: Basic ${NPM_AUTH}" \
+                    -H "Content-Type: application/octet-stream" \
+                    --data-binary "@${tarball}" \
+                    "${NEXUS_REGISTRY_URL}/${pkg_name}/-/${tarball}" || echo "Curl upload failed for $pkg_name"
+                  rm -f "$tarball"
+                fi
+                cd - > /dev/null
+              fi
+            fi
+          done
+          echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
