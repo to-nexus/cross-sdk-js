@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-ui",
-  "version": "1.16.6",
+  "version": "1.16.7-alpha",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -43,5 +43,8 @@
   },
   "bugs": {
     "url": "https://github.com/to-nexus/appkit/issues"
+  },
+  "publishConfig": {
+    "registry": "https://package.cross-nexus.com/repository/dev-cross-sdk-js"
   }
 }
