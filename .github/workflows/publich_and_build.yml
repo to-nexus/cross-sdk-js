@@ -328,8 +328,7 @@ jobs:
 
       - name: Build packages (dlx turbo)
         run: |
-          pnpm -w dlx turbo run build --filter './packages/**' --filter '!@to-nexus/sdk-cdn'
-          pnpm -w --filter @to-nexus/sdk-cdn run build
+          pnpm -w dlx turbo run build
 
       - name: Compute version and resolve dependencies
         id: version
@@ -431,8 +430,8 @@ jobs:
 
       - name: Build packages (dlx turbo)
         run: |
-          pnpm -w dlx turbo run build --filter './packages/**' --filter '!@to-nexus/sdk-cdn'
-          pnpm -w --filter @to-nexus/sdk-cdn run build
+          pnpm -w dlx turbo run build
+          # pnpm -w --filter @to-nexus/sdk-cdn run build
 
       - name: Version bump changed packages (post-build)
         id: version_bump
@@ -657,8 +656,7 @@ jobs:
       
       - name: Build packages
         run: |
-          pnpm -w run build --filter '!@to-nexus/sdk-cdn'
-          pnpm -w --filter @to-nexus/sdk-cdn run build
+          pnpm -w run build 
       
       - name: Compute version
         id: version
