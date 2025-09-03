@@ -289,7 +289,6 @@ jobs:
         run: |
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
-          echo "@reown:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
           echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
@@ -594,7 +593,6 @@ jobs:
         run: |
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
-          echo "@reown:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
         env:
