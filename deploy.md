@@ -79,44 +79,69 @@ graph TD
 
 ### 배포 방법
 
-#### **방법 1: 자동 배포 (권장)**
+#### **방법 1: Release 브랜치 배포 (권장)**
 
 1. **Release 브랜치 생성**
    ```bash
-   git checkout -b release/1.0.0
+   git checkout -b release/1.16.7
    # 코드 수정
    git commit -m "feat: add new feature"
-   git push origin release/1.0.0
+   git push origin release/1.16.7
    ```
 
 2. **GitHub Actions 실행**
    - Repository → Actions → "CI - Publish & Build"
    - **Manual trigger** 클릭
 
-3. **환경 선택**
+3. **환경 선택 (Release 브랜치)**
    ```json
    {
      "environment": "dev",           // dev, stage, prod
      "services": "package-publish",  // 패키지 배포
-     "manual_version": "",           // 선택사항: 수동 버전 지정
+     "manual_version": "",           // 선택사항: 비우면 브랜치명에서 추출 (1.16.7)
      "dependency_overrides": "",     // 선택사항: 특정 의존성 버전 지정
      "dry_run": "false"             // 실제 배포 여부
    }
    ```
 
-#### **방법 2: 수동 버전 지정**
+#### **방법 2: Develop 브랜치 배포**
 
-특정 버전으로 배포하고 싶은 경우:
+1. **Develop 브랜치에서 작업**
+   ```bash
+   git checkout develop
+   # 코드 수정
+   git commit -m "feat: experimental feature"
+   git push origin develop
+   ```
+
+2. **GitHub Actions 실행**
+   - Repository → Actions → "CI - Publish & Build"
+   - **Manual trigger** 클릭
+
+3. **환경 선택 (Develop 브랜치 - manual_version 필수)**
+   ```json
+   {
+     "environment": "dev",                    // dev만 가능 (실험적 기능)
+     "services": "package-publish",           
+     "manual_version": "1.16.7-experiment.1", // 필수: 배포할 버전 직접 입력
+     "dependency_overrides": "",              
+     "dry_run": "false"                      
+   }
+   ```
+
+#### **방법 3: 수동 버전 지정 (Release 브랜치)**
+
+Release 브랜치에서 브랜치명과 다른 버전으로 배포하고 싶은 경우:
 ```json
 {
   "environment": "dev",
   "services": "package-publish", 
-  "manual_version": "1.0.0-hotfix.1",
+  "manual_version": "1.16.8-hotfix.1",  // 브랜치명(1.16.7)과 다른 버전
   "dry_run": "false"
 }
 ```
 
-#### **방법 3: 의존성 오버라이드**
+#### **방법 4: 의존성 오버라이드**
 
 특정 의존성 버전을 지정하고 싶은 경우:
 ```json
@@ -126,6 +151,28 @@ graph TD
   "dependency_overrides": "{\"@to-nexus/core\":\"1.16.5\",\"viem\":\"2.37.0\"}"
 }
 ```
+
+---
+
+## 🌿 브랜치별 배포 전략
+
+### **Release 브랜치** (`release/X.Y.Z`)
+- **버전 결정**: 브랜치명에서 자동 추출 (예: `release/1.16.7` → `1.16.7`)
+- **manual_version**: 선택사항 (오버라이드 가능)
+- **용도**: 정식 릴리스 준비
+- **환경**: dev → stage → prod 순차 배포
+
+### **Develop 브랜치** (`develop`)
+- **버전 결정**: `manual_version` **필수 입력**
+- **manual_version**: 필수 (예: `1.16.7-experiment.1`)
+- **용도**: 실험적 기능, 핫픽스 테스트
+- **환경**: dev만 가능
+
+### **기타 브랜치** (`feature/*`, `fix/*` 등)
+- **버전 결정**: `manual_version` **필수 입력**
+- **manual_version**: 필수 (예: `1.16.7-feature-auth.1`)
+- **용도**: 기능 브랜치 테스트
+- **환경**: dev만 권장
 
 ---
 

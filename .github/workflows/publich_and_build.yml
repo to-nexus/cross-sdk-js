@@ -27,8 +27,8 @@ on:
           - cdn-publish
 
       manual_version:
-        description: "수동 버전 입력 (선택사항, 비우면 브랜치명에서 추출)"
-        required: false
+        description: "배포 버전 입력 (release/* 브랜치는 선택사항, develop 브랜치는 필수)"
+        required: true
         type: string
         
       dry_run:
@@ -334,18 +334,27 @@ jobs:
       - name: Compute version and resolve dependencies
         id: version
         run: |
-          # 1) Manual input has highest priority
-          if [ -n "${{ inputs.manual_version }}" ]; then
-            REF_VERSION="${{ inputs.manual_version }}"
-            echo "Using manual version: $REF_VERSION"
-          # 2) Branch name for release/*
-          elif [[ "${GITHUB_REF_NAME}" == release/* ]]; then
-            REF_VERSION="${GITHUB_REF_NAME#release/}"
-            echo "Using version from branch: $REF_VERSION"
-          # 3) Fallback to files
+          # Version resolution strategy based on branch type
+          if [[ "${GITHUB_REF_NAME}" == release/* ]]; then
+            # Release branch: manual_version > branch name
+            if [ -n "${{ inputs.manual_version }}" ]; then
+              REF_VERSION="${{ inputs.manual_version }}"
+              echo "Using manual version for release branch: $REF_VERSION"
+            else
+              REF_VERSION="${GITHUB_REF_NAME#release/}"
+              echo "Using version from release branch: $REF_VERSION"
+            fi
           else
-            REF_VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
-            echo "Using version from files: $REF_VERSION"
+            # Develop/other branches: manual_version is required
+            if [ -n "${{ inputs.manual_version }}" ]; then
+              REF_VERSION="${{ inputs.manual_version }}"
+              echo "Using manual version for develop branch: $REF_VERSION"
+            else
+              echo "❌ ERROR: manual_version is required for non-release branches"
+              echo "Current branch: ${GITHUB_REF_NAME}"
+              echo "Please provide manual_version input for develop branch deployment"
+              exit 1
+            fi
           fi
           echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
           
