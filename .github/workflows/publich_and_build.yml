@@ -454,15 +454,12 @@ jobs:
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
           
-          # Create .npmrc exactly like changeset_prepare (no registry override)
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          # Copy exact changeset_prepare .npmrc format
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
-          echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
-          echo "always-auth=true" >> .npmrc
-          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
 
           # Publish only @to-nexus/* workspaces using pnpm recursive publish
           echo "=== .npmrc contents ==="
@@ -506,15 +503,12 @@ jobs:
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
           
-          # Create .npmrc exactly like changeset_prepare (no registry override)
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          # Copy exact changeset_prepare .npmrc format
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
-          echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
-          echo "always-auth=true" >> .npmrc
-          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
 
           echo "=== .npmrc contents ==="
           cat .npmrc
