@@ -78,7 +78,7 @@ jobs:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
 
       - name: Install workspace (packages only)
-        run: pnpm -w -r --filter ./packages/** --filter '!./examples/**' install --no-frozen-lockfile
+        run: pnpm -w -r install --no-frozen-lockfile
 
       - name: Resolve and apply versions
         id: resolve
