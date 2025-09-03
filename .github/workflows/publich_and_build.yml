@@ -65,6 +65,7 @@ jobs:
   changeset_prepare:
     name: Prepare Changeset (auto for preview)
     # release/* 전용, dev|stage에서 다른 서비스 실행 전 자동 수행
+    environment: ${{ inputs.environment }}
     if: |
       github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish' || inputs.services == 'changeset')
     runs-on: ubuntu-latest
