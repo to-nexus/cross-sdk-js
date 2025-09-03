@@ -463,38 +463,13 @@ jobs:
           echo "always-auth=true" >> .npmrc
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
 
-          node -e '
-            const fs = require("fs");
-            const path = require("path");
-            const { execSync } = require("child_process");
-            const root = process.cwd();
-            const pkgsDir = path.join(root, "packages");
-            const publishTag = "alpha";
-            const registry = process.env.NEXUS_REGISTRY_URL;
-            function* walk(dir){
-              for(const name of fs.readdirSync(dir)){
-                const p = path.join(dir,name);
-                const st = fs.statSync(p);
-                if(st.isDirectory()) yield* walk(p);
-                else if(name === "package.json") yield p;
-              }
-            }
-            let count = 0;
-            for(const pkgJsonPath of walk(pkgsDir)){
-              const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
-              if(!pkg.name || !pkg.version) continue;
-              if(!pkg.name.startsWith("@to-nexus/")) continue;
-              if(pkg.private) continue;
-              const dir = path.dirname(pkgJsonPath);
-              const cmd = `pnpm -C "${dir}" publish --tag ${publishTag} --registry ${registry} --no-git-checks`;
-              console.log(`Publishing ${pkg.name}@${pkg.version} from ${dir}`);
-              try{ execSync(cmd, { stdio: "inherit" }); count++; }
-              catch(e){ console.error(`Failed to publish ${pkg.name}:`, e?.status || e?.message); process.exitCode = 1; }
-            }
-            if(count>0) console.log(`Published ${count} @to-nexus packages.`);
-            else console.log("No @to-nexus packages to publish.");
-          '
-          if [ "$?" -eq 0 ]; then echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT; else echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT; exit 1; fi
+          # Publish only @to-nexus/* workspaces using pnpm recursive publish
+          if pnpm -r --filter "@to-nexus/*" publish --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
+          else
+            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
@@ -532,38 +507,12 @@ jobs:
           echo "always-auth=true" >> .npmrc
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
 
-          node -e '
-            const fs = require("fs");
-            const path = require("path");
-            const { execSync } = require("child_process");
-            const root = process.cwd();
-            const pkgsDir = path.join(root, "packages");
-            const publishTag = "beta";
-            const registry = process.env.NEXUS_REGISTRY_URL;
-            function* walk(dir){
-              for(const name of fs.readdirSync(dir)){
-                const p = path.join(dir,name);
-                const st = fs.statSync(p);
-                if(st.isDirectory()) yield* walk(p);
-                else if(name === "package.json") yield p;
-              }
-            }
-            let count = 0;
-            for(const pkgJsonPath of walk(pkgsDir)){
-              const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
-              if(!pkg.name || !pkg.version) continue;
-              if(!pkg.name.startsWith("@to-nexus/")) continue;
-              if(pkg.private) continue;
-              const dir = path.dirname(pkgJsonPath);
-              const cmd = `pnpm -C "${dir}" publish --tag ${publishTag} --registry ${registry} --no-git-checks`;
-              console.log(`Publishing ${pkg.name}@${pkg.version} from ${dir}`);
-              try{ execSync(cmd, { stdio: "inherit" }); count++; }
-              catch(e){ console.error(`Failed to publish ${pkg.name}:`, e?.status || e?.message); process.exitCode = 1; }
-            }
-            if(count>0) console.log(`Published ${count} @to-nexus packages.`);
-            else console.log("No @to-nexus packages to publish.");
-          '
-          if [ "$?" -eq 0 ]; then echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT; else echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT; exit 1; fi
+          if pnpm -r --filter "@to-nexus/*" publish --tag beta --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
+          else
+            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
