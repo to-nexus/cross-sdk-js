@@ -413,10 +413,10 @@ jobs:
             echo "VERSION_CHANGES_READY=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build packages (dlx turbo)
+      - name: Build packages (packages only)
         run: |
-          pnpm -w dlx turbo run build
-          # pnpm -w --filter @to-nexus/sdk-cdn run build
+          pnpm -w run build
+          # uses package.json script: turbo run build --filter={./packages/*}
 
       # Removed per-package post-build version bump; using bulk version set above
 
