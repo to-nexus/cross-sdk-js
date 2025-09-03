@@ -530,8 +530,10 @@ jobs:
           echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
           
           # Also set as environment variables for npm
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
@@ -631,6 +633,8 @@ jobs:
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
           
           # Also set as environment variables for npm
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
@@ -800,8 +804,10 @@ jobs:
           echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
           echo "always-auth=true" >> .npmrc
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
