@@ -450,20 +450,23 @@ jobs:
         id: publish_dev
         run: |
           FILTERS="${{ inputs.publish_filters }}"
+          [ -z "$FILTERS" ] && FILTERS="@to-nexus/*"
           FILTER_ARGS=""
           IFS=',' read -ra ARR <<< "$FILTERS"
           for f in "${ARR[@]}"; do
             f=$(echo "$f" | xargs)
-            [ -n "$f" ] && FILTER_ARGS="$FILTER_ARGS --filter $f"
+            case "$f" in
+              @to-nexus/*) [ -n "$f" ] && FILTER_ARGS="$FILTER_ARGS --filter $f" ;;
+            esac
           done
-          if pnpm -w $FILTER_ARGS changeset publish --tag alpha; then
+          if pnpm -w $FILTER_ARGS changeset publish --registry "${NEXUS_REGISTRY_URL}" --tag alpha; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
             exit 1
           fi
         env:
-          NEXUS_REGISTRY_URL: ${{ inputs.environment == 'dev' && vars.NEXUS_DEV_REGISTRY_URL}}
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
 
       - name: Commit version changes (dev - after successful publish)
         if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
@@ -486,20 +489,23 @@ jobs:
         id: publish_stage
         run: |
           FILTERS="${{ inputs.publish_filters }}"
+          [ -z "$FILTERS" ] && FILTERS="@to-nexus/*"
           FILTER_ARGS=""
           IFS=',' read -ra ARR <<< "$FILTERS"
           for f in "${ARR[@]}"; do
             f=$(echo "$f" | xargs)
-            [ -n "$f" ] && FILTER_ARGS="$FILTER_ARGS --filter $f"
+            case "$f" in
+              @to-nexus/*) [ -n "$f" ] && FILTER_ARGS="$FILTER_ARGS --filter $f" ;;
+            esac
           done
-          if pnpm -w $FILTER_ARGS changeset publish --tag beta; then
+          if pnpm -w $FILTER_ARGS changeset publish --registry "${NEXUS_REGISTRY_URL}" --tag beta; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
             exit 1
           fi
         env:
-          NEXUS_REGISTRY_URL: ${{ inputs.environment == 'stage' && vars.NEXUS_STAGE_REGISTRY_URL}}
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
 
       - name: Commit version changes (stage - after successful publish)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
