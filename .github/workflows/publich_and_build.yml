@@ -506,9 +506,13 @@ jobs:
             exit 1
           fi
           
-          # Test auth with npm login approach
+          # Non-interactive npm login to obtain _authToken in this .npmrc (no secrets printed)
+          echo "=== Performing non-interactive npm login ==="
+          { printf "%s\n" "$NPM_USER"; printf "%s\n" "$NPM_PASS"; printf "%s\n" "git_action@to.nexus"; } | \
+            NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" npm adduser --registry "${NEXUS_REGISTRY_URL}" --always-auth >/dev/null 2>&1 || true
+          
           echo "=== Attempting npm whoami (optional) ==="
-          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami not supported with basic auth"
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami not supported with basic auth/token invisibility"
 
           echo "=== Publishing via pnpm (recursive, @to-nexus/* only) ==="
           if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r --filter "@to-nexus/*" publish --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
