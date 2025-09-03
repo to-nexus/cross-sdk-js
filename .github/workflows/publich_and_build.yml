@@ -98,25 +98,25 @@ jobs:
       - name: Ensure not in pre mode (best-effort)
         run: pnpm dlx @changesets/cli@2.27.12 pre exit || true
 
-      - name: Align internal package dependency versions
-        run: |
-          pnpm run workspace:align || true
-          pnpm run packages:version:switch || true
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          if [ -n "$(git status --porcelain)" ]; then
-            if [ "${{ inputs.dry_run }}" = "false" ]; then
-              git commit -m "chore: align internal dependency versions"
-              git fetch origin "${GITHUB_REF_NAME}" || true
-              git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-              git push || git push --force-with-lease
-            else
-              echo "Dry-run: internal dependency changes detected but not committed"
-            fi
-          else
-            echo "No internal dependency changes"
-          fi
+      # - name: Align internal package dependency versions
+      #   run: |
+      #     pnpm run workspace:align || true
+      #     pnpm run packages:version:switch || true
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add -A
+      #     if [ -n "$(git status --porcelain)" ]; then
+      #       if [ "${{ inputs.dry_run }}" = "false" ]; then
+      #         git commit -m "chore: align internal dependency versions"
+      #         git fetch origin "${GITHUB_REF_NAME}" || true
+      #         git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+      #         git push || git push --force-with-lease
+      #       else
+      #         echo "Dry-run: internal dependency changes detected but not committed"
+      #       fi
+      #     else
+      #       echo "No internal dependency changes"
+      #     fi
 
       - name: Bump @to-nexus/* to latest (workspace)
         run: |
