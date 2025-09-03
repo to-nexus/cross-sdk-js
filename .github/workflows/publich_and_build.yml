@@ -454,16 +454,24 @@ jobs:
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
           
-          # Create .npmrc with proper Basic auth format for Nexus
+          # Create .npmrc and set npm environment variables
           echo "registry=https://registry.npmjs.org/" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
           echo "//${HOST_PATH}/:email=npm@to.nexus" >> .npmrc
-          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
           
-          # Skip npm adduser - too complex for CI
-          echo "=== Skipping npm adduser (interactive) ==="
+          # Also set as environment variables for npm
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export NPM_CONFIG_REGISTRY="https://registry.npmjs.org/"
+          export NPM_CONFIG_ALWAYS_AUTH="true"
+          
+          # Decode and set auth environment variables
+          DECODED_AUTH=$(echo "${NPM_AUTH}" | base64 -d)
+          IFS=':' read -r NPM_USER NPM_PASS <<< "$DECODED_AUTH"
+          export NPM_CONFIG_USERNAME="$NPM_USER"
+          export NPM_CONFIG_PASSWORD="$NPM_PASS"
+          export NPM_CONFIG_EMAIL="git_action@to.nexus"
 
           # Publish only @to-nexus/* workspaces using pnpm recursive publish
           echo "=== .npmrc contents ==="
@@ -514,16 +522,24 @@ jobs:
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
           
-          # Create .npmrc with proper Basic auth format for Nexus
+          # Create .npmrc and set npm environment variables
           echo "registry=https://registry.npmjs.org/" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
           echo "//${HOST_PATH}/:email=npm@to.nexus" >> .npmrc
-          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
           
-          # Skip npm adduser - too complex for CI
-          echo "=== Skipping npm adduser (interactive) ==="
+          # Also set as environment variables for npm
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export NPM_CONFIG_REGISTRY="https://registry.npmjs.org/"
+          export NPM_CONFIG_ALWAYS_AUTH="true"
+          
+          # Decode and set auth environment variables
+          DECODED_AUTH=$(echo "${NPM_AUTH}" | base64 -d)
+          IFS=':' read -r NPM_USER NPM_PASS <<< "$DECODED_AUTH"
+          export NPM_CONFIG_USERNAME="$NPM_USER"
+          export NPM_CONFIG_PASSWORD="$NPM_PASS"
+          export NPM_CONFIG_EMAIL="npm@to.nexus"
 
           echo "=== .npmrc contents ==="
           cat .npmrc
