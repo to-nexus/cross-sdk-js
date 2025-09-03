@@ -299,9 +299,15 @@ jobs:
       - name: Configure npm for Nexus
         run: |
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
           echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
           echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
@@ -422,16 +428,13 @@ jobs:
           # Mark as bumped for downstream steps
           echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
 
-          # Stash version changes to commit only after successful publish
+          # Keep version changes staged (no commit). Publish will read bumped versions
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
           if [ -n "$(git status --porcelain)" ]; then
-            git stash push -m "version-bump-backup-$(date +%s)"
-            echo "STASH_CREATED=true" >> $GITHUB_OUTPUT
             echo "VERSION_CHANGES_READY=true" >> $GITHUB_OUTPUT
           else
-            echo "STASH_CREATED=false" >> $GITHUB_OUTPUT
             echo "VERSION_CHANGES_READY=false" >> $GITHUB_OUTPUT
           fi
 
@@ -463,9 +466,8 @@ jobs:
           NEXUS_REGISTRY_URL: ${{ inputs.environment == 'dev' && vars.NEXUS_DEV_REGISTRY_URL}}
 
       - name: Commit version changes (dev - after successful publish)
-        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.STASH_CREATED == 'true'
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
         run: |
-          git stash pop
           git add -A
           git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
           git fetch origin "${GITHUB_REF_NAME}" || true
@@ -473,11 +475,10 @@ jobs:
           git push || git push --force-with-lease
 
       - name: Rollback version changes (dev - if publish failed)
-        if: inputs.environment == 'dev' && failure() && steps.version.outputs.STASH_CREATED == 'true'
+        if: inputs.environment == 'dev' && failure() && steps.version.outputs.VERSION_CHANGES_READY == 'true'
         run: |
           echo "⚠️ Publish failed, rolling back version changes..."
           git reset --hard HEAD
-          git stash drop || true
 
 
       - name: Publish package to Nexus (stage → beta)
@@ -501,9 +502,8 @@ jobs:
           NEXUS_REGISTRY_URL: ${{ inputs.environment == 'stage' && vars.NEXUS_STAGE_REGISTRY_URL}}
 
       - name: Commit version changes (stage - after successful publish)
-        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.STASH_CREATED == 'true'
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
         run: |
-          git stash pop
           git add -A
           git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
           git fetch origin "${GITHUB_REF_NAME}" || true
@@ -511,11 +511,10 @@ jobs:
           git push || git push --force-with-lease
 
       - name: Rollback version changes (stage - if publish failed)
-        if: inputs.environment == 'stage' && failure() && steps.version.outputs.STASH_CREATED == 'true'
+        if: inputs.environment == 'stage' && failure() && steps.version.outputs.VERSION_CHANGES_READY == 'true'
         run: |
           echo "⚠️ Publish failed, rolling back version changes..."
           git reset --hard HEAD
-          git stash drop || true
 
       - name: Publish package to Nexus (prod → latest)
         if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main' && steps.version_bump.outputs.VERSION_BUMPED == 'true'
@@ -604,9 +603,15 @@ jobs:
       - name: Configure npm for Nexus
         run: |
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
