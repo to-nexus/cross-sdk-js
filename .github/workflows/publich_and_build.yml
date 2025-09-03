@@ -26,7 +26,7 @@ on:
           - sample-page
           - cdn-publish
 
-      manual_version:
+      publish_version:
         description: "배포 버전 입력 (release/* 브랜치는 선택사항, develop 브랜치는 필수)"
         required: true
         type: string
@@ -39,6 +39,12 @@ on:
         options:
           - 'false'
           - 'true'
+
+      package_versions:
+        description: "외부 의존성 오버라이드 (예: core=2.19.11,universal=2.19.11,sign-client=2.19.11,sdk=1.16.6)"
+        required: false
+        default: ''
+        type: string
 
 permissions:
   id-token: write
@@ -230,7 +236,7 @@ jobs:
     uses: ./.github/workflows/version_bump.yml
     with:
       environment: ${{ inputs.environment }}
-      versions: ''
+      versions: ${{ inputs.package_versions }}
     secrets: inherit
 
   publish_npm_preview:
@@ -238,7 +244,7 @@ jobs:
     needs: [changeset_prepare, version_bump]
     # release/* 의 dev|stage 전용
     if: |
-      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish') && needs.version_bump.outputs.can_publish == 'true'
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish')
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
@@ -295,23 +301,23 @@ jobs:
         run: |
           # Version resolution strategy based on branch type
           if [[ "${GITHUB_REF_NAME}" == release/* ]]; then
-            # Release branch: manual_version > branch name
-            if [ -n "${{ inputs.manual_version }}" ]; then
-              REF_VERSION="${{ inputs.manual_version }}"
+            # Release branch: publish_version > branch name
+            if [ -n "${{ inputs.publish_version }}" ]; then
+              REF_VERSION="${{ inputs.publish_version }}"
               echo "Using manual version for release branch: $REF_VERSION"
             else
               REF_VERSION="${GITHUB_REF_NAME#release/}"
               echo "Using version from release branch: $REF_VERSION"
             fi
           else
-            # Develop/other branches: manual_version is required
-            if [ -n "${{ inputs.manual_version }}" ]; then
-              REF_VERSION="${{ inputs.manual_version }}"
+            # Develop/other branches: publish_version is required
+            if [ -n "${{ inputs.publish_version }}" ]; then
+              REF_VERSION="${{ inputs.publish_version }}"
               echo "Using manual version for develop branch: $REF_VERSION"
             else
-              echo "❌ ERROR: manual_version is required for non-release branches"
+              echo "❌ ERROR: publish_version is required for non-release branches"
               echo "Current branch: ${GITHUB_REF_NAME}"
-              echo "Please provide manual_version input for develop branch deployment"
+              echo "Please provide publish_version input for develop branch deployment"
               exit 1
             fi
           fi
