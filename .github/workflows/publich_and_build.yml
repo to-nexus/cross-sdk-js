@@ -490,7 +490,7 @@ jobs:
           echo "//${HOST_PATH}/:username=${NPM_USER}" >> .npmrc
           echo "//${HOST_PATH}/:_password=${PW_B64}" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:username=${NPM_USER}" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:\_password=${PW_B64}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_password=${PW_B64}" >> .npmrc
           echo "//${HOST_DOMAIN}/:username=${NPM_USER}" >> .npmrc
           echo "//${HOST_DOMAIN}/:_password=${PW_B64}" >> .npmrc
 
