@@ -79,22 +79,36 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Pre-align workspace deps (before install)
+      - name: Resolve Nexus registry URL (prepare)
+        id: registry_prepare
         run: |
-          node scripts/align-workspace-deps.cjs || true
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          if [ -n "$(git status --porcelain)" ]; then
-            if [ "${{ inputs.dry_run }}" = "false" ]; then
-              git commit -m "chore: pre-align workspace deps before install"
-              git fetch origin "${GITHUB_REF_NAME}" || true
-              git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-              git push || git push --force-with-lease
-            else
-              echo "Dry-run: pre-align changes not committed"
-            fi
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
           fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm registries (temp .npmrc)
+        run: |
+          NPMRC="$RUNNER_TEMP/.npmrc"
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          echo "registry=https://registry.npmjs.org/" > "$NPMRC"
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> "$NPMRC"
+          echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> "$NPMRC"
+          echo "//${HOST_PATH}/:always-auth=true" >> "$NPMRC"
+          echo "NPM_CONFIG_USERCONFIG=$NPMRC" >> $GITHUB_ENV
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry_prepare.outputs.NEXUS_URL }}
+          NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
