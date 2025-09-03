@@ -387,6 +387,22 @@ jobs:
           fi
           echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
 
+          # Auto-append prerelease suffix for dev/stage if missing
+          if [[ "${{ inputs.environment }}" == "dev" || "${{ inputs.environment }}" == "stage" ]]; then
+            if [[ "$REF_VERSION" != *-* ]]; then
+              if [[ "${{ inputs.environment }}" == "dev" ]]; then
+                REF_VERSION="$REF_VERSION-alpha"
+              else
+                REF_VERSION="$REF_VERSION-beta"
+              fi
+              echo "Adjusted prerelease version for ${ { inputs.environment } }: $REF_VERSION"
+            fi
+          fi
+          # Re-export possibly adjusted version
+          echo "REF_VERSION=${REF_VERSION}" > tmp_ref_version
+          echo "REF_VERSION=$(cat tmp_ref_version | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+          rm -f tmp_ref_version
+
           # Apply dependency overrides (package_versions) to force external versions over workspace:*
           if [ -n "${{ inputs.package_versions }}" ]; then
             echo "Applying dependency overrides: ${{ inputs.package_versions }}"
