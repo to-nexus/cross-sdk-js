@@ -97,15 +97,14 @@ jobs:
           STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
           PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
 
-      - name: Configure npm registries (temp .npmrc)
+      - name: Configure npm registries (workspace .npmrc)
         run: |
-          NPMRC="$RUNNER_TEMP/.npmrc"
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
-          echo "registry=https://registry.npmjs.org/" > "$NPMRC"
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> "$NPMRC"
-          echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> "$NPMRC"
-          echo "//${HOST_PATH}/:always-auth=true" >> "$NPMRC"
-          echo "NPM_CONFIG_USERCONFIG=$NPMRC" >> $GITHUB_ENV
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry_prepare.outputs.NEXUS_URL }}
           NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
