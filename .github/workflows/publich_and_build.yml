@@ -449,24 +449,55 @@ jobs:
         if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_dev
         run: |
-          FILTERS="${{ inputs.publish_filters }}"
-          [ -z "$FILTERS" ] && FILTERS="@to-nexus/*"
-          FILTER_ARGS=""
-          IFS=',' read -ra ARR <<< "$FILTERS"
-          for f in "${ARR[@]}"; do
-            f=$(echo "$f" | xargs)
-            case "$f" in
-              @to-nexus/*) [ -n "$f" ] && FILTER_ARGS="$FILTER_ARGS --filter $f" ;;
-            esac
-          done
-          if pnpm -w $FILTER_ARGS changeset publish --registry "${NEXUS_REGISTRY_URL}" --tag alpha; then
-            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
-          else
-            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
+          # Ensure .npmrc exists for this step
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const { execSync } = require("child_process");
+            const root = process.cwd();
+            const pkgsDir = path.join(root, "packages");
+            const publishTag = "alpha";
+            const registry = process.env.NEXUS_REGISTRY_URL;
+            function* walk(dir){
+              for(const name of fs.readdirSync(dir)){
+                const p = path.join(dir,name);
+                const st = fs.statSync(p);
+                if(st.isDirectory()) yield* walk(p);
+                else if(name === "package.json") yield p;
+              }
+            }
+            let count = 0;
+            for(const pkgJsonPath of walk(pkgsDir)){
+              const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
+              if(!pkg.name || !pkg.version) continue;
+              if(!pkg.name.startsWith("@to-nexus/")) continue;
+              if(pkg.private) continue;
+              const dir = path.dirname(pkgJsonPath);
+              const cmd = `pnpm -C "${dir}" publish --tag ${publishTag} --registry ${registry} --no-git-checks`;
+              console.log(`Publishing ${pkg.name}@${pkg.version} from ${dir}`);
+              try{ execSync(cmd, { stdio: "inherit" }); count++; }
+              catch(e){ console.error(`Failed to publish ${pkg.name}:`, e?.status || e?.message); process.exitCode = 1; }
+            }
+            if(count>0) console.log(`Published ${count} @to-nexus packages.`);
+            else console.log("No @to-nexus packages to publish.");
+          '
+          if [ "$?" -eq 0 ]; then echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT; else echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT; exit 1; fi
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
 
       - name: Commit version changes (dev - after successful publish)
         if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
@@ -488,24 +519,54 @@ jobs:
         if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_stage
         run: |
-          FILTERS="${{ inputs.publish_filters }}"
-          [ -z "$FILTERS" ] && FILTERS="@to-nexus/*"
-          FILTER_ARGS=""
-          IFS=',' read -ra ARR <<< "$FILTERS"
-          for f in "${ARR[@]}"; do
-            f=$(echo "$f" | xargs)
-            case "$f" in
-              @to-nexus/*) [ -n "$f" ] && FILTER_ARGS="$FILTER_ARGS --filter $f" ;;
-            esac
-          done
-          if pnpm -w $FILTER_ARGS changeset publish --registry "${NEXUS_REGISTRY_URL}" --tag beta; then
-            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
-          else
-            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const { execSync } = require("child_process");
+            const root = process.cwd();
+            const pkgsDir = path.join(root, "packages");
+            const publishTag = "beta";
+            const registry = process.env.NEXUS_REGISTRY_URL;
+            function* walk(dir){
+              for(const name of fs.readdirSync(dir)){
+                const p = path.join(dir,name);
+                const st = fs.statSync(p);
+                if(st.isDirectory()) yield* walk(p);
+                else if(name === "package.json") yield p;
+              }
+            }
+            let count = 0;
+            for(const pkgJsonPath of walk(pkgsDir)){
+              const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
+              if(!pkg.name || !pkg.version) continue;
+              if(!pkg.name.startsWith("@to-nexus/")) continue;
+              if(pkg.private) continue;
+              const dir = path.dirname(pkgJsonPath);
+              const cmd = `pnpm -C "${dir}" publish --tag ${publishTag} --registry ${registry} --no-git-checks`;
+              console.log(`Publishing ${pkg.name}@${pkg.version} from ${dir}`);
+              try{ execSync(cmd, { stdio: "inherit" }); count++; }
+              catch(e){ console.error(`Failed to publish ${pkg.name}:`, e?.status || e?.message); process.exitCode = 1; }
+            }
+            if(count>0) console.log(`Published ${count} @to-nexus packages.`);
+            else console.log("No @to-nexus packages to publish.");
+          '
+          if [ "$?" -eq 0 ]; then echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT; else echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT; exit 1; fi
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
 
       - name: Commit version changes (stage - after successful publish)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
