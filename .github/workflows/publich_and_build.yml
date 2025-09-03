@@ -304,6 +304,7 @@ jobs:
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
           echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
           echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
@@ -606,13 +607,17 @@ jobs:
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
           NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
           NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/.npmrc
       
       - name: Verify npm authentication
-        run: cat .npmrc
+        run: |
+          cat .npmrc
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || true
+          npm ping --registry "${NEXUS_REGISTRY_URL}" || true
       
       - name: Install pnpm
         uses: pnpm/action-setup@v2
