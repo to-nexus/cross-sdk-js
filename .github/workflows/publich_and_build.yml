@@ -316,17 +316,29 @@ jobs:
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
           NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/.npmrc
 
-      - name: Verify npm authentication
+      - name: Verify npm auth and test publish (gate)
         run: |
           set -e
-          echo "=== Verifying auth via -/whoami ==="
           echo "::add-mask::${NPM_TOKEN}" || true
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
-          if [ "$STATUS" != "200" ]; then
-            echo "Auth verification failed (HTTP $STATUS). Aborting."
-            exit 1
-          fi
-          echo "Auth OK"
+          
+          echo "=== npm whoami ==="
+          USER=$(npm whoami --registry "${NEXUS_REGISTRY_URL}")
+          echo "Logged in as: ${USER}"
+          
+          echo "=== Test publish to verify write access ==="
+          TMP_DIR=$(mktemp -d)
+          pushd "$TMP_DIR" > /dev/null
+          NAME="@to-nexus/test-publish-ci-$(date +%s)-$RANDOM"
+          npm init -y >/dev/null 2>&1
+          npm pkg set name="$NAME" version="0.0.0-alpha.0" main="index.js" >/dev/null
+          echo "console.log('ok')" > index.js
+          npm publish --access public --tag alpha --registry "${NEXUS_REGISTRY_URL}" >/dev/null
+          echo "Test publish OK: $NAME"
+          # cleanup best-effort
+          npm unpublish "$NAME" --force --registry "${NEXUS_REGISTRY_URL}" >/dev/null 2>&1 || \
+            npm deprecate "$NAME@*" "ci test package" --registry "${NEXUS_REGISTRY_URL}" >/dev/null 2>&1 || true
+          popd > /dev/null
+          rm -rf "$TMP_DIR"
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
