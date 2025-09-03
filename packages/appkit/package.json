@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit",
-  "version": "1.16.7-alpha",
+  "version": "1.16.6",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -102,15 +102,15 @@
     }
   },
   "dependencies": {
-    "@reown/appkit-polyfills": "workspace:*",
+    "@to-nexus/universal-provider": "2.19.11",
     "@to-nexus/appkit-common": "workspace:*",
     "@to-nexus/appkit-core": "workspace:*",
+    "@reown/appkit-polyfills": "workspace:*",
     "@to-nexus/appkit-scaffold-ui": "workspace:*",
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-utils": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
     "@to-nexus/appkit-wallet-button": "workspace:*",
-    "@to-nexus/universal-provider": "workspace:*",
     "@walletconnect/types": "2.18.0",
     "@walletconnect/utils": "2.18.0",
     "bs58": "6.0.0",

@@ -335,18 +335,17 @@ jobs:
           # Mark as bumped for downstream steps
           echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
 
+          # Stash version changes to commit only after successful publish
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
           if [ -n "$(git status --porcelain)" ]; then
-            if [ "${{ inputs.dry_run }}" = "false" ]; then
-              git commit -m "chore: set workspace version to ${REF_VERSION}"
-              git fetch origin "${GITHUB_REF_NAME}" || true
-              git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-              git push || git push --force-with-lease
-            else
-              echo "Dry-run: workspace version change detected but not committed"
-            fi
+            git stash push -m "version-bump-backup-$(date +%s)"
+            echo "STASH_CREATED=true" >> $GITHUB_OUTPUT
+            echo "VERSION_CHANGES_READY=true" >> $GITHUB_OUTPUT
+          else
+            echo "STASH_CREATED=false" >> $GITHUB_OUTPUT
+            echo "VERSION_CHANGES_READY=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Build packages (dlx turbo)
@@ -376,6 +375,23 @@ jobs:
         env:
           NEXUS_REGISTRY_URL: ${{ inputs.environment == 'dev' && vars.NEXUS_DEV_REGISTRY_URL}}
 
+      - name: Commit version changes (dev - after successful publish)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.STASH_CREATED == 'true'
+        run: |
+          git stash pop
+          git add -A
+          git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
+          git fetch origin "${GITHUB_REF_NAME}" || true
+          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+          git push || git push --force-with-lease
+
+      - name: Rollback version changes (dev - if publish failed)
+        if: inputs.environment == 'dev' && failure() && steps.version.outputs.STASH_CREATED == 'true'
+        run: |
+          echo "⚠️ Publish failed, rolling back version changes..."
+          git reset --hard HEAD
+          git stash drop || true
+
 
       - name: Publish package to Nexus (stage → beta)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
@@ -396,6 +412,23 @@ jobs:
           fi
         env:
           NEXUS_REGISTRY_URL: ${{ inputs.environment == 'stage' && vars.NEXUS_STAGE_REGISTRY_URL}}
+
+      - name: Commit version changes (stage - after successful publish)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.STASH_CREATED == 'true'
+        run: |
+          git stash pop
+          git add -A
+          git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
+          git fetch origin "${GITHUB_REF_NAME}" || true
+          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+          git push || git push --force-with-lease
+
+      - name: Rollback version changes (stage - if publish failed)
+        if: inputs.environment == 'stage' && failure() && steps.version.outputs.STASH_CREATED == 'true'
+        run: |
+          echo "⚠️ Publish failed, rolling back version changes..."
+          git reset --hard HEAD
+          git stash drop || true
 
       - name: Publish package to Nexus (prod → latest)
         if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main' && steps.version_bump.outputs.VERSION_BUMPED == 'true'

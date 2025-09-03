@@ -1,6 +1,6 @@
 {
   "name": "@reown/appkit-polyfills",
-  "version": "1.16.7-alpha",
+  "version": "1.6.9",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -19,9 +19,7 @@
     "buffer": "6.0.3"
   },
   "devDependencies": {
-    "@types/node": "22.13.4",
-    "@types/react": "^18.0.0",
-    "vite": "^5.0.0"
+    "@types/node": "22.13.4"
   },
   "keywords": [
     "web3",
