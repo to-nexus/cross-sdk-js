@@ -539,6 +539,46 @@ jobs:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
+      - name: Restore publishConfig.registry from HEAD (dev)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const { execSync } = require("child_process");
+            const fs = require("fs");
+            const path = require("path");
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let reverted=0;
+            for(const f of files){
+              const curr = JSON.parse(fs.readFileSync(f, "utf8"));
+              if(!curr.name || !/^@to-nexus\//.test(curr.name)) continue;
+              try{
+                const headJson = execSync(`git show HEAD:${f}`,{stdio:["ignore","pipe","pipe"]}).toString();
+                const head = JSON.parse(headJson);
+                const headReg = head.publishConfig && head.publishConfig.registry;
+                if(curr.publishConfig && curr.publishConfig.registry && headReg && curr.publishConfig.registry !== headReg){
+                  curr.publishConfig.registry = headReg;
+                  fs.writeFileSync(f, JSON.stringify(curr, null, 2) + "\n");
+                  reverted++;
+                }
+              }catch(e){ /* ignore if file not in HEAD */ }
+            }
+            console.log("publishConfig.registry restored for", reverted, "files");
+          '
+
       - name: Commit version changes (dev - after successful publish)
         if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
         run: |
@@ -587,6 +627,46 @@ jobs:
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Restore publishConfig.registry from HEAD (stage)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const { execSync } = require("child_process");
+            const fs = require("fs");
+            const path = require("path");
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let reverted=0;
+            for(const f of files){
+              const curr = JSON.parse(fs.readFileSync(f, "utf8"));
+              if(!curr.name || !/^@to-nexus\//.test(curr.name)) continue;
+              try{
+                const headJson = execSync(`git show HEAD:${f}`,{stdio:["ignore","pipe","pipe"]}).toString();
+                const head = JSON.parse(headJson);
+                const headReg = head.publishConfig && head.publishConfig.registry;
+                if(curr.publishConfig && curr.publishConfig.registry && headReg && curr.publishConfig.registry !== headReg){
+                  curr.publishConfig.registry = headReg;
+                  fs.writeFileSync(f, JSON.stringify(curr, null, 2) + "\n");
+                  reverted++;
+                }
+              }catch(e){ /* ignore if file not in HEAD */ }
+            }
+            console.log("publishConfig.registry restored for", reverted, "files");
+          '
 
       - name: Commit version changes (stage - after successful publish)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
