@@ -454,9 +454,8 @@ jobs:
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
           
-          # Create .npmrc same as changeset_prepare job
-          echo "registry=https://registry.npmjs.org/" > .npmrc
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          # Create .npmrc exactly like changeset_prepare (no registry override)
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
@@ -507,9 +506,8 @@ jobs:
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
           
-          # Create .npmrc same as changeset_prepare job
-          echo "registry=https://registry.npmjs.org/" > .npmrc
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          # Create .npmrc exactly like changeset_prepare (no registry override)
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_DOMAIN}/:_auth=${NPM_AUTH}" >> .npmrc
