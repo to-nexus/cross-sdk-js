@@ -295,13 +295,12 @@ jobs:
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
-        env:
           NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/.npmrc
 
       - name: Verify npm authentication
         run: |
           cat .npmrc
-          npm whoami --registry "${NEXUS_REGISTRY_URL}" || true
+          npm whoami --registry "${{ steps.registry.outputs.NEXUS_URL }}" || true
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
