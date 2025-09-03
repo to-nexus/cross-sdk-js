@@ -454,12 +454,20 @@ jobs:
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
           
-          # Copy exact changeset_prepare .npmrc format
+          # Create .npmrc with proper Basic auth format for Nexus
           echo "registry=https://registry.npmjs.org/" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH}/:email=npm@to.nexus" >> .npmrc
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+          
+          # Also try npm login approach
+          echo "=== Attempting npm adduser programmatically ==="
+          echo -e "${NPM_AUTH}" | base64 -d | (
+            IFS=':' read -r username password
+            echo "$password" | npm adduser --registry "${NEXUS_REGISTRY_URL}" --username "$username" --email "npm@to.nexus" || echo "npm adduser failed"
+          )
 
           # Publish only @to-nexus/* workspaces using pnpm recursive publish
           echo "=== .npmrc contents ==="
@@ -510,12 +518,20 @@ jobs:
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
           
-          # Copy exact changeset_prepare .npmrc format
+          # Create .npmrc with proper Basic auth format for Nexus
           echo "registry=https://registry.npmjs.org/" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_auth=${NPM_AUTH}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH}/:email=npm@to.nexus" >> .npmrc
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+          
+          # Also try npm login approach
+          echo "=== Attempting npm adduser programmatically ==="
+          echo -e "${NPM_AUTH}" | base64 -d | (
+            IFS=':' read -r username password
+            echo "$password" | npm adduser --registry "${NEXUS_REGISTRY_URL}" --username "$username" --email "npm@to.nexus" || echo "npm adduser failed"
+          )
 
           echo "=== .npmrc contents ==="
           cat .npmrc
