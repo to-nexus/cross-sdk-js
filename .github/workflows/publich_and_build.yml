@@ -485,6 +485,15 @@ jobs:
           export NPM_CONFIG_PASSWORD="$NPM_PASS"
           export NPM_CONFIG_EMAIL="git_action@to.nexus"
 
+          # Also write legacy auth keys (username/_password) to .npmrc for npm publish
+          PW_B64=$(printf "%s" "$NPM_PASS" | base64 -w 0 2>/dev/null || printf "%s" "$NPM_PASS" | base64)
+          echo "//${HOST_PATH}/:username=${NPM_USER}" >> .npmrc
+          echo "//${HOST_PATH}/:_password=${PW_B64}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:username=${NPM_USER}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:\_password=${PW_B64}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:username=${NPM_USER}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_password=${PW_B64}" >> .npmrc
+
           # Publish only @to-nexus/* workspaces using pnpm recursive publish
           echo "=== .npmrc contents ==="
           cat .npmrc
