@@ -454,6 +454,46 @@ jobs:
 
       # Removed per-package post-build version bump; using bulk version set above
 
+      - name: Override publishConfig.registry to env registry (dev/stage)
+        if: inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const target = process.env.NEXUS_URL;
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let count=0;
+            for(const f of files){
+              const pkg=JSON.parse(fs.readFileSync(f, "utf8"));
+              if(pkg.name && /^@to-nexus\//.test(pkg.name)){
+                pkg.publishConfig = pkg.publishConfig || {};
+                if(pkg.publishConfig.registry !== target){
+                  pkg.publishConfig.registry = target;
+                  fs.writeFileSync(f, JSON.stringify(pkg, null, 2) + "\n");
+                  console.log("publishConfig.registry ->", target, "in", f);
+                  count++;
+                }
+              }
+            }
+            console.log("Updated", count, "package.json files");
+          '
+        env:
+          NEXUS_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+
       - name: Publish package to Nexus (dev → alpha)
         if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_dev
