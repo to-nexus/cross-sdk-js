@@ -469,14 +469,14 @@ jobs:
           echo "=== Testing npm whoami ==="
           npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami failed"
           
-          # Test single package first to isolate auth issue
-          echo "=== Testing single package publish ==="
-          cd packages/appkit-common
-          npm publish --tag alpha --registry "${NEXUS_REGISTRY_URL}" --dry-run || echo "Single package dry-run failed"
-          cd ../..
+          # Test auth with npm login approach
+          echo "=== Attempting npm login with token ==="
+          echo "//${HOST_PATH}/:_authToken=${NPM_AUTH}" >> .npmrc
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "Token auth failed too"
           
-          echo "=== Attempting pnpm recursive publish ==="
-          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r --filter "@to-nexus/*" publish --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+          # Use original changeset approach that worked
+          echo "=== Using changeset publish like changeset_prepare ==="
+          if pnpm dlx @changesets/cli@2.27.12 publish --tag alpha; then
             echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
