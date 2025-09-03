@@ -395,7 +395,7 @@ jobs:
               else
                 REF_VERSION="$REF_VERSION-beta"
               fi
-              echo "Adjusted prerelease version for ${ { inputs.environment } }: $REF_VERSION"
+              echo "Adjusted prerelease version for ${{ inputs.environment }}: $REF_VERSION"
             fi
           fi
           # Re-export possibly adjusted version
