@@ -386,7 +386,7 @@ jobs:
             fi
           fi
           echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
-
+          
           # Auto-append prerelease suffix for dev/stage if missing
           if [[ "${{ inputs.environment }}" == "dev" || "${{ inputs.environment }}" == "stage" ]]; then
             if [[ "$REF_VERSION" != *-* ]]; then
@@ -449,13 +449,13 @@ jobs:
                 for (const section of ["dependencies","devDependencies","peerDependencies"]) {
                   if (!pkg[section]) continue;
                   for (const depName of Object.keys(map)) {
-                    if (pkg[section][depName]) {
+                      if (pkg[section][depName]) {
                       if (pkg[section][depName] !== map[depName]) {
                         pkg[section][depName] = map[depName];
                         changed = true;
                         console.log(`Updated ${file}: ${depName} -> ${map[depName]}`);
                       }
-                    }
+                  }
                   }
                 }
                 if (changed) {
@@ -767,14 +767,14 @@ jobs:
       - name: Create and push pre-release tag (dev/stage)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
         run: |
-          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
-          TAG="release/${{ steps.version.outputs.REF_VERSION }}-${PREID}"
+          # Use REF_VERSION as-is since it already contains the prerelease suffix
+          TAG="release/${{ steps.version.outputs.REF_VERSION }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists, skipping"
           else
-            git tag -a "$TAG" -m "Pre-Release $TAG"
+            git tag -a "$TAG" -m "Pre-Release ${{ steps.version.outputs.REF_VERSION }}"
             git fetch origin "$TAG" || true
             git push origin "$TAG" || git push --force-with-lease origin "$TAG"
           fi
@@ -783,7 +783,7 @@ jobs:
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release/${{ steps.version.outputs.REF_VERSION }}-${{ inputs.environment == 'stage' && 'beta' || 'alpha' }}
+          tag_name: release/${{ steps.version.outputs.REF_VERSION }}
           name: Pre-Release ${{ steps.version.outputs.REF_VERSION }} (${{ inputs.environment }})
           prerelease: true
           generate_release_notes: true
