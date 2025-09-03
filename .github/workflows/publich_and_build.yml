@@ -462,12 +462,8 @@ jobs:
           echo "//${HOST_PATH}/:email=npm@to.nexus" >> .npmrc
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
           
-          # Also try npm login approach
-          echo "=== Attempting npm adduser programmatically ==="
-          echo -e "${NPM_AUTH}" | base64 -d | (
-            IFS=':' read -r username password
-            echo "$password" | npm adduser --registry "${NEXUS_REGISTRY_URL}" --username "$username" --email "npm@to.nexus" || echo "npm adduser failed"
-          )
+          # Skip npm adduser - too complex for CI
+          echo "=== Skipping npm adduser (interactive) ==="
 
           # Publish only @to-nexus/* workspaces using pnpm recursive publish
           echo "=== .npmrc contents ==="
@@ -526,12 +522,8 @@ jobs:
           echo "//${HOST_PATH}/:email=npm@to.nexus" >> .npmrc
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
           
-          # Also try npm login approach
-          echo "=== Attempting npm adduser programmatically ==="
-          echo -e "${NPM_AUTH}" | base64 -d | (
-            IFS=':' read -r username password
-            echo "$password" | npm adduser --registry "${NEXUS_REGISTRY_URL}" --username "$username" --email "npm@to.nexus" || echo "npm adduser failed"
-          )
+          # Skip npm adduser - too complex for CI
+          echo "=== Skipping npm adduser (interactive) ==="
 
           echo "=== .npmrc contents ==="
           cat .npmrc
