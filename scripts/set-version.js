@@ -28,7 +28,8 @@ const PACKAGE_JSON_PATHS = [
   path.join(repoRoot, 'packages', 'siwx', 'package.json'),
   path.join(repoRoot, 'packages', 'ui', 'package.json'),
   path.join(repoRoot, 'packages', 'wallet-button', 'package.json'),
-  path.join(repoRoot, 'packages', 'wallet', 'package.json')
+  path.join(repoRoot, 'packages', 'wallet', 'package.json'),
+  path.join(repoRoot, 'providers', 'universal-provider', 'package.json')
 ]
 
 function printUsageAndExit(message) {

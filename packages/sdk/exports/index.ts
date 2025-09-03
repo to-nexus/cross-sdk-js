@@ -1,1 +1,1 @@
-export const sdkVersion = '0.0.0-owen';export * from '../src/index.js'
+export const sdkVersion = '1.16.6';export * from '../src/index.js'
