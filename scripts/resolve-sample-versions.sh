@@ -94,36 +94,45 @@ resolve_version() {
     npm_output=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>&1)
     npm_exit_code=$?
     echo "🔍 Debug: npm exit code: $npm_exit_code" >&2
-    if [ $npm_exit_code -ne 0 ]; then
-      echo "🔍 Debug: npm error: $npm_output" >&2
+    if [ $npm_exit_code -ne 0 ] || [ -z "$npm_output" ]; then
+      echo "🔍 Debug: npm failed or empty output: $npm_output" >&2
       version=""
     else
       version=$(echo "$npm_output" | node -p "
       try {
-        const input = require('fs').readFileSync('/dev/stdin', 'utf8');
-        const versions = JSON.parse(input);
-        const alphas = versions.filter(v => v.includes('-alpha'));
-        if (alphas.length === 0) {
+        const input = require('fs').readFileSync('/dev/stdin', 'utf8').trim();
+        if (!input) {
+          console.error('🔍 Debug: Empty npm output');
           '';
         } else {
-          // Sort versions and get the latest alpha
-          alphas.sort((a, b) => {
-            const aParts = a.split('-')[0].split('.').map(Number);
-            const bParts = b.split('-')[0].split('.').map(Number);
-            for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-              const aPart = aParts[i] || 0;
-              const bPart = bParts[i] || 0;
-              if (aPart !== bPart) return bPart - aPart;
-            }
-            return b.localeCompare(a);
-          });
-          alphas[0];
+          const versions = JSON.parse(input);
+          const alphas = versions.filter(v => v.includes('-alpha'));
+          console.error('🔍 Debug: Found', versions.length, 'total versions'); 
+          console.error('🔍 Debug: Found', alphas.length, 'alpha versions:', alphas.slice(0,5)); 
+          if (alphas.length === 0) {
+            '';
+          } else {
+            // Sort versions and get the latest alpha
+            alphas.sort((a, b) => {
+              const aParts = a.split('-')[0].split('.').map(Number);
+              const bParts = b.split('-')[0].split('.').map(Number);
+              for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                const aPart = aParts[i] || 0;
+                const bPart = bParts[i] || 0;
+                if (aPart !== bPart) return bPart - aPart;
+              }
+              return b.localeCompare(a);
+            });
+            alphas[0];
+          }
         }
       } catch(e) { 
         console.error('🔍 Debug: Parse error:', e.message);
         ''; 
       }
-    " 2>&1)
+    " 2>/dev/null)
+      # Clean up any debug messages from the version string
+      version=$(echo "$version" | grep -v "🔍 Debug:" | head -1)
     fi
   elif [ "$tag" = "beta" ]; then
     # beta 버전 찾기: -beta가 포함된 가장 최신 버전
@@ -134,36 +143,44 @@ resolve_version() {
     echo "🔍 Debug: npm exit code: $npm_exit_code" >&2
     echo "🔍 Debug: npm output: $npm_output" >&2
     
-    if [ $npm_exit_code -eq 0 ]; then
+    if [ $npm_exit_code -eq 0 ] && [ -n "$npm_output" ]; then
       version=$(echo "$npm_output" | node -p "
         try {
-          const input = require('fs').readFileSync('/dev/stdin', 'utf8');
-          const versions = JSON.parse(input);
-          const betas = versions.filter(v => v.includes('-beta'));
-          console.error('🔍 Debug: Found', versions.length, 'total versions'); 
-          console.error('🔍 Debug: Found', betas.length, 'beta versions:', betas.slice(0,5)); 
-          if (betas.length === 0) {
+          const input = require('fs').readFileSync('/dev/stdin', 'utf8').trim();
+          if (!input) {
+            console.error('🔍 Debug: Empty npm output');
             '';
           } else {
-            // Sort versions and get the latest beta
-            betas.sort((a, b) => {
-              const aParts = a.split('-')[0].split('.').map(Number);
-              const bParts = b.split('-')[0].split('.').map(Number);
-              for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-                const aPart = aParts[i] || 0;
-                const bPart = bParts[i] || 0;
-                if (aPart !== bPart) return bPart - aPart;
-              }
-              return b.localeCompare(a);
-            });
-            betas[0];
+            const versions = JSON.parse(input);
+            const betas = versions.filter(v => v.includes('-beta'));
+            console.error('🔍 Debug: Found', versions.length, 'total versions'); 
+            console.error('🔍 Debug: Found', betas.length, 'beta versions:', betas.slice(0,5)); 
+            if (betas.length === 0) {
+              '';
+            } else {
+              // Sort versions and get the latest beta
+              betas.sort((a, b) => {
+                const aParts = a.split('-')[0].split('.').map(Number);
+                const bParts = b.split('-')[0].split('.').map(Number);
+                for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                  const aPart = aParts[i] || 0;
+                  const bPart = bParts[i] || 0;
+                  if (aPart !== bPart) return bPart - aPart;
+                }
+                return b.localeCompare(a);
+              });
+              betas[0];
+            }
           }
         } catch(e) { 
           console.error('🔍 Debug: Parse error:', e.message);
           ''; 
         }
-      " 2>&1)
+      " 2>/dev/null)
+      # Clean up any debug messages from the version string
+      version=$(echo "$version" | grep -v "🔍 Debug:" | head -1)
     else
+      echo "🔍 Debug: npm failed or empty output" >&2
       version=""
     fi
   else
