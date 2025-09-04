@@ -33,20 +33,9 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   chmod +x ./scripts/resolve-sample-versions.sh && \
   ./scripts/resolve-sample-versions.sh "${VITE_ENV_MODE:-prod}" "$WORKDIR"
 
-# Docker 환경에서 의존성 설치 (버전 해결 후)
+# Docker 환경에서 의존성 설치 (소스 코드 복사 후)
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
-  echo "Copying .npmrc for persistent access..." && \
-  cp .npmrc .npmrc.persistent
-
-RUN echo "Installing dependencies with pnpm..." && \
-  if [ -f .npmrc.persistent ]; then \
-    cp .npmrc.persistent .npmrc && \
-    echo "Using persistent .npmrc file"; \
-  else \
-    echo "WARNING: .npmrc.persistent not found, using default npm registry"; \
-  fi && \
-  pnpm i --no-frozen-lockfile || \
-  (echo "pnpm install failed, trying with --legacy-peer-deps" && pnpm i --no-frozen-lockfile --legacy-peer-deps) 
+  pnpm install
 
 # 빌드 실행
 RUN pnpm run build
