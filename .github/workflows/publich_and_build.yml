@@ -995,7 +995,7 @@ jobs:
     name: Build and Push Docker Image (prod)
     needs: sonarqube
     if: |
-      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'sample-page')
+      github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
 
     environment: ${{ inputs.environment }}
