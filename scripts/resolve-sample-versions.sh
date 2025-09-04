@@ -43,6 +43,45 @@ esac
 echo "Target dist-tag: $DIST_TAG"
 echo "Target registry: $REGISTRY"
 
+# Configure npm authentication for private registry
+configure_npm_auth() {
+  if [ -f ".npmrc" ]; then
+    echo "🔐 Using existing .npmrc file for authentication"
+    export NPM_CONFIG_USERCONFIG="$(pwd)/.npmrc"
+    export NPM_CONFIG_ALWAYS_AUTH="true"
+    echo "✅ npm authentication configured from existing .npmrc"
+  elif [ -n "$NPM_TOKEN" ]; then
+    echo "🔐 Configuring npm authentication with NPM_TOKEN..."
+    
+    HOST_PATH="${REGISTRY#https://}"
+    HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+    HOST_DOMAIN="${HOST_PATH%%/*}"
+    
+    # Create .npmrc with authentication
+    echo "registry=https://registry.npmjs.org/" > .npmrc
+    echo "@to-nexus:registry=${REGISTRY}" >> .npmrc
+    echo "//${HOST_PATH}:_authToken=${NPM_TOKEN}" >> .npmrc
+    echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+    echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+    echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+    echo "//${HOST_PATH}:always-auth=true" >> .npmrc
+    echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+    echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+    
+    # Set npm config environment variables
+    export NPM_CONFIG_USERCONFIG="$(pwd)/.npmrc"
+    export NPM_CONFIG_REGISTRY="https://registry.npmjs.org/"
+    export NPM_CONFIG_ALWAYS_AUTH="true"
+    
+    echo "✅ npm authentication configured with NPM_TOKEN"
+  else
+    echo "⚠️  No .npmrc file found and NPM_TOKEN not set, using public access only"
+  fi
+}
+
+# Configure npm authentication
+configure_npm_auth
+
 # 버전 해결 함수 - prerelease 버전을 찾거나 latest로 fallback
 resolve_version() {
   local pkg="$1" tag="$2"
