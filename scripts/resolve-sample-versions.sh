@@ -169,7 +169,10 @@ resolve_version() {
       echo "🔍 Debug: Extracted version from HTTP: '$version'" >&2
     fi
     
-    if [ $npm_exit_code -eq 0 ] && [ -n "$npm_output" ]; then
+    # If we found version via HTTP, use it; otherwise try npm output
+    if [ -n "$version" ]; then
+      echo "🔍 Debug: Using HTTP extracted version: '$version'" >&2
+    elif [ $npm_exit_code -eq 0 ] && [ -n "$npm_output" ]; then
       version=$(echo "$npm_output" | node -p "
         try {
           const input = require('fs').readFileSync('/dev/stdin', 'utf8').trim();
@@ -206,8 +209,7 @@ resolve_version() {
       # Clean up any debug messages from the version string
       version=$(echo "$version" | grep -v "🔍 Debug:" | head -1)
     else
-      echo "🔍 Debug: npm failed or empty output" >&2
-      version=""
+      echo "🔍 Debug: npm failed or empty output, no version found" >&2
     fi
   else
     # latest 버전
