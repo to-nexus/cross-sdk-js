@@ -36,10 +36,10 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
 
 # Docker 환경에서 의존성 설치 (소스 코드 복사 후)
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
-  cp .npmrc /tmp/secret.npmrc && \
-  echo "@to-nexus:registry=${REGISTRY_URL}" > .npmrc && \
-  cat /tmp/secret.npmrc >> .npmrc && \
-  NPM_CONFIG_USERCONFIG=$WORKDIR/.npmrc pnpm install
+  cp $WORKDIR/.npmrc /root/.npmrc.secret && \
+  sh -lc 'printf "@to-nexus:registry=%s\n" "$REGISTRY_URL" > /root/.npmrc' && \
+  cat /root/.npmrc.secret >> /root/.npmrc && \
+  NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm install
 
 # 빌드 실행
 RUN pnpm run build
@@ -47,13 +47,13 @@ RUN pnpm run build
 # Build sdk-react
 WORKDIR $WORKDIR/examples/sdk-react
 RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
-RUN NPM_CONFIG_USERCONFIG=$WORKDIR/.npmrc pnpm i
+RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm i
 RUN pnpm run build
 
 # Build sdk-vanilla  
 WORKDIR $WORKDIR/examples/sdk-vanilla
 RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
-RUN NPM_CONFIG_USERCONFIG=$WORKDIR/.npmrc pnpm i
+RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm i
 RUN pnpm run build
 
 # sdk-cdn은 빌드가 필요없으므로 그대로 사용
