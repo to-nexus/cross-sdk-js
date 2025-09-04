@@ -5,19 +5,231 @@ on:
     branches:
       - main
       - ci/*
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
+      services:
+        description: "배포 서비스 선택"
+        required: true
+        type: choice
+        options:
+          - all
+          - changeset
+          - package-publish
+          - sample-page
+          - cdn-publish
+
+      publish_version:
+        description: "배포 버전 입력 (release/* 브랜치는 선택사항, develop 브랜치는 필수)"
+        required: true
+        type: string
+        
+      dry_run:
+        description: "실제 퍼블리시/푸시/태깅 없이 검증만 수행"
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+      package_versions:
+        description: "외부 의존성 오버라이드 (예: core=2.19.11,universal=2.19.11,sign-client=2.19.11,sdk=1.16.6)"
+        required: false
+        default: ''
+        type: string
+
+      publish_filters:
+        description: "퍼블리시 허용 패턴(쉼표 구분). 예: @reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client"
+        required: false
+        default: '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client'
+        type: string
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   packages: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.environment || 'na' }}-${{ inputs.services || 'na' }}
+  cancel-in-progress: true
+
 jobs:
+  changeset_prepare:
+    name: Prepare Changeset (auto for preview)
+    # release/* 전용, dev|stage에서 다른 서비스 실행 전 자동 수행
+    environment: ${{ inputs.environment }}
+    if: |
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Resolve Nexus registry URL (prepare)
+        id: registry_prepare
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm registries (workspace .npmrc)
+        run: |
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry_prepare.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies (packages only)
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install root toolchain (turbo & scripts)
+        run: pnpm -w --filter . install --no-frozen-lockfile
+
+      - name: Ensure not in pre mode (best-effort)
+        run: pnpm dlx @changesets/cli@2.27.12 pre exit || true
+
+      # - name: Align internal package dependency versions
+      #   run: |
+      #     pnpm run workspace:align || true
+      #     pnpm run packages:version:switch || true
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add -A
+      #     if [ -n "$(git status --porcelain)" ]; then
+      #       if [ "${{ inputs.dry_run }}" = "false" ]; then
+      #         git commit -m "chore: align internal dependency versions"
+      #         git fetch origin "${GITHUB_REF_NAME}" || true
+      #         git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+      #         git push || git push --force-with-lease
+      #       else
+      #         echo "Dry-run: internal dependency changes detected but not committed"
+      #       fi
+      #     else
+      #       echo "No internal dependency changes"
+      #     fi
+
+      - name: Bump @to-nexus/* to latest (workspace)
+        run: |
+          pnpm -r up "@to-nexus/*@latest" -P || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              git commit -m "chore: bump @to-nexus/* to latest"
+              git fetch origin "${GITHUB_REF_NAME}" || true
+              git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+              git push || git push --force-with-lease
+            else
+              echo "Dry-run: dependency bump detected but not committed"
+            fi
+          else
+            echo "No dependency changes to commit"
+          fi
+
+      - name: Generate changeset from version.json or branch
+        run: pnpm run auto-changeset
+        
+      - name: Detect changed packages since last release
+        id: changes
+        run: |
+          # Get changed packages compared to last published version
+          LAST_TAG=$(git describe --tags --abbrev=0 --match="release/*" 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            echo "Comparing against last tag: $LAST_TAG"
+            CHANGED_FILES=$(git diff --name-only "$LAST_TAG"..HEAD -- packages/ providers/ | grep -E "(src/|package\.json)" | head -20)
+          else
+            echo "No previous release tag found, treating all packages as changed"
+            CHANGED_FILES=$(find packages providers -name "package.json" | head -20)
+          fi
+          
+          # Extract package names from changed files
+          CHANGED_PACKAGES=""
+          for file in $CHANGED_FILES; do
+            if [[ "$file" == */package.json ]]; then
+              pkg_name=$(node -e "try { console.log(require('./$file').name) } catch(e) {}")
+              if [[ "$pkg_name" == @to-nexus/* ]] || [[ "$pkg_name" == @reown/* ]]; then
+                CHANGED_PACKAGES="$CHANGED_PACKAGES,$pkg_name"
+              fi
+            elif [[ "$file" == packages/*/src/* ]] || [[ "$file" == providers/*/src/* ]]; then
+              dir=$(dirname "$file" | sed 's|/src.*||')
+              if [ -f "$dir/package.json" ]; then
+                pkg_name=$(node -e "try { console.log(require('./$dir/package.json').name) } catch(e) {}")
+                if [[ "$pkg_name" == @to-nexus/* ]] || [[ "$pkg_name" == @reown/* ]]; then
+                  CHANGED_PACKAGES="$CHANGED_PACKAGES,$pkg_name"
+                fi
+              fi
+            fi
+          done
+          
+          CHANGED_PACKAGES=$(echo "$CHANGED_PACKAGES" | sed 's/^,//' | tr ',' '\n' | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "CHANGED_PACKAGES=${CHANGED_PACKAGES}" >> $GITHUB_OUTPUT
+          echo "Changed packages: $CHANGED_PACKAGES"
+      - name: Enter Changeset pre mode
+        if: needs.version_bump.outputs.can_publish == 'true'
+        run: |
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
+          echo "Using preid: ${PREID}"
+          pnpm dlx @changesets/cli@2.27.12 pre enter ${PREID}
+
+      - name: Version packages (pre)
+        if: needs.version_bump.outputs.can_publish == 'true'
+        run: pnpm dlx @changesets/cli@2.27.12 version
+
+      - name: Commit changeset
+        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: auto-generate changeset"
+            git fetch origin "${GITHUB_REF_NAME}" || true
+            git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+            git push || git push --force-with-lease
+          else
+            echo "No changes to commit"
+          fi
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && (inputs.environment == 'stage' || inputs.environment == 'prod') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,12 +239,55 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  publish_npm:
-    name: Publish to Nexus NPM
-    needs: sonarqube
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
+  version_bump:
+    name: Version Bump (reusable)
+    needs: [changeset_prepare]
+    # Runs for dev/stage on release/* and for prod on main when relevant services selected
+    if: |
+      github.event_name == 'workflow_dispatch' && (
+        (
+          startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') &&
+          (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish')
+        ) || (
+          github.ref == 'refs/heads/main' && inputs.environment == 'prod' &&
+          (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish')
+        )
+      )
+    uses: ./.github/workflows/version_bump.yml
+    with:
+      environment: ${{ inputs.environment }}
+      versions: ${{ inputs.package_versions }}
+    secrets: inherit
+
+  publish_npm_preview:
+    name: Publish to Nexus NPM (preview)
+    needs: [changeset_prepare, version_bump]
+    # release/* 의 dev|stage 전용
+    if: |
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'package-publish')
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
     steps:
+      - name: Resolve Nexus registry URL
+        id: registry
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -43,47 +298,651 @@ jobs:
 
       - name: Configure npm for Nexus
         run: |
-          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
-          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
+          echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
-          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+          NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/.npmrc
 
-      - name: Verify npm authentication
-        run: cat .npmrc
+      - name: Verify npm auth and test publish (gate)
+        run: |
+          set -e
+          echo "::add-mask::${NPM_TOKEN}" || true
+          
+          echo "=== Verifying via -/whoami (Bearer) ==="
+          RESP=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
+          BODY=$(echo "$RESP" | head -n1)
+          STATUS=$(echo "$RESP" | tail -n1)
+          if [ "$STATUS" != "200" ]; then
+            echo "Auth verification failed (HTTP $STATUS). Aborting."
+            exit 1
+          fi
+          USER=$(printf "%s" "$BODY" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const o=JSON.parse(s);console.log(o?.username||'');}catch(e){}})")
+          if [ -n "$USER" ]; then echo "Logged in as: $USER"; else echo "Logged in (username not exposed)"; fi
+          
+          echo "=== Test publish to verify write access ==="
+          TMP_DIR=$(mktemp -d)
+          pushd "$TMP_DIR" > /dev/null
+          NAME="@to-nexus/test-publish-ci-$(date +%s)-$RANDOM"
+          npm init -y >/dev/null 2>&1
+          npm pkg set name="$NAME" version="0.0.0-alpha.0" main="index.js" >/dev/null
+          echo "console.log('ok')" > index.js
+          npm publish --access public --tag alpha --registry "${NEXUS_REGISTRY_URL}" >/dev/null
+          echo "Test publish OK: $NAME"
+          # cleanup best-effort
+          npm unpublish "$NAME" --force --registry "${NEXUS_REGISTRY_URL}" >/dev/null 2>&1 || \
+            npm deprecate "$NAME@*" "ci test package" --registry "${NEXUS_REGISTRY_URL}" >/dev/null 2>&1 || true
+          popd > /dev/null
+          rm -rf "$TMP_DIR"
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 9.5.0
 
-      - name: Install dependencies
+      - name: Install dependencies (packages only)
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build packages
-        run: pnpm run build
+      - name: Compute version and resolve dependencies
+        id: version
+        run: |
+          # Version resolution strategy based on branch type
+          if [[ "${GITHUB_REF_NAME}" == release/* ]]; then
+            # Release branch: publish_version > branch name
+            if [ -n "${{ inputs.publish_version }}" ]; then
+              REF_VERSION="${{ inputs.publish_version }}"
+              echo "Using manual version for release branch: $REF_VERSION"
+            else
+              REF_VERSION="${GITHUB_REF_NAME#release/}"
+              echo "Using version from release branch: $REF_VERSION"
+            fi
+          else
+            # Develop/other branches: publish_version is required
+            if [ -n "${{ inputs.publish_version }}" ]; then
+              REF_VERSION="${{ inputs.publish_version }}"
+              echo "Using manual version for develop branch: $REF_VERSION"
+            else
+              echo "❌ ERROR: publish_version is required for non-release branches"
+              echo "Current branch: ${GITHUB_REF_NAME}"
+              echo "Please provide publish_version input for develop branch deployment"
+              exit 1
+            fi
+          fi
+          echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
+          
+          # Auto-append prerelease suffix for dev/stage if missing
+          if [[ "${{ inputs.environment }}" == "dev" || "${{ inputs.environment }}" == "stage" ]]; then
+            if [[ "$REF_VERSION" != *-* ]]; then
+              if [[ "${{ inputs.environment }}" == "dev" ]]; then
+                REF_VERSION="$REF_VERSION-alpha"
+              else
+                REF_VERSION="$REF_VERSION-beta"
+              fi
+              echo "Adjusted prerelease version for ${{ inputs.environment }}: $REF_VERSION"
+            fi
+          fi
+          # Re-export possibly adjusted version
+          echo "REF_VERSION=${REF_VERSION}" > tmp_ref_version
+          echo "REF_VERSION=$(cat tmp_ref_version | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+          rm -f tmp_ref_version
 
-      - name: Publish package to Nexus
+          # Apply dependency overrides (package_versions) to force external versions over workspace:*
+          if [ -n "${{ inputs.package_versions }}" ]; then
+            echo "Applying dependency overrides: ${{ inputs.package_versions }}"
+            node -e '
+              const fs = require("fs");
+              const path = require("path");
+              const raw = `${process.env.PACKAGE_VERSIONS}`;
+              const pairs = raw.split(",").map(s => s.trim()).filter(Boolean);
+              const map = {};
+              const alias = {
+                core: "@to-nexus/core",
+                universal: "@to-nexus/universal-provider",
+                "sign-client": "@to-nexus/sign-client",
+                sdk: "@to-nexus/sdk"
+              };
+              for (const p of pairs) {
+                const [k, v] = p.split("=").map(s => s && s.trim());
+                if (!k || !v) continue;
+                const full = alias[k] || k;
+                map[full] = v;
+              }
+              function collectPackageJsons(rootDir) {
+                const results = [];
+                const stack = [rootDir];
+                while (stack.length) {
+                  const dir = stack.pop();
+                  if (!fs.existsSync(dir)) continue;
+                  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                    if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
+                    const fullPath = path.join(dir, entry.name);
+                    if (entry.isDirectory()) {
+                      stack.push(fullPath);
+                    } else if (entry.isFile() && entry.name === "package.json") {
+                      results.push(fullPath);
+                    }
+                  }
+                }
+                return results;
+              }
+              const files = [...collectPackageJsons("./packages"), ...collectPackageJsons("./providers")];
+              for (const file of files) {
+                const pkg = JSON.parse(fs.readFileSync(file, "utf8"));
+                let changed = false;
+                for (const section of ["dependencies","devDependencies","peerDependencies"]) {
+                  if (!pkg[section]) continue;
+                  for (const depName of Object.keys(map)) {
+                      if (pkg[section][depName]) {
+                      if (pkg[section][depName] !== map[depName]) {
+                        pkg[section][depName] = map[depName];
+                        changed = true;
+                        console.log(`Updated ${file}: ${depName} -> ${map[depName]}`);
+                      }
+                  }
+                  }
+                }
+                if (changed) {
+                  fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + "\n");
+                }
+              }
+            ' \
+            PACKAGE_VERSIONS='${{ inputs.package_versions }}'
+          else
+            echo "No dependency overrides provided"
+          fi
+
+          # Bulk set version across all packages
+          pnpm run version:set "${REF_VERSION#v}"
+
+          # Mark as bumped for downstream steps
+          echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
+
+          # Keep version changes staged (no commit). Publish will read bumped versions
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "VERSION_CHANGES_READY=true" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION_CHANGES_READY=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build packages (packages only)
+        run: |
+          pnpm -w run build
+          # uses package.json script: turbo run build --filter={./packages/*}
+
+      # Removed per-package post-build version bump; using bulk version set above
+
+      - name: Override publishConfig.registry to env registry (dev/stage, exclude sign-client)
+        if: inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const target = process.env.NEXUS_URL;
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let count=0;
+            for(const f of files){
+              const pkg=JSON.parse(fs.readFileSync(f, "utf8"));
+              if(pkg.name && /^@to-nexus\//.test(pkg.name)){
+                if(pkg.name === "@to-nexus/sign-client") continue; // exclude from any publish-related mutations
+                pkg.publishConfig = pkg.publishConfig || {};
+                if(pkg.publishConfig.registry !== target){
+                  pkg.publishConfig.registry = target;
+                  fs.writeFileSync(f, JSON.stringify(pkg, null, 2) + "\n");
+                  console.log("publishConfig.registry ->", target, "in", f);
+                  count++;
+                }
+              }
+            }
+            console.log("Updated", count, "package.json files");
+          '
+        env:
+          NEXUS_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+
+      - name: Publish package to Nexus (dev → alpha)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
+        id: publish_dev
+        run: |
+          # Ensure .npmrc exists for this step
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          
+          # Create .npmrc and set npm environment variables
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          
+          # Also set as environment variables for npm
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export NPM_CONFIG_REGISTRY="https://registry.npmjs.org/"
+          export NPM_CONFIG_ALWAYS_AUTH="true"
+
+          # Publish only @to-nexus/* workspaces using pnpm recursive publish
+          echo "::add-mask::${NPM_TOKEN}" || true
+          echo "=== Verifying auth via -/whoami (gate) ==="
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
+          if [ "$STATUS" != "200" ]; then
+            echo "Auth verification failed (HTTP $STATUS). Aborting publish."
+            exit 1
+          fi
+          echo "=== Attempting npm whoami (optional) ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may be hidden with bearer token"
+
+          echo "=== Publishing via pnpm (recursive, @to-nexus/* only) ==="
+          # Ensure both env vars are present for npm config resolution
+          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
+          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
+          else
+            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Restore publishConfig.registry from HEAD (dev)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const { execSync } = require("child_process");
+            const fs = require("fs");
+            const path = require("path");
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let reverted=0;
+            for(const f of files){
+              const curr = JSON.parse(fs.readFileSync(f, "utf8"));
+              if(!curr.name || !/^@to-nexus\//.test(curr.name)) continue;
+              try{
+                const headJson = execSync(`git show HEAD:${f}`,{stdio:["ignore","pipe","pipe"]}).toString();
+                const head = JSON.parse(headJson);
+                const headReg = head.publishConfig && head.publishConfig.registry;
+                if(curr.publishConfig && curr.publishConfig.registry && headReg && curr.publishConfig.registry !== headReg){
+                  curr.publishConfig.registry = headReg;
+                  fs.writeFileSync(f, JSON.stringify(curr, null, 2) + "\n");
+                  reverted++;
+                }
+              }catch(e){ /* ignore if file not in HEAD */ }
+            }
+            console.log("publishConfig.registry restored for", reverted, "files");
+          '
+
+      - name: Commit version changes (dev - after successful publish)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          git add -A
+          git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
+          git fetch origin "${GITHUB_REF_NAME}" || true
+          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+          git push || git push --force-with-lease
+
+      - name: Rollback version changes (dev - if publish failed)
+        if: inputs.environment == 'dev' && failure() && steps.version.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          echo "⚠️ Publish failed, rolling back version changes..."
+          git reset --hard HEAD
+
+
+      - name: Publish package to Nexus (stage → beta)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
+        id: publish_stage
+        run: |
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          
+          # Create .npmrc and set npm environment variables
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          
+          # Also set as environment variables for npm
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export NPM_CONFIG_REGISTRY="https://registry.npmjs.org/"
+          export NPM_CONFIG_ALWAYS_AUTH="true"
+
+          echo "::add-mask::${NPM_TOKEN}" || true
+          echo "=== Testing npm whoami ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami failed"
+          
+          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
+          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag beta --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
+          else
+            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Restore publishConfig.registry from HEAD (stage)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const { execSync } = require("child_process");
+            const fs = require("fs");
+            const path = require("path");
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let reverted=0;
+            for(const f of files){
+              const curr = JSON.parse(fs.readFileSync(f, "utf8"));
+              if(!curr.name || !/^@to-nexus\//.test(curr.name)) continue;
+              try{
+                const headJson = execSync(`git show HEAD:${f}`,{stdio:["ignore","pipe","pipe"]}).toString();
+                const head = JSON.parse(headJson);
+                const headReg = head.publishConfig && head.publishConfig.registry;
+                if(curr.publishConfig && curr.publishConfig.registry && headReg && curr.publishConfig.registry !== headReg){
+                  curr.publishConfig.registry = headReg;
+                  fs.writeFileSync(f, JSON.stringify(curr, null, 2) + "\n");
+                  reverted++;
+                }
+              }catch(e){ /* ignore if file not in HEAD */ }
+            }
+            console.log("publishConfig.registry restored for", reverted, "files");
+          '
+
+      - name: Commit version changes (stage - after successful publish)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          git add -A
+          git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
+          git fetch origin "${GITHUB_REF_NAME}" || true
+          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+          git push || git push --force-with-lease
+
+      - name: Rollback version changes (stage - if publish failed)
+        if: inputs.environment == 'stage' && failure() && steps.version.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          echo "⚠️ Publish failed, rolling back version changes..."
+          git reset --hard HEAD
+
+      - name: Publish package to Nexus (prod → latest)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main' && steps.version_bump.outputs.VERSION_BUMPED == 'true'
         run: pnpm run publish:latest
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
-  build_and_push:
-    name: Build and Push Docker Image
-    needs: publish_npm
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/ci/'))
+
+      - name: Create and push release tag (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main'
+        run: |
+          TAG="release/${{ steps.version.outputs.REF_VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git fetch origin "$TAG" || true
+            git push origin "$TAG" || git push --force-with-lease origin "$TAG"
+          fi
+
+      - name: Create GitHub Release (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.REF_VERSION }}
+          name: Release ${{ steps.version.outputs.REF_VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push pre-release tag (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          # Use REF_VERSION as-is since it already contains the prerelease suffix
+          TAG="release/${{ steps.version.outputs.REF_VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Pre-Release ${{ steps.version.outputs.REF_VERSION }}"
+            git fetch origin "$TAG" || true
+            git push origin "$TAG" || git push --force-with-lease origin "$TAG"
+          fi
+
+      - name: Create GitHub Pre-Release (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.REF_VERSION }}
+          name: Pre-Release ${{ steps.version.outputs.REF_VERSION }} (${{ inputs.environment }})
+          prerelease: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dry-run summary (no publish/tag)
+        if: inputs.dry_run == 'true'
+        run: |
+          echo "## Dry Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Service: ${{ inputs.services }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ steps.version.outputs.REF_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Actions Skipped: publish, tag, GitHub Release" >> $GITHUB_STEP_SUMMARY
+
+  publish_npm_prod:
+    name: Publish to Nexus NPM (prod)
+    needs: [sonarqube, version_bump]
+    if: |
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish')
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Configure npm for Nexus
+        run: |
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+          NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/.npmrc
+      
+      - name: Verify npm authentication
+        run: |
+          echo "::add-mask::${NPM_TOKEN}" || true
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
+          if [ "$STATUS" != "200" ]; then
+            echo "Auth verification failed (HTTP $STATUS)."
+            exit 1
+          fi
+          npm ping --registry "${NEXUS_REGISTRY_URL}" || true
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+      
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      
+      - name: Build packages
+        run: |
+          pnpm -w run build 
+      
+      - name: Compute version
+        id: version
+        run: |
+          VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+      
+      - name: Publish package to Nexus (prod → latest)
+        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
+        run: |
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
+          pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag latest --registry "${NEXUS_REGISTRY_URL}" --no-git-checks
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+      
+      - name: Create and push release tag (prod)
+        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
+        run: |
+          TAG="release/${{ steps.version.outputs.VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git fetch origin "$TAG" || true
+            git push origin "$TAG" || git push --force-with-lease origin "$TAG"
+          fi
+      
+      - name: Create GitHub Release (prod)
+        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.VERSION }}
+          name: Release v${{ steps.version.outputs.VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_and_push_dev:
+    name: Build and Push Docker Image (dev)
+    # release/* 의 dev 전용, sample-page는 독립 실행
+    if: |
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'dev' && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
 
-    environment: 'prod'
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      - name: Resolve Nexus registry URL (dev)
+        id: registry_dev
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
       - name: Configure npm for Nexus
         run: |
-          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
-          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+          echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@to-nexus:registry=${{ steps.registry_dev.outputs.NEXUS_URL }}" >> .npmrc
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
       - name: Get Service Name
         id: env
@@ -91,15 +950,19 @@ jobs:
           REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
           echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
           echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
-          echo "ECR_REPO=dev/${REPO_NAME}" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
 
       - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -107,6 +970,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
         uses: docker/build-push-action@v6
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -117,13 +981,341 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/dev/${{ steps.env.outputs.SERVICE_NAME }}:${{ steps.env.outputs.GIT_SHA }}
-            ${{ steps.login-ecr.outputs.registry }}/dev/${{ steps.env.outputs.SERVICE_NAME }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
           platforms: linux/amd64
           build-args: |
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+            REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
+
+      - name: Build Docker Image (dry run, no push)
+        if: inputs.dry_run == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+            REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+  build_and_push_stage:
+    name: Build and Push Docker Image (stage)
+    needs: sonarqube
+    # release/* 의 stage 전용, sample-page는 독립 실행, SonarQube 후 실행
+    if: |
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage' && (inputs.services == 'all' || inputs.services == 'sample-page')
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Resolve Nexus registry URL (stage)
+        id: registry_stage
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@to-nexus:registry=${{ steps.registry_stage.outputs.NEXUS_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Get Service Name
+        id: env
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+            REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+      - name: Build Docker Image (dry run, no push)
+        if: inputs.dry_run == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+            REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+  build_and_push_prod:
+    name: Build and Push Docker Image (prod)
+    needs: sonarqube
+    if: |
+      github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'sample-page')
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Set workspace version for prod build
+        run: |
+          # For prod, use publish_version without prerelease suffix
+          VERSION="${{ inputs.publish_version }}"
+          # Remove any existing prerelease suffix for prod
+          VERSION=$(echo "$VERSION" | sed 's/-.*$//')
+          echo "Setting workspace version to: $VERSION"
+          pnpm run version:set "$VERSION"
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Get Service Name
+        id: env
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+
+      
+  cdn_publish_manual:
+    name: CDN Publish (prod)
+    needs: sonarqube
+    if: |
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'cdn-publish')
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Extract version from package.json
+        id: extract_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Current version: ${VERSION}"
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.CDN_ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Check existing versions in S3
+        if: inputs.dry_run == 'false'
+        id: check_versions
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 ls s3://${BUCKET_NAME}/cross-sdk/ --recursive | grep -E "cross-sdk/[0-9]+\.[0-9]+\.[0-9]+" | sed -E 's/.*cross-sdk\/([0-9]+\.[0-9]+\.[0-9]+)\/.*/\1/' | sort -V | uniq > existing_versions.txt || true
+          if [ -s existing_versions.txt ]; then
+            LATEST_VERSION=$(tail -n 1 existing_versions.txt)
+            echo "LATEST_S3_VERSION=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+            if [ "${CURRENT_VERSION}" = "${LATEST_VERSION}" ]; then
+              echo "VERSION_EXISTS=true" >> $GITHUB_OUTPUT
+            else
+              echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+            fi
+            if printf '%s\n%s\n' "${LATEST_VERSION}" "${CURRENT_VERSION}" | sort -V -C; then
+              echo "IS_NEWER=true" >> $GITHUB_OUTPUT
+            else
+              echo "IS_NEWER=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+            echo "IS_NEWER=true" >> $GITHUB_OUTPUT
+            echo "LATEST_S3_VERSION=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build CDN packages
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: pnpm run build
+
+      - name: Upload to S3 with version prefix
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 sync packages/cdn/dist/ s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ --delete --cache-control "public, max-age=31536000, immutable" --metadata-directive REPLACE
+
+      - name: Update latest if current version is newest
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 sync s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ s3://${BUCKET_NAME}/cross-sdk/latest/ --delete --cache-control "public, max-age=3600" --metadata-directive REPLACE
+
+      - name: Invalidate CloudFront cache
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          aws cloudfront create-invalidation --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" --paths "/cross-sdk/${CURRENT_VERSION}/*" "/cross-sdk/latest/*"
+
+      - name: CDN summary
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          echo "## CDN Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${CURRENT_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry-run: ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY

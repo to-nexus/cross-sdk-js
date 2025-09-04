@@ -12,13 +12,35 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const packageJsonPath = path.join(__dirname, '../packages/appkit/package.json')
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+const envVersion = process.env.APP_VERSION && String(process.env.APP_VERSION).trim()
+const versionToInject = envVersion && envVersion.length > 0 ? envVersion : packageJson.version
 
 const filePath = 'packages/appkit/exports/constants.ts'
 
 const fileContent = fs.readFileSync(filePath, 'utf8')
 const updatedContent = fileContent.replace(
   /export const PACKAGE_VERSION = '.*'/,
-  `export const PACKAGE_VERSION = '${packageJson.version}'`
+  `export const PACKAGE_VERSION = '${versionToInject}'`
 )
 fs.writeFileSync(filePath, updatedContent, 'utf8')
-console.log(`Injected version ${packageJson.version} into ${filePath}`)
+console.log(`Injected version ${versionToInject} into ${filePath}`)
+
+// Keep SDK runtime constant in sync as well so examples/logs show the right version
+try {
+  const sdkExportsPath = path.join(__dirname, '../packages/sdk/exports/index.ts')
+  if (fs.existsSync(sdkExportsPath)) {
+    const sdkSrc = fs.readFileSync(sdkExportsPath, 'utf8')
+    const replaced = sdkSrc.replace(
+      /export\s+const\s+sdkVersion\s*=\s*'[^']*';/,
+      `export const sdkVersion = '${versionToInject}';`
+    )
+    if (replaced !== sdkSrc) {
+      fs.writeFileSync(sdkExportsPath, replaced, 'utf8')
+      console.log(`Injected sdkVersion ${versionToInject} into ${sdkExportsPath}`)
+    } else {
+      console.log(`sdkVersion already set to ${versionToInject} in ${sdkExportsPath}`)
+    }
+  }
+} catch (err) {
+  console.error('Failed to inject sdkVersion:', err instanceof Error ? err.message : err)
+}
