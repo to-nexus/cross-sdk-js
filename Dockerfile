@@ -34,7 +34,10 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   ./scripts/resolve-sample-versions.sh "${VITE_ENV_MODE:-prod}" "$WORKDIR"
 
 # Docker 환경에서 의존성 설치 (버전 해결 후)
-RUN pnpm install
+RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
+  echo "Verifying .npmrc for pnpm install:" && \
+  cat .npmrc | head -5 && \
+  pnpm install
 
 # 빌드 실행
 RUN pnpm run build
