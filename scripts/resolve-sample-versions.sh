@@ -103,13 +103,28 @@ resolve_version() {
   
   # fallback to latest if prerelease not found
   if [ -z "$version" ]; then
-    echo "⚠️  ${pkg} with -${tag} suffix not found, falling back to latest" >&2
+    echo "⚠️  ${pkg} with -${tag} suffix not found, trying latest..." >&2
     version=$(npm view "${pkg}@latest" version 2>/dev/null || echo "")
   fi
   
+  # final fallback: use workspace version if npm registry is not accessible
   if [ -z "$version" ]; then
-    echo "❌ ${pkg}: version resolution completely failed" >&2
-    return 1
+    echo "⚠️  ${pkg}: npm registry not accessible, using workspace version" >&2
+    # Try to get version from local package.json in workspace
+    local workspace_version=""
+    if [ -f "packages/$(basename ${pkg#@to-nexus/})/package.json" ]; then
+      workspace_version=$(node -p "require('./packages/$(basename ${pkg#@to-nexus/})/package.json').version" 2>/dev/null || echo "")
+    elif [ -f "packages/${pkg#@to-nexus/}/package.json" ]; then
+      workspace_version=$(node -p "require('./packages/${pkg#@to-nexus/}/package.json').version" 2>/dev/null || echo "")
+    fi
+    
+    if [ -n "$workspace_version" ]; then
+      echo "Using workspace version: $workspace_version" >&2
+      version="$workspace_version"
+    else
+      echo "❌ ${pkg}: version resolution completely failed (no workspace version found)" >&2
+      return 1
+    fi
   fi
   
   echo "$version"
@@ -247,9 +262,19 @@ update_package_json() {
 }
 
 # examples의 package.json 파일들 업데이트
-if [ "$ENVIRONMENT" != "prod" ]; then
+if [ "$ENVIRONMENT" = "dev" ]; then
   echo ""
-  echo "🔧 Updating example package.json files..."
+  echo "🔧 Updating example package.json files for dev environment..."
+  
+  for example_dir in "$WORKDIR"/examples/*/; do
+    if [ -f "$example_dir/package.json" ]; then
+      echo "Updating $(basename "$example_dir")/package.json"
+      update_package_json "$example_dir/package.json" "$VERSIONS_FILE"
+    fi
+  done
+elif [ "$ENVIRONMENT" = "stage" ]; then
+  echo ""
+  echo "🔧 Updating example package.json files for stage environment..."
   
   for example_dir in "$WORKDIR"/examples/*/; do
     if [ -f "$example_dir/package.json" ]; then
