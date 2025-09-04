@@ -19,16 +19,19 @@ WORKDIR=${2:-$(pwd)}
 
 echo "🔍 Resolving package versions for $ENVIRONMENT environment..."
 
-# 환경별 dist-tag 설정
+# 환경별 dist-tag 및 registry 설정
 case "$ENVIRONMENT" in
   "dev")
     DIST_TAG="alpha"
+    REGISTRY="https://package.cross-nexus.com/repository/dev-cross-sdk-js/"
     ;;
   "stage") 
     DIST_TAG="beta"
+    REGISTRY="https://package.cross-nexus.com/repository/dev-cross-sdk-js/"
     ;;
   "prod")
     DIST_TAG="latest"
+    REGISTRY="https://package.cross-nexus.com/repository/cross-sdk-js/"
     ;;
   *)
     echo "❌ Invalid environment: $ENVIRONMENT"
@@ -38,6 +41,7 @@ case "$ENVIRONMENT" in
 esac
 
 echo "Target dist-tag: $DIST_TAG"
+echo "Target registry: $REGISTRY"
 
 # 버전 해결 함수 - prerelease 버전을 찾거나 latest로 fallback
 resolve_version() {
@@ -47,7 +51,7 @@ resolve_version() {
   if [ "$tag" = "alpha" ]; then
     # alpha 버전 찾기: -alpha가 포함된 가장 최신 버전
     echo "🔍 Searching for -alpha suffix versions of $pkg..." >&2
-    version=$(npm view "$pkg" versions --json 2>/dev/null | node -p "
+    version=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>/dev/null | node -p "
       try {
         const input = require('fs').readFileSync('/dev/stdin', 'utf8');
         const versions = JSON.parse(input);
@@ -73,7 +77,7 @@ resolve_version() {
   elif [ "$tag" = "beta" ]; then
     # beta 버전 찾기: -beta가 포함된 가장 최신 버전
     echo "🔍 Searching for -beta suffix versions of $pkg..." >&2
-    version=$(npm view "$pkg" versions --json 2>/dev/null | node -p "
+    version=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>/dev/null | node -p "
       try {
         const input = require('fs').readFileSync('/dev/stdin', 'utf8');
         const versions = JSON.parse(input);
@@ -98,13 +102,13 @@ resolve_version() {
     " 2>/dev/null || echo "")
   else
     # latest 버전
-    version=$(npm view "${pkg}@latest" version 2>/dev/null || echo "")
+    version=$(npm view "${pkg}@latest" version --registry="$REGISTRY" 2>/dev/null || echo "")
   fi
   
   # fallback to latest if prerelease not found
   if [ -z "$version" ]; then
     echo "⚠️  ${pkg} with -${tag} suffix not found, trying latest..." >&2
-    version=$(npm view "${pkg}@latest" version 2>/dev/null || echo "")
+    version=$(npm view "${pkg}@latest" version --registry="$REGISTRY" 2>/dev/null || echo "")
   fi
   
   # final fallback: use workspace dependency if npm registry is not accessible
