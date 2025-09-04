@@ -16,6 +16,8 @@ case "$ENVIRONMENT" in
     SELECTED_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
     if [ -n "$SELECTED_VERSION" ]; then
       node scripts/set-workspace-version.cjs "$SELECTED_VERSION" || true
+      # sdkVersion 상수도 동기화하여 런타임 로그가 올바른 버전을 출력하도록 함
+      node scripts/set-version.js "$SELECTED_VERSION" || true
     fi
     ;;
   "stage")
