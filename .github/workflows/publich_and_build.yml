@@ -1004,6 +1004,25 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Set workspace version for prod build
+        run: |
+          # For prod, use publish_version without prerelease suffix
+          VERSION="${{ inputs.publish_version }}"
+          # Remove any existing prerelease suffix for prod
+          VERSION=$(echo "$VERSION" | sed 's/-.*$//')
+          echo "Setting workspace version to: $VERSION"
+          pnpm run version:set "$VERSION"
+
       - name: Configure npm for Nexus
         run: |
           echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
