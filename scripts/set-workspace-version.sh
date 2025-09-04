@@ -37,7 +37,7 @@ case "$ENVIRONMENT" in
       REGISTRY_URL="${REGISTRY_URL}/"
     fi
     # 토큰/기본인증 추출: env 우선, 없으면 .npmrc에서 추출
-    TOKEN="$NPM_TOKEN"
+    TOKEN="${NPM_TOKEN:-$NEXUS_NPM_TOKEN}"
     BASIC=""
     if [ -z "$TOKEN" ] && [ -f ".npmrc" ]; then
       # 호스트 정합 먼저 시도
