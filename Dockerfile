@@ -4,6 +4,7 @@ ARG SERVICE_NAME
 ARG WORKDIR
 ARG VITE_PROJECT_ID
 ARG VITE_ENV_MODE
+ARG REGISTRY_URL
 
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV WORKDIR=$WORKDIR
@@ -31,11 +32,11 @@ COPY . .
 # 환경별 workspace 버전 설정
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   chmod +x ./scripts/set-workspace-version.sh && \
-  ./scripts/set-workspace-version.sh "${VITE_ENV_MODE:-prod}"
+  REGISTRY_URL=$REGISTRY_URL ./scripts/set-workspace-version.sh "${VITE_ENV_MODE:-prod}"
 
 # Docker 환경에서 의존성 설치 (소스 코드 복사 후)
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
-  pnpm install
+  NPM_CONFIG_USERCONFIG=$WORKDIR/.npmrc pnpm install
 
 # 빌드 실행
 RUN pnpm run build
