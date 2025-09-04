@@ -904,9 +904,9 @@ jobs:
 
   build_and_push_preview:
     name: Build and Push Docker Image (preview)
-    # release/* 의 dev 전용, sample-page는 독립 실행
+    # release/* 의 dev|stage 전용, sample-page는 독립 실행
     if: |
-      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'dev' && (inputs.services == 'all' || inputs.services == 'sample-page')
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
 
     environment: ${{ inputs.environment }}
