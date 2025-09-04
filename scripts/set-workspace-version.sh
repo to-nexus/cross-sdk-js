@@ -28,9 +28,27 @@ case "$ENVIRONMENT" in
         fi
       fi
     fi
+    # URL 정규화 (trailing slash 보장)
+    if [ -n "$REGISTRY_URL" ] && [ "${REGISTRY_URL: -1}" != "/" ]; then
+      REGISTRY_URL="${REGISTRY_URL}/"
+    fi
+    # 토큰 추출: env 우선, 없으면 .npmrc에서 현재 호스트 기준으로 추출
+    TOKEN="$NPM_TOKEN"
+    if [ -z "$TOKEN" ] && [ -f ".npmrc" ] && [ -n "$REGISTRY_URL" ]; then
+      HOST_PATH=${REGISTRY_URL#https://}; HOST_PATH=${HOST_PATH%/}
+      TOKEN=$(grep -E "^//${HOST_PATH}:_authToken=" .npmrc 2>/dev/null | head -1 | cut -d'=' -f2)
+      if [ -z "$TOKEN" ]; then
+        TOKEN=$(grep -E '^//[^ ]+:_authToken=' .npmrc 2>/dev/null | head -1 | cut -d'=' -f2)
+      fi
+    fi
     if [ -n "$REGISTRY_URL" ]; then
       echo "Using registry: $REGISTRY_URL"
-      BETA_CHECK=$(curl -s "${REGISTRY_URL}%40to-nexus%2Fsdk" 2>/dev/null | grep -o '"beta":"[^"]*"' || echo "")
+      if [ -n "$TOKEN" ]; then
+        BETA_RAW=$(curl -s -H "Authorization: Bearer ${TOKEN}" "${REGISTRY_URL}%40to-nexus%2Fsdk" 2>/dev/null || echo "")
+      else
+        BETA_RAW=$(curl -s "${REGISTRY_URL}%40to-nexus%2Fsdk" 2>/dev/null || echo "")
+      fi
+      BETA_CHECK=$(printf "%s" "$BETA_RAW" | grep -o '"beta":"[^\"]*"' || echo "")
     else
       echo "Registry URL not available; defaulting to stable"
       BETA_CHECK=""
