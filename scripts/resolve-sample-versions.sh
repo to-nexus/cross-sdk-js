@@ -25,7 +25,7 @@ case "$ENVIRONMENT" in
     DIST_TAG="alpha"
     ;;
   "stage") 
-    DIST_TAG="beta"
+    DIST_TAG="beta"ㅠ
     ;;
   "prod")
     DIST_TAG="latest"
@@ -39,16 +39,53 @@ esac
 
 echo "Target dist-tag: $DIST_TAG"
 
-# 버전 해결 함수 - alpha/beta가 없으면 latest로 fallback
+# 버전 해결 함수 - prerelease 버전을 찾거나 latest로 fallback
 resolve_version() {
   local pkg="$1" tag="$2"
   local version
   
-  # 먼저 지정된 태그로 시도
-  version=$(npm view "${pkg}@${tag}" version 2>/dev/null || echo "")
+  if [ "$tag" = "alpha" ]; then
+    # alpha 버전 찾기: -alpha가 포함된 가장 최신 버전
+    echo "🔍 Searching for alpha versions of $pkg..." >&2
+    version=$(npm view "$pkg" versions --json 2>/dev/null | node -e "
+      let data = '';
+      process.stdin.on('data', chunk => data += chunk);
+      process.stdin.on('end', () => {
+        try {
+          const versions = JSON.parse(data);
+          const alphas = versions.filter(v => v.includes('-alpha')).sort((a, b) => {
+            // Simple version sort - latest first
+            return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+          });
+          console.log(alphas[0] || '');
+        } catch(e) { console.log(''); }
+      });
+    " 2>/dev/null || echo "")
+  elif [ "$tag" = "beta" ]; then
+    # beta 버전 찾기: -beta가 포함된 가장 최신 버전
+    echo "🔍 Searching for beta versions of $pkg..." >&2
+    version=$(npm view "$pkg" versions --json 2>/dev/null | node -e "
+      let data = '';
+      process.stdin.on('data', chunk => data += chunk);
+      process.stdin.on('end', () => {
+        try {
+          const versions = JSON.parse(data);
+          const betas = versions.filter(v => v.includes('-beta')).sort((a, b) => {
+            // Simple version sort - latest first
+            return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+          });
+          console.log(betas[0] || '');
+        } catch(e) { console.log(''); }
+      });
+    " 2>/dev/null || echo "")
+  else
+    # latest 버전
+    version=$(npm view "${pkg}@latest" version 2>/dev/null || echo "")
+  fi
   
+  # fallback to latest if prerelease not found
   if [ -z "$version" ]; then
-    echo "⚠️  ${pkg}@${tag} not found, falling back to latest" >&2
+    echo "⚠️  ${pkg} ${tag} prerelease not found, falling back to latest" >&2
     version=$(npm view "${pkg}@latest" version 2>/dev/null || echo "")
   fi
   
