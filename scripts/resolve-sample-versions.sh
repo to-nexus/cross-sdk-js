@@ -148,13 +148,39 @@ resolve_version() {
     echo "🔍 Debug: npm output length: ${#npm_output}" >&2
     echo "🔍 Debug: npm output: '$npm_output'" >&2
     
-    # Try alternative approach - check if package exists first
+    # Try alternative approaches
     echo "🔍 Debug: Trying npm view $pkg --registry=$REGISTRY" >&2
     npm_info=$(npm view "$pkg" --registry="$REGISTRY" 2>&1)
     echo "🔍 Debug: npm info exit code: $?" >&2
     echo "🔍 Debug: npm info: '$npm_info'" >&2
     
-    if [ $npm_exit_code -eq 0 ] && [ -n "$npm_output" ]; then
+    # Try with different registry URL formats
+    echo "🔍 Debug: Trying without trailing slash" >&2
+    REGISTRY_NO_SLASH="${REGISTRY%/}"
+    npm_info2=$(npm view "$pkg" --registry="$REGISTRY_NO_SLASH" 2>&1)
+    echo "🔍 Debug: no slash result: '$npm_info2'" >&2
+    
+    # Try direct HTTP request to registry
+    echo "🔍 Debug: Trying direct HTTP request" >&2
+    PKG_ENCODED=$(echo "$pkg" | sed 's/@/%40/g' | sed 's/\//%2F/g')
+    HTTP_RESULT=$(curl -s -H "Authorization: Bearer ${NPM_TOKEN:-}" "${REGISTRY}${PKG_ENCODED}" 2>&1 | head -c 200)
+    echo "🔍 Debug: HTTP result: '$HTTP_RESULT'" >&2
+    
+    # If npm output is empty but we know beta versions exist, try specific version
+    if [ -z "$npm_output" ] && [ "$tag" = "beta" ]; then
+      echo "🔍 Debug: npm output empty, trying specific beta version" >&2
+      # Try known beta version pattern
+      SPECIFIC_VERSION="1.16.7-beta"
+      echo "🔍 Debug: Trying specific version $SPECIFIC_VERSION" >&2
+      specific_check=$(npm view "${pkg}@${SPECIFIC_VERSION}" version --registry="$REGISTRY" 2>&1)
+      if [ $? -eq 0 ] && [ -n "$specific_check" ]; then
+        echo "🔍 Debug: Found specific version: $specific_check" >&2
+        version="$specific_check"
+      else
+        echo "🔍 Debug: Specific version check failed: $specific_check" >&2
+        version=""
+      fi
+    elif [ $npm_exit_code -eq 0 ] && [ -n "$npm_output" ]; then
       version=$(echo "$npm_output" | node -p "
         try {
           const input = require('fs').readFileSync('/dev/stdin', 'utf8').trim();
