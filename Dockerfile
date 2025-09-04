@@ -39,8 +39,14 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   cp .npmrc .npmrc.persistent
 
 RUN echo "Installing dependencies with pnpm..." && \
-  cp .npmrc.persistent .npmrc && \
-  pnpm i 
+  if [ -f .npmrc.persistent ]; then \
+    cp .npmrc.persistent .npmrc && \
+    echo "Using persistent .npmrc file"; \
+  else \
+    echo "WARNING: .npmrc.persistent not found, using default npm registry"; \
+  fi && \
+  pnpm i --no-frozen-lockfile || \
+  (echo "pnpm install failed, trying with --legacy-peer-deps" && pnpm i --no-frozen-lockfile --legacy-peer-deps) 
 
 # 빌드 실행
 RUN pnpm run build
