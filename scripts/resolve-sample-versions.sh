@@ -88,52 +88,31 @@ resolve_version() {
   local version
   
   if [ "$tag" = "alpha" ]; then
-    # alpha 버전 찾기: -alpha가 포함된 가장 최신 버전
+    # alpha 버전 찾기: HTTP 요청으로 dist-tags 확인
     echo "🔍 Searching for -alpha suffix versions of $pkg..." >&2
-    echo "🔍 Debug: Running npm view $pkg versions --json --registry=$REGISTRY (alpha)" >&2
-    npm_output=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>&1)
-    npm_exit_code=$?
-    echo "🔍 Debug: npm exit code: $npm_exit_code" >&2
-    if [ $npm_exit_code -ne 0 ] || [ -z "$npm_output" ]; then
-      echo "🔍 Debug: npm failed or empty output: $npm_output" >&2
-      version=""
-    else
-      version=$(echo "$npm_output" | node -p "
+    echo "🔍 Debug: Using HTTP request for alpha tag" >&2
+    PKG_ENCODED=$(echo "$pkg" | sed 's/@/%40/g' | sed 's/\//%2F/g')
+    HTTP_RESULT=$(curl -s -H "Authorization: Bearer ${NPM_TOKEN:-}" "${REGISTRY}${PKG_ENCODED}" 2>&1)
+    
+    version=$(echo "$HTTP_RESULT" | node -p "
       try {
-        const input = require('fs').readFileSync('/dev/stdin', 'utf8').trim();
-        if (!input) {
-          console.error('🔍 Debug: Empty npm output');
-          '';
+        const input = require('fs').readFileSync('/dev/stdin', 'utf8');
+        const data = JSON.parse(input);
+        if (data && data['dist-tags'] && data['dist-tags']['$tag']) {
+          console.error('🔍 Debug: Found $tag version via HTTP:', data['dist-tags']['$tag']);
+          data['dist-tags']['$tag'];
         } else {
-          const versions = JSON.parse(input);
-          const alphas = versions.filter(v => v.includes('-alpha'));
-          console.error('🔍 Debug: Found', versions.length, 'total versions'); 
-          console.error('🔍 Debug: Found', alphas.length, 'alpha versions:', alphas.slice(0,5)); 
-          if (alphas.length === 0) {
-            '';
-          } else {
-            // Sort versions and get the latest alpha
-            alphas.sort((a, b) => {
-              const aParts = a.split('-')[0].split('.').map(Number);
-              const bParts = b.split('-')[0].split('.').map(Number);
-              for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-                const aPart = aParts[i] || 0;
-                const bPart = bParts[i] || 0;
-                if (aPart !== bPart) return bPart - aPart;
-              }
-              return b.localeCompare(a);
-            });
-            alphas[0];
-          }
+          console.error('🔍 Debug: No $tag tag found, available tags:', Object.keys(data['dist-tags'] || {}));
+          '';
         }
       } catch(e) { 
-        console.error('🔍 Debug: Parse error:', e.message);
+        console.error('🔍 Debug: HTTP parse error for alpha:', e.message);
         ''; 
       }
     " 2>/dev/null)
-      # Clean up any debug messages from the version string
-      version=$(echo "$version" | grep -v "🔍 Debug:" | head -1)
-    fi
+    # Clean up any debug messages from the version string
+    version=$(echo "$version" | grep -v "🔍 Debug:" | head -1)
+    echo "🔍 Debug: Alpha version from HTTP: '$version'" >&2
   elif [ "$tag" = "beta" ]; then
     # beta 버전 찾기: -beta가 포함된 가장 최신 버전
     echo "🔍 Searching for -beta suffix versions of $pkg..." >&2
@@ -163,24 +142,34 @@ resolve_version() {
     # Try direct HTTP request to registry
     echo "🔍 Debug: Trying direct HTTP request" >&2
     PKG_ENCODED=$(echo "$pkg" | sed 's/@/%40/g' | sed 's/\//%2F/g')
-    HTTP_RESULT=$(curl -s -H "Authorization: Bearer ${NPM_TOKEN:-}" "${REGISTRY}${PKG_ENCODED}" 2>&1 | head -c 200)
-    echo "🔍 Debug: HTTP result: '$HTTP_RESULT'" >&2
+    HTTP_RESULT=$(curl -s -H "Authorization: Bearer ${NPM_TOKEN:-}" "${REGISTRY}${PKG_ENCODED}" 2>&1)
+    echo "🔍 Debug: HTTP result (first 200 chars): '$(echo "$HTTP_RESULT" | head -c 200)'" >&2
     
-    # If npm output is empty but we know beta versions exist, try specific version
-    if [ -z "$npm_output" ] && [ "$tag" = "beta" ]; then
-      echo "🔍 Debug: npm output empty, trying specific beta version" >&2
-      # Try known beta version pattern
-      SPECIFIC_VERSION="1.16.7-beta"
-      echo "🔍 Debug: Trying specific version $SPECIFIC_VERSION" >&2
-      specific_check=$(npm view "${pkg}@${SPECIFIC_VERSION}" version --registry="$REGISTRY" 2>&1)
-      if [ $? -eq 0 ] && [ -n "$specific_check" ]; then
-        echo "🔍 Debug: Found specific version: $specific_check" >&2
-        version="$specific_check"
-      else
-        echo "🔍 Debug: Specific version check failed: $specific_check" >&2
-        version=""
-      fi
-    elif [ $npm_exit_code -eq 0 ] && [ -n "$npm_output" ]; then
+    # If npm output is empty, try to parse HTTP result for dist-tags
+    if [ -z "$npm_output" ]; then
+      echo "🔍 Debug: npm output empty, parsing HTTP result for $tag tag" >&2
+      version=$(echo "$HTTP_RESULT" | node -p "
+        try {
+          const input = require('fs').readFileSync('/dev/stdin', 'utf8');
+          const data = JSON.parse(input);
+          if (data && data['dist-tags'] && data['dist-tags']['$tag']) {
+            console.error('🔍 Debug: Found $tag version via HTTP:', data['dist-tags']['$tag']);
+            data['dist-tags']['$tag'];
+          } else {
+            console.error('🔍 Debug: No $tag tag found in dist-tags:', Object.keys(data['dist-tags'] || {}));
+            '';
+          }
+        } catch(e) { 
+          console.error('🔍 Debug: HTTP parse error:', e.message);
+          ''; 
+        }
+      " 2>&1)
+      # Clean up any debug messages from the version string
+      version=$(echo "$version" | grep -v "🔍 Debug:" | head -1)
+      echo "🔍 Debug: Extracted version from HTTP: '$version'" >&2
+    fi
+    
+    if [ $npm_exit_code -eq 0 ] && [ -n "$npm_output" ]; then
       version=$(echo "$npm_output" | node -p "
         try {
           const input = require('fs').readFileSync('/dev/stdin', 'utf8').trim();

@@ -36,7 +36,11 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
 # Docker 환경에서 의존성 설치 (버전 해결 후)
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   echo "Verifying .npmrc for pnpm install:" && \
-  cat .npmrc | head -5 && \
+  echo "Setting npm config environment..." && \
+  export NPM_CONFIG_USERCONFIG="$WORKDIR/.npmrc" && \
+  export npm_config_userconfig="$WORKDIR/.npmrc" && \
+  pnpm config get registry && \
+  pnpm config get @to-nexus:registry && \
   pnpm install
 
 # 빌드 실행
