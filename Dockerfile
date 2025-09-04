@@ -40,7 +40,8 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   export npm_config_userconfig="$WORKDIR/.npmrc" && \
   echo "Testing private registry access..." && \
   (npm view @to-nexus/sdk@1.16.7-beta version >/dev/null 2>&1 && echo "Registry access: OK") || echo "Registry access: FAILED" && \
-  npm install
+
+RUN pnpm i 
 
 # 빌드 실행
 RUN pnpm run build
