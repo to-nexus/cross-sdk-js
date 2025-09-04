@@ -902,11 +902,104 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build_and_push_preview:
-    name: Build and Push Docker Image (preview)
-    # release/* 의 dev|stage 전용, sample-page는 독립 실행
+  build_and_push_dev:
+    name: Build and Push Docker Image (dev)
+    # release/* 의 dev 전용, sample-page는 독립 실행
     if: |
-      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && (inputs.environment == 'dev' || inputs.environment == 'stage') && (inputs.services == 'all' || inputs.services == 'sample-page')
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'dev' && (inputs.services == 'all' || inputs.services == 'sample-page')
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Get Service Name
+        id: env
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+      - name: Build Docker Image (dry run, no push)
+        if: inputs.dry_run == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ inputs.environment }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+  build_and_push_stage:
+    name: Build and Push Docker Image (stage)
+    needs: sonarqube
+    # release/* 의 stage 전용, sample-page는 독립 실행, SonarQube 후 실행
+    if: |
+      github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage' && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
 
     environment: ${{ inputs.environment }}
