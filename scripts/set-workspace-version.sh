@@ -93,6 +93,8 @@ case "$ENVIRONMENT" in
       echo "Registry URL not available; defaulting to stable"
       META_RAW=""
     fi
+    export META_RAW
+    export TARBALL_OK="${TARBALL_OK:-0}"
     node -e "
  const fs = require('fs');
  let metaStr = process.env.META_RAW || '';
