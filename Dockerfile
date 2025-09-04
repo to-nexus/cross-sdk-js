@@ -28,42 +28,10 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
 # 소스 코드 복사
 COPY . .
 
-# 환경별 workspace 버전 설정 및 검증
+# 환경별 workspace 버전 설정
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
-  if [ "${VITE_ENV_MODE}" = "stage" ]; then \
-    echo "Setting workspace version to beta for stage environment..." && \
-    REGISTRY_URL=$(cat .npmrc | grep "@to-nexus:registry" | cut -d'=' -f2) && \
-    BETA_CHECK=$(curl -s "${REGISTRY_URL}%40to-nexus%2Fsdk" 2>/dev/null | grep -o '"beta":"[^"]*"' || echo "") && \
-    node -e "
-const fs = require('fs');
-const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-const baseVersion = pkg.version.replace(/-alpha.*\$/, '').replace(/-beta.*\$/, '');
-const betaCheck = process.env.BETA_CHECK;
-
-if (betaCheck && betaCheck.includes('beta')) {
-  const betaVersion = baseVersion + '-beta';
-  console.log('✅ Beta version exists in registry, using:', betaVersion);
-  pkg.version = betaVersion;
-} else {
-  console.log('⚠️  Beta version not found, using stable:', baseVersion);
-  pkg.version = baseVersion;
-}
-
-fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-console.log('Workspace version set to:', pkg.version);
-" BETA_CHECK="$BETA_CHECK"; \
-  elif [ "${VITE_ENV_MODE}" = "dev" ]; then \
-    echo "Using alpha version for dev environment"; \
-  elif [ "${VITE_ENV_MODE}" = "prod" ]; then \
-    echo "Setting stable version for production..." && \
-    node -e "
-const fs = require('fs');
-const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-pkg.version = pkg.version.replace(/-alpha.*\$/, '').replace(/-beta.*\$/, '');
-fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-console.log('Workspace version updated to:', pkg.version);
-"; \
-  fi
+  chmod +x ./scripts/set-workspace-version.sh && \
+  ./scripts/set-workspace-version.sh "${VITE_ENV_MODE:-prod}"
 
 # Docker 환경에서 의존성 설치 (소스 코드 복사 후)
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
