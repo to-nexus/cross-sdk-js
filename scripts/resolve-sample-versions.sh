@@ -116,29 +116,44 @@ resolve_version() {
   elif [ "$tag" = "beta" ]; then
     # beta 버전 찾기: -beta가 포함된 가장 최신 버전
     echo "🔍 Searching for -beta suffix versions of $pkg..." >&2
-    version=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>/dev/null | node -p "
-      try {
-        const input = require('fs').readFileSync('/dev/stdin', 'utf8');
-        const versions = JSON.parse(input);
-        const betas = versions.filter(v => v.includes('-beta'));
-        if (betas.length === 0) {
-          '';
-        } else {
-          // Sort versions and get the latest beta
-          betas.sort((a, b) => {
-            const aParts = a.split('-')[0].split('.').map(Number);
-            const bParts = b.split('-')[0].split('.').map(Number);
-            for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-              const aPart = aParts[i] || 0;
-              const bPart = bParts[i] || 0;
-              if (aPart !== bPart) return bPart - aPart;
-            }
-            return b.localeCompare(a);
-          });
-          betas[0];
+    echo "🔍 Debug: Running npm view $pkg versions --json" >&2
+    npm_output=$(npm view "$pkg" versions --json 2>&1)
+    npm_exit_code=$?
+    echo "🔍 Debug: npm exit code: $npm_exit_code" >&2
+    echo "🔍 Debug: npm output: $npm_output" >&2
+    
+    if [ $npm_exit_code -eq 0 ]; then
+      version=$(echo "$npm_output" | node -p "
+        try {
+          const input = require('fs').readFileSync('/dev/stdin', 'utf8');
+          const versions = JSON.parse(input);
+          const betas = versions.filter(v => v.includes('-beta'));
+          console.error('🔍 Debug: Found', versions.length, 'total versions'); 
+          console.error('🔍 Debug: Found', betas.length, 'beta versions:', betas.slice(0,5)); 
+          if (betas.length === 0) {
+            '';
+          } else {
+            // Sort versions and get the latest beta
+            betas.sort((a, b) => {
+              const aParts = a.split('-')[0].split('.').map(Number);
+              const bParts = b.split('-')[0].split('.').map(Number);
+              for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                const aPart = aParts[i] || 0;
+                const bPart = bParts[i] || 0;
+                if (aPart !== bPart) return bPart - aPart;
+              }
+              return b.localeCompare(a);
+            });
+            betas[0];
+          }
+        } catch(e) { 
+          console.error('🔍 Debug: Parse error:', e.message);
+          ''; 
         }
-      } catch(e) { ''; }
-    " 2>/dev/null || echo "")
+      " 2>&1)
+    else
+      version=""
+    fi
   else
     # latest 버전
     version=$(npm view "${pkg}@latest" version --registry="$REGISTRY" 2>/dev/null || echo "")
