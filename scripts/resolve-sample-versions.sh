@@ -90,7 +90,15 @@ resolve_version() {
   if [ "$tag" = "alpha" ]; then
     # alpha 버전 찾기: -alpha가 포함된 가장 최신 버전
     echo "🔍 Searching for -alpha suffix versions of $pkg..." >&2
-    version=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>/dev/null | node -p "
+    echo "🔍 Debug: Running npm view $pkg versions --json --registry=$REGISTRY (alpha)" >&2
+    npm_output=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>&1)
+    npm_exit_code=$?
+    echo "🔍 Debug: npm exit code: $npm_exit_code" >&2
+    if [ $npm_exit_code -ne 0 ]; then
+      echo "🔍 Debug: npm error: $npm_output" >&2
+      version=""
+    else
+      version=$(echo "$npm_output" | node -p "
       try {
         const input = require('fs').readFileSync('/dev/stdin', 'utf8');
         const versions = JSON.parse(input);
@@ -111,13 +119,17 @@ resolve_version() {
           });
           alphas[0];
         }
-      } catch(e) { ''; }
-    " 2>/dev/null || echo "")
+      } catch(e) { 
+        console.error('🔍 Debug: Parse error:', e.message);
+        ''; 
+      }
+    " 2>&1)
+    fi
   elif [ "$tag" = "beta" ]; then
     # beta 버전 찾기: -beta가 포함된 가장 최신 버전
     echo "🔍 Searching for -beta suffix versions of $pkg..." >&2
-    echo "🔍 Debug: Running npm view $pkg versions --json" >&2
-    npm_output=$(npm view "$pkg" versions --json 2>&1)
+    echo "🔍 Debug: Running npm view $pkg versions --json --registry=$REGISTRY" >&2
+    npm_output=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>&1)
     npm_exit_code=$?
     echo "🔍 Debug: npm exit code: $npm_exit_code" >&2
     echo "🔍 Debug: npm output: $npm_output" >&2
@@ -156,13 +168,25 @@ resolve_version() {
     fi
   else
     # latest 버전
-    version=$(npm view "${pkg}@latest" version --registry="$REGISTRY" 2>/dev/null || echo "")
+    echo "🔍 Debug: Running npm view ${pkg}@latest version --registry=$REGISTRY" >&2
+    version=$(npm view "${pkg}@latest" version --registry="$REGISTRY" 2>&1)
+    if [ $? -ne 0 ]; then
+      echo "🔍 Debug: latest version fetch failed: $version" >&2
+      version=""
+    fi
   fi
   
   # fallback to latest if prerelease not found
   if [ -z "$version" ]; then
     echo "⚠️  ${pkg} with -${tag} suffix not found, trying latest..." >&2
-    version=$(npm view "${pkg}@latest" version --registry="$REGISTRY" 2>/dev/null || echo "")
+    echo "🔍 Debug: Fallback - Running npm view ${pkg}@latest version --registry=$REGISTRY" >&2
+    fallback_output=$(npm view "${pkg}@latest" version --registry="$REGISTRY" 2>&1)
+    if [ $? -eq 0 ]; then
+      version="$fallback_output"
+    else
+      echo "🔍 Debug: Fallback failed: $fallback_output" >&2
+      version=""
+    fi
   fi
   
   # final fallback: use workspace dependency if npm registry is not accessible
