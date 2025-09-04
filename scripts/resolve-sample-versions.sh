@@ -138,10 +138,21 @@ resolve_version() {
     # beta 버전 찾기: -beta가 포함된 가장 최신 버전
     echo "🔍 Searching for -beta suffix versions of $pkg..." >&2
     echo "🔍 Debug: Running npm view $pkg versions --json --registry=$REGISTRY" >&2
+    echo "🔍 Debug: NPM_CONFIG_USERCONFIG=$NPM_CONFIG_USERCONFIG" >&2
+    echo "🔍 Debug: Current .npmrc contents:" >&2
+    cat .npmrc 2>/dev/null | head -3 >&2 || echo "No .npmrc found" >&2
+    
     npm_output=$(npm view "$pkg" versions --json --registry="$REGISTRY" 2>&1)
     npm_exit_code=$?
     echo "🔍 Debug: npm exit code: $npm_exit_code" >&2
-    echo "🔍 Debug: npm output: $npm_output" >&2
+    echo "🔍 Debug: npm output length: ${#npm_output}" >&2
+    echo "🔍 Debug: npm output: '$npm_output'" >&2
+    
+    # Try alternative approach - check if package exists first
+    echo "🔍 Debug: Trying npm view $pkg --registry=$REGISTRY" >&2
+    npm_info=$(npm view "$pkg" --registry="$REGISTRY" 2>&1)
+    echo "🔍 Debug: npm info exit code: $?" >&2
+    echo "🔍 Debug: npm info: '$npm_info'" >&2
     
     if [ $npm_exit_code -eq 0 ] && [ -n "$npm_output" ]; then
       version=$(echo "$npm_output" | node -p "
