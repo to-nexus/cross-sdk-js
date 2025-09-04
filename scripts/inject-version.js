@@ -24,3 +24,23 @@ const updatedContent = fileContent.replace(
 )
 fs.writeFileSync(filePath, updatedContent, 'utf8')
 console.log(`Injected version ${versionToInject} into ${filePath}`)
+
+// Keep SDK runtime constant in sync as well so examples/logs show the right version
+try {
+  const sdkExportsPath = path.join(__dirname, '../packages/sdk/exports/index.ts')
+  if (fs.existsSync(sdkExportsPath)) {
+    const sdkSrc = fs.readFileSync(sdkExportsPath, 'utf8')
+    const replaced = sdkSrc.replace(
+      /export\s+const\s+sdkVersion\s*=\s*'[^']*';/,
+      `export const sdkVersion = '${versionToInject}';`
+    )
+    if (replaced !== sdkSrc) {
+      fs.writeFileSync(sdkExportsPath, replaced, 'utf8')
+      console.log(`Injected sdkVersion ${versionToInject} into ${sdkExportsPath}`)
+    } else {
+      console.log(`sdkVersion already set to ${versionToInject} in ${sdkExportsPath}`)
+    }
+  }
+} catch (err) {
+  console.error('Failed to inject sdkVersion:', err instanceof Error ? err.message : err)
+}
