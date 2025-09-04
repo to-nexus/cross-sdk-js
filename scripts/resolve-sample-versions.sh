@@ -25,7 +25,7 @@ case "$ENVIRONMENT" in
     DIST_TAG="alpha"
     ;;
   "stage") 
-    DIST_TAG="beta"ㅠ
+    DIST_TAG="beta"
     ;;
   "prod")
     DIST_TAG="latest"
@@ -46,37 +46,55 @@ resolve_version() {
   
   if [ "$tag" = "alpha" ]; then
     # alpha 버전 찾기: -alpha가 포함된 가장 최신 버전
-    echo "🔍 Searching for alpha versions of $pkg..." >&2
-    version=$(npm view "$pkg" versions --json 2>/dev/null | node -e "
-      let data = '';
-      process.stdin.on('data', chunk => data += chunk);
-      process.stdin.on('end', () => {
-        try {
-          const versions = JSON.parse(data);
-          const alphas = versions.filter(v => v.includes('-alpha')).sort((a, b) => {
-            // Simple version sort - latest first
-            return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+    echo "🔍 Searching for -alpha suffix versions of $pkg..." >&2
+    version=$(npm view "$pkg" versions --json 2>/dev/null | node -p "
+      try {
+        const input = require('fs').readFileSync('/dev/stdin', 'utf8');
+        const versions = JSON.parse(input);
+        const alphas = versions.filter(v => v.includes('-alpha'));
+        if (alphas.length === 0) {
+          '';
+        } else {
+          // Sort versions and get the latest alpha
+          alphas.sort((a, b) => {
+            const aParts = a.split('-')[0].split('.').map(Number);
+            const bParts = b.split('-')[0].split('.').map(Number);
+            for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+              const aPart = aParts[i] || 0;
+              const bPart = bParts[i] || 0;
+              if (aPart !== bPart) return bPart - aPart;
+            }
+            return b.localeCompare(a);
           });
-          console.log(alphas[0] || '');
-        } catch(e) { console.log(''); }
-      });
+          alphas[0];
+        }
+      } catch(e) { ''; }
     " 2>/dev/null || echo "")
   elif [ "$tag" = "beta" ]; then
     # beta 버전 찾기: -beta가 포함된 가장 최신 버전
-    echo "🔍 Searching for beta versions of $pkg..." >&2
-    version=$(npm view "$pkg" versions --json 2>/dev/null | node -e "
-      let data = '';
-      process.stdin.on('data', chunk => data += chunk);
-      process.stdin.on('end', () => {
-        try {
-          const versions = JSON.parse(data);
-          const betas = versions.filter(v => v.includes('-beta')).sort((a, b) => {
-            // Simple version sort - latest first
-            return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+    echo "🔍 Searching for -beta suffix versions of $pkg..." >&2
+    version=$(npm view "$pkg" versions --json 2>/dev/null | node -p "
+      try {
+        const input = require('fs').readFileSync('/dev/stdin', 'utf8');
+        const versions = JSON.parse(input);
+        const betas = versions.filter(v => v.includes('-beta'));
+        if (betas.length === 0) {
+          '';
+        } else {
+          // Sort versions and get the latest beta
+          betas.sort((a, b) => {
+            const aParts = a.split('-')[0].split('.').map(Number);
+            const bParts = b.split('-')[0].split('.').map(Number);
+            for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+              const aPart = aParts[i] || 0;
+              const bPart = bParts[i] || 0;
+              if (aPart !== bPart) return bPart - aPart;
+            }
+            return b.localeCompare(a);
           });
-          console.log(betas[0] || '');
-        } catch(e) { console.log(''); }
-      });
+          betas[0];
+        }
+      } catch(e) { ''; }
     " 2>/dev/null || echo "")
   else
     # latest 버전
@@ -85,7 +103,7 @@ resolve_version() {
   
   # fallback to latest if prerelease not found
   if [ -z "$version" ]; then
-    echo "⚠️  ${pkg} ${tag} prerelease not found, falling back to latest" >&2
+    echo "⚠️  ${pkg} with -${tag} suffix not found, falling back to latest" >&2
     version=$(npm view "${pkg}@latest" version 2>/dev/null || echo "")
   fi
   
