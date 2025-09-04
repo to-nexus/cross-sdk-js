@@ -990,6 +990,9 @@ jobs:
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
             VITE_ENV_MODE=${{ inputs.environment }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
 
   build_and_push_prod:
     name: Build and Push Docker Image (prod)

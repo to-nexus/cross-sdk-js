@@ -3,10 +3,12 @@ FROM node:20 AS builder
 ARG SERVICE_NAME
 ARG WORKDIR
 ARG VITE_PROJECT_ID
+ARG VITE_ENV_MODE
 
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV WORKDIR=$WORKDIR
 ENV VITE_PROJECT_ID=$VITE_PROJECT_ID
+ENV VITE_ENV_MODE=$VITE_ENV_MODE
 
 WORKDIR $WORKDIR
 
@@ -26,7 +28,12 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
 # 소스 코드 복사
 COPY . .
 
-# Docker 환경에서 의존성 설치 (소스 코드 복사 후)
+# 환경별 버전 해결 및 의존성 설치
+RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
+  chmod +x ./scripts/resolve-sample-versions.sh && \
+  ./scripts/resolve-sample-versions.sh "${VITE_ENV_MODE:-prod}" "$WORKDIR"
+
+# Docker 환경에서 의존성 설치 (버전 해결 후)
 RUN pnpm install
 
 # 빌드 실행
