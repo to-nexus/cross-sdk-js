@@ -918,10 +918,28 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      - name: Resolve Nexus registry URL (dev)
+        id: registry_dev
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
       - name: Configure npm for Nexus
         run: |
           echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
-          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+          echo "@to-nexus:registry=${{ steps.registry_dev.outputs.NEXUS_URL }}" >> .npmrc
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
@@ -971,7 +989,7 @@ jobs:
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
             VITE_ENV_MODE=${{ inputs.environment }}
-            REGISTRY_URL=${{ secrets.NEXUS_REGISTRY_URL }}
+            REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
@@ -991,7 +1009,7 @@ jobs:
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
             VITE_ENV_MODE=${{ inputs.environment }}
-            REGISTRY_URL=${{ secrets.NEXUS_REGISTRY_URL }}
+            REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
@@ -1013,10 +1031,28 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      - name: Resolve Nexus registry URL (stage)
+        id: registry_stage
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
       - name: Configure npm for Nexus
         run: |
           echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
-          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+          echo "@to-nexus:registry=${{ steps.registry_stage.outputs.NEXUS_URL }}" >> .npmrc
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
@@ -1066,7 +1102,7 @@ jobs:
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
             VITE_ENV_MODE=${{ inputs.environment }}
-            REGISTRY_URL=${{ secrets.NEXUS_REGISTRY_URL }}
+            REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
@@ -1086,7 +1122,7 @@ jobs:
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
             VITE_ENV_MODE=${{ inputs.environment }}
-            REGISTRY_URL=${{ secrets.NEXUS_REGISTRY_URL }}
+            REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
