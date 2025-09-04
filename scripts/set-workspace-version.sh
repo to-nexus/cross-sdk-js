@@ -60,16 +60,17 @@ case "$ENVIRONMENT" in
     fi
     node -e "
 const fs = require('fs');
-let metaStr = process.env.META_RAW || ''; 
+let metaStr = process.env.META_RAW || '';
 let meta = {}; try { meta = JSON.parse(metaStr || '{}'); } catch (e) {}
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const baseVersion = pkg.version.replace(/-alpha.*$/, '').replace(/-beta.*$/, '');
-const candidate = baseVersion + '-beta';
+const candidatePrefix = baseVersion + '-beta';
 const distTags = (meta && meta['dist-tags']) || {};
 const versions = (meta && meta.versions) || {};
-const hasBeta = (distTags.beta === candidate) || Object.prototype.hasOwnProperty.call(versions, candidate);
+const betaTag = typeof distTags.beta === 'string' ? distTags.beta : '';
+const hasBeta = (betaTag && betaTag.startsWith(candidatePrefix)) || Object.keys(versions).some(v => v.startsWith(candidatePrefix));
 if (hasBeta) {
-  const betaVersion = candidate;
+  const betaVersion = candidatePrefix;
   console.log('✅ Beta version exists in registry, using:', betaVersion);
   pkg.version = betaVersion;
 } else {
