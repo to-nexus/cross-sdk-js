@@ -36,6 +36,7 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
 # Docker 환경에서 의존성 설치 (버전 해결 후)
 RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   echo "Configuring pnpm for private registry..." && \
+  cp .npmrc .pnpmrc && \
   export NPM_CONFIG_USERCONFIG="$WORKDIR/.npmrc" && \
   export npm_config_userconfig="$WORKDIR/.npmrc" && \
   echo "Testing private registry access..." && \
