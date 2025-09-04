@@ -13,6 +13,10 @@ case "$ENVIRONMENT" in
   "dev")
     echo "Using alpha version for dev environment"
     # alpha 버전은 이미 설정되어 있으므로 변경 없음
+    SELECTED_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    if [ -n "$SELECTED_VERSION" ]; then
+      node scripts/set-workspace-version.cjs "$SELECTED_VERSION" || true
+    fi
     ;;
   "stage")
     echo "Setting workspace version to beta for stage environment..."
@@ -49,11 +53,16 @@ case "$ENVIRONMENT" in
     fi
     if [ -n "$REGISTRY_URL" ]; then
       echo "Using registry: $REGISTRY_URL"
+      TMP_FILE=$(mktemp)
       if [ -n "$TOKEN" ]; then
-        META_RAW=$(curl -s -H "Authorization: Bearer ${TOKEN}" "${REGISTRY_URL}%40to-nexus%2Fsdk" 2>/dev/null || echo "")
+        HTTP_CODE=$(curl -sS -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/json" -o "$TMP_FILE" -w "%{http_code}" "${REGISTRY_URL}%40to-nexus%2Fsdk" 2>/dev/null || echo "000")
       else
-        META_RAW=$(curl -s "${REGISTRY_URL}%40to-nexus%2Fsdk" 2>/dev/null || echo "")
+        HTTP_CODE=$(curl -sS -H "Accept: application/json" -o "$TMP_FILE" -w "%{http_code}" "${REGISTRY_URL}%40to-nexus%2Fsdk" 2>/dev/null || echo "000")
       fi
+      META_RAW=$(cat "$TMP_FILE" 2>/dev/null || echo "")
+      rm -f "$TMP_FILE" || true
+      TOKEN_STATE=$( [ -n "$TOKEN" ] && echo present || echo absent )
+      echo "ℹ️ registry GET status: $HTTP_CODE, token: $TOKEN_STATE"
     else
       echo "Registry URL not available; defaulting to stable"
       META_RAW=""
@@ -80,6 +89,10 @@ if (hasBeta) {
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 console.log('Workspace version set to:', pkg.version);
 " META_RAW="$META_RAW"
+    SELECTED_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    if [ -n "$SELECTED_VERSION" ]; then
+      node scripts/set-workspace-version.cjs "$SELECTED_VERSION" || true
+    fi
     ;;
   "prod")
     echo "Setting stable version for production..."
@@ -90,6 +103,10 @@ console.log('Workspace version set to:', pkg.version);
       fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
       console.log('Workspace version updated to:', pkg.version);
     "
+    SELECTED_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    if [ -n "$SELECTED_VERSION" ]; then
+      node scripts/set-workspace-version.cjs "$SELECTED_VERSION" || true
+    fi
     ;;
   *)
     echo "❌ Invalid environment: $ENVIRONMENT"
