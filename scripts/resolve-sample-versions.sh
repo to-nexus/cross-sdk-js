@@ -107,24 +107,10 @@ resolve_version() {
     version=$(npm view "${pkg}@latest" version 2>/dev/null || echo "")
   fi
   
-  # final fallback: use workspace version if npm registry is not accessible
+  # final fallback: use workspace dependency if npm registry is not accessible
   if [ -z "$version" ]; then
-    echo "⚠️  ${pkg}: npm registry not accessible, using workspace version" >&2
-    # Try to get version from local package.json in workspace
-    local workspace_version=""
-    if [ -f "packages/$(basename ${pkg#@to-nexus/})/package.json" ]; then
-      workspace_version=$(node -p "require('./packages/$(basename ${pkg#@to-nexus/})/package.json').version" 2>/dev/null || echo "")
-    elif [ -f "packages/${pkg#@to-nexus/}/package.json" ]; then
-      workspace_version=$(node -p "require('./packages/${pkg#@to-nexus/}/package.json').version" 2>/dev/null || echo "")
-    fi
-    
-    if [ -n "$workspace_version" ]; then
-      echo "Using workspace version: $workspace_version" >&2
-      version="$workspace_version"
-    else
-      echo "❌ ${pkg}: version resolution completely failed (no workspace version found)" >&2
-      return 1
-    fi
+    echo "⚠️  ${pkg}: npm registry not accessible, using workspace dependency" >&2
+    version="workspace:*"
   fi
   
   echo "$version"
