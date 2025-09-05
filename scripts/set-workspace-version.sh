@@ -38,6 +38,8 @@ case "$ENVIRONMENT" in
       node scripts/set-workspace-version.cjs "$SELECTED_VERSION" || true
       # sdkVersion 상수도 동기화하여 런타임 로그가 올바른 버전을 출력하도록 함
       node scripts/set-version.js "$SELECTED_VERSION" || true
+      # prebuild 단계에서 사용하는 주입 스크립트와도 버전을 강제 동기화
+      APP_VERSION="$SELECTED_VERSION" node scripts/inject-version.js || true
     fi
     ;;
   "stage")
