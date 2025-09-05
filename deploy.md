@@ -11,10 +11,8 @@
 
 
 ## 브랜치 및 버전 정책
-- **dev/stage**: `release/<version>` 브랜치에서 실행합니다. 입력한 `publish_version`에 프리릴리즈 접미사가 없으면 자동으로
-  - dev → `-alpha`
-  - stage → `-beta`
-  가 붙습니다.
+- **dev**: `develop` 브랜치에서 실행합니다. 입력한 `publish_version`에 프리릴리즈 접미사가 없으면 자동으로 `-alpha`가 붙습니다.
+- **stage**: `release/<version>` 브랜치에서 실행합니다. 입력한 `publish_version`에 프리릴리즈 접미사가 없으면 자동으로 `-beta`가 붙습니다.
 - **prod**: `main` 브랜치에서 실행합니다. `publish_version`의 프리릴리즈 접미사는 제거되어 `latest`로 퍼블리시됩니다.
 - 퍼블리시 후 태깅/릴리스:
   - dev/stage: `release/<version-with-prerelease>` 태그 + GitHub Pre-Release
@@ -38,7 +36,7 @@
 dist-tag 매핑: dev → `alpha`, stage → `beta`, prod → `latest`
 
 ### Dev (alpha)
-1) 브랜치: `release/<version>`
+1) 브랜치: `develop`
 2) 워크플로우 수동 실행:
    - environment: `dev`
    - services: `package-publish` (또는 `all`)
@@ -78,7 +76,7 @@ gh workflow run .github/workflows/publich_and_build.yml \
 서비스: `sample-page`
 
 ### Dev/Stage
-- 브랜치: `release/<version>`
+- 브랜치: dev는 `develop`, stage는 `release/<version>`
 - 실행: environment를 각각 `dev` 또는 `stage`로 선택하고 `services=sample-page`
 - 결과: `${ACCOUNT_ID}.dkr.ecr/<env>/<repo>:{GIT_SHA, latest}` 태그로 푸시
 
