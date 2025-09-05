@@ -2,10 +2,13 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * version.json이 있으면 사용하고, 없으면
- * - 릴리스 브랜치명(release/vX.Y.Z)에서 버전을 파싱
- * - 릴리스 타입은 env(RELEASE_TYPE) 또는 기본 minor
- * - 패키지 목록은 .changeset/config.json의 linked 그룹에서 로드
+ * 버전 결정 우선순위
+ * 1) env.PUBLISH_VERSION 또는 env.RELEASE_VERSION
+ * 2) version.json (repo root)
+ * 3) 릴리스 브랜치명(release/vX.Y.Z)
+ *
+ * 릴리스 타입은 env.RELEASE_TYPE(기본: minor)
+ * 패키지 목록은 version.json.packages 또는 .changeset/config.json.linked[0]
  */
 function generateChangeset() {
   try {
@@ -14,14 +17,27 @@ function generateChangeset() {
       fs.mkdirSync(changesetDir, { recursive: true });
     }
 
-    // 브랜치명에서 버전 유도 (release/vX.Y.Z 필수)
+    // 1) 환경변수 우선
+    const envVersionRaw = (process.env.PUBLISH_VERSION || process.env.RELEASE_VERSION || '').trim();
+    const envVersion = envVersionRaw.replace(/^v/, '');
+
+    // 2) version.json
     let versionData = null;
+    const versionJsonPath = path.join(process.cwd(), 'version.json');
+    if (fs.existsSync(versionJsonPath)) {
+      try {
+        versionData = JSON.parse(fs.readFileSync(versionJsonPath, 'utf8'));
+      } catch {}
+    }
+
+    // 3) 브랜치명(release/X.Y.Z)
     const gitRef = process.env.GITHUB_REF || '';
     const refName = process.env.GITHUB_REF_NAME || gitRef.split('/').slice(3).join('/');
-    const branchMatch = (refName || '').match(/^release\/v?(\S+)$/);
-    const derivedVersion = versionData?.version || (branchMatch ? branchMatch[1] : null);
+    const branchMatch = (refName || '').match(/^release\/(\d+\.\d+\.\d+)$/);
+
+    const derivedVersion = envVersion || versionData?.version || (branchMatch ? branchMatch[1] : null);
     if (!derivedVersion) {
-      throw new Error('릴리스 버전을 결정할 수 없습니다. release/vX.Y.Z 브랜치명을 확인하세요.');
+      throw new Error('릴리스 버전을 결정할 수 없습니다. PUBLISH_VERSION 또는 release/X.Y.Z 브랜치명을 확인하세요.');
     }
     const releaseType = (process.env.RELEASE_TYPE || 'minor').toLowerCase();
 
