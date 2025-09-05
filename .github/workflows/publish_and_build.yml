@@ -75,16 +75,35 @@ jobs:
             echo "allowed=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          case "${{ github.actor_association }}" in
-            OWNER|MEMBER)
+          ORG="${{ github.repository_owner }}"
+          ACTOR="${{ github.actor }}"
+          TOKEN="${ORG_READ_TOKEN:-${GH_TOKEN}}"
+          echo "Checking org membership for $ACTOR in $ORG"
+          RESP=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${TOKEN}" "https://api.github.com/orgs/${ORG}/memberships/${ACTOR}")
+          BODY=$(echo "$RESP" | head -n1)
+          CODE=$(echo "$RESP" | tail -n1)
+          if [ "$CODE" = "200" ]; then
+            STATE=$(printf "%s" "$BODY" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const o=JSON.parse(s);console.log(o.state||'')}catch(e){}})")
+            if [ "$STATE" = "active" ]; then
               echo "allowed=true" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "allowed=false" >> $GITHUB_OUTPUT
-              echo "Manual dispatch is limited to org members."
-              exit 1
-              ;;
-          esac
+              exit 0
+            fi
+          fi
+          PUB=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" "https://api.github.com/orgs/${ORG}/members/${ACTOR}")
+          if [ "$PUB" = "204" ]; then
+            echo "allowed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "allowed=false" >> $GITHUB_OUTPUT
+          if [ -z "${ORG_READ_TOKEN}" ]; then
+            echo "Denied: Non-member or private membership not visible. Set ORG_READ_TOKEN with read:org to allow private members."
+          else
+            echo "Denied: Only organization members can run manual workflows."
+          fi
+          exit 1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORG_READ_TOKEN: ${{ secrets.ORG_READ_TOKEN }}
   changeset_prepare:
     name: Prepare Changeset (auto for preview)
     # develop(dev) | release/*(stage) 전용, 해당 환경에서 다른 서비스 실행 전 자동 수행
