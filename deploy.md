@@ -11,10 +11,8 @@
 
 
 ## 브랜치 및 버전 정책
-- **dev/stage**: `release/<version>` 브랜치에서 실행합니다. 입력한 `publish_version`에 프리릴리즈 접미사가 없으면 자동으로
-  - dev → `-alpha`
-  - stage → `-beta`
-  가 붙습니다.
+- **dev**: `develop` 브랜치에서 실행합니다. 입력한 `publish_version`에 프리릴리즈 접미사가 없으면 자동으로 `-alpha`가 붙습니다.
+- **stage**: `release/<version>` 브랜치에서 실행합니다. 입력한 `publish_version`에 프리릴리즈 접미사가 없으면 자동으로 `-beta`가 붙습니다.
 - **prod**: `main` 브랜치에서 실행합니다. `publish_version`의 프리릴리즈 접미사는 제거되어 `latest`로 퍼블리시됩니다.
 - 퍼블리시 후 태깅/릴리스:
   - dev/stage: `release/<version-with-prerelease>` 태그 + GitHub Pre-Release
@@ -22,7 +20,7 @@
 
 
 ## 주요 워크플로우
-- 파일: `.github/workflows/publich_and_build.yml` (퍼블리시/빌드/이미지/CDN 통합)
+- 파일: `.github/workflows/publish_and_build.yml` (퍼블리시/빌드/이미지/CDN 통합)
 - 파일: `.github/workflows/version_bump.yml` (외부 의존성 버전 정렬 및 게이트)
 
 공통 입력 값
@@ -47,7 +45,7 @@ dist-tag 매핑: dev → `alpha`, stage → `beta`, prod → `latest`
 
 예시 (GitHub CLI):
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=dev -f services=package-publish -f publish_version=1.2.3 -f dry_run=false
 ```
 
@@ -56,7 +54,7 @@ gh workflow run .github/workflows/publich_and_build.yml \
 2) 입력은 Dev와 동일하되 environment만 `stage`로 설정합니다.
 
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=stage -f services=package-publish -f publish_version=1.2.3 -f dry_run=false
 ```
 
@@ -65,7 +63,7 @@ gh workflow run .github/workflows/publich_and_build.yml \
 2) environment: `prod`, services: `package-publish`, publish_version: `1.2.3`
 
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=prod -f services=package-publish -f publish_version=1.2.3 -f dry_run=false
 ```
 
@@ -78,12 +76,12 @@ gh workflow run .github/workflows/publich_and_build.yml \
 서비스: `sample-page`
 
 ### Dev/Stage
-- 브랜치: `release/<version>`
+- 브랜치: dev는 `develop`, stage는 `release/<version>`
 - 실행: environment를 각각 `dev` 또는 `stage`로 선택하고 `services=sample-page`
 - 결과: `${ACCOUNT_ID}.dkr.ecr/<env>/<repo>:{GIT_SHA, latest}` 태그로 푸시
 
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=dev -f services=sample-page -f publish_version=1.2.3 -f dry_run=false
 ```
 
@@ -102,7 +100,7 @@ gh workflow run .github/workflows/publich_and_build.yml \
 4) 해당 경로로 CloudFront 캐시 무효화 수행
 
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=prod -f services=cdn-publish -f publish_version=1.2.3 -f dry_run=false
 ```
 
