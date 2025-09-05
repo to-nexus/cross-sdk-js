@@ -2172,12 +2172,15 @@ export class AppKit {
       console.error(...args)
     })
 
-    const injectedEnv = getEnv()
-    type EnvKey = keyof typeof ConstantsUtil.VERIFY_URL
-    const envKey = injectedEnv.toUpperCase() as EnvKey
-    const verifyUrl = ConstantsUtil.VERIFY_URL[envKey]
-    const relayUrl = ConstantsUtil.RELAY_URL[envKey]
-    console.log(`injected env from your project: ${injectedEnv}`)
+    const envKey = getEnv().toUpperCase()
+    const verifyUrl =
+      (ConstantsUtil as any).getVerifyUrl?.() ||
+      (ConstantsUtil as any).VERIFY_URL?.[envKey] ||
+      'http://cross-verify.crosstoken.io'
+    const relayUrl =
+      (ConstantsUtil as any).getRelayUrl?.() ||
+      (ConstantsUtil as any).RELAY_URL?.[envKey] ||
+      'wss://cross-relay.crosstoken.io/ws'
 
     const universalProviderOptions: UniversalProviderOpts = {
       projectId: this.options?.projectId,
