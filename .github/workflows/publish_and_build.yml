@@ -62,6 +62,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  guard:
+    name: Authorization guard
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - name: Check manual trigger authorization
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            echo "allowed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          case "${{ github.actor_association }}" in
+            OWNER|MEMBER)
+              echo "allowed=true" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "allowed=false" >> $GITHUB_OUTPUT
+              echo "Manual dispatch is limited to org members."
+              exit 1
+              ;;
+          esac
   changeset_prepare:
     name: Prepare Changeset (auto for preview)
     # develop(dev) | release/*(stage) 전용, 해당 환경에서 다른 서비스 실행 전 자동 수행
@@ -73,6 +96,7 @@ jobs:
         (startsWith(github.ref, 'refs/heads/ci/') && inputs.environment == 'dev')
       ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset')
     runs-on: ubuntu-latest
+    needs: guard
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -235,6 +259,7 @@ jobs:
           fi
   sonarqube:
     name: SonarQube Analysis
+    needs: [guard]
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && (inputs.environment == 'stage' || inputs.environment == 'prod') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
     steps:
@@ -248,7 +273,7 @@ jobs:
 
   version_bump:
     name: Version Bump (reusable)
-    needs: [changeset_prepare]
+    needs: [guard, changeset_prepare]
     # Runs for dev/stage on release/* and for prod on main when relevant services selected
     if: |
       github.event_name == 'workflow_dispatch' && (
@@ -271,7 +296,7 @@ jobs:
 
   publish_npm_preview:
     name: Publish to Nexus NPM (preview)
-    needs: [changeset_prepare, version_bump]
+    needs: [guard, changeset_prepare, version_bump]
     # develop(dev) | release/*(stage) 전용
     if: |
       github.event_name == 'workflow_dispatch' && (
@@ -816,7 +841,7 @@ jobs:
 
   publish_npm_prod:
     name: Publish to Nexus NPM (prod)
-    needs: [sonarqube, version_bump]
+    needs: [guard, sonarqube, version_bump]
     if: |
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish')) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main')
@@ -926,6 +951,7 @@ jobs:
 
   build_and_push_dev:
     name: Build and Push Docker Image (dev)
+    needs: guard
     # develop 의 dev 전용, sample-page는 독립 실행
     if: |
       github.event_name == 'workflow_dispatch' && ((github.ref == 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/ci/')) && inputs.environment == 'dev' && (inputs.services == 'all' || inputs.services == 'sample-page')
@@ -1038,7 +1064,7 @@ jobs:
 
   build_and_push_stage:
     name: Build and Push Docker Image (stage)
-    needs: sonarqube
+    needs: [guard, sonarqube]
     # release/* 의 stage 전용, sample-page는 독립 실행, SonarQube 후 실행
     if: |
       github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage' && (inputs.services == 'all' || inputs.services == 'sample-page')
@@ -1151,7 +1177,7 @@ jobs:
 
   build_and_push_prod:
     name: Build and Push Docker Image (prod)
-    needs: sonarqube
+    needs: [guard, sonarqube]
     if: |
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
@@ -1242,7 +1268,7 @@ jobs:
       
   cdn_publish_manual:
     name: CDN Publish (prod)
-    needs: sonarqube
+    needs: [guard, sonarqube]
     if: |
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'cdn-publish')
     runs-on: ubuntu-latest

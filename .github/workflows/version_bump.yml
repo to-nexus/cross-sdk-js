@@ -28,8 +28,32 @@ permissions:
   contents: write
 
 jobs:
+  guard:
+    name: Authorization guard
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - name: Check manual trigger authorization
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            echo "allowed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          case "${{ github.actor_association }}" in
+            OWNER|MEMBER)
+              echo "allowed=true" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "allowed=false" >> $GITHUB_OUTPUT
+              echo "Manual dispatch is limited to org members."
+              exit 1
+              ;;
+          esac
   bump:
     name: Apply external package versions
+    needs: guard
     outputs:
       can_publish: ${{ steps.resolve.outputs.CAN_PUBLISH }}
     environment: ${{ inputs.environment }}
