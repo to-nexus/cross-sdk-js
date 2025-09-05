@@ -258,10 +258,10 @@ jobs:
           github.ref == 'refs/heads/main' && inputs.environment == 'prod' &&
           (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish')
         )
-      )
+      ) || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     uses: ./.github/workflows/version_bump.yml
     with:
-      environment: ${{ inputs.environment }}
+      environment: ${{ inputs.environment || 'prod' }}
       versions: ${{ inputs.package_versions }}
     secrets: inherit
 
@@ -812,9 +812,10 @@ jobs:
     name: Publish to Nexus NPM (prod)
     needs: [sonarqube, version_bump]
     if: |
-      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish')
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish')) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: prod
     env:
       VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
       VITE_API_URL: ${{ secrets.VITE_API_URL }}
@@ -865,15 +866,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       
-      - name: Build packages
-        run: |
-          pnpm -w run build 
-      
       - name: Compute version
         id: version
         run: |
           VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+          BASE_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Set workspace version to base (prod)
+        run: |
+          pnpm run version:set "${{ steps.version.outputs.BASE_VERSION }}"
+
+      - name: Build packages
+        run: |
+          pnpm -w run build 
       
       - name: Publish package to Nexus (prod → latest)
         if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
@@ -890,7 +897,7 @@ jobs:
       - name: Create and push release tag (prod)
         if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
         run: |
-          TAG="release/${{ steps.version.outputs.VERSION }}"
+          TAG="release/${{ steps.version.outputs.BASE_VERSION }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -905,8 +912,8 @@ jobs:
         if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release/${{ steps.version.outputs.VERSION }}
-          name: Release v${{ steps.version.outputs.VERSION }}
+          tag_name: release/${{ steps.version.outputs.BASE_VERSION }}
+          name: Release v${{ steps.version.outputs.BASE_VERSION }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

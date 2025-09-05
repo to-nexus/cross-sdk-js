@@ -20,7 +20,7 @@
 
 
 ## 주요 워크플로우
-- 파일: `.github/workflows/publich_and_build.yml` (퍼블리시/빌드/이미지/CDN 통합)
+- 파일: `.github/workflows/publish_and_build.yml` (퍼블리시/빌드/이미지/CDN 통합)
 - 파일: `.github/workflows/version_bump.yml` (외부 의존성 버전 정렬 및 게이트)
 
 공통 입력 값
@@ -45,7 +45,7 @@ dist-tag 매핑: dev → `alpha`, stage → `beta`, prod → `latest`
 
 예시 (GitHub CLI):
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=dev -f services=package-publish -f publish_version=1.2.3 -f dry_run=false
 ```
 
@@ -54,7 +54,7 @@ gh workflow run .github/workflows/publich_and_build.yml \
 2) 입력은 Dev와 동일하되 environment만 `stage`로 설정합니다.
 
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=stage -f services=package-publish -f publish_version=1.2.3 -f dry_run=false
 ```
 
@@ -63,7 +63,7 @@ gh workflow run .github/workflows/publich_and_build.yml \
 2) environment: `prod`, services: `package-publish`, publish_version: `1.2.3`
 
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=prod -f services=package-publish -f publish_version=1.2.3 -f dry_run=false
 ```
 
@@ -81,7 +81,7 @@ gh workflow run .github/workflows/publich_and_build.yml \
 - 결과: `${ACCOUNT_ID}.dkr.ecr/<env>/<repo>:{GIT_SHA, latest}` 태그로 푸시
 
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=dev -f services=sample-page -f publish_version=1.2.3 -f dry_run=false
 ```
 
@@ -100,7 +100,7 @@ gh workflow run .github/workflows/publich_and_build.yml \
 4) 해당 경로로 CloudFront 캐시 무효화 수행
 
 ```bash
-gh workflow run .github/workflows/publich_and_build.yml \
+gh workflow run .github/workflows/publish_and_build.yml \
   -f environment=prod -f services=cdn-publish -f publish_version=1.2.3 -f dry_run=false
 ```
 
