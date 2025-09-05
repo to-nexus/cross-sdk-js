@@ -12,12 +12,34 @@ echo "🔧 Setting workspace version for $ENVIRONMENT environment..."
 case "$ENVIRONMENT" in
   "dev")
     echo "Using alpha version for dev environment"
-    # alpha 버전은 이미 설정되어 있으므로 변경 없음
-    SELECTED_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    # 루트 package.json의 버전을 기준으로 -alpha 접미사를 보장
+    ROOT_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    BASE_VERSION=$(node -e "try{const v=require('./package.json').version||'';console.log(v.replace(/-alpha.*$/,'').replace(/-beta.*$/,''))}catch(e){console.log('')}" 2>/dev/null || echo "")
+    if [ -n "$ROOT_VERSION" ] && echo "$ROOT_VERSION" | grep -q "-alpha"; then
+      SELECTED_VERSION="$ROOT_VERSION"
+    else
+      SELECTED_VERSION="${BASE_VERSION}-alpha"
+    fi
+    # 가능하면 Nexus에서 최신 alpha 버전 조회 (@to-nexus/sdk 기준)
+    if [ -z "$REGISTRY_URL" ] && [ -f ".npmrc" ]; then
+      REGISTRY_URL=$(grep "@to-nexus:registry" .npmrc | cut -d'=' -f2 || true)
+    fi
+    if [ -n "$REGISTRY_URL" ]; then
+      LATEST_ALPHA=$(NPM_CONFIG_USERCONFIG="$PWD/.npmrc" npm view "@to-nexus/sdk@alpha" version --registry "$REGISTRY_URL" 2>/dev/null || true)
+      if [ -n "$LATEST_ALPHA" ]; then
+        SELECTED_VERSION="$LATEST_ALPHA"
+        echo "Resolved latest alpha from registry: $SELECTED_VERSION"
+      else
+        echo "Could not resolve latest alpha from registry; fallback to $SELECTED_VERSION"
+      fi
+    fi
+
     if [ -n "$SELECTED_VERSION" ]; then
       node scripts/set-workspace-version.cjs "$SELECTED_VERSION" || true
       # sdkVersion 상수도 동기화하여 런타임 로그가 올바른 버전을 출력하도록 함
       node scripts/set-version.js "$SELECTED_VERSION" || true
+      # prebuild 단계에서 사용하는 주입 스크립트와도 버전을 강제 동기화
+      APP_VERSION="$SELECTED_VERSION" node scripts/inject-version.js || true
     fi
     ;;
   "stage")
