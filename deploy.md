@@ -36,7 +36,7 @@
 dist-tag 매핑: dev → `alpha`, stage → `beta`, prod → `latest`
 
 ### Dev (alpha)
-1) 브랜치: `develop`
+1) 브랜치: `release/<version>`
 2) 워크플로우 수동 실행:
    - environment: `dev`
    - services: `package-publish` (또는 `all`)
