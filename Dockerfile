@@ -3,10 +3,13 @@ FROM node:20 AS builder
 ARG SERVICE_NAME
 ARG WORKDIR
 ARG VITE_PROJECT_ID
+ARG VITE_ENV_MODE
+ARG REGISTRY_URL
 
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV WORKDIR=$WORKDIR
 ENV VITE_PROJECT_ID=$VITE_PROJECT_ID
+ENV VITE_ENV_MODE=$VITE_ENV_MODE
 
 WORKDIR $WORKDIR
 
@@ -26,8 +29,17 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
 # 소스 코드 복사
 COPY . .
 
+# 환경별 workspace 버전 설정
+RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
+  chmod +x ./scripts/set-workspace-version.sh && \
+  REGISTRY_URL=$REGISTRY_URL ./scripts/set-workspace-version.sh "${VITE_ENV_MODE:-prod}"
+
 # Docker 환경에서 의존성 설치 (소스 코드 복사 후)
-RUN pnpm install
+RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
+  cp $WORKDIR/.npmrc /root/.npmrc.secret && \
+  sh -lc 'printf "@to-nexus:registry=%s\n" "$REGISTRY_URL" > /root/.npmrc' && \
+  cat /root/.npmrc.secret >> /root/.npmrc && \
+  NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm install
 
 # 빌드 실행
 RUN pnpm run build
@@ -35,13 +47,13 @@ RUN pnpm run build
 # Build sdk-react
 WORKDIR $WORKDIR/examples/sdk-react
 RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
-RUN pnpm i
+RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm i
 RUN pnpm run build
 
 # Build sdk-vanilla  
 WORKDIR $WORKDIR/examples/sdk-vanilla
 RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
-RUN pnpm i
+RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm i
 RUN pnpm run build
 
 # sdk-cdn은 빌드가 필요없으므로 그대로 사용
