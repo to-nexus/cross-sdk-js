@@ -154,6 +154,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
+          git restore --staged .npmrc 2>/dev/null || true
           if [ -n "$(git status --porcelain)" ]; then
             if [ "${{ inputs.dry_run }}" = "false" ]; then
               git commit -m "chore: bump @to-nexus/* to latest"
@@ -223,6 +224,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
+          git restore --staged .npmrc 2>/dev/null || true
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "chore: auto-generate changeset"
             git fetch origin "${GITHUB_REF_NAME}" || true
@@ -639,6 +641,7 @@ jobs:
         if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
         run: |
           git add -A
+          git restore --staged .npmrc 2>/dev/null || true
           git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
           git fetch origin "${GITHUB_REF_NAME}" || true
           git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
@@ -734,6 +737,7 @@ jobs:
         if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
         run: |
           git add -A
+          git restore --staged .npmrc 2>/dev/null || true
           git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
           git fetch origin "${GITHUB_REF_NAME}" || true
           git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
