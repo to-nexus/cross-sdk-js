@@ -343,7 +343,7 @@ async function handleSignTypedDataV4() {
   }
 
   try {
-    console.log('Requesting typed data from API...')
+    console.log('Requesting typed data from Cross Ramp API...')
     const FROM_ADDRESS = getFROM_ADDRESS()
 
     // Get typed data from API
