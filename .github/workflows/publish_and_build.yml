@@ -168,7 +168,8 @@ jobs:
           fi
 
       - name: Generate changeset from version.json or branch
-        run: pnpm run auto-changeset
+        run: |
+          PUBLISH_VERSION="${{ inputs.publish_version }}" pnpm run auto-changeset
         
       - name: Detect changed packages since last release
         id: changes
