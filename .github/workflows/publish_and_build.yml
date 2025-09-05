@@ -77,6 +77,7 @@ jobs:
           fi
           ORG="${{ github.repository_owner }}"
           ACTOR="${{ github.actor }}"
+          REPO="${{ github.repository }}"
           TOKEN="${ORG_READ_TOKEN:-${GH_TOKEN}}"
           echo "Checking org membership for $ACTOR in $ORG"
           RESP=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${TOKEN}" "https://api.github.com/orgs/${ORG}/memberships/${ACTOR}")
@@ -94,11 +95,17 @@ jobs:
             echo "allowed=true" >> $GITHUB_OUTPUT
             exit 0
           fi
+          # Fallback 2: allow repo collaborators with write/admin permission
+          PERM=$(curl -s -H "Authorization: Bearer ${GH_TOKEN}" "https://api.github.com/repos/${REPO}/collaborators/${ACTOR}/permission" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const o=JSON.parse(s);console.log(o.permission||'')}catch(e){}})")
+          if [ "$PERM" = "admin" ] || [ "$PERM" = "write" ]; then
+            echo "allowed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           echo "allowed=false" >> $GITHUB_OUTPUT
           if [ -z "${ORG_READ_TOKEN}" ]; then
-            echo "Denied: Non-member or private membership not visible. Set ORG_READ_TOKEN with read:org to allow private members."
+            echo "Denied: Non-member (or private membership not visible) and not a write/admin collaborator."
           else
-            echo "Denied: Only organization members can run manual workflows."
+            echo "Denied: Only org members or repo write/admin collaborators can run manual workflows."
           fi
           exit 1
         env:
