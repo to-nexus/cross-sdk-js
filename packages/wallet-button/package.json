@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-wallet-button",
-  "version": "1.16.6",
+  "version": "1.16.8-alpha",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -69,5 +69,8 @@
     "eslint-plugin-react-hooks": "5.1.0",
     "react": "19.0.0",
     "vitest": "2.1.9"
+  },
+  "publishConfig": {
+    "registry": "https://package.cross-nexus.com/repository/dev-cross-sdk-js"
   }
 }

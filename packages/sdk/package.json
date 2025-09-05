@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/sdk",
-  "version": "1.16.6",
+  "version": "1.16.8-alpha",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -66,5 +66,8 @@
     "@vitejs/plugin-react": "4.2.1",
     "vite": "5.4.12",
     "ethers": "6.13.2"
+  },
+  "publishConfig": {
+    "registry": "https://package.cross-nexus.com/repository/dev-cross-sdk-js"
   }
 }
