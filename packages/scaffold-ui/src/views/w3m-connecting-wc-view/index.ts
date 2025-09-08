@@ -154,9 +154,9 @@ export class W3mConnectingWcView extends LitElement {
       const isCrossWalletFound = this.isCrossWalletInstalled(rdns)
 
       if (isCrossWalletFound) {
-        this.platforms.push('browser')
         this.platforms.push('qrcode')
-        this.platform = 'browser'
+        this.platforms.push('browser')
+        this.platform = 'qrcode'
       } else {
         this.platforms.push('qrcode')
         this.platform = 'qrcode'

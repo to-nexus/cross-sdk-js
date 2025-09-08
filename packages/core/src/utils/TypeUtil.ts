@@ -419,6 +419,7 @@ export type CustomWallet = Pick<
   | 'webapp_link'
   | 'app_store'
   | 'play_store'
+  | 'chrome_store'
   | 'rdns'
   | 'injected'
 >

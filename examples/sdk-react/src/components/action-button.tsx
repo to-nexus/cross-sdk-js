@@ -105,18 +105,18 @@ const redirectUrl = window.location.href
 //   projectId,
 //   redirectUrl,
 //   metadata: {
-//     name: 'Cross SDK',
+//     name: 'Cross JS SDK Sample',
 //     description: 'Cross SDK for React',
 //     url: 'https://to.nexus',
-//     icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+//     icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 //   },
 //   themeMode: 'light'
 // })
 const metadata = {
-  name: 'Cross SDK',
+  name: 'Cross JS SDK Sample',
   description: 'Cross SDK for React',
   url: 'https://to.nexus',
-  icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+  icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 }
 
 initCrossSdk(projectId, redirectUrl, metadata, 'dark')
