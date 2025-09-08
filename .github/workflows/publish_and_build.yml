@@ -62,55 +62,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  guard:
-    name: Authorization guard
-    runs-on: ubuntu-latest
-    outputs:
-      allowed: ${{ steps.check.outputs.allowed }}
-    steps:
-      - name: Check manual trigger authorization
-        id: check
-        run: |
-          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            echo "allowed=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          ORG="${{ github.repository_owner }}"
-          ACTOR="${{ github.actor }}"
-          REPO="${{ github.repository }}"
-          TOKEN="${ORG_READ_TOKEN:-${GH_TOKEN}}"
-          echo "Checking org membership for $ACTOR in $ORG"
-          RESP=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${TOKEN}" "https://api.github.com/orgs/${ORG}/memberships/${ACTOR}")
-          BODY=$(echo "$RESP" | head -n1)
-          CODE=$(echo "$RESP" | tail -n1)
-          if [ "$CODE" = "200" ]; then
-            STATE=$(printf "%s" "$BODY" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const o=JSON.parse(s);console.log(o.state||'')}catch(e){}})")
-            if [ "$STATE" = "active" ]; then
-              echo "allowed=true" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-          fi
-          PUB=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" "https://api.github.com/orgs/${ORG}/members/${ACTOR}")
-          if [ "$PUB" = "204" ]; then
-            echo "allowed=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          # Fallback 2: allow repo collaborators with write/admin permission
-          PERM=$(curl -s -H "Authorization: Bearer ${GH_TOKEN}" "https://api.github.com/repos/${REPO}/collaborators/${ACTOR}/permission" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const o=JSON.parse(s);console.log(o.permission||'')}catch(e){}})")
-          if [ "$PERM" = "admin" ] || [ "$PERM" = "write" ]; then
-            echo "allowed=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          echo "allowed=false" >> $GITHUB_OUTPUT
-          if [ -z "${ORG_READ_TOKEN}" ]; then
-            echo "Denied: Non-member (or private membership not visible) and not a write/admin collaborator."
-          else
-            echo "Denied: Only org members or repo write/admin collaborators can run manual workflows."
-          fi
-          exit 1
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ORG_READ_TOKEN: ${{ secrets.ORG_READ_TOKEN }}
   changeset_prepare:
     name: Prepare Changeset (auto for preview)
     # develop(dev) | release/*(stage) 전용, 해당 환경에서 다른 서비스 실행 전 자동 수행
@@ -122,7 +73,6 @@ jobs:
         (startsWith(github.ref, 'refs/heads/ci/') && inputs.environment == 'dev')
       ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset')
     runs-on: ubuntu-latest
-    needs: guard
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -285,7 +235,6 @@ jobs:
           fi
   sonarqube:
     name: SonarQube Analysis
-    needs: [guard]
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && (inputs.environment == 'stage' || inputs.environment == 'prod') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
     steps:
@@ -299,7 +248,7 @@ jobs:
 
   version_bump:
     name: Version Bump (reusable)
-    needs: [guard, changeset_prepare]
+    needs: [changeset_prepare]
     # Runs for dev/stage on release/* and for prod on main when relevant services selected
     if: |
       github.event_name == 'workflow_dispatch' && (
@@ -322,7 +271,7 @@ jobs:
 
   publish_npm_preview:
     name: Publish to Nexus NPM (preview)
-    needs: [guard, changeset_prepare, version_bump]
+    needs: [changeset_prepare, version_bump]
     # develop(dev) | release/*(stage) 전용
     if: |
       github.event_name == 'workflow_dispatch' && (
@@ -867,7 +816,7 @@ jobs:
 
   publish_npm_prod:
     name: Publish to Nexus NPM (prod)
-    needs: [guard, sonarqube, version_bump]
+    needs: [sonarqube, version_bump]
     if: |
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'package-publish')) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main')
@@ -977,7 +926,6 @@ jobs:
 
   build_and_push_dev:
     name: Build and Push Docker Image (dev)
-    needs: guard
     # develop 의 dev 전용, sample-page는 독립 실행
     if: |
       github.event_name == 'workflow_dispatch' && ((github.ref == 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/ci/')) && inputs.environment == 'dev' && (inputs.services == 'all' || inputs.services == 'sample-page')
@@ -1090,7 +1038,7 @@ jobs:
 
   build_and_push_stage:
     name: Build and Push Docker Image (stage)
-    needs: [guard, sonarqube]
+    needs: [sonarqube]
     # release/* 의 stage 전용, sample-page는 독립 실행, SonarQube 후 실행
     if: |
       github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage' && (inputs.services == 'all' || inputs.services == 'sample-page')
@@ -1203,7 +1151,7 @@ jobs:
 
   build_and_push_prod:
     name: Build and Push Docker Image (prod)
-    needs: [guard, sonarqube]
+    needs: [sonarqube]
     if: |
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
@@ -1294,7 +1242,7 @@ jobs:
       
   cdn_publish_manual:
     name: CDN Publish (prod)
-    needs: [guard, sonarqube]
+    needs: [sonarqube]
     if: |
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'prod' && (inputs.services == 'all' || inputs.services == 'cdn-publish')
     runs-on: ubuntu-latest
