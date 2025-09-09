@@ -123,10 +123,13 @@ jobs:
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
       - name: Install dependencies (workspaces)
-        run: npm install --workspaces --no-audit --no-fund
+        run: npm install --workspaces
 
       - name: Ensure Changesets CLI available
         run: npm i -D @changesets/cli@2.28.1 --no-save
+
+      - name: Ensure not in Changesets pre mode (best-effort)
+        run: npm run changeset -- pre exit || true
 
       - name: Compute version from inputs/branch
         id: compute
