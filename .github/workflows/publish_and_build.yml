@@ -1,0 +1,321 @@
+name: CI - Publish
+
+on:
+  push:
+    branches:
+      - main
+      - ci/*
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
+      publish_version:
+        description: "배포 버전 (develop 필수, release/*는 미입력 시 브랜치명 사용)"
+        required: false
+        type: string
+      dry_run:
+        description: "실제 퍼블리시/태깅 없이 검증만 수행"
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.environment || 'na' }}
+  cancel-in-progress: true
+
+jobs:
+  version_bump:
+    name: Version Bump (reusable)
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    uses: ./.github/workflows/version_bump.yml
+    with:
+      environment: ${{ inputs.environment || (github.ref == 'refs/heads/main' && 'prod') || 'dev' }}
+      versions: ''
+    secrets: inherit
+
+  publish:
+    name: Publish to Nexus NPM
+    runs-on: ubuntu-latest
+    needs: [version_bump]
+    if: |
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      ) && (
+        needs.version_bump.outputs.can_publish == 'true' || inputs.environment == 'prod' || github.ref == 'refs/heads/main'
+      )
+    environment: ${{ inputs.environment || (github.ref == 'refs/heads/main' && 'prod') || 'dev' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Resolve Nexus registry URL
+        id: registry
+        run: |
+          if [ "${{ inputs.environment || (github.ref == 'refs/heads/main' && 'prod') || 'dev' }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment || (github.ref == 'refs/heads/main' && 'prod') || 'dev' }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm for Nexus
+        run: |
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+          echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Verify npm auth (gate)
+        run: |
+          echo "::add-mask::${NPM_TOKEN}" || true
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
+          if [ "$STATUS" != "200" ]; then
+            echo "Auth verification failed (HTTP $STATUS). Aborting."
+            exit 1
+          fi
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Install dependencies (workspaces)
+        run: npm install --workspaces --no-audit --no-fund
+
+      - name: Compute version from inputs/branch
+        id: compute
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          ENVIRONMENT="${{ inputs.environment || (github.ref == 'refs/heads/main' && 'prod') || 'dev' }}"
+          INPUT_VER="${{ inputs.publish_version }}"
+          REF_VERSION=""
+
+          if [[ "$ENVIRONMENT" == "stage" && "$BRANCH" == release/* ]]; then
+            # stage on release/*: default to branch x.y.z, override if manual input present
+            BASE_FROM_BRANCH="${BRANCH#release/}"
+            if [[ -n "$INPUT_VER" ]]; then
+              REF_VERSION="$INPUT_VER"
+              echo "Using manual version for stage: $REF_VERSION"
+            else
+              REF_VERSION="$BASE_FROM_BRANCH"
+              echo "Using version from branch: $REF_VERSION"
+            fi
+          elif [[ "$ENVIRONMENT" == "dev" ]]; then
+            # develop requires manual version
+            if [[ -z "$INPUT_VER" ]]; then
+              echo "❌ publish_version is required for develop (environment=dev)"
+              exit 1
+            fi
+            REF_VERSION="$INPUT_VER"
+            echo "Using manual version for dev: $REF_VERSION"
+          else
+            # prod or others: optional input, otherwise derive from package.json later
+            if [[ -n "$INPUT_VER" ]]; then
+              REF_VERSION="$INPUT_VER"
+              echo "Using manual version for prod: $REF_VERSION"
+            else
+              echo "No manual version provided; prod will derive from package.json"
+            fi
+          fi
+
+          echo "REF_VERSION=$REF_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate changeset from inputs/branch (dev/stage only)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          PUBLISH_VERSION=${{ steps.compute.outputs.REF_VERSION || '' }} \
+          RELEASE_VERSION=${{ steps.compute.outputs.REF_VERSION || '' }} \
+          node scripts/auto-changeset.cjs
+
+      - name: Enter Changesets pre mode (alpha/beta)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
+          npx --yes @changesets/cli pre enter "$PREID"
+
+      - name: Version packages (pre)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: npx --yes @changesets/cli version
+
+      - name: Set stable version in root package.json (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false'
+        id: setver_prod
+        run: |
+          BASE_INPUT="${{ steps.compute.outputs.REF_VERSION }}"
+          if [[ -n "$BASE_INPUT" ]]; then
+            BASE_VERSION="${BASE_INPUT%%-*}"
+          else
+            BASE_VERSION=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
+          fi
+          node -e "const fs=require('fs');const p=require('./package.json');p.version='${BASE_VERSION}';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          echo "Set root version (prod) -> ${BASE_VERSION}"
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_OUTPUT
+          git add package.json
+          # prod에서는 버전 파일을 커밋/푸시하지 않음 (충돌 방지)
+
+      - name: Set prerelease version in root package.json (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        id: setver
+        run: |
+          PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
+          BASE="${{ steps.compute.outputs.REF_VERSION }}"
+          if [[ -z "$BASE" ]]; then
+            # fallback to current base if not provided (shouldn't happen for dev/stage)
+            BASE=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
+          fi
+          if [[ "$BASE" == *-* ]]; then
+            NEW_VER="$BASE"
+          else
+            NEW_VER="${BASE}-${PREID}"
+          fi
+          node -e "const fs=require('fs');const p=require('./package.json');p.version='${NEW_VER}';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          echo "Set root version -> ${NEW_VER}"
+          echo "NEW_VERSION=${NEW_VER}" >> $GITHUB_OUTPUT
+          git add package.json
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "VERSION_CHANGES_READY=true" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION_CHANGES_READY=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Propagate version to linked packages (prebuild helper)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          node scripts/inject-version.js || true
+          git add -A
+
+      - name: Build (workspaces)
+        run: npm run build --workspaces --if-present
+
+      - name: Extract version from package.json
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          BASE_VERSION=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Publish (dev → alpha)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false'
+        run: npx --yes changeset publish --tag alpha
+
+      - name: Publish (stage → beta)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false'
+        run: npx --yes changeset publish --tag beta
+
+      - name: Commit version changes (after successful publish)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false' && steps.setver.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git restore --staged .npmrc 2>/dev/null || true
+          git commit -m "chore: set workspace version to ${{ steps.setver.outputs.NEW_VERSION }}"
+          git fetch origin "${GITHUB_REF_NAME}" || true
+          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+          git push || git push --force-with-lease
+
+      - name: Publish (prod → latest)
+        if: |
+          (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: npx --yes changeset publish
+
+      - name: Create tag (dev/stage prerelease)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="release/${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Pre-Release $VERSION"
+            git fetch origin "$TAG" || true
+            git push origin "$TAG" || git push --force-with-lease origin "$TAG"
+          fi
+
+      - name: Create GitHub Pre-Release (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.VERSION }}
+          name: Pre-Release ${{ steps.version.outputs.VERSION }} (${{ inputs.environment }})
+          prerelease: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create tag & GitHub Release (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main'
+        run: |
+          VERSION=$(node -p "require('./package.json').version.replace(/-.*/, '')")
+          TAG="release/${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git fetch origin "$TAG" || true
+            git push origin "$TAG" || git push --force-with-lease origin "$TAG"
+          fi
+
+      - name: Create GitHub Release (prod)
+        if: inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.BASE_VERSION }}
+          name: Release ${{ steps.version.outputs.BASE_VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rollback version changes (if publish failed)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && steps.setver.outputs.VERSION_CHANGES_READY == 'true' && failure()
+        run: |
+          echo "Publish failed, rolling back local version changes"
+          git reset --hard HEAD
+

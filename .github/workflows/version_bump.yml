@@ -1,0 +1,206 @@
+name: Version Bump (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "환경 (dev/stage/prod)"
+        required: true
+        type: choice
+        options: [dev, stage, prod]
+      versions:
+        description: "Overrides (e.g. core=2.19.11,sign-client=2.19.11-alpha.2)"
+        required: false
+        default: ''
+  workflow_call:
+    inputs:
+      environment:
+        description: "환경 (dev/stage/prod)"
+        required: true
+        type: string
+      versions:
+        description: "Overrides (e.g. core=2.19.11,sign-client=2.19.11-alpha.2)"
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: Apply external package versions
+    outputs:
+      can_publish: ${{ steps.resolve.outputs.CAN_PUBLISH }}
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Resolve Nexus registry URL
+        id: registry
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm for Nexus
+        run: |
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          # Bearer 토큰 및 Basic(Base64) 모두 시도
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:_auth=${BASIC_AUTH}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+          echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+          BASIC_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
+
+      - name: Install dependencies (workspaces)
+        run: npm install --workspaces --no-audit --no-fund
+
+      - name: Resolve and apply versions
+        id: resolve
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            DEFAULT_TAG="alpha"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            DEFAULT_TAG="beta"
+          else
+            DEFAULT_TAG="latest"
+          fi
+          echo "Default dist-tag: ${DEFAULT_TAG}"
+
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const overridesRaw = process.env.OVERRIDES || '';
+          const defaultTag = process.env.DEFAULT_TAG || 'latest';
+          const alias = {
+            core: '@to-nexus/core',
+            universal: '@to-nexus/universal-provider',
+            'sign-client': '@to-nexus/sign-client',
+            sdk: '@to-nexus/sdk'
+          };
+
+          function parseOverrides(input) {
+            const map = new Map();
+            input.split(',').map(s => s.trim()).filter(Boolean).forEach(p => {
+              const [k, v] = p.split('=').map(s => s && s.trim());
+              if (k && v) map.set(alias[k] || k, v);
+            });
+            return map;
+          }
+
+          function collectPackageJsons(rootDir) {
+            const results = [];
+            const stack = [rootDir];
+            while (stack.length) {
+              const dir = stack.pop();
+              if (!fs.existsSync(dir)) continue;
+              for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+                if (ent.name === 'node_modules' || ent.name.startsWith('.')) continue;
+                const p = path.join(dir, ent.name);
+                if (ent.isDirectory()) stack.push(p);
+                else if (ent.isFile() && ent.name === 'package.json') results.push(p);
+              }
+            }
+            return results;
+          }
+
+          const overrides = parseOverrides(overridesRaw);
+
+          async function resolveTagVersion(pkg, tag) {
+            const { execSync } = require('child_process');
+            try {
+              const v = execSync(`npm view "${pkg}@${tag}" version`, { stdio: ['ignore', 'pipe', 'pipe'] }).toString().trim();
+              if (v) return v;
+            } catch {}
+            try {
+              const v = execSync(`npm view "${pkg}@latest" version`, { stdio: ['ignore', 'pipe', 'pipe'] }).toString().trim();
+              return v;
+            } catch {}
+            return '';
+          }
+
+          (async () => {
+            const targets = ['@to-nexus/core','@to-nexus/universal-provider','@to-nexus/sign-client','@to-nexus/sdk'];
+            let fallback = false;
+            const desired = new Map();
+            for (const pkg of targets) {
+              if (overrides.has(pkg)) {
+                desired.set(pkg, overrides.get(pkg));
+              } else {
+                const v = await resolveTagVersion(pkg, defaultTag);
+                if (!v) fallback = true; else desired.set(pkg, v);
+              }
+            }
+
+            // Gate result
+            const out = process.env.GITHUB_OUTPUT;
+            const can = (defaultTag !== 'latest' && fallback) ? 'false' : 'true';
+            if (out) fs.appendFileSync(out, `CAN_PUBLISH=${can}\n`);
+
+            const files = [
+              ...collectPackageJsons('./packages'),
+              ...collectPackageJsons('./providers')
+            ];
+            for (const file of files) {
+              const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
+              let changed = false;
+              for (const section of ['dependencies','devDependencies','peerDependencies']) {
+                if (!pkg[section]) continue;
+                for (const dep of desired.keys()) {
+                  if (pkg[section][dep] && pkg[section][dep] !== desired.get(dep)) {
+                    pkg[section][dep] = desired.get(dep);
+                    changed = true;
+                    console.log(`Updated ${file}: ${dep} -> ${desired.get(dep)}`);
+                  }
+                }
+              }
+              if (changed) fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
+            }
+          })();
+          NODE
+        env:
+          DEFAULT_TAG: ${{ inputs.environment == 'dev' && 'alpha' || inputs.environment == 'stage' && 'beta' || 'latest' }}
+          OVERRIDES: ${{ inputs.versions }}
+
+      - name: Commit & push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: version bump (${DEFAULT_TAG:-auto})"
+            git fetch origin "${GITHUB_REF_NAME}" || true
+            git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+            git push || git push --force-with-lease
+          else
+            echo "No changes to commit"
+          fi
+
