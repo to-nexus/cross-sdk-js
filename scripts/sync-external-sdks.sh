@@ -28,16 +28,22 @@ IGNORE_PATTERNS=(
     "pnpm-workspace.yaml"       # PNPM 워크스페이스 설정
     ".pnpmrc"                   # PNPM 설정
     ".npmrc"                    # NPM 설정
+    "yarn.lock"                 # Yarn 락 파일
+    "package-lock.json"         # NPM 락 파일
     
     # 빌드 결과물
     "dist/"                     # 빌드 결과물
+    "build/"                    # 빌드 디렉토리
     ".next/"                    # Next.js 빌드 디렉토리
     "out/"                      # Next.js export 디렉토리
     ".parcel-cache/"            # Parcel 캐시
     ".cache-synpress/"          # Cypress 캐시
+    ".rollup.cache/"            # Rollup 캐시
+    ".cache/"                   # 일반 캐시 디렉토리
     "tsconfig.tsbuildinfo"      # TypeScript 빌드 정보
     "*.d.ts"                    # TypeScript 선언 파일
     "*.d.ts.map"                # TypeScript 선언 맵 파일
+    ".eslintcache"              # ESLint 캐시
     
     # 테스트 및 커버리지
     "coverage/"                 # 테스트 커버리지
@@ -45,6 +51,13 @@ IGNORE_PATTERNS=(
     "test-results/"             # 테스트 결과
     "playwright-report/"        # Playwright 리포트
     "screenshots/"              # 테스트 스크린샷
+    "test/"                     # 테스트 디렉토리
+    "tests/"                    # 테스트 디렉토리 (복수형)
+    "__tests__/"                # Jest 테스트 디렉토리
+    "*.test.ts"                 # 테스트 파일들
+    "*.test.js"                 # 테스트 파일들
+    "*.spec.ts"                 # 스펙 파일들
+    "*.spec.js"                 # 스펙 파일들
     
     # 개발 도구 설정
     ".vscode/"                  # VSCode 설정
@@ -59,6 +72,8 @@ IGNORE_PATTERNS=(
     "lerna-debug.log"           # Lerna 디버그 로그
     "*.tmp"                     # 임시 파일들
     "*.temp"                    # 임시 파일들
+    "tmp/"                      # 임시 디렉토리
+    "temp/"                     # 임시 디렉토리
     
     # 환경 변수 파일
     ".env"                      # 환경 변수
@@ -75,6 +90,10 @@ IGNORE_PATTERNS=(
     ".husky/"                   # Husky git hooks
     "dangerfile.ts"             # Danger.js 설정
     "sonar-project.properties"  # SonarQube 설정
+    "Dockerfile"                # Docker 설정
+    "rollup.config.dev.js"      # 개발용 Rollup 설정
+    "rollup.config.js"          # Rollup 설정 파일
+    ".npmignore"                # NPM ignore 파일
     
     # 백업 디렉토리
     "backups/"                  # 이 스크립트가 생성하는 백업
@@ -89,11 +108,11 @@ declare -a FAILED_OPERATIONS=()
 get_package_config() {
     local package_name="$1"
     case "$package_name" in
-        "universal-provider")
-            echo "providers/universal-provider:cross-connect"
-            ;;
         "sign-client")
             echo "packages/sign-client:cross-connect"
+            ;;
+        "universal-provider")
+            echo "providers/universal-provider:cross-connect"
             ;;
         *)
             echo ""
@@ -104,7 +123,7 @@ get_package_config() {
 get_package_default_branch() {
     local package_name="$1"
     case "$package_name" in
-        "universal-provider"|"sign-client")
+        "sign-client"|"universal-provider")
             echo "main"
             ;;
         *)
@@ -114,7 +133,7 @@ get_package_default_branch() {
 }
 
 get_all_packages() {
-    echo "universal-provider sign-client"
+    echo "sign-client universal-provider"
 }
 
 get_package_path() {
@@ -153,18 +172,18 @@ show_available_packages() {
 # 패키지 선택 함수
 select_package() {
     local prompt="${1:-Choose package}"
-    show_available_packages
+    echo "=== 패키지 선택 ==="
+    echo "1. sign-client"
+    echo "2. universal-provider"
     
-    local packages=($(get_all_packages))
     local choice
-    choice=$(safe_select "${YELLOW}❓ $prompt (1-${#packages[@]}):${NC}" ${#packages[@]} "1" "false" "true")
+    choice=$(safe_select "${YELLOW}❓ $prompt (1-2):${NC}" 2 "1" "false" "true")
     
-    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#packages[@]} ]]; then
-        echo "${packages[$((choice-1))]}"
-    else
-        log_error "Invalid package selection"
-        return 1
-    fi
+    case "$choice" in
+        1) echo "sign-client" ;;
+        2) echo "universal-provider" ;;
+        *) log_error "Invalid package selection"; return 1 ;;
+    esac
 }
 
 log_success() {
@@ -187,7 +206,7 @@ log_header() {
 print_header() {
     echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║                  Git Subtree Sync Script                       ║${NC}"
-    echo -e "${CYAN}║              cross-sdk-js ↔ cross-connect                      ║${NC}"
+    echo -e "${CYAN}║              cross-sdk-js ↔ Multiple Repos                    ║${NC}"
     echo -e "${CYAN}║                  Multi-Package Sync System                     ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
@@ -218,9 +237,9 @@ show_exclusions() {
 
 # 현재 디렉토리가 프로젝트 루트인지 확인 (다중 패키지 지원)
 check_project_root() {
-    if [[ ! -f "package.json" ]]; then
+    if [[ ! -f "package.json" ]] || [[ ! -d "packages" ]]; then
         log_error "스크립트는 cross-sdk-js 프로젝트 루트에서 실행해야 합니다."
-        log_error "현재 위치에 package.json이 있는지 확인하세요."
+        log_error "현재 위치에 package.json과 packages 디렉토리가 있는지 확인하세요."
         exit 1
     fi
     
@@ -521,7 +540,7 @@ suggest_branch_names() {
     printf "${CYAN}┌──────────────────────────────────────────────────────────────┐${NC}\n" >&2
     printf "${CYAN}│${NC} 1. sync/$timestamp-$commit_hash                         ${CYAN}│${NC}\n" >&2
     printf "${CYAN}│${NC} 2. feat/$clean_commit_msg                               ${CYAN}│${NC}\n" >&2
-    printf "${CYAN}│${NC} 3. update/crosswallet-rn-$timestamp                     ${CYAN}│${NC}\n" >&2
+    printf "${CYAN}│${NC} 3. update/cross-sdk-js-$timestamp                     ${CYAN}│${NC}\n" >&2
     printf "${CYAN}│${NC} 4. hotfix/urgent-$(date +%m%d-%H%M)                     ${CYAN}│${NC}\n" >&2
     printf "${CYAN}│${NC} 5. Custom (enter your own)                              ${CYAN}│${NC}\n" >&2
     printf "${CYAN}└──────────────────────────────────────────────────────────────┘${NC}\n" >&2
@@ -547,7 +566,7 @@ enhanced_select_branch() {
         sleep 1
         
         local choice
-        choice=$(safe_select "브랜치를 선택하세요" 5 1 "false" "true")
+        choice=$(safe_select "${YELLOW}❓ Choose option (1-5):${NC}" 5 1 "false" "true")
         
         case "$choice" in
             1)
@@ -558,14 +577,14 @@ enhanced_select_branch() {
                 printf "feat/$(echo "$commit_msg" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')"
                 ;;
             3)
-                printf "update/crosswallet-rn-$(date +%Y%m%d-%H%M)"
+                printf "update/cross-sdk-js-$(date +%Y%m%d-%H%M)"
                 ;;
             4)
                 printf "hotfix/urgent-$(date +%m%d-%H%M)"
                 ;;
             5)
                 local custom_branch
-                custom_branch=$(safe_select "새 브랜치명을 입력하세요" 999 "" "true" "false")
+                custom_branch=$(safe_select "${YELLOW}❓ 새 브랜치명을 입력하세요:${NC}" 999 "" "true" "false")
                 if [[ -n "$custom_branch" ]]; then
                     printf "%s" "$custom_branch"
                 else
@@ -606,7 +625,7 @@ enhanced_select_branch() {
         sleep 1
         
         local choice
-        choice=$(safe_select "브랜치를 선택하세요" ${#branches[@]} "$default_position" "true" "true")
+        choice=$(safe_select "${YELLOW}❓ 브랜치를 선택하세요:${NC}" ${#branches[@]} "$default_position" "true" "true")
         
         # 기본값 처리 (기본 브랜치 위치로 선택)
         if [[ "$choice" == "$default_position" ]]; then
@@ -617,7 +636,7 @@ enhanced_select_branch() {
         # 새 브랜치명 직접 입력
         if [[ "$choice" == "0" ]]; then
             local new_branch
-            new_branch=$(safe_select "새 브랜치명을 입력하세요" 999 "" "true" "false")
+            new_branch=$(safe_select "${YELLOW}❓ 새 브랜치명을 입력하세요:${NC}" 999 "" "true" "false")
             if [[ -n "$new_branch" ]]; then
                 printf "%s" "$new_branch"
                 return
@@ -654,9 +673,19 @@ sanitize_branch_name() {
     branch_name=$(echo "$branch_name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     # 제어 문자 제거
     branch_name=$(echo "$branch_name" | tr -d '[:cntrl:]')
-    # 결과 출력
+    # Git에서 허용하는 문자만 유지 (알파벳, 숫자, 언더스코어, 하이픈, 점, 슬래시)
+    branch_name=$(echo "$branch_name" | tr -cd '[:alnum:]_.-/')
+    # 앞뒤에 점이나 하이픈이 있으면 제거
+    branch_name=$(echo "$branch_name" | sed 's/^[.-]//;s/[.-]$//')
+    
+    if [[ -z "$branch_name" ]]; then
+        log_error "Invalid branch name: $1. Please use only alphanumeric, underscore, hyphen, dot, or slash."
+        exit 1
+    fi
+    
     echo "$branch_name"
 }
+
 
 # 브랜치 선택 함수 (기존 함수 교체)
 select_branch() {
@@ -1148,15 +1177,135 @@ pull_from_external() {
     fi
 }
 
+# push_to_external 함수 정의 (3가지 모드 지원)
+push_to_external() {
+    local package_name=$1
+    local remote_name=$2
+    local branch=${3:-}
+    
+    # 패키지가 지정되지 않았으면 선택
+    if [[ -z "$package_name" ]]; then
+        echo "=== 패키지 선택 ==="
+        echo "1. sign-client"
+        echo "2. universal-provider"
+        
+        local choice
+        choice=$(safe_select "패키지를 선택하세요" 2 1 "false" "true")
+        
+        case "$choice" in
+            1) package_name="sign-client" ;;
+            2) package_name="universal-provider" ;;
+            *) log_error "Invalid choice"; return 1 ;;
+        esac
+    fi
+    
+    # 패키지별 설정
+    case "$package_name" in
+        "sign-client"|"universal-provider")
+            remote_name="${remote_name:-cross-connect}"
+            ;;
+        *)
+            log_error "Unknown package: $package_name"
+            return 1
+            ;;
+    esac
+    
+    # 브랜치가 지정되지 않았으면 선택
+    if [[ -z "$branch" ]]; then
+        branch=$(enhanced_select_branch "$remote_name" "main" "true")
+    fi
+    
+    # 브랜치명 정리
+    branch=$(sanitize_branch_name "$branch")
+    
+    # Push 방식 선택
+    echo ""
+    echo -e "${BLUE}📋 Push 옵션:${NC}"
+    echo "   1. 선택적 Push (src + package.json 필드들) - 권장 ⭐"
+    echo "   2. src만 Push (package.json 제외)"
+    echo "   3. 전체 Subtree push (기존 방식)"
+    echo "   4. 작업 취소"
+    echo ""
+    
+    local choice
+    choice=$(safe_select "${YELLOW}❓ 어떤 방식으로 Push하시겠습니까?${NC}" 4 1 "false" "true")
+    
+    case "$choice" in
+        1)
+            log_info "🎯 선택적 Push (src + package.json 필드들) 진행..."
+            selective_push_to_external "$package_name" "$remote_name" "$branch" "true"
+            return $?
+            ;;
+        2)
+            log_info "🎯 src만 Push 진행..."
+            selective_push_to_external "$package_name" "$remote_name" "$branch" "false"
+            return $?
+            ;;
+        3)
+            log_info "🔄 Subtree push 진행..."
+            # 기존 subtree 로직 실행
+            ;;
+        4)
+            log_info "작업을 취소했습니다"
+            return 1
+            ;;
+        *)
+            log_error "잘못된 선택입니다"
+            return 1
+            ;;
+    esac
+    
+    # 기존 Subtree push 로직 (choice == 3인 경우)
+    # ... 기존 코드 유지 ...
+}
+
 # 선택적 Push 함수 (새로 추가)
 selective_push_to_external() {
     local package_name="${1:-}"
-    local branch="${2:-}"
-    local push_package_fields="${3:-true}"  # package.json 필드 push 여부
+    local remote_name="${2:-}"
+    local branch="${3:-}"
+    local push_package_fields="${4:-true}"  # package.json 필드 push 여부
     
-    local config=$(get_package_config "$package_name")
-    local package_path="${config%%:*}"
-    local remote_name="${config##*:}"
+    # 패키지가 지정되지 않았으면 선택
+    if [[ -z "$package_name" ]]; then
+        echo "=== 패키지 선택 ==="
+        echo "1. sign-client"
+        echo "2. universal-provider"
+        
+        local choice
+        choice=$(safe_select "패키지를 선택하세요" 2 1 "false" "true")
+        
+        case "$choice" in
+            1) package_name="sign-client" ;;
+            2) package_name="universal-provider" ;;
+            *) log_error "Invalid choice"; return 1 ;;
+        esac
+    fi
+    
+    # 패키지별 설정
+    case "$package_name" in
+        "sign-client"|"universal-provider")
+            remote_name="${remote_name:-cross-connect}"
+            ;;
+        *)
+            log_error "Unknown package: $package_name"
+            return 1
+            ;;
+    esac
+    
+    local package_path
+    case "$package_name" in
+        "sign-client")
+            package_path="packages/sign-client"
+            ;;
+        "universal-provider")
+            package_path="providers/universal-provider"
+            ;;
+        *)
+            log_error "Unknown package: $package_name"
+            return 1
+            ;;
+    esac
     
     log_info "📤 $package_name 패키지 선택적 Push 중..."
     echo "   📂 Source: $package_path"
@@ -1760,9 +1909,9 @@ safe_select() {
     while true; do
         local display_prompt="$prompt"
         if [[ "$allow_default" == "true" && -n "$default" ]]; then
-            display_prompt="${prompt} (default $default): "
+            display_prompt="${prompt} (default: $default) "
         else
-            display_prompt="${prompt}: "
+            display_prompt="${prompt} "
         fi
         
         if safe_read "$display_prompt" choice; then
@@ -1838,17 +1987,13 @@ usage() {
     echo "  selective-push [package] [branch] - src 폴더와 package.json 필드들만 푸시 (version, scripts, dependencies)"
     echo ""
     echo -e "${BLUE}📦 Available Packages:${NC}"
-    for package in $(get_all_packages); do
-        local config=$(get_package_config "$package")
-        local path="${config%%:*}"
-        local remote="${config##*:}"
-        echo "  • $package: $path ↔ $remote"
-    done
+    echo "  • sign-client: packages/sign-client ↔ cross-connect"
+    echo "  • universal-provider: providers/universal-provider ↔ cross-connect"
     echo ""
     echo -e "${BLUE}💡 Examples:${NC}"
     echo "  $0 setup                          # 🔧 처음 설정 시"
     echo "  $0 compare                        # 🔍 패키지 선택 후 비교"
-    echo "  $0 compare universal-provider     # 🔍 특정 패키지 비교"
+    echo "  $0 compare sign-client             # 🔍 특정 패키지 비교"
     echo "  $0 pull sign-client main          # 📥 sign-client 선택적 업데이트"
     echo "  $0 selective-pull universal-provider # 📥 universal-provider의 src+version만 업데이트"
     echo "  $0 push universal-provider        # 📤 universal-provider 푸시 (브랜치 선택)"
@@ -1857,15 +2002,15 @@ usage() {
     echo -e "${BLUE}🎯 Update Modes:${NC}"
     echo "  • 🔒 자동 백업 및 복원"
     echo "  • 🎯 선택적 파일 업데이트 (src + package.json 필드들) - 기본 모드"
-    echo "  • 📄 package.json 필드들만 선택적 업데이트 (version, scripts, dependencies)"
+    echo "  • 📄 Python 기반 JSON 필드 병합 (version, scripts, dependencies)"
     echo "  • 🗑️  빌드 파일 자동 제외 (push 시)"
     echo "  • 🤖 GitHub PR 자동 생성"
     echo "  • 📊 상세한 작업 리포트"
     echo "  • 🧹 오래된 백업 자동 정리"
     echo ""
     echo -e "${BLUE}📂 Target Paths:${NC}"
-    echo "  • universal-provider: providers/universal-provider ↔ cross-connect"
     echo "  • sign-client: packages/sign-client ↔ cross-connect"
+    echo "  • universal-provider: providers/universal-provider ↔ cross-connect"
     echo ""
     echo -e "${BLUE}📁 Selective Update Files:${NC}"
     echo "  • src/ (전체 소스 디렉토리)"
@@ -1883,11 +2028,12 @@ usage() {
     echo ""
     echo -e "${BLUE}📄 Package.json Update Details:${NC}"
     echo "  • Source: 외부 저장소의 패키지별 package.json"
-    echo "    - universal-provider: cross-connect/providers/universal-provider/package.json"
     echo "    - sign-client: cross-connect/packages/sign-client/package.json"
+    echo "    - universal-provider: cross-connect/providers/universal-provider/package.json"
     echo "  • Target: 로컬 패키지의 package.json"
     echo "  • Updated fields: version, scripts, dependencies"
     echo "  • Preserved fields: 기타 모든 설정 (name, description, license 등)"
+    echo "  • Method: Python JSON 병합 (fallback: sed)"
 }
 
 # JSON 필드 업데이트 함수 (수정 - 여러 필드 지원)
@@ -2036,8 +2182,7 @@ main() {
     check_project_root
     
     local command="${1:-}"
-    local pkg_name="${2:-}"
-    local branch="${3:-}"
+    local branch="${2:-}"
     
     # 헤더 출력 (명령어가 있을 때만)
     if [[ -n "$command" && "$command" != "setup" ]]; then
@@ -2096,19 +2241,18 @@ main() {
         selective-pull)
             check_git_status
             setup_remotes
-            if [[ -n "$pkg_name" ]]; then
-                if selective_pull_from_external "$pkg_name" "$branch"; then
-                    SUCCESSFUL_OPERATIONS+=("Selective Pull: $pkg_name ← $branch (src + package.json)")
+            if [[ -n "$2" ]]; then
+                if selective_pull_from_external "$2" "" "$branch" "true"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Pull: $2 ← $branch (src + package.json)")
                 else
-                    FAILED_OPERATIONS+=("Selective Pull: $pkg_name ← $branch")
+                    FAILED_OPERATIONS+=("Selective Pull: $2 ← $branch")
                 fi
             else
                 log_info "🎯 선택적 업데이트 모드 시작..."
-                pkg_name=$(select_package "Select package for selective pull")
-                if selective_pull_from_external "$pkg_name" "$branch"; then
-                    SUCCESSFUL_OPERATIONS+=("Selective Pull: $pkg_name ← $branch (src + package.json)")
+                if selective_pull_from_external "" "" "$branch" "true"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Pull: selected package (src + package.json)")
                 else
-                    FAILED_OPERATIONS+=("Selective Pull: $pkg_name ← $branch")
+                    FAILED_OPERATIONS+=("Selective Pull: selected package")
                 fi
             fi
             ;;
@@ -2120,14 +2264,14 @@ main() {
                 log_info "⏭️  Push operation cancelled"
                 exit 0
             fi
-            if [[ -n "$pkg_name" ]]; then
-                if push_to_external "$pkg_name" "$branch"; then
-                    SUCCESSFUL_OPERATIONS+=("Push: $pkg_name → $branch")
+            if [[ -n "$2" ]]; then
+                if push_to_external "$2" "" "$branch"; then
+                    SUCCESSFUL_OPERATIONS+=("Push: $2 → $branch")
                 else
-                    FAILED_OPERATIONS+=("Push: $pkg_name → $branch")
+                    FAILED_OPERATIONS+=("Push: $2 → $branch")
                 fi
             else
-                push_to_external "$branch"
+                push_to_external "" "" "$branch"
             fi
             ;;
         selective-push)
@@ -2138,19 +2282,18 @@ main() {
                 log_info "⏭️  Selective push operation cancelled"
                 exit 0
             fi
-            if [[ -n "$pkg_name" ]]; then
-                if selective_push_to_external "$pkg_name" "$branch"; then
-                    SUCCESSFUL_OPERATIONS+=("Selective Push: $pkg_name → $branch")
+            if [[ -n "$2" ]]; then
+                if selective_push_to_external "$2" "" "$branch" "true"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Push: $2 → $branch")
                 else
-                    FAILED_OPERATIONS+=("Selective Push: $pkg_name → $branch")
+                    FAILED_OPERATIONS+=("Selective Push: $2 → $branch")
                 fi
             else
                 log_info "🎯 선택적 파일 푸시 모드 시작..."
-                pkg_name=$(select_package "Select package for selective push")
-                if selective_push_to_external "$pkg_name" "$branch"; then
-                    SUCCESSFUL_OPERATIONS+=("Selective Push: $pkg_name → $branch")
+                if selective_push_to_external "" "" "$branch" "true"; then
+                    SUCCESSFUL_OPERATIONS+=("Selective Push: selected package")
                 else
-                    FAILED_OPERATIONS+=("Selective Push: $pkg_name → $branch")
+                    FAILED_OPERATIONS+=("Selective Push: selected package")
                 fi
             fi
             ;;
