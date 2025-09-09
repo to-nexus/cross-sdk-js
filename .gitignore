@@ -68,3 +68,4 @@ project.xcworkspace
 
 ## web3wallet dependencies since its deprecated
 packages/web3wallet/package-lock.json
+.npmrc

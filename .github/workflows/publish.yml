@@ -1,9 +1,11 @@
-name: Publish to NPM
+name: Deprecated - Legacy Publish
 on:
-  push:
-    branches:
-      - main
-      - ci/*
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "This workflow is deprecated. Use publish_and_build.yml instead."
+        required: false
+        default: 'true'
 
 jobs:
   changeset:
@@ -36,7 +38,6 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
-    needs: changeset
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -57,9 +58,5 @@ jobs:
         run: cat .npmrc
       - name: Install dependencies
         run: npm install
-      - name: Build packages
-        run: npm run build
-      - name: Publish package to Nexus 📦
-        run: npm run changeset:publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: No-op (deprecated)
+        run: echo "This workflow is deprecated. Please use .github/workflows/publish_and_build.yml"

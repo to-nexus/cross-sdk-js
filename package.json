@@ -17,6 +17,7 @@
   ],
   "scripts": {
     "prebuild": "node scripts/inject-version.js",
+    "version:set": "node scripts/inject-version.js",
     "clean": "npm run clean --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "prettier": "npm run prettier --workspaces --if-present",
@@ -32,7 +33,10 @@
     "npm-publish:next": "lerna exec --no-private -- npm publish --access restricted --tag next --registry=https://npm.pkg.github.com",
     "npm-publish:canary": "lerna exec --no-private -- npm publish --access restricted --tag canary --registry=https://npm.pkg.github.com",
     "changeset": "changeset",
-    "changeset:publish": "changeset publish",
+    "auto-changeset": "node scripts/auto-changeset.cjs",
+    "publish:alpha": "changeset publish --tag alpha",
+    "publish:beta": "changeset publish --tag beta",
+    "publish:latest": "changeset publish",
     "version-packages": "changeset version"
   },
   "repository": {
