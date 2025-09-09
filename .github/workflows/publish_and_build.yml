@@ -75,47 +75,29 @@ jobs:
       - name: Resolve Nexus registry URL
         id: registry
         run: |
-          if [ "${{ inputs.environment || (github.ref == 'refs/heads/main' && 'prod') || 'dev' }}" = "dev" ]; then
-            url="${DEV_VAR:-$DEV_SECRET}"
-          elif [ "${{ inputs.environment || (github.ref == 'refs/heads/main' && 'prod') || 'dev' }}" = "stage" ]; then
-            url="${STAGE_VAR:-$STAGE_SECRET}"
-          else
+          if [ "${{ inputs.environment || (github.ref == 'refs/heads/main' && 'prod') || 'dev' }}" = "prod" ]; then
             url="$PROD_SECRET"
+          else
+            # dev와 stage는 모두 동일한 dev 레지스트리 사용
+            url="${DEV_VAR:-$DEV_SECRET}"
           fi
           echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
         env:
           DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
           DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
-          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
-          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
           PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
 
       - name: Configure npm for Nexus
         run: |
-          echo "::add-mask::${NPM_TOKEN}" || true
-
-          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
-          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
-          HOST_DOMAIN="${HOST_PATH%%/*}"
-          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
-          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
-          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
-          echo "always-auth=true" >> .npmrc
-          echo "email=${GITHUB_ACTOR}@users.noreply.github.com" >> .npmrc
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
           echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
-
+          
           # Also write to HOME to satisfy tooling that reads default userconfig
           cp .npmrc "$HOME/.npmrc"
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
-          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
       - name: Verify npm auth (gate)
         run: |
@@ -286,16 +268,10 @@ jobs:
       - name: Publish (dev → alpha)
         if: inputs.environment == 'dev' && inputs.dry_run == 'false'
         run: npm run publish:alpha
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
-          NPM_CONFIG_USERCONFIG: ${{ env.NPM_CONFIG_USERCONFIG }}
 
       - name: Publish (stage → beta)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false'
         run: npm run publish:beta
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
-          NPM_CONFIG_USERCONFIG: ${{ env.NPM_CONFIG_USERCONFIG }}
 
       - name: Commit version changes (after successful publish)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false' && steps.setver.outputs.VERSION_CHANGES_READY == 'true'
@@ -314,9 +290,6 @@ jobs:
           (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main') ||
           (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: npm run publish:latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
-          NPM_CONFIG_USERCONFIG: ${{ env.NPM_CONFIG_USERCONFIG }}
 
       - name: Create tag (dev/stage prerelease)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
