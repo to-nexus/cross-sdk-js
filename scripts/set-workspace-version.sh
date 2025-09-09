@@ -6,6 +6,10 @@
 set -e
 
 ENVIRONMENT=${1:-prod}
+# ENVIRONMENT alias normalization
+if [ "$ENVIRONMENT" = "development" ]; then
+  ENVIRONMENT="dev"
+fi
 
 echo "🔧 Setting workspace version for $ENVIRONMENT environment..."
 
