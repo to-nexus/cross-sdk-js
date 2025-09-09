@@ -1,5 +1,13 @@
 # @to-nexus/universal-provider
 
+## 2.19.12
+
+### Patch Changes
+
+- crs-3209 fix dapp session
+- Updated dependencies
+  - @to-nexus/sign-client@2.19.12
+
 ## 2.19.11
 
 ### Patch Changes

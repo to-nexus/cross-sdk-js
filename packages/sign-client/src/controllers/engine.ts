@@ -13,48 +13,69 @@ import {
   TRANSPORT_TYPES,
   VERIFY_SERVER,
 } from "@to-nexus/core";
-
 import {
+  ErrorResponse,
+  JsonRpcRequest,
   formatJsonRpcError,
   formatJsonRpcRequest,
   formatJsonRpcResult,
-  payloadId,
+  getBigIntRpcId,
   isJsonRpcError,
   isJsonRpcRequest,
   isJsonRpcResponse,
   isJsonRpcResult,
-  JsonRpcRequest,
-  ErrorResponse,
-  getBigIntRpcId,
+  payloadId,
 } from "@walletconnect/jsonrpc-utils";
 import { FIVE_MINUTES, ONE_SECOND, toMiliseconds } from "@walletconnect/time";
 import {
+  AuthTypes,
+  CoreTypes,
   EnginePrivate,
   EngineTypes,
+  EventClientTypes,
   ExpirerTypes,
   IEngine,
   IEngineEvents,
   JsonRpcTypes,
+  PairingTypes,
   PendingRequestTypes,
-  Verify,
-  CoreTypes,
   ProposalTypes,
   RelayerTypes,
   SessionTypes,
-  PairingTypes,
-  AuthTypes,
-  EventClientTypes,
+  Verify,
 } from "@walletconnect/types";
 import {
+  BASE64,
+  BASE64URL,
+  MemoryStore,
+  TYPE_1,
+  TYPE_2,
+  buildNamespacesFromAuth,
   calcExpiry,
   createDelayedPromise,
+  createEncodedRecap,
   engineEvent,
+  formatMessage,
+  getChainsFromRecap,
+  getDeepLink,
+  getDidAddress,
   getInternalError,
+  getLinkModeURL,
+  getMethodsFromRecap,
+  getNamespacedDidChainId,
+  getRecapFromResources,
   getSdkError,
+  getSearchParamFromURL,
+  handleDeeplinkRedirect,
+  hashKey,
+  hashMessage,
   isConformingNamespaces,
   isExpired,
+  isReactNative,
   isSessionCompatible,
+  isTestRun,
   isUndefined,
+  isValidArray,
   isValidController,
   isValidErrorReason,
   isValidEvent,
@@ -69,48 +90,27 @@ import {
   isValidRelays,
   isValidRequest,
   isValidRequestExpiry,
-  hashMessage,
   isValidRequiredNamespaces,
   isValidResponse,
   isValidString,
-  parseExpirerTarget,
-  TYPE_1,
-  TYPE_2,
-  handleDeeplinkRedirect,
-  MemoryStore,
-  getDeepLink,
-  hashKey,
-  getDidAddress,
-  formatMessage,
-  getMethodsFromRecap,
-  buildNamespacesFromAuth,
-  createEncodedRecap,
-  getChainsFromRecap,
   mergeEncodedRecaps,
-  getRecapFromResources,
-  validateSignedCacao,
-  getNamespacedDidChainId,
   parseChainId,
-  getLinkModeURL,
-  BASE64,
-  BASE64URL,
-  getSearchParamFromURL,
-  isReactNative,
-  isTestRun,
-  isValidArray,
+  parseExpirerTarget,
+  validateSignedCacao,
 } from "@walletconnect/utils";
 import EventEmmiter from "events";
+
 import {
+  AUTH_PUBLIC_KEY_NAME,
   ENGINE_CONTEXT,
+  ENGINE_QUEUE_STATES,
   ENGINE_RPC_OPTS,
+  METHODS_TO_VERIFY,
   PROPOSAL_EXPIRY_MESSAGE,
   SESSION_EXPIRY,
   SESSION_REQUEST_EXPIRY_BOUNDARIES,
-  METHODS_TO_VERIFY,
-  WALLETCONNECT_DEEPLINK_CHOICE,
-  ENGINE_QUEUE_STATES,
-  AUTH_PUBLIC_KEY_NAME,
   TVF_METHODS,
+  WALLETCONNECT_DEEPLINK_CHOICE,
 } from "../constants";
 
 export class Engine extends IEngine {
@@ -138,7 +138,7 @@ export class Engine extends IEngine {
   };
 
   private requestQueueDelay = ONE_SECOND;
-  private expectedPairingMethodMap: Map<string, string[]> = new Map();
+  private expectedPairingMethodMap = new Map<string, string[]>();
   // Ephemeral (in-memory) map to store recently deleted items
   private recentlyDeletedMap = new Map<
     string | number,
@@ -147,7 +147,7 @@ export class Engine extends IEngine {
 
   private recentlyDeletedLimit = 200;
   private relayMessageCache: RelayerTypes.MessageEvent[] = [];
-  private pendingSessions: Map<
+  private pendingSessions = new Map<
     number,
     {
       sessionTopic: string;
@@ -155,7 +155,13 @@ export class Engine extends IEngine {
       proposalId: number;
       publicKey: string;
     }
-  > = new Map();
+  >();
+
+  // 모바일 세션 끊김 감지 관련 필드들
+  private lastSessionCheckTime?: number;
+  private isCheckingSession = false;
+  private sessionCreationTimes = new Map<string, number>(); // 세션 생성 시간 추적
+  private firstDAppEntryAfterSession = new Map<string, boolean>(); // 세션 생성 후 첫 DApp 진입 여부 추적
 
   constructor(client: IEngine["client"]) {
     super(client);
@@ -169,6 +175,7 @@ export class Engine extends IEngine {
       this.registerPairingEvents();
       await this.registerLinkModeListeners();
       this.client.core.pairing.register({ methods: Object.keys(ENGINE_RPC_OPTS) });
+      this.initializeMobileSessionDetection();
       this.initialized = true;
       setTimeout(() => {
         this.sessionRequestQueue.queue = this.getPendingSessionRequests();
@@ -210,7 +217,7 @@ export class Engine extends IEngine {
       topic = newTopic;
       uri = newUri;
     }
-    // safety check to ensure pairing topic is available
+    // Safety check to ensure pairing topic is available
     if (!topic) {
       const { message } = getInternalError("NO_MATCHING_KEY", `connect() pairing topic: ${topic}`);
       throw new Error(message);
@@ -245,7 +252,7 @@ export class Engine extends IEngine {
       if (id === proposal.id) {
         this.client.events.off("proposal_expire", proposalExpireHandler);
         this.pendingSessions.delete(proposal.id);
-        // emit the event to trigger reject, this approach automatically cleans up the .once listener below
+        // Emit the event to trigger reject, this approach automatically cleans up the .once listener below
         this.events.emit(sessionConnectTarget, {
           error: { message: PROPOSAL_EXPIRY_MESSAGE, code: 0 },
         });
@@ -255,8 +262,9 @@ export class Engine extends IEngine {
     this.client.events.on("proposal_expire", proposalExpireHandler);
     this.events.once<"session_connect">(sessionConnectTarget, ({ error, session }) => {
       this.client.events.off("proposal_expire", proposalExpireHandler);
-      if (error) reject(error);
-      else if (session) {
+      if (error) {
+        reject(error);
+      } else if (session) {
         resolve(session);
       }
     });
@@ -270,6 +278,7 @@ export class Engine extends IEngine {
     });
 
     await this.setProposal(proposal.id, proposal);
+
     return { uri, approval };
   };
 
@@ -417,7 +426,7 @@ export class Engine extends IEngine {
       event.addTrace(EVENT_CLIENT_SESSION_TRACES.session_approve_publish_success);
     } catch (error) {
       this.client.logger.error(error);
-      // if the publish fails, delete the session and throw an error
+      // If the publish fails, delete the session and throw an error
       this.client.session.delete(sessionTopic, getSdkError("USER_DISCONNECTED"));
       await this.client.core.relayer.unsubscribe(sessionTopic);
       throw error;
@@ -432,6 +441,7 @@ export class Engine extends IEngine {
     await this.client.proposal.delete(id, getSdkError("USER_DISCONNECTED"));
     await this.client.core.pairing.activate({ topic: pairingTopic });
     await this.setExpiry(sessionTopic, calcExpiry(SESSION_EXPIRY));
+
     return {
       topic: sessionTopic,
       acknowledged: () => Promise.resolve(this.client.session.get(sessionTopic)),
@@ -485,14 +495,17 @@ export class Engine extends IEngine {
 
     const oldNamespaces = this.client.session.get(topic).namespaces;
     this.events.once(engineEvent("session_update", clientRpcId), ({ error }: any) => {
-      if (error) reject(error);
-      else {
+      if (error) {
+        reject(error);
+      } else {
         resolve();
       }
     });
-    // Update the session with the new namespaces, if the publish fails, revert to the old.
-    // This allows the client to use the updated session like emitting events
-    // without waiting for the peer to acknowledge
+    /*
+     * Update the session with the new namespaces, if the publish fails, revert to the old.
+     * This allows the client to use the updated session like emitting events
+     * without waiting for the peer to acknowledge
+     */
     await this.client.session.update(topic, { namespaces });
     await this.sendRequest({
       topic,
@@ -506,6 +519,7 @@ export class Engine extends IEngine {
       this.client.session.update(topic, { namespaces: oldNamespaces });
       reject(error);
     });
+
     return { acknowledged };
   };
 
@@ -523,8 +537,11 @@ export class Engine extends IEngine {
     const clientRpcId = payloadId();
     const { done: acknowledged, resolve, reject } = createDelayedPromise<void>();
     this.events.once(engineEvent("session_extend", clientRpcId), ({ error }: any) => {
-      if (error) reject(error);
-      else resolve();
+      if (error) {
+        reject(error);
+      } else {
+        resolve();
+      }
     });
 
     await this.setExpiry(topic, calcExpiry(SESSION_EXPIRY));
@@ -564,8 +581,11 @@ export class Engine extends IEngine {
     this.events.once<"session_request">(
       engineEvent("session_request", clientRpcId),
       ({ error, result }) => {
-        if (error) reject(error);
-        else resolve(result);
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
       },
     );
     const protocolMethod = "wc_sessionRequest";
@@ -587,7 +607,6 @@ export class Engine extends IEngine {
         throwOnFailedPublish: true,
         appLink,
       }).catch((error) => reject(error));
-
       this.client.events.emit("session_request_sent", {
         topic,
         request,
@@ -595,6 +614,7 @@ export class Engine extends IEngine {
         id: clientRpcId,
       });
       const result = await done();
+
       return result;
     }
 
@@ -630,7 +650,7 @@ export class Engine extends IEngine {
         resolve();
       }),
       new Promise<void>(async (resolve) => {
-        // only attempt to handle deeplinks if they are not explicitly disabled in the session config
+        // Only attempt to handle deeplinks if they are not explicitly disabled in the session config
         if (!session.sessionConfig?.disableDeepLink) {
           const wcDeepLink = (await getDeepLink(
             this.client.core.storage,
@@ -641,7 +661,7 @@ export class Engine extends IEngine {
         resolve();
       }),
       done(),
-    ]).then((result) => result[2]); // order is important here, we want to return the result of the `done` promise
+    ]).then((result) => result[2]); // Order is important here, we want to return the result of the `done` promise
   };
 
   public respond: IEngine["respond"] = async (params) => {
@@ -685,8 +705,11 @@ export class Engine extends IEngine {
       const relayRpcId = getBigIntRpcId().toString() as any;
       const { done, resolve, reject } = createDelayedPromise<void>();
       this.events.once(engineEvent("session_ping", clientRpcId), ({ error }: any) => {
-        if (error) reject(error);
-        else resolve();
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
       });
       await Promise.all([
         this.sendRequest({
@@ -730,7 +753,7 @@ export class Engine extends IEngine {
     await this.isValidDisconnect(params);
     const { topic } = params;
     if (this.client.session.keys.includes(topic)) {
-      // await an ack to ensure the relay has received the disconnect request
+      // Await an ack to ensure the relay has received the disconnect request
       await this.sendRequest({
         topic,
         method: "wc_sessionDelete",
@@ -751,12 +774,12 @@ export class Engine extends IEngine {
 
   public find: IEngine["find"] = (params) => {
     this.isInitialized();
+
     return this.client.session.getAll().filter((session) => isSessionCompatible(session, params));
   };
 
-  public getPendingSessionRequests: IEngine["getPendingSessionRequests"] = () => {
-    return this.client.pendingRequest.getAll();
-  };
+  public getPendingSessionRequests: IEngine["getPendingSessionRequests"] = () =>
+    this.client.pendingRequest.getAll();
 
   // ---------- Auth ------------------------------------------------ //
 
@@ -789,7 +812,7 @@ export class Engine extends IEngine {
       methods = [],
       expiry,
     } = params;
-    // reassign resources to remove reference as the array is modified and might cause side effects
+    // Reassign resources to remove reference as the array is modified and might cause side effects
     const resources = [...(params.resources || [])];
 
     const { topic: pairingTopic, uri: connectionUri } = await this.client.core.pairing.create({
@@ -820,8 +843,10 @@ export class Engine extends IEngine {
       let recap = createEncodedRecap(namespace, "request", methods);
       const existingRecap = getRecapFromResources(resources);
       if (existingRecap) {
-        // per Recaps spec, recap must occupy the last position in the resources array
-        // using .pop to remove the element given we already checked it's a recap and will replace it
+        /*
+         * Per Recaps spec, recap must occupy the last position in the resources array
+         * using .pop to remove the element given we already checked it's a recap and will replace it
+         */
         const mergedRecap = mergeEncodedRecaps(recap, resources.pop() as string);
         recap = mergedRecap;
       }
@@ -856,7 +881,7 @@ export class Engine extends IEngine {
     const namespaces = {
       eip155: {
         chains,
-        // request `personal_sign` method by default to allow for fallback siwe
+        // Request `personal_sign` method by default to allow for fallback siwe
         methods: [...new Set(["personal_sign", ...methods])],
         events: ["chainChanged", "accountsChanged"],
       },
@@ -881,35 +906,43 @@ export class Engine extends IEngine {
     const sessionConnectEventTarget = engineEvent("session_connect", proposal.id);
     const authenticateEventTarget = engineEvent("session_request", authenticateId);
 
-    // handle fallback session proposal response
+    // Handle fallback session proposal response
     const onSessionConnect = async ({ error, session }: any) => {
-      // cleanup listener for authenticate response
+      // Cleanup listener for authenticate response
       this.events.off(authenticateEventTarget, onAuthenticate);
-      if (error) reject(error);
-      else if (session) {
+      if (error) {
+        reject(error);
+      } else if (session) {
         resolve({
           session,
         });
       }
     };
-    // handle session authenticate response
+    // Handle session authenticate response
     const onAuthenticate = async (payload: any) => {
-      // delete this auth request on response
-      // we're using payload from the wallet to establish the session so we don't need to keep this around
+      /*
+       * Delete this auth request on response
+       * we're using payload from the wallet to establish the session so we don't need to keep this around
+       */
       await this.deletePendingAuthRequest(authenticateId, { message: "fulfilled", code: 0 });
       if (payload.error) {
-        // wallets that do not support wc_sessionAuthenticate will return an error
-        // we should not reject the promise in this case as the fallback session proposal will be used
+        /*
+         * Wallets that do not support wc_sessionAuthenticate will return an error
+         * we should not reject the promise in this case as the fallback session proposal will be used
+         */
         const error = getSdkError("WC_METHOD_UNSUPPORTED", "wc_sessionAuthenticate");
-        if (payload.error.code === error.code) return;
+        if (payload.error.code === error.code) {
+          return;
+        }
 
-        // cleanup listener for fallback response
+        // Cleanup listener for fallback response
         this.events.off(sessionConnectEventTarget, onSessionConnect);
+
         return reject(payload.error.message);
       }
-      // delete fallback proposal on successful authenticate as the proposal will not be responded to
+      // Delete fallback proposal on successful authenticate as the proposal will not be responded to
       await this.deleteProposal(proposal.id);
-      // cleanup listener for fallback response
+      // Cleanup listener for fallback response
       this.events.off(sessionConnectEventTarget, onSessionConnect);
 
       const {
@@ -951,7 +984,7 @@ export class Engine extends IEngine {
         responder.publicKey,
       );
 
-      //create session object
+      //Create session object
       let session: SessionTypes.Struct | undefined;
 
       if (approvedMethods.length > 0) {
@@ -994,7 +1027,7 @@ export class Engine extends IEngine {
         responder.metadata.redirect?.universal &&
         walletUniversalLink
       ) {
-        // save wallet link in array of apps that support linkMode
+        // Save wallet link in array of apps that support linkMode
         this.client.core.addLinkModeSupportedApp(responder.metadata.redirect.universal);
 
         this.client.session.update(sessionTopic, {
@@ -1008,7 +1041,7 @@ export class Engine extends IEngine {
       });
     };
 
-    // subscribe to response events
+    // Subscribe to response events
     this.events.once<"session_connect">(sessionConnectEventTarget, onSessionConnect);
     this.events.once(authenticateEventTarget, onAuthenticate);
 
@@ -1023,7 +1056,7 @@ export class Engine extends IEngine {
         });
         linkModeURL = getLinkModeURL(walletUniversalLink, pairingTopic, message);
       } else {
-        // send both (main & fallback) requests
+        // Send both (main & fallback) requests
         await Promise.all([
           this.sendRequest({
             topic: pairingTopic,
@@ -1044,7 +1077,7 @@ export class Engine extends IEngine {
         ]);
       }
     } catch (error) {
-      // cleanup listeners on failed publish
+      // Cleanup listeners on failed publish
       this.events.off(sessionConnectEventTarget, onSessionConnect);
       this.events.off(authenticateEventTarget, onAuthenticate);
       throw error;
@@ -1284,13 +1317,16 @@ export class Engine extends IEngine {
   public formatAuthMessage: IEngine["formatAuthMessage"] = (params) => {
     this.isInitialized();
     const { request, iss } = params;
+
     return formatMessage(request, iss);
   };
 
   public processRelayMessageCache: IEngine["processRelayMessageCache"] = () => {
-    // process the relay messages cache in the next tick to allow event listeners to be registered by the implementing app
+    // Process the relay messages cache in the next tick to allow event listeners to be registered by the implementing app
     setTimeout(async () => {
-      if (this.relayMessageCache.length === 0) return;
+      if (this.relayMessageCache.length === 0) {
+        return;
+      }
       while (this.relayMessageCache.length > 0) {
         try {
           const message = this.relayMessageCache.shift();
@@ -1309,8 +1345,10 @@ export class Engine extends IEngine {
   private cleanupDuplicatePairings: EnginePrivate["cleanupDuplicatePairings"] = async (
     session: SessionTypes.Struct,
   ) => {
-    // older SDK versions are missing the `pairingTopic` prop thus we need to check for it
-    if (!session.pairingTopic) return;
+    // Older SDK versions are missing the `pairingTopic` prop thus we need to check for it
+    if (!session.pairingTopic) {
+      return;
+    }
 
     try {
       const pairing = this.client.core.pairing.pairings.get(session.pairingTopic);
@@ -1322,7 +1360,9 @@ export class Engine extends IEngine {
           p.topic &&
           p.topic !== pairing.topic,
       );
-      if (duplicates.length === 0) return;
+      if (duplicates.length === 0) {
+        return;
+      }
       this.client.logger.info(`Cleaning up ${duplicates.length} duplicate pairing(s)`);
       await Promise.all(
         duplicates.map((p) => this.client.core.pairing.disconnect({ topic: p.topic })),
@@ -1339,6 +1379,10 @@ export class Engine extends IEngine {
     // Await the unsubscribe first to avoid deleting the symKey too early below.
     await this.client.core.relayer.unsubscribe(topic);
     await this.client.session.delete(topic, getSdkError("USER_DISCONNECTED"));
+
+    // 🆕 세션 삭제 시 활동 시간 기록도 정리
+    this.cleanupSessionActivity(topic);
+
     this.addToRecentlyDeleted(topic, "session");
     if (this.client.core.crypto.keychain.has(self.publicKey)) {
       await this.client.core.crypto.deleteKeyPair(self.publicKey);
@@ -1346,9 +1390,13 @@ export class Engine extends IEngine {
     if (this.client.core.crypto.keychain.has(topic)) {
       await this.client.core.crypto.deleteSymKey(topic);
     }
-    if (!expirerHasDeleted) this.client.core.expirer.del(topic);
-    // remove any deeplinks from storage after the session is deleted
-    // to avoid navigating to incorrect deeplink later on
+    if (!expirerHasDeleted) {
+      this.client.core.expirer.del(topic);
+    }
+    /*
+     * Remove any deeplinks from storage after the session is deleted
+     * to avoid navigating to incorrect deeplink later on
+     */
     this.client.core.storage
       .removeItem(WALLETCONNECT_DEEPLINK_CHOICE)
       .catch((e) => this.client.logger.warn(e));
@@ -1357,11 +1405,13 @@ export class Engine extends IEngine {
         this.deletePendingSessionRequest(r.id, getSdkError("USER_DISCONNECTED"));
       }
     });
-    // reset the queue state back to idle if a request for the deleted session is still in the queue
+    // Reset the queue state back to idle if a request for the deleted session is still in the queue
     if (topic === this.sessionRequestQueue.queue[0]?.topic) {
       this.sessionRequestQueue.state = ENGINE_QUEUE_STATES.idle;
     }
-    if (emitEvent) this.client.events.emit("session_delete", { id, topic });
+    if (emitEvent) {
+      this.client.events.emit("session_delete", { id, topic });
+    }
   };
 
   private deleteProposal: EnginePrivate["deleteProposal"] = async (id, expirerHasDeleted) => {
@@ -1408,7 +1458,9 @@ export class Engine extends IEngine {
   };
 
   private setExpiry: EnginePrivate["setExpiry"] = async (topic, expiry) => {
-    if (!this.client.session.keys.includes(topic)) return;
+    if (!this.client.session.keys.includes(topic)) {
+      return;
+    }
     this.client.core.expirer.set(topic, expiry);
     await this.client.session.update(topic, { expiry });
   };
@@ -1462,7 +1514,7 @@ export class Engine extends IEngine {
     const payload = formatJsonRpcRequest(method, params, clientRpcId);
 
     let message: string;
-    const isLinkMode = !!appLink;
+    const isLinkMode = Boolean(appLink);
 
     try {
       const encoding = isLinkMode ? BASE64URL : BASE64;
@@ -1475,23 +1527,29 @@ export class Engine extends IEngine {
 
     let attestation: string | undefined;
     if (METHODS_TO_VERIFY.includes(method)) {
-      // const decryptedId = hashMessage(JSON.stringify(payload));
-      // const id = hashMessage(message);
-      // attestation = await this.client.core.verify.register({ id, decryptedId });
+      //A attestation = await this.client.core.verify.register({ id, decryptedId })
     }
     const opts = ENGINE_RPC_OPTS[method].req;
     opts.attestation = attestation;
-    if (expiry) opts.ttl = expiry;
-    if (relayRpcId) opts.id = relayRpcId;
+    if (expiry) {
+      opts.ttl = expiry;
+    }
+    if (relayRpcId) {
+      opts.id = relayRpcId;
+    }
     this.client.core.history.set(topic, payload);
 
     if (isLinkMode) {
-      const redirectURL = getLinkModeURL(appLink, topic, message);
+      const redirectURL = getLinkModeURL(appLink || "", topic, message);
       await (global as any).Linking.openURL(redirectURL, this.client.name);
     } else {
       const opts = ENGINE_RPC_OPTS[method].req;
-      if (expiry) opts.ttl = expiry;
-      if (relayRpcId) opts.id = relayRpcId;
+      if (expiry) {
+        opts.ttl = expiry;
+      }
+      if (relayRpcId) {
+        opts.id = relayRpcId;
+      }
 
       opts.tvf = {
         ...tvf,
@@ -1527,7 +1585,7 @@ export class Engine extends IEngine {
         encoding,
       });
     } catch (error) {
-      // if encoding fails e.g. due to missing keychain, we want to cleanup all related data as its unusable
+      // If encoding fails e.g. due to missing keychain, we want to cleanup all related data as its unusable
       await this.cleanup();
       this.client.logger.error(`sendResult() -> core.crypto.encode() for topic ${topic} failed`);
       throw error;
@@ -1607,7 +1665,7 @@ export class Engine extends IEngine {
     } else {
       const method = record.request.method as JsonRpcTypes.WcMethod;
       const opts = rpcOpts || ENGINE_RPC_OPTS[method].res;
-      // await is intentionally omitted to speed up performance
+      // Await is intentionally omitted to speed up performance
       this.client.core.relayer.publish(topic, message, opts);
     }
 
@@ -1617,20 +1675,109 @@ export class Engine extends IEngine {
   private cleanup: EnginePrivate["cleanup"] = async () => {
     const sessionTopics: string[] = [];
     const proposalIds: number[] = [];
-    this.client.session.getAll().forEach((session) => {
+
+    const existingSessions = this.client.session.getAll();
+
+    for (const session of existingSessions) {
       let toCleanup = false;
-      if (isExpired(session.expiry)) toCleanup = true;
-      if (!this.client.core.crypto.keychain.has(session.topic)) toCleanup = true;
-      if (toCleanup) sessionTopics.push(session.topic);
-    });
+      const cleanupReasons: string[] = [];
+
+      // 1. 기존 검증 (만료, 암호화 키)
+      if (isExpired(session.expiry)) {
+        toCleanup = true;
+        cleanupReasons.push("expired");
+        this.client.logger.info(`Session ${session.topic} expired`);
+      }
+
+      if (!this.client.core.crypto.keychain.has(session.topic)) {
+        toCleanup = true;
+        cleanupReasons.push("missing crypto keys");
+        this.client.logger.info(`Session ${session.topic} missing crypto keys`);
+      }
+
+      if (toCleanup) {
+        console.log(
+          `📱 [ENGINE] Session ${session.topic.substring(
+            0,
+            8,
+          )}... will be cleaned up. Reasons: ${cleanupReasons.join(", ")}`,
+        );
+        sessionTopics.push(session.topic);
+      } else {
+        console.log(
+          `📱 [ENGINE] Session ${session.topic.substring(0, 8)}... passed all validations`,
+        );
+      }
+    }
+
     this.client.proposal.getAll().forEach((proposal) => {
-      if (isExpired(proposal.expiryTimestamp)) proposalIds.push(proposal.id);
+      if (isExpired(proposal.expiryTimestamp)) {
+        proposalIds.push(proposal.id);
+      }
     });
-    await Promise.all([
-      ...sessionTopics.map((topic) => this.deleteSession({ topic })),
-      ...proposalIds.map((id) => this.deleteProposal(id)),
-    ]);
+
+    // 정리 실행
+    if (sessionTopics.length > 0) {
+      this.client.logger.info(`Cleaning up ${sessionTopics.length} invalid sessions`);
+      await Promise.all([
+        ...sessionTopics.map((topic) => this.deleteSession({ topic })),
+        ...proposalIds.map((id) => this.deleteProposal(id)),
+      ]);
+    }
   };
+
+  // 세션 활동 시간 업데이트 (다른 메서드에서 호출)
+  private updateSessionActivity(topic: string): void {
+    try {
+      const storageKey = `session_activity_${topic}`;
+      const now = Date.now();
+
+      this.client.logger.debug(`🔍 [ACTIVITY] Updating activity record for session: ${topic}`);
+
+      // 스토리지 시스템 안전성 확인
+      if (!this.client.core?.storage) {
+        this.client.logger.warn(`⚠️ [ACTIVITY] Storage system not available for session: ${topic}`);
+
+        return;
+      }
+
+      this.client.core.storage.setItem(storageKey, now.toString());
+
+      this.client.logger.info(
+        `✅ [ACTIVITY] Updated session activity for ${topic} at ${new Date(now).toISOString()}`,
+      );
+    } catch (error) {
+      this.client.logger.error(
+        `❌ [ACTIVITY] Error updating session activity for ${topic}:`,
+        error,
+      );
+    }
+  }
+
+  // 세션 활동 시간 기록 정리
+  private cleanupSessionActivity(topic: string): void {
+    try {
+      const storageKey = `session_activity_${topic}`;
+
+      this.client.logger.debug(`🔍 [ACTIVITY] Cleaning up activity record for session: ${topic}`);
+
+      // 스토리지 시스템 안전성 확인
+      if (!this.client.core?.storage) {
+        this.client.logger.warn(`⚠️ [ACTIVITY] Storage system not available for session: ${topic}`);
+
+        return;
+      }
+
+      this.client.core.storage.removeItem(storageKey);
+
+      this.client.logger.info(`✅ [ACTIVITY] Cleaned up session activity for ${topic}`);
+    } catch (error) {
+      this.client.logger.error(
+        `❌ [ACTIVITY] Error cleaning up session activity for ${topic}:`,
+        error,
+      );
+    }
+  }
 
   private isInitialized() {
     if (!this.initialized) {
@@ -1647,7 +1794,7 @@ export class Engine extends IEngine {
 
   private registerRelayerEvents() {
     this.client.core.relayer.on(RELAYER_EVENTS.message, (event: RelayerTypes.MessageEvent) => {
-      // capture any messages that arrive before the client is initialized so we can process them after initialization is complete
+      // Capture any messages that arrive before the client is initialized so we can process them after initialization is complete
       if (!this.initialized || this.relayMessageCache.length > 0) {
         this.relayMessageCache.push(event);
       } else {
@@ -1697,6 +1844,7 @@ export class Engine extends IEngine {
   private processRequestsQueue = async () => {
     if (this.requestQueue.state === ENGINE_QUEUE_STATES.active) {
       this.client.logger.info(`Request queue already active, skipping...`);
+
       return;
     }
 
@@ -1705,10 +1853,11 @@ export class Engine extends IEngine {
     );
 
     while (this.requestQueue.queue.length > 0) {
-      console.log(`Processing request queue, length: ${this.requestQueue.queue.length}`);
       this.requestQueue.state = ENGINE_QUEUE_STATES.active;
       const request = this.requestQueue.queue.shift();
-      if (!request) continue;
+      if (!request) {
+        continue;
+      }
 
       try {
         await this.processRequest(request);
@@ -1718,7 +1867,6 @@ export class Engine extends IEngine {
       }
     }
     this.requestQueue.state = ENGINE_QUEUE_STATES.idle;
-    console.log(`Processing request queue finised, state; ${this.requestQueue.state}`);
   };
 
   private processRequest: EnginePrivate["onRelayEventRequest"] = async (event) => {
@@ -1802,12 +1950,16 @@ export class Engine extends IEngine {
   private shouldIgnorePairingRequest: EnginePrivate["shouldIgnorePairingRequest"] = (params) => {
     const { topic, requestMethod } = params;
     const expectedMethods = this.expectedPairingMethodMap.get(topic);
-    // check if the request method matches the expected method
-    if (!expectedMethods) return false;
-    if (expectedMethods.includes(requestMethod)) return false;
+    // Check if the request method matches the expected method
+    if (!expectedMethods) {
+      return false;
+    }
+    if (expectedMethods.includes(requestMethod)) {
+      return false;
+    }
 
     /**
-     * we want to make sure fallback session proposal is ignored only if there are subscribers
+     * We want to make sure fallback session proposal is ignored only if there are subscribers
      * for the `session_authenticate` event, otherwise this would result in no-op for the user
      */
     if (expectedMethods.includes("wc_sessionAuthenticate")) {
@@ -1815,6 +1967,7 @@ export class Engine extends IEngine {
         return true;
       }
     }
+
     return false;
   };
 
@@ -1965,6 +2118,9 @@ export class Engine extends IEngine {
       this.client.events.emit("session_connect", { session });
       this.events.emit(engineEvent("session_connect", pendingSession.proposalId), { session });
 
+      // 🆕 세션 연결 시 활동 시간 업데이트
+      this.updateSessionActivity(session.topic);
+
       this.pendingSessions.delete(pendingSession.proposalId);
       this.deleteProposal(pendingSession.proposalId, false);
       this.cleanupDuplicatePairings(session);
@@ -1992,6 +2148,12 @@ export class Engine extends IEngine {
     const { id } = payload;
     if (isJsonRpcResult(payload)) {
       await this.client.session.update(topic, { acknowledged: true });
+
+      // 세션 생성 시간 기록
+      this.sessionCreationTimes.set(topic, Date.now());
+      // 첫 DApp 진입 플래그 초기화
+      this.firstDAppEntryAfterSession.set(topic, true);
+
       this.events.emit(engineEvent("session_approve", id), {});
     } else if (isJsonRpcError(payload)) {
       await this.client.session.delete(topic, getSdkError("USER_DISCONNECTED"));
@@ -2006,13 +2168,16 @@ export class Engine extends IEngine {
     const { params, id } = payload;
     try {
       const memoryKey = `${topic}_session_update`;
-      // compare the current request id with the last processed session update
-      // we want to update only if the request is newer than the last processed one
+      /*
+       * Compare the current request id with the last processed session update
+       * we want to update only if the request is newer than the last processed one
+       */
       const lastSessionUpdateId = MemoryStore.get<number>(memoryKey);
 
       if (lastSessionUpdateId && this.isRequestOutOfSync(lastSessionUpdateId, id)) {
         this.client.logger.warn(`Discarding out of sync request - ${id}`);
         this.sendError({ id, topic, error: getSdkError("INVALID_UPDATE_REQUEST") });
+
         return;
       }
       this.isValidUpdate({ topic, ...params });
@@ -2041,11 +2206,12 @@ export class Engine extends IEngine {
     }
   };
 
-  // compares the timestamp of the last processed request with the current request
-  // client <-> client rpc ID is timestamp + 3 random digits
-  private isRequestOutOfSync = (lastId: number, currentId: number) => {
-    return currentId.toString().slice(0, -3) < lastId.toString().slice(0, -3);
-  };
+  /*
+   * Compares the timestamp of the last processed request with the current request
+   * client <-> client rpc ID is timestamp + 3 random digits
+   */
+  private isRequestOutOfSync = (lastId: number, currentId: number) =>
+    currentId.toString().slice(0, -3) < lastId.toString().slice(0, -3);
 
   private onSessionUpdateResponse: EnginePrivate["onSessionUpdateResponse"] = (_topic, payload) => {
     const { id } = payload;
@@ -2110,6 +2276,10 @@ export class Engine extends IEngine {
         result: true,
         throwOnFailedPublish: true,
       });
+
+      // 🆕 세션 ping 시 활동 시간 업데이트
+      this.updateSessionActivity(topic);
+
       this.client.events.emit("session_ping", { id, topic });
     } catch (err: any) {
       await this.sendError({
@@ -2128,8 +2298,10 @@ export class Engine extends IEngine {
     if (listeners === 0) {
       throw new Error(`emitting ${target} without any listeners`);
     }
-    // put at the end of the stack to avoid a race condition
-    // where session_ping listener is not yet initialized
+    /*
+     * Put at the end of the stack to avoid a race condition
+     * where session_ping listener is not yet initialized
+     */
     setTimeout(() => {
       if (isJsonRpcResult(payload)) {
         this.events.emit(engineEvent("session_ping", id), {});
@@ -2146,11 +2318,28 @@ export class Engine extends IEngine {
     const { id } = payload;
     try {
       this.isValidDisconnect({ topic, reason: payload.params });
-      Promise.all([
+
+      await Promise.all([
         new Promise((resolve) => {
           // RPC request needs to happen before deletion as it utalises session encryption
           this.client.core.relayer.once(RELAYER_EVENTS.publish, async () => {
-            resolve(await this.deleteSession({ topic, id }));
+            await this.deleteSession({ topic, id, emitEvent: false });
+
+            // 세션 삭제 시간 및 첫 진입 플래그 제거
+            this.sessionCreationTimes.delete(topic);
+            this.firstDAppEntryAfterSession.delete(topic);
+
+            // 지갑에서 세션 삭제 요청 시 session_disconnected 이벤트 발생
+            this.events.emit("session_disconnected" as any, {
+              error: undefined,
+              result: {
+                topic,
+                reason: "wallet_disconnect",
+                timestamp: Date.now(),
+              },
+            });
+
+            resolve(true);
           });
         }),
         this.sendResult<"wc_sessionDelete">({
@@ -2191,9 +2380,12 @@ export class Engine extends IEngine {
         transportType === TRANSPORT_TYPES.link_mode &&
         session.peer.metadata.redirect?.universal
       ) {
-        // save app as supported for link mode
+        // Save app as supported for link mode
         this.client.core.addLinkModeSupportedApp(session.peer.metadata.redirect?.universal);
       }
+
+      // 🆕 세션 요청 시 활동 시간 업데이트
+      this.updateSessionActivity(topic);
 
       if (this.client.signConfig?.disableRequestQueue) {
         this.emitSessionRequest(request);
@@ -2234,14 +2426,19 @@ export class Engine extends IEngine {
   ) => {
     const { id, params } = payload;
     try {
-      // similar to session update, we want to discard out of sync requests
-      // additionally we have to check the event type as well e.g. chainChanged/accountsChanged
+      /*
+       * Similar to session update, we want to discard out of sync requests
+       * additionally we have to check the event type as well e.g. chainChanged/accountsChanged
+       */
       const memoryKey = `${topic}_session_event_${params.event.name}`;
-      // compare the current request id with the last processed session update
-      // we want to update only if the request is newer than the last processed one
+      /*
+       * Compare the current request id with the last processed session update
+       * we want to update only if the request is newer than the last processed one
+       */
       const lastSessionUpdateId = MemoryStore.get<number>(memoryKey);
       if (lastSessionUpdateId && this.isRequestOutOfSync(lastSessionUpdateId, id)) {
         this.client.logger.info(`Discarding out of sync request - ${id}`);
+
         return;
       }
 
@@ -2304,7 +2501,7 @@ export class Engine extends IEngine {
       });
 
       if (transportType === TRANSPORT_TYPES.link_mode && requester.metadata.redirect?.universal) {
-        // save app as supported for link mode
+        // Save app as supported for link mode
         this.client.core.addLinkModeSupportedApp(requester.metadata.redirect.universal);
       }
 
@@ -2343,7 +2540,7 @@ export class Engine extends IEngine {
 
   private cleanupAfterResponse = (params: EngineTypes.RespondParams) => {
     this.deletePendingSessionRequest(params.response.id, { message: "fulfilled", code: 0 });
-    // intentionally delay the emitting of the next pending request a bit
+    // Intentionally delay the emitting of the next pending request a bit
     setTimeout(() => {
       this.sessionRequestQueue.state = ENGINE_QUEUE_STATES.idle;
       this.processSessionRequestQueue();
@@ -2370,7 +2567,7 @@ export class Engine extends IEngine {
         if (listeners === 0) {
           throw new Error(`emitting ${target} without any listeners`);
         }
-        // notify .request() handler of the rejection
+        // Notify .request() handler of the rejection
         this.events.emit(engineEvent("session_request", r.request.id), {
           error,
         });
@@ -2381,12 +2578,14 @@ export class Engine extends IEngine {
   private processSessionRequestQueue = () => {
     if (this.sessionRequestQueue.state === ENGINE_QUEUE_STATES.active) {
       this.client.logger.info("session request queue is already active.");
+
       return;
     }
     // Select the first/oldest request in the array to ensure last-in-first-out (LIFO)
     const request = this.sessionRequestQueue.queue[0];
     if (!request) {
       this.client.logger.info("session request queue is empty.");
+
       return;
     }
 
@@ -2437,7 +2636,7 @@ export class Engine extends IEngine {
   }
 
   /**
-   * when a pairing is created, we check if there is a pending proposal for it.
+   * When a pairing is created, we check if there is a pending proposal for it.
    * if there is, we send it to onSessionProposeRequest to be processed as if it was received from the relay.
    * It allows QR/URI to be scanned multiple times without having to create new pairing.
    */
@@ -2445,10 +2644,14 @@ export class Engine extends IEngine {
     if (pairing.methods) {
       this.expectedPairingMethodMap.set(pairing.topic, pairing.methods);
     }
-    if (pairing.active) return;
+    if (pairing.active) {
+      return;
+    }
     const proposals = this.client.proposal.getAll();
     const proposal = proposals.find((p) => p.pairingTopic === pairing.topic);
-    if (!proposal) return;
+    if (!proposal) {
+      return;
+    }
     this.onSessionProposeRequest({
       topic: pairing.topic,
       payload: formatJsonRpcRequest(
@@ -2572,24 +2775,26 @@ export class Engine extends IEngine {
     }
     const { pairingTopic, requiredNamespaces, optionalNamespaces, sessionProperties, relays } =
       params;
-    if (!isUndefined(pairingTopic)) await this.isValidPairingTopic(pairingTopic);
+    if (!isUndefined(pairingTopic)) {
+      await this.isValidPairingTopic(pairingTopic);
+    }
 
     if (!isValidRelays(relays, true)) {
       const { message } = getInternalError("MISSING_OR_INVALID", `connect() relays: ${relays}`);
       throw new Error(message);
     }
 
-    // validate required namespaces only if they are defined
+    // Validate required namespaces only if they are defined
     if (!isUndefined(requiredNamespaces) && isValidObject(requiredNamespaces) !== 0) {
       this.validateNamespaces(requiredNamespaces, "requiredNamespaces");
     }
 
-    // validate optional namespaces only if they are defined
+    // Validate optional namespaces only if they are defined
     if (!isUndefined(optionalNamespaces) && isValidObject(optionalNamespaces) !== 0) {
       this.validateNamespaces(optionalNamespaces, "optionalNamespaces");
     }
 
-    // validate session properties only if they are defined
+    // Validate session properties only if they are defined
     if (!isUndefined(sessionProperties)) {
       this.validateSessionProps(sessionProperties, "sessionProperties");
     }
@@ -2600,27 +2805,34 @@ export class Engine extends IEngine {
     type: string,
   ) => {
     const validRequiredNamespacesError = isValidRequiredNamespaces(namespaces, "connect()", type);
-    if (validRequiredNamespacesError) throw new Error(validRequiredNamespacesError.message);
+    if (validRequiredNamespacesError) {
+      throw new Error(validRequiredNamespacesError.message);
+    }
   };
 
   private isValidApprove: EnginePrivate["isValidApprove"] = async (params) => {
-    if (!isValidParams(params))
+    if (!isValidParams(params)) {
       throw new Error(
         getInternalError("MISSING_OR_INVALID", `approve() params: ${params}`).message,
       );
+    }
     const { id, namespaces, relayProtocol, sessionProperties } = params;
 
     this.checkRecentlyDeleted(id);
     await this.isValidProposalId(id);
     const proposal = this.client.proposal.get(id);
     const validNamespacesError = isValidNamespaces(namespaces, "approve()");
-    if (validNamespacesError) throw new Error(validNamespacesError.message);
+    if (validNamespacesError) {
+      throw new Error(validNamespacesError.message);
+    }
     const conformingNamespacesError = isConformingNamespaces(
       proposal.requiredNamespaces,
       namespaces,
       "approve()",
     );
-    if (conformingNamespacesError) throw new Error(conformingNamespacesError.message);
+    if (conformingNamespacesError) {
+      throw new Error(conformingNamespacesError.message);
+    }
     if (!isValidString(relayProtocol, true)) {
       const { message } = getInternalError(
         "MISSING_OR_INVALID",
@@ -2668,9 +2880,13 @@ export class Engine extends IEngine {
       throw new Error(message);
     }
     const validControllerError = isValidController(controller, "onSessionSettleRequest()");
-    if (validControllerError) throw new Error(validControllerError.message);
+    if (validControllerError) {
+      throw new Error(validControllerError.message);
+    }
     const validNamespacesError = isValidNamespaces(namespaces, "onSessionSettleRequest()");
-    if (validNamespacesError) throw new Error(validNamespacesError.message);
+    if (validNamespacesError) {
+      throw new Error(validNamespacesError.message);
+    }
     if (isExpired(expiry)) {
       const { message } = getInternalError("EXPIRED", `onSessionSettleRequest()`);
       throw new Error(message);
@@ -2688,13 +2904,17 @@ export class Engine extends IEngine {
     await this.isValidSessionTopic(topic);
     const session = this.client.session.get(topic);
     const validNamespacesError = isValidNamespaces(namespaces, "update()");
-    if (validNamespacesError) throw new Error(validNamespacesError.message);
+    if (validNamespacesError) {
+      throw new Error(validNamespacesError.message);
+    }
     const conformingNamespacesError = isConformingNamespaces(
       session.requiredNamespaces,
       namespaces,
       "update()",
     );
-    if (conformingNamespacesError) throw new Error(conformingNamespacesError.message);
+    if (conformingNamespacesError) {
+      throw new Error(conformingNamespacesError.message);
+    }
     // TODO(ilja) - check if wallet
   };
 
@@ -2752,10 +2972,12 @@ export class Engine extends IEngine {
     }
     const { topic, response } = params;
     try {
-      // if the session is already disconnected, we can't respond to the request so we need to delete it
+      // If the session is already disconnected, we can't respond to the request so we need to delete it
       await this.isValidSessionTopic(topic);
     } catch (error) {
-      if (params?.response?.id) this.cleanupAfterResponse(params);
+      if (params?.response?.id) {
+        this.cleanupAfterResponse(params);
+      }
       throw error;
     }
     if (!isValidResponse(response)) {
@@ -2867,6 +3089,7 @@ export class Engine extends IEngine {
         const applink = this.getAppLinkIfEnabled(metadata, transportType);
         context.verified.validation =
           applink && new URL(applink).origin === new URL(metadata.url).origin ? "VALID" : "INVALID";
+
         return context;
       }
       const result = await this.client.core.verify.resolve({
@@ -2886,6 +3109,7 @@ export class Engine extends IEngine {
     }
 
     this.client.logger.debug(`Verify context: ${JSON.stringify(context)}`);
+
     return context;
   };
 
@@ -2903,6 +3127,7 @@ export class Engine extends IEngine {
 
   private getPendingAuthRequest = (id: number) => {
     const request = this.client.auth.requests.get(id);
+
     return typeof request === "object" ? request : undefined;
   };
 
@@ -2911,7 +3136,7 @@ export class Engine extends IEngine {
     type: "pairing" | "session" | "proposal" | "request",
   ) => {
     this.recentlyDeletedMap.set(id, type);
-    // remove first half of the map if it exceeds the limit
+    // Remove first half of the map if it exceeds the limit
     if (this.recentlyDeletedMap.size >= this.recentlyDeletedLimit) {
       let i = 0;
       const numItemsToDelete = this.recentlyDeletedLimit / 2;
@@ -2939,7 +3164,9 @@ export class Engine extends IEngine {
     peerMetadata?: CoreTypes.Metadata,
     transportType?: RelayerTypes.TransportType,
   ): boolean => {
-    if (!peerMetadata || transportType !== TRANSPORT_TYPES.link_mode) return false;
+    if (!peerMetadata || transportType !== TRANSPORT_TYPES.link_mode) {
+      return false;
+    }
 
     return (
       this.client.metadata?.redirect?.linkMode === true &&
@@ -2956,14 +3183,15 @@ export class Engine extends IEngine {
   private getAppLinkIfEnabled = (
     peerMetadata?: CoreTypes.Metadata,
     transportType?: RelayerTypes.TransportType,
-  ): string | undefined => {
-    return this.isLinkModeEnabled(peerMetadata, transportType)
+  ): string | undefined =>
+    this.isLinkModeEnabled(peerMetadata, transportType)
       ? peerMetadata?.redirect?.universal
       : undefined;
-  };
 
   private handleLinkModeMessage = ({ url }: { url: string }) => {
-    if (!url || !url.includes("wc_ev") || !url.includes("topic")) return;
+    if (!url || !url.includes("wc_ev") || !url.includes("topic")) {
+      return;
+    }
 
     const topic = getSearchParamFromURL(url, "topic") || "";
     const message = decodeURIComponent(getSearchParamFromURL(url, "wc_ev") || "");
@@ -2980,15 +3208,15 @@ export class Engine extends IEngine {
   private registerLinkModeListeners = async () => {
     if (isTestRun() || (isReactNative() && this.client.metadata.redirect?.linkMode)) {
       const linking = (global as any)?.Linking;
-      // global.Linking is set by react-native-compat
+      // Global.Linking is set by react-native-compat
       if (typeof linking !== "undefined") {
-        // set URL listener
+        // Set URL listener
         linking.addEventListener("url", this.handleLinkModeMessage, this.client.name);
 
-        // check for initial URL -> cold boots
+        // Check for initial URL -> cold boots
         const initialUrl = await linking.getInitialURL();
         if (initialUrl) {
-          // wait to process the message to allow event listeners to be registered by the implementing app
+          // Wait to process the message to allow event listeners to be registered by the implementing app
           setTimeout(() => {
             this.handleLinkModeMessage({ url: initialUrl });
           }, 50);
@@ -3001,9 +3229,14 @@ export class Engine extends IEngine {
     protocolMethod: JsonRpcTypes.WcMethod,
     params: JsonRpcTypes.RequestParams["wc_sessionRequest"],
   ) => {
-    if (!params) return false;
-    if (protocolMethod !== "wc_sessionRequest") return false;
+    if (!params) {
+      return false;
+    }
+    if (protocolMethod !== "wc_sessionRequest") {
+      return false;
+    }
     const { request } = params;
+
     return Object.keys(TVF_METHODS).includes(request.method);
   };
 
@@ -3020,55 +3253,216 @@ export class Engine extends IEngine {
         rpcMethods: [requestMethod],
         chainId: params.chainId,
         ...(this.isValidContractData(params.request.params) && {
-          // initially only get contractAddresses from EVM txs
+          // Initially only get contractAddresses from EVM txs
           contractAddresses: [params.request.params?.[0]?.to],
         }),
         txHashes,
       };
+
       return tvf;
     } catch (e) {
       this.client.logger.warn("Error getting TVF params", e);
     }
+
     return {};
   };
 
   private isValidContractData = (params: any) => {
-    if (!params) return false;
+    if (!params) {
+      return false;
+    }
     try {
       const data = params?.data || params?.[0]?.data;
 
-      if (!data.startsWith("0x")) return false;
+      if (!data.startsWith("0x")) {
+        return false;
+      }
 
       const hexPart = data.slice(2);
-      if (!/^[0-9a-fA-F]*$/.test(hexPart)) return false;
+      if (!/^[0-9a-fA-F]*$/.test(hexPart)) {
+        return false;
+      }
 
       return hexPart.length % 2 === 0;
     } catch (e) {}
+
     return false;
   };
 
   private extractTxHashesFromResult = (method: string, result: any): string[] => {
     try {
       const methodConfig = TVF_METHODS[method as keyof typeof TVF_METHODS];
-      // result = 0x...
+      // Result = 0x...
       if (typeof result === "string") {
         return [result];
       }
 
-      // result = { key: [0x...] } or { key: 0x... }
+      // Result = { key: [0x...] } or { key: 0x... }
       const hashes = result[methodConfig.key];
 
-      // result = { key: [0x...] }
+      // Result = { key: [0x...] }
       if (isValidArray(hashes)) {
         return hashes;
 
-        // result = { key: 0x... }
+        // Result = { key: 0x... }
       } else if (typeof hashes === "string") {
         return [hashes];
       }
     } catch (e) {
       this.client.logger.warn("Error extracting tx hashes from result", e);
     }
+
     return [];
+  };
+
+  // 모바일 세션 끊김 감지 관련 메서드들
+  private initializeMobileSessionDetection = () => {
+    if (typeof window === "undefined") {
+      console.log(
+        "📱 [ENGINE] Window is undefined, skipping mobile session detection initialization",
+      );
+    }
+  };
+
+  public validateAndCleanupSessions = async (isSessionCheck = false) => {
+    // 강제 체크가 아닌 경우에만 10초 제한 적용
+    const now = Date.now();
+    if (!isSessionCheck && this.lastSessionCheckTime && now - this.lastSessionCheckTime < 10000) {
+      console.log(
+        "📱 [ENGINE] Skipping session check - too frequent (last check was",
+        now - this.lastSessionCheckTime,
+        "ms ago)",
+      );
+
+      return;
+    }
+
+    this.lastSessionCheckTime = now;
+    this.isCheckingSession = true;
+
+    try {
+      // 현재 활성 세션들 가져오기
+      const activeSessions = this.client.session.getAll();
+
+      // IsSessionCheck가 true일 때만 cleanup 수행 (페이지 활성화 시에는 ping만 확인)
+      if (isSessionCheck) {
+        await this.cleanup();
+
+        // Cleanup 후 세션 재확인
+      }
+
+      for (const session of activeSessions) {
+        const isFirstEntry = this.firstDAppEntryAfterSession.get(session.topic);
+
+        try {
+          await this.ping({ topic: session.topic });
+
+          // 첫 진입인 경우 ping만 확인하고 추가 검증 건너뛰기
+          if (isFirstEntry) {
+            // 첫 진입 플래그 제거 (이제 일반 세션이 됨)
+            this.firstDAppEntryAfterSession.set(session.topic, false);
+            continue;
+          }
+
+          const currentSession = this.client.session.get(session.topic);
+          if (!currentSession) {
+            await this.deleteSession({ topic: session.topic, emitEvent: false });
+          }
+        } catch (error) {
+          // Ping 실패 시에는 첫 진입/이후 진입 구분 없이 정리
+          try {
+            await this.deleteSession({ topic: session.topic, emitEvent: false });
+
+            this.events.emit("session_disconnected" as any, {
+              error: undefined,
+              result: {
+                topic: session.topic,
+                reason: "ping_failure",
+                timestamp: Date.now(),
+              },
+            });
+          } catch (disconnectError) {}
+        }
+      }
+    } catch (error) {
+      this.client.logger.error("📱 [ENGINE] Error checking session status:", error);
+    } finally {
+      this.isCheckingSession = false;
+    }
+  };
+
+  // 수동으로 세션 상태 확인하는 public 메서드 (읽기 전용, 세션 정리하지 않음)
+  public getSessionStatus = async () => {
+    if (this.isCheckingSession) {
+      // 현재 세션 상태를 즉시 반환 (읽기 전용이므로 대기하지 않음)
+      const activeSessions = this.client.session.getAll();
+
+      return {
+        total: activeSessions.length,
+        healthy: activeSessions.length, // 진행 중이므로 모두 healthy로 가정
+        disconnected: 0,
+        sessions: activeSessions.map((s) => ({
+          topic: s.topic,
+          status: "healthy" as const,
+        })),
+        note: "Status returned while session check in progress",
+      };
+    }
+
+    this.isCheckingSession = true;
+
+    try {
+      // 현재 활성 세션들 가져오기
+      const activeSessions = this.client.session.getAll();
+      const sessionResults: Array<{
+        topic: string;
+        status: "healthy" | "disconnected";
+        error?: string;
+      }> = [];
+
+      let healthyCount = 0;
+      let disconnectedCount = 0;
+
+      for (const session of activeSessions) {
+        try {
+          // Ping을 통한 연결 상태 확인
+          await this.ping({ topic: session.topic });
+
+          sessionResults.push({
+            topic: session.topic,
+            status: "healthy",
+          });
+          healthyCount++;
+        } catch (error: any) {
+          sessionResults.push({
+            topic: session.topic,
+            status: "disconnected",
+            error: error?.message || "Ping failed",
+          });
+          disconnectedCount++;
+
+          // 읽기 전용이므로 세션을 정리하지 않음 (상태만 확인)
+        }
+      }
+
+      const result = {
+        total: activeSessions.length,
+        healthy: healthyCount,
+        disconnected: disconnectedCount,
+        sessions: sessionResults,
+      };
+
+      return result;
+    } catch (error) {
+      return {
+        total: 0,
+        healthy: 0,
+        disconnected: 0,
+        sessions: [],
+        error: (error as any)?.message || "Unknown error",
+      };
+    } finally {
+      this.isCheckingSession = false;
+    }
   };
 }
