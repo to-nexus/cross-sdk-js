@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-adapter-bitcoin",
-  "version": "1.16.8-alpha",
+  "version": "1.16.9-alpha",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
