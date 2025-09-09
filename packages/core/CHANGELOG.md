@@ -1,5 +1,11 @@
 # @to-nexus/core
 
+## 2.19.12
+
+### Patch Changes
+
+- crs-3209 fix dapp session
+
 ## 2.19.11
 
 ### Patch Changes
