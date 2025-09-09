@@ -183,6 +183,10 @@ jobs:
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
         run: npm run version-packages
 
+      - name: Exit Changesets pre mode (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: npm run changeset -- pre exit
+
       - name: Set stable version in root package.json (prod)
         if: inputs.environment == 'prod' && inputs.dry_run == 'false'
         id: setver_prod
@@ -228,6 +232,26 @@ jobs:
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
         run: |
           node scripts/inject-version.js || true
+          git add -A
+
+      - name: Align internal @to-nexus/* dependency versions (exact match)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            function collect(root){const out=[];if(!fs.existsSync(root))return out;const s=[root];while(s.length){const d=s.pop();for(const e of fs.readdirSync(d,{withFileTypes:true})){if(e.name==="node_modules"||e.name.startsWith("."))continue;const p=path.join(d,e.name);if(e.isDirectory())s.push(p);else if(e.isFile()&&e.name==="package.json")out.push(p);} } return out;}
+            const pkgFiles=[...collect("./packages"),...collect("./providers")];
+            // build map of workspace package name -> version
+            const versionMap=new Map();
+            for(const f of pkgFiles){try{const j=JSON.parse(fs.readFileSync(f,"utf8"));if(j.name&&j.version)versionMap.set(j.name,j.version);}catch{}}
+            let updates=0;
+            for(const f of pkgFiles){let changed=false;const j=JSON.parse(fs.readFileSync(f,"utf8"));
+              for(const sec of ["dependencies","devDependencies","peerDependencies"]){ if(!j[sec]) continue; for(const dep of Object.keys(j[sec])){ if(dep.startsWith("@to-nexus/")){ const v=versionMap.get(dep); if(v && j[sec][dep]!==v){ j[sec][dep]=v; changed=true; console.log(`Aligned ${dep} -> ${v} in ${f}`);} } } }
+              if(changed){ fs.writeFileSync(f,JSON.stringify(j,null,2)+"\n"); updates++; }
+            }
+            console.log(`Updated dependency ranges in ${updates} file(s)`);
+          '
           git add -A
 
       - name: Build (workspaces)
