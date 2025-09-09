@@ -174,11 +174,11 @@ jobs:
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
         run: |
           PREID=$([[ "${{ inputs.environment }}" == "stage" ]] && echo "beta" || echo "alpha")
-          npx --yes @changesets/cli pre enter "$PREID"
+          npm run changeset -- pre enter "$PREID"
 
       - name: Version packages (pre)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
-        run: npx --yes @changesets/cli version
+        run: npm run version-packages
 
       - name: Set stable version in root package.json (prod)
         if: inputs.environment == 'prod' && inputs.dry_run == 'false'
@@ -240,11 +240,11 @@ jobs:
 
       - name: Publish (dev → alpha)
         if: inputs.environment == 'dev' && inputs.dry_run == 'false'
-        run: npx --yes changeset publish --tag alpha
+        run: npm run publish:alpha
 
       - name: Publish (stage → beta)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false'
-        run: npx --yes changeset publish --tag beta
+        run: npm run publish:beta
 
       - name: Commit version changes (after successful publish)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false' && steps.setver.outputs.VERSION_CHANGES_READY == 'true'
@@ -262,7 +262,7 @@ jobs:
         if: |
           (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main') ||
           (github.event_name == 'push' && github.ref == 'refs/heads/main')
-        run: npx --yes changeset publish
+        run: npm run publish:latest
 
       - name: Create tag (dev/stage prerelease)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
