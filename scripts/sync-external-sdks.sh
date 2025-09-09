@@ -897,16 +897,31 @@ selective_pull_from_external() {
     local temp_dir=$(mktemp -d)
     local clone_success=false
     
-    # 외부 저장소 clone
+    # 외부 저장소 clone (먼저 main 브랜치로 시도)
     log_info "📥 Cloning external repository..."
-    echo "   명령어: git clone --depth=1 --branch=\"$branch\" \"https://github.com/to-nexus/$remote_name.git\" \"$temp_dir\""
+    echo "   명령어: git clone --depth=1 --branch=\"main\" \"https://github.com/to-nexus/$remote_name.git\" \"$temp_dir\""
     
-    if git clone --depth=1 --branch="$branch" "https://github.com/to-nexus/$remote_name.git" "$temp_dir" 2>/dev/null; then
+    if git clone --depth=1 --branch="main" "https://github.com/to-nexus/$remote_name.git" "$temp_dir" 2>/dev/null; then
         clone_success=true
         log_success "External repository cloned successfully"
+        
+        # 브랜치가 main이 아니면 해당 브랜치로 전환 시도
+        if [[ "$branch" != "main" ]]; then
+            cd "$temp_dir"
+            
+            # 원격 브랜치 존재 확인
+            if git ls-remote --heads origin | grep -q "refs/heads/$branch"; then
+                log_info "🌿 Switching to existing branch: $branch"
+                git checkout "$branch"
+            else
+                log_warning "Branch $branch does not exist in remote repository, using main branch"
+            fi
+            
+            cd - > /dev/null
+        fi
     else
         log_error "Failed to clone external repository"
-        echo "실패한 명령어: git clone --depth=1 --branch=\"$branch\" \"https://github.com/to-nexus/$remote_name.git\" \"$temp_dir\""
+        echo "실패한 명령어: git clone --depth=1 --branch=\"main\" \"https://github.com/to-nexus/$remote_name.git\" \"$temp_dir\""
         rm -rf "$temp_dir"
         return 1
     fi
@@ -1318,12 +1333,28 @@ selective_push_to_external() {
     # 임시 디렉토리 생성
     local temp_dir=$(mktemp -d)
     
-    # 원격 저장소 clone
+    # 원격 저장소 clone (먼저 main 브랜치로 시도)
     log_info "📥 Cloning target repository..."
-    if ! git clone "https://github.com/to-nexus/$remote_name.git" "$temp_dir/repo" --depth=1 --branch="$branch" 2>/dev/null; then
+    if ! git clone "https://github.com/to-nexus/$remote_name.git" "$temp_dir/repo" --depth=1 --branch="main" 2>/dev/null; then
         log_error "Failed to clone target repository"
         rm -rf "$temp_dir"
         return 1
+    fi
+    
+    # 브랜치가 main이 아니면 해당 브랜치로 전환 또는 생성
+    if [[ "$branch" != "main" ]]; then
+        cd "$temp_dir/repo"
+        
+        # 원격 브랜치 존재 확인
+        if git ls-remote --heads origin | grep -q "refs/heads/$branch"; then
+            log_info "🌿 Switching to existing branch: $branch"
+            git checkout "$branch"
+        else
+            log_info "🌿 Creating new branch: $branch"
+            git checkout -b "$branch"
+        fi
+        
+        cd - > /dev/null
     fi
     
     # 패키지별 경로 설정
@@ -1597,7 +1628,28 @@ compare_with_external() {
     log_info "🔍 $package_name 패키지를 외부 저장소 ${remote_name}/${branch}와 비교 중..."
     
     local temp_dir=$(mktemp -d)
-    git clone "https://github.com/to-nexus/$remote_name.git" "$temp_dir" --depth=1 --branch="$branch"
+    
+    # 먼저 main 브랜치로 clone
+    if ! git clone "https://github.com/to-nexus/$remote_name.git" "$temp_dir" --depth=1 --branch="main" 2>/dev/null; then
+        log_error "Failed to clone repository"
+        rm -rf "$temp_dir"
+        return 1
+    fi
+    
+    # 브랜치가 main이 아니면 해당 브랜치로 전환 시도
+    if [[ "$branch" != "main" ]]; then
+        cd "$temp_dir"
+        
+        # 원격 브랜치 존재 확인
+        if git ls-remote --heads origin | grep -q "refs/heads/$branch"; then
+            log_info "🌿 Switching to existing branch: $branch"
+            git checkout "$branch"
+        else
+            log_warning "Branch $branch does not exist in remote repository, using main branch"
+        fi
+        
+        cd - > /dev/null
+    fi
     
     if [[ -d "$temp_dir/$package_path" ]] && [[ -d "$package_path" ]]; then
         echo "=== 현재 로컬 버전 ($package_name) ==="
