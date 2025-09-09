@@ -125,6 +125,9 @@ jobs:
       - name: Install dependencies (workspaces)
         run: npm install --workspaces --no-audit --no-fund
 
+      - name: Ensure Changesets CLI available
+        run: npm i -D @changesets/cli@2.28.1 --no-save
+
       - name: Compute version from inputs/branch
         id: compute
         run: |
