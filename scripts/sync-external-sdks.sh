@@ -675,8 +675,8 @@ sanitize_branch_name() {
     branch_name=$(echo "$branch_name" | tr -d '[:cntrl:]')
     # Git에서 허용하는 문자만 유지 (알파벳, 숫자, 언더스코어, 하이픈, 점, 슬래시)
     branch_name=$(echo "$branch_name" | tr -cd '[:alnum:]_.-/')
-    # 앞뒤에 점이나 하이픈이 있으면 제거
-    branch_name=$(echo "$branch_name" | sed 's/^[.-]//;s/[.-]$//')
+    # 앞뒤에 점만 제거 (하이픈은 유지)
+    branch_name=$(echo "$branch_name" | sed 's/^[.]//;s/[.]$//')
     
     if [[ -z "$branch_name" ]]; then
         log_error "Invalid branch name: $1. Please use only alphanumeric, underscore, hyphen, dot, or slash."
