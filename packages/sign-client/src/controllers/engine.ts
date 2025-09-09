@@ -158,7 +158,6 @@ export class Engine extends IEngine {
   >();
 
   // 모바일 세션 끊김 감지 관련 필드들
-  private isPageActive = true;
   private lastSessionCheckTime?: number;
   private isCheckingSession = false;
   private sessionCreationTimes = new Map<string, number>(); // 세션 생성 시간 추적
@@ -560,7 +559,6 @@ export class Engine extends IEngine {
   };
 
   public request: IEngine["request"] = async <T>(params: EngineTypes.RequestParams) => {
-    console.log("sign-client request : ", new Date().toLocaleTimeString());
     this.isInitialized();
     try {
       await this.isValidRequest(params);
@@ -572,10 +570,6 @@ export class Engine extends IEngine {
     const session = this.client.session.get(topic);
 
     if (session?.transportType === TRANSPORT_TYPES.relay) {
-      console.log(
-        "sign-client request confirmOnlineStateOrThrow : ",
-        new Date().toLocaleTimeString(),
-      );
       await this.confirmOnlineStateOrThrow();
     }
     const clientRpcId = payloadId();
@@ -597,7 +591,6 @@ export class Engine extends IEngine {
     const protocolMethod = "wc_sessionRequest";
     const appLink = this.getAppLinkIfEnabled(session.peer.metadata, session.transportType);
     if (appLink) {
-      console.log("sign-client request appLink : ", new Date().toLocaleTimeString());
       await this.sendRequest({
         clientRpcId,
         relayRpcId,
@@ -614,16 +607,13 @@ export class Engine extends IEngine {
         throwOnFailedPublish: true,
         appLink,
       }).catch((error) => reject(error));
-      console.log("sign-client request appLink 2 : ", new Date().toLocaleTimeString());
       this.client.events.emit("session_request_sent", {
         topic,
         request,
         chainId,
         id: clientRpcId,
       });
-      console.log("sign-client request appLink 3 : ", new Date().toLocaleTimeString());
       const result = await done();
-      console.log("sign-client request appLink 4 : ", new Date().toLocaleTimeString());
 
       return result;
     }
@@ -636,7 +626,6 @@ export class Engine extends IEngine {
       chainId,
     };
     const shouldSetTVF = this.shouldSetTVF(protocolMethod, protocolRequestParams);
-    console.log("sign-client request shouldSetTVF : ", new Date().toLocaleTimeString());
 
     return await Promise.all([
       new Promise<void>(async (resolve) => {
@@ -702,7 +691,6 @@ export class Engine extends IEngine {
   };
 
   public ping: IEngine["ping"] = async (params) => {
-    console.log("sign-client ping : ", new Date().toLocaleTimeString());
     this.isInitialized();
     await this.confirmOnlineStateOrThrow();
     try {
@@ -1865,7 +1853,6 @@ export class Engine extends IEngine {
     );
 
     while (this.requestQueue.queue.length > 0) {
-      console.log(`Processing request queue, length: ${this.requestQueue.queue.length}`);
       this.requestQueue.state = ENGINE_QUEUE_STATES.active;
       const request = this.requestQueue.queue.shift();
       if (!request) {
@@ -1880,7 +1867,6 @@ export class Engine extends IEngine {
       }
     }
     this.requestQueue.state = ENGINE_QUEUE_STATES.idle;
-    console.log(`Processing request queue finised, state; ${this.requestQueue.state}`);
   };
 
   private processRequest: EnginePrivate["onRelayEventRequest"] = async (event) => {
@@ -2710,11 +2696,6 @@ export class Engine extends IEngine {
         "MISSING_OR_INVALID",
         `session topic should be a string: ${topic}`,
       );
-      console.log(
-        "sign-client isValidSessionTopic invalid topic : ",
-        message,
-        new Date().toLocaleTimeString(),
-      );
       throw new Error(message);
     }
     // Store will throw custom message if topic was recently deleted
@@ -2724,15 +2705,9 @@ export class Engine extends IEngine {
         "NO_MATCHING_KEY",
         `session topic doesn't exist: ${topic}`,
       );
-      console.log(
-        "sign-client isValidSessionTopic invalid topic 2 : ",
-        message,
-        new Date().toLocaleTimeString(),
-      );
       throw new Error(message);
     }
     if (isExpired(this.client.session.get(topic).expiry)) {
-      console.log("sign-client isValidSessionTopic : ", new Date().toLocaleTimeString());
       await this.deleteSession({ topic });
       const { message } = getInternalError("EXPIRED", `session topic: ${topic}`);
       throw new Error(message);
@@ -2742,11 +2717,6 @@ export class Engine extends IEngine {
       const { message } = getInternalError(
         "MISSING_OR_INVALID",
         `session topic does not exist in keychain: ${topic}`,
-      );
-      console.log(
-        "sign-client isValidSessionTopic invalid topic 3 : ",
-        message,
-        new Date().toLocaleTimeString(),
       );
       await this.deleteSession({ topic });
       throw new Error(message);
@@ -2806,7 +2776,6 @@ export class Engine extends IEngine {
     const { pairingTopic, requiredNamespaces, optionalNamespaces, sessionProperties, relays } =
       params;
     if (!isUndefined(pairingTopic)) {
-      console.log("sign-client isValidConnect : ", new Date().toLocaleTimeString());
       await this.isValidPairingTopic(pairingTopic);
     }
 
@@ -2850,7 +2819,6 @@ export class Engine extends IEngine {
     const { id, namespaces, relayProtocol, sessionProperties } = params;
 
     this.checkRecentlyDeleted(id);
-    console.log("sign-client isValidApprove : ", new Date().toLocaleTimeString());
     await this.isValidProposalId(id);
     const proposal = this.client.proposal.get(id);
     const validNamespacesError = isValidNamespaces(namespaces, "approve()");
@@ -2885,7 +2853,6 @@ export class Engine extends IEngine {
     }
     const { id, reason } = params;
     this.checkRecentlyDeleted(id);
-    console.log("sign-client isValidReject : ", new Date().toLocaleTimeString());
     await this.isValidProposalId(id);
     if (!isValidErrorReason(reason)) {
       const { message } = getInternalError(
@@ -2934,7 +2901,6 @@ export class Engine extends IEngine {
     const { topic, namespaces } = params;
 
     this.checkRecentlyDeleted(topic);
-    console.log("sign-client isValidUpdate : ", new Date().toLocaleTimeString());
     await this.isValidSessionTopic(topic);
     const session = this.client.session.get(topic);
     const validNamespacesError = isValidNamespaces(namespaces, "update()");
@@ -2960,7 +2926,6 @@ export class Engine extends IEngine {
     const { topic } = params;
 
     this.checkRecentlyDeleted(topic);
-    console.log("sign-client isValidExtend : ", new Date().toLocaleTimeString());
     await this.isValidSessionTopic(topic);
   };
 
@@ -2971,13 +2936,10 @@ export class Engine extends IEngine {
     }
     const { topic, request, chainId, expiry } = params;
     this.checkRecentlyDeleted(topic);
-    console.log("sign-client isValidRequest : ", new Date().toLocaleTimeString());
     await this.isValidSessionTopic(topic);
-    console.log("sign-client isValidRequest 2 : ", new Date().toLocaleTimeString());
     const { namespaces } = this.client.session.get(topic);
     if (!isValidNamespacesChainId(namespaces, chainId)) {
       const { message } = getInternalError("MISSING_OR_INVALID", `request() chainId: ${chainId}`);
-      console.log("sign-client isValidRequest invalid chainId : ", new Date().toLocaleTimeString());
       throw new Error(message);
     }
     if (!isValidRequest(request)) {
@@ -2985,7 +2947,6 @@ export class Engine extends IEngine {
         "MISSING_OR_INVALID",
         `request() ${JSON.stringify(request)}`,
       );
-      console.log("sign-client isValidRequest invalid request : ", new Date().toLocaleTimeString());
       throw new Error(message);
     }
     if (!isValidNamespacesRequest(namespaces, chainId, request.method)) {
@@ -2993,7 +2954,6 @@ export class Engine extends IEngine {
         "MISSING_OR_INVALID",
         `request() method: ${request.method}`,
       );
-      console.log("sign-client isValidRequest invalid method : ", new Date().toLocaleTimeString());
       throw new Error(message);
     }
     if (expiry && !isValidRequestExpiry(expiry, SESSION_REQUEST_EXPIRY_BOUNDARIES)) {
@@ -3001,7 +2961,6 @@ export class Engine extends IEngine {
         "MISSING_OR_INVALID",
         `request() expiry: ${expiry}. Expiry must be a number (in seconds) between ${SESSION_REQUEST_EXPIRY_BOUNDARIES.min} and ${SESSION_REQUEST_EXPIRY_BOUNDARIES.max}`,
       );
-      console.log("sign-client isValidRequest invalid expiry : ", new Date().toLocaleTimeString());
       throw new Error(message);
     }
   };
@@ -3045,7 +3004,6 @@ export class Engine extends IEngine {
       throw new Error(message);
     }
     const { topic, event, chainId } = params;
-    console.log("sign-client isValidEmit : ", new Date().toLocaleTimeString());
     await this.isValidSessionTopic(topic);
     const { namespaces } = this.client.session.get(topic);
     if (!isValidNamespacesChainId(namespaces, chainId)) {
@@ -3074,7 +3032,6 @@ export class Engine extends IEngine {
       throw new Error(message);
     }
     const { topic } = params;
-    console.log("sign-client isValidDisconnect : ", new Date().toLocaleTimeString());
     await this.isValidSessionOrPairingTopic(topic);
   };
 
@@ -3360,37 +3317,14 @@ export class Engine extends IEngine {
 
   // 모바일 세션 끊김 감지 관련 메서드들
   private initializeMobileSessionDetection = () => {
-    console.log("📱 [ENGINE] initializeMobileSessionDetection called");
-    console.log("📱 [ENGINE] typeof window:", typeof window);
-    console.log("📱 [ENGINE] document:", typeof document);
-
     if (typeof window === "undefined") {
       console.log(
         "📱 [ENGINE] Window is undefined, skipping mobile session detection initialization",
       );
-
-      return;
     }
-
-    console.log("📱 [ENGINE] Initializing mobile session detection...");
-    console.log("📱 [ENGINE] Adding visibilitychange event listener...");
-    console.log("📱 [ENGINE] Current isPageActive state:", this.isPageActive);
-
-    /*
-     * Page Visibility API 이벤트 리스너
-     * 이벤트 리스너 제거 - DApp에서 직접 세션 관리
-     */
-    console.log("📱 [ENGINE] Mobile session management delegated to DApp");
-    console.log(
-      "📱 [ENGINE] Use engine.validateAndCleanupSessions(isSessionCheck) for session validation",
-    );
   };
 
   public validateAndCleanupSessions = async (isSessionCheck = false) => {
-    console.log(
-      "📱 [DEBUG] validateAndCleanupSessions called with isSessionCheck:",
-      isSessionCheck,
-    );
     // 강제 체크가 아닌 경우에만 10초 제한 적용
     const now = Date.now();
     if (!isSessionCheck && this.lastSessionCheckTime && now - this.lastSessionCheckTime < 10000) {
@@ -3415,52 +3349,24 @@ export class Engine extends IEngine {
         await this.cleanup();
 
         // Cleanup 후 세션 재확인
-        const sessionsAfterCleanup = this.client.session.getAll();
-        console.log(
-          "📱 [ENGINE] Found",
-          sessionsAfterCleanup.length,
-          "active sessions after cleanup",
-        );
       }
 
       for (const session of activeSessions) {
         const isFirstEntry = this.firstDAppEntryAfterSession.get(session.topic);
-        console.log(
-          "📱 [DEBUG] Processing session:",
-          `${session.topic.substring(0, 8)}...`,
-          "isFirstEntry:",
-          isFirstEntry,
-        );
 
         try {
           await this.ping({ topic: session.topic });
 
           // 첫 진입인 경우 ping만 확인하고 추가 검증 건너뛰기
           if (isFirstEntry) {
-            console.log(
-              "📱 [ENGINE] First DApp entry after session creation, skipping additional validation:",
-              session.topic,
-            );
             // 첫 진입 플래그 제거 (이제 일반 세션이 됨)
             this.firstDAppEntryAfterSession.set(session.topic, false);
             continue;
           }
 
-          // 이후 진입인 경우 ping + 세션 유효성 검증 수행
-          console.log(
-            "📱 [DEBUG] Not first entry - performing validation for:",
-            `${session.topic.substring(0, 8)}...`,
-          );
-
           const currentSession = this.client.session.get(session.topic);
           if (!currentSession) {
-            console.log("📱 [ENGINE] Session not found in store, cleaning up:", session.topic);
             await this.deleteSession({ topic: session.topic, emitEvent: false });
-          } else {
-            console.log(
-              "📱 [DEBUG] Session validation passed for:",
-              `${session.topic.substring(0, 8)}...`,
-            );
           }
         } catch (error) {
           // Ping 실패 시에는 첫 진입/이후 진입 구분 없이 정리
@@ -3475,17 +3381,11 @@ export class Engine extends IEngine {
                 timestamp: Date.now(),
               },
             });
-          } catch (disconnectError) {
-            console.error(
-              "📱 [ENGINE] Failed to disconnect session:",
-              session.topic,
-              disconnectError,
-            );
-          }
+          } catch (disconnectError) {}
         }
       }
     } catch (error) {
-      console.error("📱 [ENGINE] Error checking session status:", error);
+      this.client.logger.error("📱 [ENGINE] Error checking session status:", error);
     } finally {
       this.isCheckingSession = false;
     }
