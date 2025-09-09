@@ -285,10 +285,16 @@ jobs:
       - name: Publish (dev → alpha)
         if: inputs.environment == 'dev' && inputs.dry_run == 'false'
         run: npm run publish:alpha
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+          NPM_CONFIG_USERCONFIG: ${{ env.NPM_CONFIG_USERCONFIG }}
 
       - name: Publish (stage → beta)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false'
         run: npm run publish:beta
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+          NPM_CONFIG_USERCONFIG: ${{ env.NPM_CONFIG_USERCONFIG }}
 
       - name: Commit version changes (after successful publish)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false' && steps.setver.outputs.VERSION_CHANGES_READY == 'true'
@@ -307,6 +313,9 @@ jobs:
           (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod' && inputs.dry_run == 'false' && github.ref == 'refs/heads/main') ||
           (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: npm run publish:latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+          NPM_CONFIG_USERCONFIG: ${{ env.NPM_CONFIG_USERCONFIG }}
 
       - name: Create tag (dev/stage prerelease)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
