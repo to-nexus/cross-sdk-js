@@ -52,6 +52,7 @@
     "run:examples": "pnpm run build && cd examples && pnpm run examples",
     "packages:version:switch": "node scripts/dependency-switcher.cjs",
     "push:external": "bash scripts/sync-external-sdks.sh push",
+    "push:external:universal": "bash scripts/sync-external-sdks.sh selective-push universal-provider",
     "pull:external": "bash scripts/sync-external-sdks.sh pull",
     "pull:external:sign-client": "bash scripts/sync-external-sdks.sh pull sign-client",
     "pull:external:universal": "bash scripts/sync-external-sdks.sh pull universal-provider",
