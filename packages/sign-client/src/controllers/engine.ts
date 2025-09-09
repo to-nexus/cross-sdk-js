@@ -157,6 +157,15 @@ export class Engine extends IEngine {
     }
   >()
 
+  // 모바일 세션 끊김 감지 관련 필드들
+  private isPageActive = true
+  private lastActiveTime = Date.now()
+  private lastSessionCheckTime?: number
+  private isCheckingSession = false
+  private sessionCreationTimes = new Map<string, number>() // 세션 생성 시간 추적
+  private firstDAppEntryAfterSession = new Map<string, boolean>() // 세션 생성 후 첫 DApp 진입 여부 추적
+  private mobileSessionCheckTimer?: NodeJS.Timeout // 주기적 세션 체크 타이머
+
   constructor(client: IEngine['client']) {
     super(client)
   }
@@ -169,6 +178,7 @@ export class Engine extends IEngine {
       this.registerPairingEvents()
       await this.registerLinkModeListeners()
       this.client.core.pairing.register({ methods: Object.keys(ENGINE_RPC_OPTS) })
+      this.initializeMobileSessionDetection()
       this.initialized = true
       setTimeout(() => {
         this.sessionRequestQueue.queue = this.getPendingSessionRequests()
@@ -692,6 +702,7 @@ export class Engine extends IEngine {
   }
 
   public ping: IEngine['ping'] = async params => {
+    console.log('sign-client ping : ', new Date().toLocaleTimeString())
     this.isInitialized()
     await this.confirmOnlineStateOrThrow()
     try {
@@ -1377,18 +1388,17 @@ export class Engine extends IEngine {
     const { topic, expirerHasDeleted = false, emitEvent = true, id = 0 } = params
     const { self } = this.client.session.get(topic)
     // Await the unsubscribe first to avoid deleting the symKey too early below.
-    console.log('sign-client deleteSession : ', new Date().toLocaleTimeString())
     await this.client.core.relayer.unsubscribe(topic)
-    console.log('sign-client deleteSession 2 : ', new Date().toLocaleTimeString())
     await this.client.session.delete(topic, getSdkError('USER_DISCONNECTED'))
-    console.log('sign-client deleteSession 3 : ', new Date().toLocaleTimeString())
+
+    // 🆕 세션 삭제 시 활동 시간 기록도 정리
+    this.cleanupSessionActivity(topic)
+
     this.addToRecentlyDeleted(topic, 'session')
     if (this.client.core.crypto.keychain.has(self.publicKey)) {
-      console.log('sign-client deleteSession 4 : ', new Date().toLocaleTimeString())
       await this.client.core.crypto.deleteKeyPair(self.publicKey)
     }
     if (this.client.core.crypto.keychain.has(topic)) {
-      console.log('sign-client deleteSession 5 : ', new Date().toLocaleTimeString())
       await this.client.core.crypto.deleteSymKey(topic)
     }
     if (!expirerHasDeleted) {
@@ -1413,7 +1423,6 @@ export class Engine extends IEngine {
     if (emitEvent) {
       this.client.events.emit('session_delete', { id, topic })
     }
-    console.log('sign-client deleteSession 6 : ', new Date().toLocaleTimeString())
   }
 
   private deleteProposal: EnginePrivate['deleteProposal'] = async (id, expirerHasDeleted) => {
@@ -1520,9 +1529,7 @@ export class Engine extends IEngine {
 
     try {
       const encoding = isLinkMode ? BASE64URL : BASE64
-      console.log('sign-client sendRequest encoding : ', new Date().toLocaleTimeString())
       message = await this.client.core.crypto.encode(topic, payload, { encoding })
-      console.log('sign-client sendRequest encoding 2 : ', new Date().toLocaleTimeString())
     } catch (error) {
       await this.cleanup()
       this.client.logger.error(`sendRequest() -> core.crypto.encode() for topic ${topic} failed`)
@@ -1533,9 +1540,7 @@ export class Engine extends IEngine {
     if (METHODS_TO_VERIFY.includes(method)) {
       const decryptedId = hashMessage(JSON.stringify(payload))
       const id = hashMessage(message)
-      console.log('sign-client sendRequest id : ', id, new Date().toLocaleTimeString())
       //A attestation = await this.client.core.verify.register({ id, decryptedId })
-      console.log('sign-client sendRequest attestation : ', new Date().toLocaleTimeString())
     }
     const opts = ENGINE_RPC_OPTS[method].req
     opts.attestation = attestation
@@ -1569,9 +1574,7 @@ export class Engine extends IEngine {
           ...opts.internal,
           throwOnFailedPublish: true
         }
-        console.log('sign-client sendRequest publish : ', new Date().toLocaleTimeString())
         await this.client.core.relayer.publish(topic, message, opts)
-        console.log('sign-client sendRequest publish 2 : ', new Date().toLocaleTimeString())
       } else {
         this.client.core.relayer
           .publish(topic, message, opts)
@@ -1685,27 +1688,102 @@ export class Engine extends IEngine {
   private cleanup: EnginePrivate['cleanup'] = async () => {
     const sessionTopics: string[] = []
     const proposalIds: number[] = []
-    this.client.session.getAll().forEach(session => {
+
+    const existingSessions = this.client.session.getAll()
+
+    for (const session of existingSessions) {
       let toCleanup = false
+      const cleanupReasons: string[] = []
+
+      // 1. 기존 검증 (만료, 암호화 키)
       if (isExpired(session.expiry)) {
         toCleanup = true
+        cleanupReasons.push('expired')
+        this.client.logger.info(`Session ${session.topic} expired`)
       }
+
       if (!this.client.core.crypto.keychain.has(session.topic)) {
         toCleanup = true
+        cleanupReasons.push('missing crypto keys')
+        this.client.logger.info(`Session ${session.topic} missing crypto keys`)
       }
+
       if (toCleanup) {
+        console.log(
+          `📱 [ENGINE] Session ${session.topic.substring(0, 8)}... will be cleaned up. Reasons: ${cleanupReasons.join(', ')}`
+        )
         sessionTopics.push(session.topic)
+      } else {
+        console.log(
+          `📱 [ENGINE] Session ${session.topic.substring(0, 8)}... passed all validations`
+        )
       }
-    })
+    }
+
     this.client.proposal.getAll().forEach(proposal => {
       if (isExpired(proposal.expiryTimestamp)) {
         proposalIds.push(proposal.id)
       }
     })
-    await Promise.all([
-      ...sessionTopics.map(topic => this.deleteSession({ topic })),
-      ...proposalIds.map(id => this.deleteProposal(id))
-    ])
+
+    // 정리 실행
+    if (sessionTopics.length > 0) {
+      this.client.logger.info(`Cleaning up ${sessionTopics.length} invalid sessions`)
+      await Promise.all([
+        ...sessionTopics.map(topic => this.deleteSession({ topic })),
+        ...proposalIds.map(id => this.deleteProposal(id))
+      ])
+    }
+  }
+
+  // 세션 활동 시간 업데이트 (다른 메서드에서 호출)
+  private updateSessionActivity(topic: string): void {
+    try {
+      const storageKey = `session_activity_${topic}`
+      const now = Date.now()
+
+      this.client.logger.debug(`🔍 [ACTIVITY] Updating activity record for session: ${topic}`)
+
+      // 스토리지 시스템 안전성 확인
+      if (!this.client.core?.storage) {
+        this.client.logger.warn(`⚠️ [ACTIVITY] Storage system not available for session: ${topic}`)
+
+        return
+      }
+
+      this.client.core.storage.setItem(storageKey, now.toString())
+
+      this.client.logger.info(
+        `✅ [ACTIVITY] Updated session activity for ${topic} at ${new Date(now).toISOString()}`
+      )
+    } catch (error) {
+      this.client.logger.error(`❌ [ACTIVITY] Error updating session activity for ${topic}:`, error)
+    }
+  }
+
+  // 세션 활동 시간 기록 정리
+  private cleanupSessionActivity(topic: string): void {
+    try {
+      const storageKey = `session_activity_${topic}`
+
+      this.client.logger.debug(`🔍 [ACTIVITY] Cleaning up activity record for session: ${topic}`)
+
+      // 스토리지 시스템 안전성 확인
+      if (!this.client.core?.storage) {
+        this.client.logger.warn(`⚠️ [ACTIVITY] Storage system not available for session: ${topic}`)
+
+        return
+      }
+
+      this.client.core.storage.removeItem(storageKey)
+
+      this.client.logger.info(`✅ [ACTIVITY] Cleaned up session activity for ${topic}`)
+    } catch (error) {
+      this.client.logger.error(
+        `❌ [ACTIVITY] Error cleaning up session activity for ${topic}:`,
+        error
+      )
+    }
   }
 
   private isInitialized() {
@@ -2047,6 +2125,9 @@ export class Engine extends IEngine {
       this.client.events.emit('session_connect', { session })
       this.events.emit(engineEvent('session_connect', pendingSession.proposalId), { session })
 
+      // 🆕 세션 연결 시 활동 시간 업데이트
+      this.updateSessionActivity(session.topic)
+
       this.pendingSessions.delete(pendingSession.proposalId)
       this.deleteProposal(pendingSession.proposalId, false)
       this.cleanupDuplicatePairings(session)
@@ -2074,6 +2155,12 @@ export class Engine extends IEngine {
     const { id } = payload
     if (isJsonRpcResult(payload)) {
       await this.client.session.update(topic, { acknowledged: true })
+
+      // 세션 생성 시간 기록
+      this.sessionCreationTimes.set(topic, Date.now())
+      // 첫 DApp 진입 플래그 초기화
+      this.firstDAppEntryAfterSession.set(topic, true)
+
       this.events.emit(engineEvent('session_approve', id), {})
     } else if (isJsonRpcError(payload)) {
       await this.client.session.delete(topic, getSdkError('USER_DISCONNECTED'))
@@ -2196,6 +2283,10 @@ export class Engine extends IEngine {
         result: true,
         throwOnFailedPublish: true
       })
+
+      // 🆕 세션 ping 시 활동 시간 업데이트
+      this.updateSessionActivity(topic)
+
       this.client.events.emit('session_ping', { id, topic })
     } catch (err: any) {
       await this.sendError({
@@ -2234,11 +2325,28 @@ export class Engine extends IEngine {
     const { id } = payload
     try {
       this.isValidDisconnect({ topic, reason: payload.params })
-      Promise.all([
+
+      await Promise.all([
         new Promise(resolve => {
           // RPC request needs to happen before deletion as it utalises session encryption
           this.client.core.relayer.once(RELAYER_EVENTS.publish, async () => {
-            resolve(await this.deleteSession({ topic, id }))
+            await this.deleteSession({ topic, id, emitEvent: false })
+
+            // 세션 삭제 시간 및 첫 진입 플래그 제거
+            this.sessionCreationTimes.delete(topic)
+            this.firstDAppEntryAfterSession.delete(topic)
+
+            // 지갑에서 세션 삭제 요청 시 session_disconnected 이벤트 발생
+            this.events.emit('session_disconnected' as any, {
+              error: undefined,
+              result: {
+                topic,
+                reason: 'wallet_disconnect',
+                timestamp: Date.now()
+              }
+            })
+
+            resolve(true)
           })
         }),
         this.sendResult<'wc_sessionDelete'>({
@@ -2282,6 +2390,9 @@ export class Engine extends IEngine {
         // Save app as supported for link mode
         this.client.core.addLinkModeSupportedApp(session.peer.metadata.redirect?.universal)
       }
+
+      // 🆕 세션 요청 시 활동 시간 업데이트
+      this.updateSessionActivity(topic)
 
       if (this.client.signConfig?.disableRequestQueue) {
         this.emitSessionRequest(request)
@@ -3235,5 +3346,212 @@ export class Engine extends IEngine {
     }
 
     return []
+  }
+
+  // 모바일 세션 끊김 감지 관련 메서드들
+  private initializeMobileSessionDetection = () => {
+    console.log('📱 [ENGINE] initializeMobileSessionDetection called')
+    console.log('📱 [ENGINE] typeof window:', typeof window)
+    console.log('📱 [ENGINE] document:', typeof document)
+
+    if (typeof window === 'undefined') {
+      console.log(
+        '📱 [ENGINE] Window is undefined, skipping mobile session detection initialization'
+      )
+
+      return
+    }
+
+    console.log('📱 [ENGINE] Initializing mobile session detection...')
+    console.log('📱 [ENGINE] Adding visibilitychange event listener...')
+    console.log('📱 [ENGINE] Current isPageActive state:', this.isPageActive)
+
+    /*
+     * Page Visibility API 이벤트 리스너
+     * 이벤트 리스너 제거 - DApp에서 직접 세션 관리
+     */
+    console.log('📱 [ENGINE] Mobile session management delegated to DApp')
+    console.log(
+      '📱 [ENGINE] Use engine.validateAndCleanupSessions(isSessionCheck) for session validation'
+    )
+  }
+
+  public validateAndCleanupSessions = async (isSessionCheck = false) => {
+    console.log('📱 [DEBUG] validateAndCleanupSessions called with isSessionCheck:', isSessionCheck)
+    // 강제 체크가 아닌 경우에만 10초 제한 적용
+    const now = Date.now()
+    if (!isSessionCheck && this.lastSessionCheckTime && now - this.lastSessionCheckTime < 10000) {
+      console.log(
+        '📱 [ENGINE] Skipping session check - too frequent (last check was',
+        now - this.lastSessionCheckTime,
+        'ms ago)'
+      )
+
+      return
+    }
+
+    this.lastSessionCheckTime = now
+    this.isCheckingSession = true
+
+    try {
+      // 현재 활성 세션들 가져오기
+      const activeSessions = this.client.session.getAll()
+
+      // IsSessionCheck가 true일 때만 cleanup 수행 (페이지 활성화 시에는 ping만 확인)
+      if (isSessionCheck) {
+        await this.cleanup()
+
+        // Cleanup 후 세션 재확인
+        const sessionsAfterCleanup = this.client.session.getAll()
+        console.log(
+          '📱 [ENGINE] Found',
+          sessionsAfterCleanup.length,
+          'active sessions after cleanup'
+        )
+      }
+
+      for (const session of activeSessions) {
+        const isFirstEntry = this.firstDAppEntryAfterSession.get(session.topic)
+        console.log(
+          '📱 [DEBUG] Processing session:',
+          `${session.topic.substring(0, 8)}...`,
+          'isFirstEntry:',
+          isFirstEntry
+        )
+
+        try {
+          await this.ping({ topic: session.topic })
+
+          // 첫 진입인 경우 ping만 확인하고 추가 검증 건너뛰기
+          if (isFirstEntry) {
+            console.log(
+              '📱 [ENGINE] First DApp entry after session creation, skipping additional validation:',
+              session.topic
+            )
+            // 첫 진입 플래그 제거 (이제 일반 세션이 됨)
+            this.firstDAppEntryAfterSession.set(session.topic, false)
+            continue
+          }
+
+          // 이후 진입인 경우 ping + 세션 유효성 검증 수행
+          console.log(
+            '📱 [DEBUG] Not first entry - performing validation for:',
+            `${session.topic.substring(0, 8)}...`
+          )
+
+          const currentSession = this.client.session.get(session.topic)
+          if (!currentSession) {
+            console.log('📱 [ENGINE] Session not found in store, cleaning up:', session.topic)
+            await this.deleteSession({ topic: session.topic, emitEvent: false })
+          } else {
+            console.log(
+              '📱 [DEBUG] Session validation passed for:',
+              `${session.topic.substring(0, 8)}...`
+            )
+          }
+        } catch (error) {
+          console.log('📱 [ENGINE] Session ping failed:', session.topic, error.message)
+
+          // Ping 실패 시에는 첫 진입/이후 진입 구분 없이 정리
+          try {
+            await this.deleteSession({ topic: session.topic, emitEvent: false })
+
+            this.events.emit('session_disconnected' as any, {
+              error: undefined,
+              result: {
+                topic: session.topic,
+                reason: 'ping_failure',
+                timestamp: Date.now()
+              }
+            })
+          } catch (disconnectError) {
+            console.error(
+              '📱 [ENGINE] Failed to disconnect session:',
+              session.topic,
+              disconnectError
+            )
+          }
+        }
+      }
+    } catch (error) {
+      console.error('📱 [ENGINE] Error checking session status:', error)
+    } finally {
+      this.isCheckingSession = false
+    }
+  }
+
+  // 수동으로 세션 상태 확인하는 public 메서드 (읽기 전용, 세션 정리하지 않음)
+  public getSessionStatus = async () => {
+    if (this.isCheckingSession) {
+      // 현재 세션 상태를 즉시 반환 (읽기 전용이므로 대기하지 않음)
+      const activeSessions = this.client.session.getAll()
+
+      return {
+        total: activeSessions.length,
+        healthy: activeSessions.length, // 진행 중이므로 모두 healthy로 가정
+        disconnected: 0,
+        sessions: activeSessions.map(s => ({
+          topic: s.topic,
+          status: 'healthy' as const
+        })),
+        note: 'Status returned while session check in progress'
+      }
+    }
+
+    this.isCheckingSession = true
+
+    try {
+      // 현재 활성 세션들 가져오기
+      const activeSessions = this.client.session.getAll()
+      const sessionResults: Array<{
+        topic: string
+        status: 'healthy' | 'disconnected'
+        error?: string
+      }> = []
+
+      let healthyCount = 0
+      let disconnectedCount = 0
+
+      for (const session of activeSessions) {
+        try {
+          // Ping을 통한 연결 상태 확인
+          await this.ping({ topic: session.topic })
+
+          sessionResults.push({
+            topic: session.topic,
+            status: 'healthy'
+          })
+          healthyCount++
+        } catch (error: any) {
+          sessionResults.push({
+            topic: session.topic,
+            status: 'disconnected',
+            error: error?.message || 'Ping failed'
+          })
+          disconnectedCount++
+
+          // 읽기 전용이므로 세션을 정리하지 않음 (상태만 확인)
+        }
+      }
+
+      const result = {
+        total: activeSessions.length,
+        healthy: healthyCount,
+        disconnected: disconnectedCount,
+        sessions: sessionResults
+      }
+
+      return result
+    } catch (error) {
+      return {
+        total: 0,
+        healthy: 0,
+        disconnected: 0,
+        sessions: [],
+        error: error?.message || 'Unknown error'
+      }
+    } finally {
+      this.isCheckingSession = false
+    }
   }
 }

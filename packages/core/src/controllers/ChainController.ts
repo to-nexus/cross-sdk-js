@@ -1,6 +1,3 @@
-import { proxy, subscribe as sub } from 'valtio/vanilla'
-import { proxyMap, subscribeKey as subKey } from 'valtio/vanilla/utils'
-
 import {
   type CaipAddress,
   type CaipNetwork,
@@ -9,6 +6,8 @@ import {
   ConstantsUtil as CommonConstantsUtil,
   NetworkUtil
 } from '@to-nexus/appkit-common'
+import { proxy, subscribe as sub } from 'valtio/vanilla'
+import { proxyMap, subscribeKey as subKey } from 'valtio/vanilla/utils'
 
 import { ConstantsUtil } from '../utils/ConstantsUtil.js'
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
@@ -253,7 +252,8 @@ export const ChainController = {
       const newAccountState = { ...(chainAdapter.accountState || accountState), ...accountProps }
       state.chains.set(chain, { ...chainAdapter, accountState: newAccountState })
       if (state.chains.size === 1 || state.activeChain === chain) {
-        if (accountProps.caipAddress) {
+        // CaipAddress가 undefined로 설정되는 경우도 activeCaipAddress를 업데이트
+        if (accountProps.caipAddress !== undefined) {
           state.activeCaipAddress = accountProps.caipAddress
         }
         AccountController.replaceState(newAccountState)
