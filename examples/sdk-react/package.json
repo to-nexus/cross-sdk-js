@@ -4,7 +4,10 @@
   "version": "1.13.6",
   "scripts": {
     "dev": "vite --port 3012",
-    "build": "vite build"
+    "build": "vite build",
+    "run:dev": "vite --port 3012 --mode development",
+    "run:stage": "vite --port 3012 --mode stage",
+    "run:prod": "vite --port 3012 --mode production"
   },
   "dependencies": {
     "@to-nexus/sdk": "workspace:*",

@@ -255,7 +255,7 @@ export const CoreHelperUtil = {
   },
 
   getApiUrl() {
-    return CommonConstants.W3M_API_URL
+    return CommonConstants.getWeb3mApiUrl()
   },
 
   getBlockchainApiUrl() {
