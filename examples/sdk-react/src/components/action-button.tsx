@@ -240,47 +240,6 @@ export function ActionButtonList() {
       // Engine의 getSessionStatus 메서드 호출
       const result = await (walletProvider.client.engine as any).getSessionStatus()
 
-      // Account 상태도 함께 확인
-      console.log('📱 [ACTION-BUTTON] Account state:', {
-        isConnected: account?.isConnected,
-        caipAddress: account?.caipAddress,
-        address: account?.address
-      })
-
-      // Engine 상태도 확인
-      console.log('📱 [ACTION-BUTTON] Engine state:', {
-        isCheckingSession: (walletProvider.client.engine as any).isCheckingSession,
-        activeSessions:
-          (walletProvider.client.engine as any).client?.session?.getAll?.()?.length || 0
-      })
-
-      // 직접 세션 확인
-      try {
-        const directSessions =
-          (walletProvider.client.engine as any).client?.session?.getAll?.() || []
-        console.log('📱 [ACTION-BUTTON] Direct session check:', {
-          count: directSessions.length,
-          sessions: directSessions.map((s: any) => ({
-            topic: s.topic?.substring(0, 8) + '...',
-            expiry: s.expiry,
-            namespaces: Object.keys(s.namespaces || {})
-          }))
-        })
-
-        // UniversalProvider를 통한 세션 확인
-        const universalProviderSessions = walletProvider?.client?.session?.getAll?.() || []
-        console.log('📱 [ACTION-BUTTON] UniversalProvider session check:', {
-          count: universalProviderSessions.length,
-          sessions: universalProviderSessions.map((s: any) => ({
-            topic: s.topic?.substring(0, 8) + '...',
-            expiry: s.expiry,
-            namespaces: Object.keys(s.namespaces || {})
-          }))
-        })
-      } catch (error) {
-        console.error('📱 [ACTION-BUTTON] Direct session check failed:', error)
-      }
-
       if (result.error) {
         showError('Session Check Failed', `Error: ${result.error}`)
         return
