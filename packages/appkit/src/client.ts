@@ -232,6 +232,7 @@ export class AppKit {
   private async autoSwitchWalletNetwork() {
     if (!AccountController.state.address || !ChainController.state.activeCaipNetwork) {
       console.log(`autoSwitchWalletNetwork, No address or activeCaipNetwork`)
+
       return
     }
 
@@ -268,6 +269,7 @@ export class AppKit {
     } catch (error) {
       console.warn('Failed to get current wallet chain ID:', error)
     }
+
     return undefined
   }
 
@@ -1607,6 +1609,49 @@ export class AppKit {
           }
         }
       })
+
+      // 모바일 세션 끊김 감지 이벤트 구독
+      this.listenMobileSessionDetection()
+    }
+  }
+
+  /**
+   * 모바일 세션 끊김 감지 이벤트를 구독하여 account 상태를 자동으로 동기화
+   */
+  private listenMobileSessionDetection() {
+    if (this.universalProvider?.client?.engine) {
+      // Engine의 session_disconnected 이벤트 구독
+      ;(this.universalProvider.client.engine as any).events.on(
+        'session_disconnected',
+        (event: any) => {
+          // Reason을 명확하게 표시
+          const reason = event?.result?.reason || 'unknown'
+          const topic = event?.result?.topic || 'unknown'
+
+          // 세션 끊김 시 모든 네임스페이스의 account 상태 초기화
+          this.chainNamespaces.forEach(namespace => {
+            this.resetAccount(namespace)
+
+            // 리셋 후 상태 확인
+            const accountState = ChainController.getAccountDataByChainNamespace(namespace)
+            console.log('📱 [APPKIT] Account state after reset:', {
+              namespace,
+              caipAddress: accountState?.caipAddress,
+              isConnected: Boolean(accountState?.caipAddress)
+            })
+          })
+
+          // WalletConnect 연결 상태 리셋
+          ConnectionController.resetWcConnection()
+
+          // Action-Button으로 이벤트 전달 (모달 표시용)
+          window.dispatchEvent(
+            new CustomEvent('appkit_session_disconnected', {
+              detail: event
+            })
+          )
+        }
+      )
     }
   }
 
@@ -1695,7 +1740,7 @@ export class AppKit {
 
     if (adapter && activeChain && address) {
       const balance = await adapter.getBalance({
-        address: address,
+        address,
         chainId: chainId as string | number,
         caipNetwork: this.getCaipNetwork(),
         tokens: this.options.tokens,
