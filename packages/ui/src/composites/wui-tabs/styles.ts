@@ -22,7 +22,7 @@ export default css`
     width: var(--local-tab-width);
     height: 28px;
     border-radius: var(--wui-border-radius-3xl);
-    background-color: var(--wui-color-gray-glass-002);
+    background-color: var(--wui-tabs-active-bg, var(--wui-color-gray-glass-002));
     box-shadow: inset 0 0 0 1px var(--wui-color-gray-glass-002);
     transform: translateX(calc(var(--local-tab) * var(--local-tab-width)));
     transition: transform var(--wui-ease-out-power-1) var(--wui-duration-md);
@@ -47,8 +47,15 @@ export default css`
   }
 
   button[data-active='true'] > wui-icon,
-  button[data-active='true'] > wui-text {
-    color: var(--wui-color-fg-100);
+  button[data-active='true']:hover:enabled > wui-icon,
+  button[data-active='true']:active:enabled > wui-icon {
+    color: var(--wui-tabs-active-icon-color, var(--wui-color-fg-100));
+  }
+
+  button[data-active='true'] > wui-text,
+  button[data-active='true']:hover:enabled > wui-text,
+  button[data-active='true']:active:enabled > wui-text {
+    color: var(--wui-tabs-active-text-color, var(--wui-color-fg-100));
   }
 
   button[data-active='false'] > wui-icon,
@@ -59,12 +66,22 @@ export default css`
   button[data-active='true']:disabled,
   button[data-active='false']:disabled {
     background-color: transparent;
-    opacity: 0.5;
+    opacity: var(--wui-tabs-disabled-opacity, 0.5);
     cursor: not-allowed;
   }
 
   button[data-active='true']:disabled > wui-text {
-    color: var(--wui-color-fg-200);
+    color: var(
+      --wui-tabs-active-disabled-text-color,
+      var(--wui-tabs-active-text-color, var(--wui-color-fg-200))
+    );
+  }
+
+  button[data-active='true']:disabled > wui-icon {
+    color: var(
+      --wui-tabs-active-disabled-icon-color,
+      var(--wui-tabs-active-icon-color, var(--wui-color-fg-200))
+    );
   }
 
   button[data-active='false']:disabled > wui-text {

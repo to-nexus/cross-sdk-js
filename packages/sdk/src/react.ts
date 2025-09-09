@@ -8,6 +8,7 @@ import {
   SendController,
   type ThemeMode
 } from '@to-nexus/appkit-core'
+import type { CustomWallet } from '@to-nexus/appkit-core'
 import {
   bscMainnet,
   bscTestnet,
@@ -68,7 +69,7 @@ const defaultMetadata: Metadata = {
   name: 'Cross SDK',
   description: 'Cross SDK for React',
   url: 'https://to.nexus',
-  icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+  icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 }
 
 export type CrossSdkParams = {
@@ -129,13 +130,16 @@ const initCrossSdk = (
         mobile_link: 'crossx://',
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
         play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
+        chrome_store:
+          'https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg',
+
         rdns: 'nexus.to.crosswallet.desktop',
         injected: [
           {
             injected_id: 'nexus.to.crosswallet.desktop'
           }
         ]
-      }
+      } as CustomWallet & { chrome_store?: string }
     ],
     allWallets: 'HIDE'
   })
