@@ -1,5 +1,11 @@
 # @to-nexus/core
 
+## 2.19.13
+
+### Patch Changes
+
+- fix check dapp session
+
 ## 2.19.12
 
 ### Patch Changes

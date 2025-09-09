@@ -1,5 +1,13 @@
 # @to-nexus/sign-client
 
+## 2.19.13
+
+### Patch Changes
+
+- fix check dapp session
+- Updated dependencies
+  - @to-nexus/core@2.19.13
+
 ## 2.19.12
 
 ### Patch Changes
