@@ -97,7 +97,8 @@ jobs:
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
