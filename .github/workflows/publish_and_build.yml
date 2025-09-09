@@ -1010,7 +1010,7 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
-            VITE_ENV_MODE=${{ inputs.environment }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
             REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
@@ -1030,7 +1030,7 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
-            VITE_ENV_MODE=${{ inputs.environment }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
             REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
@@ -1123,7 +1123,7 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
-            VITE_ENV_MODE=${{ inputs.environment }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
             REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
@@ -1143,7 +1143,7 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
-            VITE_ENV_MODE=${{ inputs.environment }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
             REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
@@ -1233,7 +1233,7 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
-            VITE_ENV_MODE=${{ inputs.environment }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
             npmrc=./.npmrc
