@@ -52,6 +52,7 @@ on:
         default: '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client'
         type: string
 
+
 permissions:
   id-token: write
   contents: write
@@ -62,6 +63,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  display_info:
+    name: ${{ format('{0} | {1} | {2} | {3}{4}{5}{6}', inputs.services || 'auto-trigger', inputs.environment || github.ref_name, inputs.publish_version || 'latest', inputs.dry_run == 'true' && ' [DRY-RUN]' || '', inputs.package_versions && format(' | pkg:{0}', inputs.package_versions) || '', inputs.publish_filters != '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client' && ' | [CUSTOM-FILTERS]' || '', github.event_name == 'push' && ' | [AUTO-PUSH]' || '') }}
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Display Workflow Information
+        run: |
+          echo "##  Workflow Execution Info" >> $GITHUB_STEP_SUMMARY
+          echo "- **Services**: ${{ inputs.services || 'auto-trigger' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ inputs.publish_version || 'latest' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ inputs.package_versions }}" ]; then
+            echo "- **Package Versions**: ${{ inputs.package_versions }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ inputs.publish_filters }}" != "@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client" ]; then
+            echo "- **Custom Filters**: ${{ inputs.publish_filters }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
   changeset_prepare:
     name: Prepare Changeset (auto for preview)
     # develop(dev) | release/*(stage) 전용, 해당 환경에서 다른 서비스 실행 전 자동 수행
