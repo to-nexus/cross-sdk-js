@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-adapter-ethers",
-  "version": "1.17.0-beta",
+  "version": "1.7.0-beta",
   "type": "module",
   "main": "./dist/esm/src/index.js",
   "types": "./dist/types/src/index.d.ts",
