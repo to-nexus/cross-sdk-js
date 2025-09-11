@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-wallet",
-  "version": "1.16.9-alpha",
+  "version": "1.17.0-beta",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
