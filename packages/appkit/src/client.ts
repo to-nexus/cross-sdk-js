@@ -1831,6 +1831,11 @@ export class AppKit {
         this.setStatus('disconnected', chainNamespace)
       } else if (sessionNamespaces.length === 0) {
         this.setStatus('disconnected', chainNamespace)
+        console.log('Got ya! 😏 namespaces empty')
+      } else {
+        console.log(
+          `Got ya! 😏 namespaces not empty: ${JSON.stringify(sessionNamespaces)} and chainNamespace: ${chainNamespace}`
+        )
       }
     })
 
