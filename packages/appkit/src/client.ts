@@ -1792,6 +1792,7 @@ export class AppKit {
         }) || namespaceAccounts[0]
 
       if (sessionAddress) {
+        console.log(`Got ya! 😏 sessionAddress: ${sessionAddress}`)
         const caipAddress = ParseUtil.validateCaipAddress(sessionAddress)
         const { chainId, address } = ParseUtil.parseCaipAddress(caipAddress)
         ProviderUtil.setProviderId(
