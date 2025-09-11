@@ -1,4 +1,4 @@
-name: ${{ github.event_name == 'workflow_dispatch' && format('CI - {0} {1} {2} {3}{4}{5}{6}', inputs.services || 'N/A', github.ref_name, inputs.environment || 'N/A', inputs.publish_version || 'N/A', inputs.dry_run == 'true' && ' [DRY-RUN]' || '', inputs.package_versions && format(' pkg:{0}', inputs.package_versions) || '', inputs.publish_filters != '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client' && ' [CUSTOM-FILTERS]' || '') || 'CI - Publish & Build' }}
+name: ${{ format('CI - {0} {1} {2}{3}{4}{5}', inputs.services || 'auto', inputs.environment || 'auto', inputs.publish_version || 'auto', inputs.dry_run == 'true' && ' [DRY-RUN]' || '', inputs.package_versions && format(' pkg:{0}', inputs.package_versions) || '', inputs.publish_filters != '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client' && ' [CUSTOM-FILTERS]' || '') }}
 
 on:
   push:
