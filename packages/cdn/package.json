@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/sdk-cdn",
-  "version": "1.7.0-beta",
+  "version": "1.17.0-beta.1",
   "main": "dist/sdk.js",
   "type": "module",
   "files": [
