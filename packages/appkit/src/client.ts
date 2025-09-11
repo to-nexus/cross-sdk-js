@@ -1829,6 +1829,8 @@ export class AppKit {
         })
       } else if (sessionNamespaces.includes(chainNamespace)) {
         this.setStatus('disconnected', chainNamespace)
+      } else if (sessionNamespaces.length === 0) {
+        this.setStatus('disconnected', chainNamespace)
       }
     })
 
