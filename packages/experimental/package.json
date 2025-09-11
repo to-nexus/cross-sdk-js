@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-experimental",
-  "version": "1.17.1-alpha.3",
+  "version": "1.17.0-beta",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
