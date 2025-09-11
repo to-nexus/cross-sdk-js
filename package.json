@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "version:set": "node scripts/set-version.js",
+    "prerelease:increment": "node scripts/increment-alpha-beta-version.js",
+    "alpha:increment": "node scripts/increment-alpha-beta-version.js",
+    "beta:increment": "node scripts/increment-alpha-beta-version.js",
     "prebuild": "node scripts/inject-version.js",
     "build:clean": "turbo run build:clean --filter={./packages/*}",
     "build:sample-apps": "turbo run build --filter={./examples/*}",
