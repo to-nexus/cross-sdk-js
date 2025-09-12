@@ -147,13 +147,29 @@ jobs:
               echo "Using version from branch: $REF_VERSION"
             fi
           elif [[ "$ENVIRONMENT" == "dev" ]]; then
-            # develop requires manual version
-            if [[ -z "$INPUT_VER" ]]; then
-              echo "❌ publish_version is required for develop (environment=dev)"
-              exit 1
+            # dev: auto-increment alpha version if no manual input
+            if [[ -n "$INPUT_VER" ]]; then
+              REF_VERSION="$INPUT_VER"
+              echo "Using manual version for dev: $REF_VERSION"
+            else
+              # Auto-increment alpha version
+              echo "Auto-incrementing alpha version..."
+              BASE_VERSION=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
+              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev | grep "다음 alpha 버전:" | cut -d' ' -f4)
+              echo "Auto-generated alpha version: $REF_VERSION"
             fi
-            REF_VERSION="$INPUT_VER"
-            echo "Using manual version for dev: $REF_VERSION"
+          elif [[ "$ENVIRONMENT" == "stage" ]]; then
+            # stage: auto-increment beta version if no manual input
+            if [[ -n "$INPUT_VER" ]]; then
+              REF_VERSION="$INPUT_VER"
+              echo "Using manual version for stage: $REF_VERSION"
+            else
+              # Auto-increment beta version
+              echo "Auto-incrementing beta version..."
+              BASE_VERSION=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
+              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage | grep "다음 beta 버전:" | cut -d' ' -f4)
+              echo "Auto-generated beta version: $REF_VERSION"
+            fi
           else
             # prod or others: optional input, otherwise derive from package.json later
             if [[ -n "$INPUT_VER" ]]; then
