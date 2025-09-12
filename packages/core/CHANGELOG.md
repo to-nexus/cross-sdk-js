@@ -1,5 +1,11 @@
 # @to-nexus/core
 
+## 2.20.0-alpha.2
+
+### Minor Changes
+
+- # Release 2.19.14-alpha.1
+
 ## 2.20.0-alpha.0
 
 ### Minor Changes

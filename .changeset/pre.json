@@ -2,12 +2,13 @@
   "mode": "exit",
   "tag": "alpha",
   "initialVersions": {
-    "@to-nexus/core": "2.19.14-alpha",
-    "@to-nexus/sign-client": "2.19.14-alpha",
-    "@to-nexus/universal-provider": "2.19.14-alpha"
+    "@to-nexus/core": "2.19.14-alpha.1",
+    "@to-nexus/sign-client": "2.19.14-alpha.1",
+    "@to-nexus/universal-provider": "2.19.14-alpha.1"
   },
   "changesets": [
     "release-2-19-14-1757426872127",
-    "release-2-19-14-1757644001110"
+    "release-2-19-14-1757644001110",
+    "release-2-19-14-alpha-1-1757645275007"
   ]
 }
