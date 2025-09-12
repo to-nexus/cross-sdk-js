@@ -32,7 +32,25 @@ function getRegistryUrl(environment = 'stage') {
 // NPM 레지스트리에서 패키지의 모든 버전 조회
 function getPackageVersions(packageName, registryUrl) {
   try {
-    const command = `npm view ${packageName} versions --json --registry=${registryUrl}`;
+    // 보안: 입력값 검증
+    if (!packageName || !registryUrl) {
+      throw new Error('Package name and registry URL are required');
+    }
+    
+    // 패키지명과 레지스트리 URL 검증
+    if (!/^[@a-zA-Z0-9\-_\/\.]+$/.test(packageName)) {
+      throw new Error('Invalid package name format');
+    }
+    
+    if (!registryUrl.startsWith('https://')) {
+      throw new Error('Registry URL must use HTTPS');
+    }
+    
+    // 보안: 입력값을 따옴표로 감싸서 injection 방지
+    const safePackageName = `"${packageName.replace(/"/g, '\\"')}"`;
+    const safeRegistryUrl = `"${registryUrl.replace(/"/g, '\\"')}"`;
+    const command = `npm view ${safePackageName} versions --json --registry=${safeRegistryUrl}`;
+    
     const output = execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
     return JSON.parse(output);
   } catch (error) {
