@@ -11,6 +11,17 @@
 - Updated dependencies
   - @to-nexus/sign-client@2.20.0-alpha.0
 
+## 2.20.0-alpha.0
+
+### Minor Changes
+
+- # Release 2.19.14
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/sign-client@2.20.0-alpha.0
+
 ## 2.19.13
 
 ### Patch Changes
