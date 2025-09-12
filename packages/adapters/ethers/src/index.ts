@@ -1,6 +1,6 @@
 import '@reown/appkit-polyfills'
 
-export { EthersAdapter } from './client'
+export { EthersAdapter } from './client.js'
 export * from '@to-nexus/appkit-utils/ethers'
 
 // -- Types

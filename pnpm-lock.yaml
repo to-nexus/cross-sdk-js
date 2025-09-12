@@ -244,8 +244,8 @@ importers:
         specifier: '>=6'
         version: 6.13.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
     optionalDependencies:
       '@coinbase/wallet-sdk':
         specifier: 4.3.0
@@ -340,8 +340,8 @@ importers:
         specifier: 2.18.0
         version: 2.18.0
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
     optionalDependencies:
       borsh:
         specifier: 0.7.0
@@ -411,8 +411,8 @@ importers:
         specifier: 2.18.0
         version: 2.18.0
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
       viem:
         specifier: '>=2.23.0'
         version: 2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -479,8 +479,8 @@ importers:
         specifier: 6.0.0
         version: 6.0.0
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
       viem:
         specifier: '>=2.23.0'
         version: 2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -534,8 +534,8 @@ importers:
         specifier: 2.1.2
         version: 2.1.2
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
       viem:
         specifier: '>=2.23.0'
         version: 2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -646,8 +646,8 @@ importers:
         specifier: 2.19.13
         version: 2.19.13(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
       viem:
         specifier: '>=2.23'
         version: 2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -680,8 +680,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
       viem:
         specifier: 2.23.0
         version: 2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
@@ -791,8 +791,8 @@ importers:
         specifier: ^18.0.0
         version: 18.2.0(react@18.2.0)
       valtio:
-        specifier: ^1.10.5
-        version: 1.13.2(@types/react@18.3.24)(react@18.2.0)
+        specifier: ^2.1.0
+        version: 2.1.0(@types/react@18.3.24)(react@18.2.0)
       viem:
         specifier: ^1.19.9
         version: 1.21.4(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
@@ -874,8 +874,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
       viem:
         specifier: 2.23.0
         version: 2.23.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -1003,8 +1003,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
       valtio:
-        specifier: 1.13.2
-        version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
+        specifier: 2.1.0
+        version: 2.1.0(@types/react@19.0.0)(react@19.0.0)
     devDependencies:
       '@open-wc/testing':
         specifier: 4.0.0
@@ -7542,6 +7542,9 @@ packages:
   proxy-compare@2.6.0:
     resolution: {integrity: sha512-8xuCeM3l8yqdmbPoYeLbrAXCBWu19XEYc5/F28f5qOaoAIMyfmBUkl5axiK+x9olUvRlcekvnm98AP9RDngOIw==}
 
+  proxy-compare@3.0.1:
+    resolution: {integrity: sha512-V9plBAt3qjMlS1+nC8771KNf6oJ12gExvaxnNzN/9yVRLdTv/lc+oJlnSzrdYDAvBfTStPCoiaCOTmTs0adv7Q==}
+
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
@@ -8727,6 +8730,18 @@ packages:
     peerDependencies:
       '@types/react': '>=16.8'
       react: '>=16.8'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      react:
+        optional: true
+
+  valtio@2.1.0:
+    resolution: {integrity: sha512-UryxkWilm5huamW8vNAvj7KLodPgSN5EVWcetwzcy8pVyc27tQ+RqSRmJ0zx/Cq219O7yqaNl12GcCSujoLDUw==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      react: '>=18.0.0'
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -16098,10 +16113,6 @@ snapshots:
 
   deprecation@2.3.1: {}
 
-  derive-valtio@0.1.0(valtio@1.13.2(@types/react@18.3.24)(react@18.2.0)):
-    dependencies:
-      valtio: 1.13.2(@types/react@18.3.24)(react@18.2.0)
-
   derive-valtio@0.1.0(valtio@1.13.2(@types/react@19.0.0)(react@19.0.0)):
     dependencies:
       valtio: 1.13.2(@types/react@19.0.0)(react@19.0.0)
@@ -19411,6 +19422,8 @@ snapshots:
 
   proxy-compare@2.6.0: {}
 
+  proxy-compare@3.0.1: {}
+
   proxy-from-env@1.1.0: {}
 
   prr@1.0.1: {}
@@ -20625,10 +20638,6 @@ snapshots:
       bindings: 1.5.0
       nan: 2.23.0
 
-  use-sync-external-store@1.2.0(react@18.2.0):
-    dependencies:
-      react: 18.2.0
-
   use-sync-external-store@1.2.0(react@19.0.0):
     dependencies:
       react: 19.0.0
@@ -20686,20 +20695,25 @@ snapshots:
     optionalDependencies:
       typescript: 5.7.3
 
-  valtio@1.13.2(@types/react@18.3.24)(react@18.2.0):
-    dependencies:
-      derive-valtio: 0.1.0(valtio@1.13.2(@types/react@18.3.24)(react@18.2.0))
-      proxy-compare: 2.6.0
-      use-sync-external-store: 1.2.0(react@18.2.0)
-    optionalDependencies:
-      '@types/react': 18.3.24
-      react: 18.2.0
-
   valtio@1.13.2(@types/react@19.0.0)(react@19.0.0):
     dependencies:
       derive-valtio: 0.1.0(valtio@1.13.2(@types/react@19.0.0)(react@19.0.0))
       proxy-compare: 2.6.0
       use-sync-external-store: 1.2.0(react@19.0.0)
+    optionalDependencies:
+      '@types/react': 19.0.0
+      react: 19.0.0
+
+  valtio@2.1.0(@types/react@18.3.24)(react@18.2.0):
+    dependencies:
+      proxy-compare: 3.0.1
+    optionalDependencies:
+      '@types/react': 18.3.24
+      react: 18.2.0
+
+  valtio@2.1.0(@types/react@19.0.0)(react@19.0.0):
+    dependencies:
+      proxy-compare: 3.0.1
     optionalDependencies:
       '@types/react': 19.0.0
       react: 19.0.0

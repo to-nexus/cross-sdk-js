@@ -1,5 +1,6 @@
 import { createAppKit } from '@to-nexus/appkit'
 import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ApiController,
@@ -35,6 +36,13 @@ export type {
 } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
+
+const CROSS_WALLET_WEBAPP_LINK = (() => {
+  return (
+    (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
+    'https://cross-wallet.crosstoken.io/wc'
+  )
+})()
 
 export type Metadata = {
   name: string
@@ -115,10 +123,11 @@ const initCrossSdk = (
         id: 'cross_wallet',
         name: 'Cross Wallet',
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
-        mobile_link: 'crossx://',
+        mobile_link: CROSS_WALLET_WEBAPP_LINK,
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
         play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
-        chrome_store: 'https://chromewebstore.google.com/detail/cross-wallet/your-extension-id',
+        chrome_store:
+          'https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg',
         rdns: 'nexus.to.crosswallet.desktop',
         injected: [
           {

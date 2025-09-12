@@ -44,7 +44,7 @@
     "@to-nexus/appkit-wallet": "workspace:*",
     "@to-nexus/appkit-wallet-button": "workspace:*",
     "vite": "5.4.12",
-    "valtio": "^1.10.5",
+    "valtio": "^2.1.0",
     "big.js": "^6.2.1",
     "viem": "^1.19.9",
     "@walletconnect/logger": "^2.0.1",

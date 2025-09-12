@@ -50,7 +50,7 @@
     "@to-nexus/appkit-wallet": "workspace:*",
     "@walletconnect/logger": "2.1.2",
     "@to-nexus/universal-provider": "2.19.13",
-    "valtio": "1.13.2",
+    "valtio": "2.1.0",
     "viem": ">=2.23.0"
   },
   "devDependencies": {
@@ -61,7 +61,7 @@
     "vitest": "2.1.9"
   },
   "peerDependencies": {
-    "valtio": "1.13.2"
+    "valtio": "2.1.0"
   },
   "keywords": [
     "web3",

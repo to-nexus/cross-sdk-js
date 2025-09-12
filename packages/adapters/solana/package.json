@@ -63,7 +63,7 @@
     "@to-nexus/appkit-utils": "workspace:*",
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
-    "valtio": "1.13.2"
+    "valtio": "2.1.0"
   },
   "optionalDependencies": {
     "borsh": "0.7.0",

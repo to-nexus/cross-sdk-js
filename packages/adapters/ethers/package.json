@@ -33,7 +33,7 @@
     "@to-nexus/universal-provider": "2.19.13",
     "@reown/appkit-polyfills": "workspace:*",
     "@walletconnect/utils": "2.18.0",
-    "valtio": "1.13.2"
+    "valtio": "2.1.0"
   },
   "optionalDependencies": {
     "@coinbase/wallet-sdk": "4.3.0"
