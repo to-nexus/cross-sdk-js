@@ -466,43 +466,47 @@ jobs:
             EXISTING_VERSIONS=""
             
             for PACKAGE in "${PACKAGES_TO_CHECK[@]}"; do
-              echo "🔍 npm view $PACKAGE@alpha version --registry=$REGISTRY_URL 실행 중..."
-              set +e
-              ALPHA_VERSION=$(npm view "$PACKAGE@alpha" version --registry="$REGISTRY_URL" 2>&1)
-              ALPHA_EXIT_CODE=$?
-              set -e
-              
-              echo "🔍 $PACKAGE@alpha 조회 종료 코드: $ALPHA_EXIT_CODE"
-              echo "🔍 $PACKAGE@alpha 조회 결과: '$ALPHA_VERSION'"
-              
-              if [ $ALPHA_EXIT_CODE -eq 0 ] && [ -n "$ALPHA_VERSION" ] && [ "$ALPHA_VERSION" != "null" ]; then
-                echo "🔍 $PACKAGE@alpha에서 버전 발견: $ALPHA_VERSION"
-                # alpha 버전에서 베이스 버전과 번호 추출
-                if [[ "$ALPHA_VERSION" == "$BASE_VERSION-alpha."* ]]; then
-                  ALPHA_NUM=$(echo "$ALPHA_VERSION" | sed -E "s/^$BASE_VERSION-alpha\.([0-9]+)$/\1/")
-                  if [[ "$ALPHA_NUM" =~ ^[0-9]+$ ]]; then
-                    LATEST_ALPHA_NUM=$ALPHA_NUM
-                    echo "🔍 $PACKAGE@alpha에서 최신 alpha 번호 발견: $LATEST_ALPHA_NUM"
-                    break
-                  fi
-                fi
-              else
-                echo "🔍 $PACKAGE@alpha에서 버전을 찾을 수 없음"
-              fi
-              
-              # alpha 태그가 없으면 전체 버전 목록에서 찾기 (폴백)
-              echo "🔍 $PACKAGE versions --json --registry=$REGISTRY_URL 실행 중... (폴백)"
+              # 먼저 전체 버전 목록에서 찾기 (더 정확함)
+              echo "🔍 npm view $PACKAGE versions --json --registry=$REGISTRY_URL 실행 중..."
               set +e
               PACKAGE_VERSIONS=$(npm view "$PACKAGE" versions --json --registry="$REGISTRY_URL" 2>&1)
               EXIT_CODE=$?
               set -e
               
-              if [ $EXIT_CODE -eq 0 ] && [ -n "$PACKAGE_VERSIONS" ] && [ "$PACKAGE_VERSIONS" != "null" ] && [[ "$PACKAGE_VERSIONS" != *"404"* ]]; then
+              echo "🔍 $PACKAGE 조회 종료 코드: $EXIT_CODE"
+              echo "🔍 $PACKAGE 조회 결과 길이: ${#PACKAGE_VERSIONS}"
+              
+              if [ $EXIT_CODE -eq 0 ] && [ -n "$PACKAGE_VERSIONS" ] && [ "$PACKAGE_VERSIONS" != "null" ] && [[ "$PACKAGE_VERSIONS" != *"404"* ]] && [[ "$PACKAGE_VERSIONS" != *"Not found"* ]]; then
                 echo "🔍 $PACKAGE에서 전체 버전 목록 발견: ${PACKAGE_VERSIONS:0:200}..."
                 EXISTING_VERSIONS="$PACKAGE_VERSIONS"
                 break
               else
-                echo "🔍 $PACKAGE에서 전체 버전 목록도 찾을 수 없음"
+                echo "🔍 $PACKAGE에서 전체 버전 목록 찾을 수 없음"
+                
+                # 폴백: @alpha 태그로 시도
+                echo "🔍 npm view $PACKAGE@alpha version --registry=$REGISTRY_URL 실행 중... (폴백)"
+                set +e
+                ALPHA_VERSION=$(npm view "$PACKAGE@alpha" version --registry="$REGISTRY_URL" 2>&1)
+                ALPHA_EXIT_CODE=$?
+                set -e
+                
+                echo "🔍 $PACKAGE@alpha 조회 종료 코드: $ALPHA_EXIT_CODE"
+                echo "🔍 $PACKAGE@alpha 조회 결과: '$ALPHA_VERSION'"
+                
+                if [ $ALPHA_EXIT_CODE -eq 0 ] && [ -n "$ALPHA_VERSION" ] && [ "$ALPHA_VERSION" != "null" ]; then
+                  echo "🔍 $PACKAGE@alpha에서 버전 발견: $ALPHA_VERSION"
+                  # alpha 버전에서 베이스 버전과 번호 추출
+                  if [[ "$ALPHA_VERSION" == "$BASE_VERSION-alpha."* ]]; then
+                    ALPHA_NUM=$(echo "$ALPHA_VERSION" | sed -E "s/^$BASE_VERSION-alpha\.([0-9]+)$/\1/")
+                    if [[ "$ALPHA_NUM" =~ ^[0-9]+$ ]]; then
+                      LATEST_ALPHA_NUM=$ALPHA_NUM
+                      echo "🔍 $PACKAGE@alpha에서 alpha 번호 발견: $LATEST_ALPHA_NUM"
+                      break
+                    fi
+                  fi
+                else
+                  echo "🔍 $PACKAGE@alpha에서도 버전을 찾을 수 없음"
+                fi
               fi
             done
             
