@@ -153,14 +153,14 @@ jobs:
               echo "Using input version as base: $INPUT_VER"
               BASE_VERSION=$(echo "$INPUT_VER" | sed 's/-.*$//')
               echo "Base version: $BASE_VERSION"
-              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev | tail -1)
+              REF_VERSION=$(NEXUS_DEV_REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}" node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev | tail -1)
               echo "Auto-incremented alpha version: $REF_VERSION"
             else
               # 수동 입력이 없는 경우, package.json 버전을 베이스로 자동 증가
               echo "Auto-incrementing alpha version from package.json..."
               BASE_VERSION=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
               echo "Base version: $BASE_VERSION"
-              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev | tail -1)
+              REF_VERSION=$(NEXUS_DEV_REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}" node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev | tail -1)
               echo "Auto-generated alpha version: $REF_VERSION"
             fi
           elif [[ "$ENVIRONMENT" == "stage" ]]; then
@@ -170,14 +170,14 @@ jobs:
               echo "Using input version as base: $INPUT_VER"
               BASE_VERSION=$(echo "$INPUT_VER" | sed 's/-.*$//')
               echo "Base version: $BASE_VERSION"
-              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage | tail -1)
+              REF_VERSION=$(NEXUS_STAGE_REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}" node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage | tail -1)
               echo "Auto-incremented beta version: $REF_VERSION"
             else
               # 수동 입력이 없는 경우, package.json 버전을 베이스로 자동 증가
               echo "Auto-incrementing beta version from package.json..."
               BASE_VERSION=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
               echo "Base version: $BASE_VERSION"
-              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage | tail -1)
+              REF_VERSION=$(NEXUS_STAGE_REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}" node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage | tail -1)
               echo "Auto-generated beta version: $REF_VERSION"
             fi
           else
