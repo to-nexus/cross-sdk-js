@@ -166,10 +166,17 @@ function updateWorkspaceVersions(version) {
     rootPkg.version = version;
     fs.writeFileSync(rootPkgPath, JSON.stringify(rootPkg, null, 2) + '\n');
     
-    // inject-version.js 실행하여 워크스페이스 패키지들 업데이트
+    // inject-version.js 실행하여 워크스페이스 패키지들 업데이트 (보안: spawnSync 사용)
     const nodePath = findExecutablePath('node');
     const scriptPath = path.join(__dirname, 'inject-version.js');
-    execSync(`${nodePath} ${scriptPath}`, { stdio: 'inherit' });
+    const result = spawnSync(nodePath, [scriptPath], { 
+      shell: false,
+      stdio: 'inherit' 
+    });
+    
+    if (result.error) {
+      throw result.error;
+    }
     console.log('워크스페이스 버전 업데이트 완료');
   } catch (error) {
     console.error('워크스페이스 버전 업데이트 실패:', error.message);
