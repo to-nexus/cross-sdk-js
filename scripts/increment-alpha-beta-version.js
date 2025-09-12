@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
+const { spawnSync, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -46,12 +46,18 @@ function getPackageVersions(packageName, registryUrl) {
       throw new Error('Registry URL must use HTTPS');
     }
     
-    // 보안: 입력값을 따옴표로 감싸서 injection 방지
-    const safePackageName = `"${packageName.replace(/"/g, '\\"')}"`;
-    const safeRegistryUrl = `"${registryUrl.replace(/"/g, '\\"')}"`;
-    const command = `npm view ${safePackageName} versions --json --registry=${safeRegistryUrl}`;
+    // 보안: spawnSync를 사용하여 shell injection 방지
+    const result = spawnSync('npm', ['view', packageName, 'versions', '--json', `--registry=${registryUrl}`], {
+      shell: false,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore']
+    });
     
-    const output = execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+    if (result.error) {
+      throw result.error;
+    }
+    
+    const output = result.stdout;
     return JSON.parse(output);
   } catch (error) {
     console.log(`패키지 ${packageName}의 버전 정보를 가져올 수 없습니다:`, error.message);
