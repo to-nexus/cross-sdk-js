@@ -1,5 +1,16 @@
 # @to-nexus/universal-provider
 
+## 2.20.0-alpha.3
+
+### Minor Changes
+
+- # Release 2.19.14-alpha.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @to-nexus/sign-client@2.20.0-alpha.3
+
 ## 2.20.0-alpha.2
 
 ### Minor Changes

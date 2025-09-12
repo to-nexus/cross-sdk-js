@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/universal-provider",
   "description": "Universal Provider for Cross Connect Protocol",
-  "version": "2.19.14-alpha.1",
+  "version": "2.19.14-alpha.2",
   "author": "Nexus",
   "homepage": "https://github.com/to-nexus/cross-connect",
   "repository": {
@@ -44,7 +44,7 @@
     "prettier": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'"
   },
   "dependencies": {
-    "@to-nexus/sign-client": "2.19.14-alpha.1",
+    "@to-nexus/sign-client": "2.19.14-alpha.2",
     "@walletconnect/events": "1.0.1",
     "@walletconnect/jsonrpc-http-connection": "1.0.8",
     "@walletconnect/jsonrpc-provider": "1.0.14",
