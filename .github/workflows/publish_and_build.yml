@@ -461,15 +461,29 @@ jobs:
             
             LATEST_ALPHA_NUM=-1
             
-            # @to-nexus/appkit 패키지를 기준으로 기존 alpha 버전들 확인 (현재 레포의 패키지)
-            echo "🔍 npm view @to-nexus/appkit versions --json --registry=$REGISTRY_URL 실행 중..."
-            set +e
-            EXISTING_VERSIONS=$(npm view "@to-nexus/appkit" versions --json --registry="$REGISTRY_URL" 2>&1)
-            EXIT_CODE=$?
-            set -e
+            # 여러 패키지를 순차적으로 확인하여 기존 alpha 버전들 찾기
+            PACKAGES_TO_CHECK=("@to-nexus/appkit" "@to-nexus/appkit-siwe" "@to-nexus/sdk" "@to-nexus/appkit-core")
+            EXISTING_VERSIONS=""
             
-            echo "🔍 npm view 종료 코드: $EXIT_CODE"
-            echo "🔍 기존 버전 조회 결과 (처음 500자): ${EXISTING_VERSIONS:0:500}"
+            for PACKAGE in "${PACKAGES_TO_CHECK[@]}"; do
+              echo "🔍 npm view $PACKAGE versions --json --registry=$REGISTRY_URL 실행 중..."
+              set +e
+              PACKAGE_VERSIONS=$(npm view "$PACKAGE" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
+              EXIT_CODE=$?
+              set -e
+              
+              echo "🔍 $PACKAGE 조회 종료 코드: $EXIT_CODE"
+              
+              if [ $EXIT_CODE -eq 0 ] && [ -n "$PACKAGE_VERSIONS" ] && [ "$PACKAGE_VERSIONS" != "null" ]; then
+                echo "🔍 $PACKAGE에서 버전 발견: ${PACKAGE_VERSIONS:0:200}..."
+                EXISTING_VERSIONS="$PACKAGE_VERSIONS"
+                break
+              else
+                echo "🔍 $PACKAGE에서 버전을 찾을 수 없음"
+              fi
+            done
+            
+            echo "🔍 최종 기존 버전 조회 결과 (처음 500자): ${EXISTING_VERSIONS:0:500}"
             
             if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
               # JSON 배열에서 해당 베이스 버전의 alpha 번호들 추출 (개선된 로직)
@@ -528,12 +542,29 @@ jobs:
             
             LATEST_BETA_NUM=-1
             
-            # @to-nexus/appkit 패키지를 기준으로 기존 beta 버전들 확인 (현재 레포의 패키지)
-            set +e
-            EXISTING_VERSIONS=$(npm view "@to-nexus/appkit" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
-            set -e
+            # 여러 패키지를 순차적으로 확인하여 기존 beta 버전들 찾기
+            PACKAGES_TO_CHECK=("@to-nexus/appkit" "@to-nexus/appkit-siwe" "@to-nexus/sdk" "@to-nexus/appkit-core")
+            EXISTING_VERSIONS=""
             
-            echo "기존 버전 조회 결과: $EXISTING_VERSIONS"
+            for PACKAGE in "${PACKAGES_TO_CHECK[@]}"; do
+              echo "🔍 npm view $PACKAGE versions --json --registry=$REGISTRY_URL 실행 중..."
+              set +e
+              PACKAGE_VERSIONS=$(npm view "$PACKAGE" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
+              EXIT_CODE=$?
+              set -e
+              
+              echo "🔍 $PACKAGE 조회 종료 코드: $EXIT_CODE"
+              
+              if [ $EXIT_CODE -eq 0 ] && [ -n "$PACKAGE_VERSIONS" ] && [ "$PACKAGE_VERSIONS" != "null" ]; then
+                echo "🔍 $PACKAGE에서 버전 발견: ${PACKAGE_VERSIONS:0:200}..."
+                EXISTING_VERSIONS="$PACKAGE_VERSIONS"
+                break
+              else
+                echo "🔍 $PACKAGE에서 버전을 찾을 수 없음"
+              fi
+            done
+            
+            echo "🔍 최종 기존 버전 조회 결과: $EXISTING_VERSIONS"
             
             if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
               # JSON 배열에서 해당 베이스 버전의 beta 번호들 추출 (개선된 로직)
