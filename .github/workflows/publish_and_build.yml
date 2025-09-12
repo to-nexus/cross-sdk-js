@@ -454,16 +454,22 @@ jobs:
             
             # 현재 레지스트리에서 최신 alpha 버전 확인 (개선된 로직)
             REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
-            echo "레지스트리에서 기존 alpha 버전 확인 중: $REGISTRY_URL"
+            echo "🔍 레지스트리에서 기존 alpha 버전 확인 중: $REGISTRY_URL"
+            echo "🔍 베이스 버전: $BASE_VERSION"
+            echo "🔍 현재 환경: ${{ inputs.environment }}"
+            echo "🔍 입력된 publish_version: ${{ inputs.publish_version }}"
             
             LATEST_ALPHA_NUM=-1
             
-            # @to-nexus/core 패키지를 기준으로 기존 alpha 버전들 확인
+            # @to-nexus/appkit 패키지를 기준으로 기존 alpha 버전들 확인 (현재 레포의 패키지)
+            echo "🔍 npm view @to-nexus/appkit versions --json --registry=$REGISTRY_URL 실행 중..."
             set +e
-            EXISTING_VERSIONS=$(npm view "@to-nexus/core" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
+            EXISTING_VERSIONS=$(npm view "@to-nexus/appkit" versions --json --registry="$REGISTRY_URL" 2>&1)
+            EXIT_CODE=$?
             set -e
             
-            echo "기존 버전 조회 결과: $EXISTING_VERSIONS"
+            echo "🔍 npm view 종료 코드: $EXIT_CODE"
+            echo "🔍 기존 버전 조회 결과 (처음 500자): ${EXISTING_VERSIONS:0:500}"
             
             if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
               # JSON 배열에서 해당 베이스 버전의 alpha 번호들 추출 (개선된 로직)
@@ -489,15 +495,21 @@ jobs:
                 }
               " 2>/dev/null)
               
+              echo "🔍 파싱된 ALPHA_VERSIONS: '$ALPHA_VERSIONS'"
               if [[ "$ALPHA_VERSIONS" =~ ^-?[0-9]+$ ]]; then
                 LATEST_ALPHA_NUM=$ALPHA_VERSIONS
+                echo "🔍 최신 alpha 번호 설정: $LATEST_ALPHA_NUM"
+              else
+                echo "🔍 alpha 번호 파싱 실패, 기본값 -1 유지"
               fi
+            else
+              echo "🔍 기존 버전이 없거나 null"
             fi
             
             # 다음 alpha 번호 계산
             NEXT_ALPHA_NUM=$((LATEST_ALPHA_NUM + 1))
             REF_VERSION="$BASE_VERSION-alpha.$NEXT_ALPHA_NUM"
-            echo "계산된 다음 alpha 버전: $REF_VERSION (이전 최신: alpha.$LATEST_ALPHA_NUM)"
+            echo "🔍 계산된 다음 alpha 버전: $REF_VERSION (이전 최신: alpha.$LATEST_ALPHA_NUM)"
             
             echo "자동 증가된 alpha 버전: $REF_VERSION"
           elif [[ "${{ inputs.environment }}" == "stage" ]]; then
@@ -516,9 +528,9 @@ jobs:
             
             LATEST_BETA_NUM=-1
             
-            # @to-nexus/core 패키지를 기준으로 기존 beta 버전들 확인
+            # @to-nexus/appkit 패키지를 기준으로 기존 beta 버전들 확인 (현재 레포의 패키지)
             set +e
-            EXISTING_VERSIONS=$(npm view "@to-nexus/core" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
+            EXISTING_VERSIONS=$(npm view "@to-nexus/appkit" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
             set -e
             
             echo "기존 버전 조회 결과: $EXISTING_VERSIONS"
