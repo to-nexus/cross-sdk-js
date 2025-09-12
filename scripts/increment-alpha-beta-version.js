@@ -46,11 +46,15 @@ function getPackageVersions(packageName, registryUrl) {
       throw new Error('Registry URL must use HTTPS');
     }
     
-    // 보안: spawnSync를 사용하여 shell injection 방지
+    // 보안: spawnSync를 사용하여 shell injection 방지 + 고정된 PATH 사용
     const result = spawnSync('npm', ['view', packageName, 'versions', '--json', `--registry=${registryUrl}`], {
       shell: false,
       encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore']
+      stdio: ['pipe', 'pipe', 'ignore'],
+      env: {
+        ...process.env,
+        PATH: '/usr/bin:/usr/local/bin:/opt/homebrew/bin'  // 고정된 안전한 PATH
+      }
     });
     
     if (result.error) {
