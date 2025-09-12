@@ -432,93 +432,103 @@ jobs:
           if [[ "${{ inputs.environment }}" == "dev" ]]; then
             echo "=== Alpha 버전 처리 시작 ==="
             
-            # 현재 레지스트리에서 최신 alpha 버전 확인
-            REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+            # 기존 alpha 버전이 포함되어 있다면 베이스 버전 추출
             BASE_VERSION="$REF_VERSION"
-            
-            # 이미 alpha 버전이 포함되어 있다면 베이스 버전 추출
             if [[ "$REF_VERSION" == *-alpha* ]]; then
               BASE_VERSION=$(echo "$REF_VERSION" | sed 's/-alpha.*//')
               echo "기존 alpha 버전에서 베이스 버전 추출: $BASE_VERSION"
             fi
             
-            LATEST_ALPHA_NUM=0
+            # 검증된 스크립트를 사용하여 다음 alpha 버전 생성
+            echo "스크립트를 사용하여 alpha 버전 증가 중..."
+            NEXUS_DEV_REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}" \
+            REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev 2>&1 | grep "새 버전:" | cut -d' ' -f3)
             
-            # @to-nexus/core 패키지를 기준으로 기존 alpha 버전들 확인
-            set +e
-            EXISTING_VERSIONS=$(npm view "@to-nexus/core" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
-            set -e
-            
-            if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
-              # JSON 배열에서 해당 베이스 버전의 alpha 번호들 추출
-              ALPHA_VERSIONS=$(echo "$EXISTING_VERSIONS" | node -e "
-                const versions = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-                const baseVersion = '$BASE_VERSION';
-                const alphaVersions = Array.isArray(versions) ? versions : [versions];
-                const alphaNums = alphaVersions
-                  .filter(v => v.startsWith(baseVersion + '-alpha.'))
-                  .map(v => {
-                    const num = parseInt(v.split('-alpha.')[1]);
-                    return isNaN(num) ? null : num;
-                  })
-                  .filter(n => n !== null);
-                console.log(Math.max(0, ...alphaNums));
-              " 2>/dev/null)
+            if [ -z "$REF_VERSION" ]; then
+              echo "❌ 스크립트에서 버전을 가져오지 못했습니다. 수동으로 처리합니다."
+              # 폴백: 수동 처리
+              REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+              LATEST_ALPHA_NUM=0
               
-              if [[ "$ALPHA_VERSIONS" =~ ^[0-9]+$ ]]; then
-                LATEST_ALPHA_NUM=$ALPHA_VERSIONS
+              set +e
+              EXISTING_VERSIONS=$(npm view "@to-nexus/core" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
+              set -e
+              
+              if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
+                ALPHA_VERSIONS=$(echo "$EXISTING_VERSIONS" | node -e "
+                  const versions = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+                  const baseVersion = '$BASE_VERSION';
+                  const alphaVersions = Array.isArray(versions) ? versions : [versions];
+                  const alphaNums = alphaVersions
+                    .filter(v => v.startsWith(baseVersion + '-alpha.'))
+                    .map(v => {
+                      const num = parseInt(v.split('-alpha.')[1]);
+                      return isNaN(num) ? null : num;
+                    })
+                    .filter(n => n !== null);
+                  console.log(Math.max(0, ...alphaNums));
+                " 2>/dev/null)
+                
+                if [[ "$ALPHA_VERSIONS" =~ ^[0-9]+$ ]]; then
+                  LATEST_ALPHA_NUM=$ALPHA_VERSIONS
+                fi
               fi
+              
+              NEXT_ALPHA_NUM=$((LATEST_ALPHA_NUM + 1))
+              REF_VERSION="$BASE_VERSION-alpha.$NEXT_ALPHA_NUM"
             fi
             
-            # 다음 alpha 번호 계산
-            NEXT_ALPHA_NUM=$((LATEST_ALPHA_NUM + 1))
-            REF_VERSION="$BASE_VERSION-alpha.$NEXT_ALPHA_NUM"
-            echo "자동 증가된 alpha 버전: $REF_VERSION (이전 최신: alpha.$LATEST_ALPHA_NUM)"
+            echo "자동 증가된 alpha 버전: $REF_VERSION"
           elif [[ "${{ inputs.environment }}" == "stage" ]]; then
             echo "=== Beta 버전 처리 시작 ==="
             
-            # 현재 레지스트리에서 최신 beta 버전 확인
-            REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+            # 기존 beta 버전이 포함되어 있다면 베이스 버전 추출
             BASE_VERSION="$REF_VERSION"
-            
-            # 이미 beta 버전이 포함되어 있다면 베이스 버전 추출
             if [[ "$REF_VERSION" == *-beta* ]]; then
               BASE_VERSION=$(echo "$REF_VERSION" | sed 's/-beta.*//')
               echo "기존 beta 버전에서 베이스 버전 추출: $BASE_VERSION"
             fi
             
-            LATEST_BETA_NUM=0
+            # 검증된 스크립트를 사용하여 다음 beta 버전 생성
+            echo "스크립트를 사용하여 beta 버전 증가 중..."
+            NEXUS_STAGE_REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}" \
+            REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage 2>&1 | grep "새 버전:" | cut -d' ' -f3)
             
-            # @to-nexus/core 패키지를 기준으로 기존 beta 버전들 확인
-            set +e
-            EXISTING_VERSIONS=$(npm view "@to-nexus/core" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
-            set -e
-            
-            if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
-              # JSON 배열에서 해당 베이스 버전의 beta 번호들 추출
-              BETA_VERSIONS=$(echo "$EXISTING_VERSIONS" | node -e "
-                const versions = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-                const baseVersion = '$BASE_VERSION';
-                const betaVersions = Array.isArray(versions) ? versions : [versions];
-                const betaNums = betaVersions
-                  .filter(v => v.startsWith(baseVersion + '-beta.'))
-                  .map(v => {
-                    const num = parseInt(v.split('-beta.')[1]);
-                    return isNaN(num) ? null : num;
-                  })
-                  .filter(n => n !== null);
-                console.log(Math.max(0, ...betaNums));
-              " 2>/dev/null)
+            if [ -z "$REF_VERSION" ]; then
+              echo "❌ 스크립트에서 버전을 가져오지 못했습니다. 수동으로 처리합니다."
+              # 폴백: 수동 처리
+              REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+              LATEST_BETA_NUM=0
               
-              if [[ "$BETA_VERSIONS" =~ ^[0-9]+$ ]]; then
-                LATEST_BETA_NUM=$BETA_VERSIONS
+              set +e
+              EXISTING_VERSIONS=$(npm view "@to-nexus/core" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
+              set -e
+              
+              if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
+                BETA_VERSIONS=$(echo "$EXISTING_VERSIONS" | node -e "
+                  const versions = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+                  const baseVersion = '$BASE_VERSION';
+                  const betaVersions = Array.isArray(versions) ? versions : [versions];
+                  const betaNums = betaVersions
+                    .filter(v => v.startsWith(baseVersion + '-beta.'))
+                    .map(v => {
+                      const num = parseInt(v.split('-beta.')[1]);
+                      return isNaN(num) ? null : num;
+                    })
+                    .filter(n => n !== null);
+                  console.log(Math.max(0, ...betaNums));
+                " 2>/dev/null)
+                
+                if [[ "$BETA_VERSIONS" =~ ^[0-9]+$ ]]; then
+                  LATEST_BETA_NUM=$BETA_VERSIONS
+                fi
               fi
+              
+              NEXT_BETA_NUM=$((LATEST_BETA_NUM + 1))
+              REF_VERSION="$BASE_VERSION-beta.$NEXT_BETA_NUM"
             fi
             
-            # 다음 beta 번호 계산
-            NEXT_BETA_NUM=$((LATEST_BETA_NUM + 1))
-            REF_VERSION="$BASE_VERSION-beta.$NEXT_BETA_NUM"
-            echo "자동 증가된 beta 버전: $REF_VERSION (이전 최신: beta.$LATEST_BETA_NUM)"
+            echo "자동 증가된 beta 버전: $REF_VERSION"
           fi
           # Re-export possibly adjusted version
           echo "REF_VERSION=${REF_VERSION}" > tmp_ref_version
@@ -590,8 +600,13 @@ jobs:
             echo "No dependency overrides provided"
           fi
 
-          # Bulk set version across all packages
-          pnpm run version:set "${REF_VERSION#v}"
+          # 스크립트를 사용한 경우 버전이 이미 설정되었으므로 조건부 설정
+          if [[ "${{ inputs.environment }}" == "dev" ]] || [[ "${{ inputs.environment }}" == "stage" ]]; then
+            echo "스크립트에서 이미 워크스페이스 버전이 설정되었습니다."
+          else
+            # Bulk set version across all packages (prod 환경용)
+            pnpm run version:set "${REF_VERSION#v}"
+          fi
 
           # Mark as bumped for downstream steps
           echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
