@@ -147,27 +147,37 @@ jobs:
               echo "Using version from branch: $REF_VERSION"
             fi
           elif [[ "$ENVIRONMENT" == "dev" ]]; then
-            # dev: auto-increment alpha version if no manual input
+            # dev: auto-increment alpha version
             if [[ -n "$INPUT_VER" ]]; then
-              REF_VERSION="$INPUT_VER"
-              echo "Using manual version for dev: $REF_VERSION"
+              # 수동 입력이 있는 경우, 해당 베이스 버전으로 자동 증가
+              echo "Using input version as base: $INPUT_VER"
+              BASE_VERSION=$(echo "$INPUT_VER" | sed 's/-.*$//')
+              echo "Base version: $BASE_VERSION"
+              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev | tail -1)
+              echo "Auto-incremented alpha version: $REF_VERSION"
             else
-              # Auto-increment alpha version
-              echo "Auto-incrementing alpha version..."
+              # 수동 입력이 없는 경우, package.json 버전을 베이스로 자동 증가
+              echo "Auto-incrementing alpha version from package.json..."
               BASE_VERSION=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
-              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev | grep "다음 alpha 버전:" | cut -d' ' -f4)
+              echo "Base version: $BASE_VERSION"
+              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" dev | tail -1)
               echo "Auto-generated alpha version: $REF_VERSION"
             fi
           elif [[ "$ENVIRONMENT" == "stage" ]]; then
-            # stage: auto-increment beta version if no manual input
+            # stage: auto-increment beta version
             if [[ -n "$INPUT_VER" ]]; then
-              REF_VERSION="$INPUT_VER"
-              echo "Using manual version for stage: $REF_VERSION"
+              # 수동 입력이 있는 경우, 해당 베이스 버전으로 자동 증가
+              echo "Using input version as base: $INPUT_VER"
+              BASE_VERSION=$(echo "$INPUT_VER" | sed 's/-.*$//')
+              echo "Base version: $BASE_VERSION"
+              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage | tail -1)
+              echo "Auto-incremented beta version: $REF_VERSION"
             else
-              # Auto-increment beta version
-              echo "Auto-incrementing beta version..."
+              # 수동 입력이 없는 경우, package.json 버전을 베이스로 자동 증가
+              echo "Auto-incrementing beta version from package.json..."
               BASE_VERSION=$(node -e "console.log(require('./package.json').version.replace(/-.*/, ''))")
-              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage | grep "다음 beta 버전:" | cut -d' ' -f4)
+              echo "Base version: $BASE_VERSION"
+              REF_VERSION=$(node scripts/increment-alpha-beta-version.js "$BASE_VERSION" stage | tail -1)
               echo "Auto-generated beta version: $REF_VERSION"
             fi
           else

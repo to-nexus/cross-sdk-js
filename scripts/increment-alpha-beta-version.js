@@ -46,19 +46,29 @@ function getLatestPrereleaseNumber(versions, baseVersion, prereleaseType) {
   const prereleaseVersions = versions
     .filter(v => v.startsWith(`${baseVersion}-${prereleaseType}`))
     .map(v => {
-      // 1.17.0-alpha 또는 1.17.0-alpha.1 형태 모두 지원
-      const match = v.match(new RegExp(`^(.+)-${prereleaseType}\\.?(\\d+)?$`));
-      if (match) {
+      // 2.19.0-alpha 또는 2.19.0-alpha.1 형태 모두 지원
+      if (v === `${baseVersion}-${prereleaseType}`) {
+        // 2.19.0-alpha 형태 (숫자 없음)
         return {
           version: v,
-          number: match[2] ? parseInt(match[2], 10) : 0
+          number: 0
         };
+      } else {
+        // 2.19.0-alpha.1 형태 (숫자 있음)
+        const match = v.match(new RegExp(`^${baseVersion.replace(/\./g, '\\.')}-${prereleaseType}\\.(\\d+)$`));
+        if (match) {
+          return {
+            version: v,
+            number: parseInt(match[1], 10)
+          };
+        }
       }
       return null;
     })
     .filter(Boolean)
     .sort((a, b) => b.number - a.number);
 
+  console.log(`Found prerelease versions for ${baseVersion}-${prereleaseType}:`, prereleaseVersions.map(v => v.version));
   return prereleaseVersions.length > 0 ? prereleaseVersions[0].number : -1;
 }
 
@@ -74,8 +84,18 @@ function getNextPrereleaseVersion(baseVersion, environment = 'stage') {
   const coreVersions = getPackageVersions('@to-nexus/core', registryUrl);
   const latestPrereleaseNumber = getLatestPrereleaseNumber(coreVersions, baseVersion, prereleaseType);
   
-  const nextPrereleaseNumber = latestPrereleaseNumber + 1;
-  const nextVersion = `${baseVersion}-${prereleaseType}.${nextPrereleaseNumber}`;
+  let nextPrereleaseNumber;
+  let nextVersion;
+  
+  if (latestPrereleaseNumber === -1) {
+    // 해당 베이스 버전의 prerelease가 없는 경우 -> .1부터 시작
+    nextPrereleaseNumber = 1;
+    nextVersion = `${baseVersion}-${prereleaseType}.${nextPrereleaseNumber}`;
+  } else {
+    // 이미 존재하는 경우 -> 다음 번호로 증가
+    nextPrereleaseNumber = latestPrereleaseNumber + 1;
+    nextVersion = `${baseVersion}-${prereleaseType}.${nextPrereleaseNumber}`;
+  }
   
   console.log(`현재 최신 ${prereleaseType} 번호: ${latestPrereleaseNumber >= 0 ? latestPrereleaseNumber : '없음'}`);
   console.log(`다음 ${prereleaseType} 버전: ${nextVersion}`);
@@ -129,6 +149,9 @@ function main() {
     const prereleaseType = environment === 'dev' ? 'Alpha' : 'Beta';
     console.log(`\n✅ ${prereleaseType} 버전 증가 완료!`);
     console.log(`새 버전: ${nextPrereleaseVersion}`);
+    
+    // 워크플로우에서 사용할 수 있도록 마지막에 버전만 출력
+    console.log(nextPrereleaseVersion);
     
     // 버전 정보를 환경변수로 출력 (GitHub Actions에서 사용 가능)
     if (process.env.GITHUB_OUTPUT) {
