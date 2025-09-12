@@ -151,21 +151,29 @@ export class W3mConnectingWcView extends LitElement {
 
     // 익스텐션 지원 브라우저에서 Cross Wallet 확인
     if (isBrowser && !ChainController.state.noAdapters && rdns) {
+      const isChrome = CoreHelperUtil.isChrome()
       const isCrossWalletFound = this.isCrossWalletInstalled(rdns)
 
       if (isCrossWalletFound) {
-        this.platforms.push('qrcode')
-        this.platforms.push('browser')
-        this.platform = 'qrcode'
+        console.log('isCrossWalletFound', isCrossWalletFound)
+        if (isChrome) {
+          this.platforms.push('qrcode')
+          this.platforms.push('browser')
+          this.platform = 'qrcode'
+        } else {
+          this.platforms.push('qrcode')
+          this.platform = 'qrcode'
+        }
       } else {
         this.platforms.push('qrcode')
         this.platform = 'qrcode'
       }
-    } else {
-      this.platforms.push('qrcode')
-      this.platform = 'qrcode'
+      return true
     }
 
+    // 기본 케이스
+    this.platforms.push('qrcode')
+    this.platform = 'qrcode'
     return true
   }
 
