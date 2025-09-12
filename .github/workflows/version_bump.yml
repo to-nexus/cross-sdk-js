@@ -80,7 +80,7 @@ jobs:
           BASIC_AUTH: ${{ secrets.NEXUS_CREDENTIALS_BASE64 }}
 
       - name: Install dependencies (workspaces)
-        run: npm install --workspaces --no-audit --no-fund
+        run: npm install --workspaces
 
       - name: Resolve and apply versions
         id: resolve
