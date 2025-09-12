@@ -2,6 +2,16 @@
 
 Cross protocol for connecting Wallets to Dapps
 
+## 📦 NPM Registry Information
+
+### Development/Testing Versions (alpha, beta)
+- **Registry**: https://package.cross-nexus.com/repository/dev-cross-sdk-js/
+- **Usage**: For `-alpha` and `-beta` prerelease versions
+
+### Production/Stable Versions
+- **Registry**: https://package.cross-nexus.com/repository/cross-sdk-js/
+- **Usage**: For stable release versions
+
 ## Setup
 
 1. Ensure [nodejs and npm](https://nodejs.org/en/)
