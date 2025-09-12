@@ -29,6 +29,24 @@ function getRegistryUrl(environment = 'stage') {
   return registries[environment] || registries.stage;
 }
 
+// 안전한 npm 경로 찾기
+function findNpmPath() {
+  const possiblePaths = [
+    '/usr/local/bin/npm',  // GitHub Actions, Homebrew
+    '/usr/bin/npm',        // Ubuntu/Debian 기본
+    '/opt/homebrew/bin/npm' // Apple Silicon Mac
+  ];
+  
+  for (const npmPath of possiblePaths) {
+    if (fs.existsSync(npmPath)) {
+      return npmPath;
+    }
+  }
+  
+  // fallback: PATH에서 찾기 (보안 경고 발생 가능)
+  return 'npm';
+}
+
 // NPM 레지스트리에서 패키지의 모든 버전 조회
 function getPackageVersions(packageName, registryUrl) {
   try {
@@ -46,15 +64,12 @@ function getPackageVersions(packageName, registryUrl) {
       throw new Error('Registry URL must use HTTPS');
     }
     
-    // 보안: spawnSync를 사용하여 shell injection 방지 + 고정된 PATH 사용
-    const result = spawnSync('npm', ['view', packageName, 'versions', '--json', `--registry=${registryUrl}`], {
+    // 보안: 절대 경로로 npm 실행
+    const npmPath = findNpmPath();
+    const result = spawnSync(npmPath, ['view', packageName, 'versions', '--json', `--registry=${registryUrl}`], {
       shell: false,
       encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-      env: {
-        ...process.env,
-        PATH: '/usr/bin:/usr/local/bin:/opt/homebrew/bin'  // 고정된 안전한 PATH
-      }
+      stdio: ['pipe', 'pipe', 'ignore']
     });
     
     if (result.error) {
