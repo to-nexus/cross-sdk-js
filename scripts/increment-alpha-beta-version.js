@@ -29,22 +29,31 @@ function getRegistryUrl(environment = 'stage') {
   return registries[environment] || registries.stage;
 }
 
-// 안전한 npm 경로 찾기
-function findNpmPath() {
-  const possiblePaths = [
-    '/usr/local/bin/npm',  // GitHub Actions, Homebrew
-    '/usr/bin/npm',        // Ubuntu/Debian 기본
-    '/opt/homebrew/bin/npm' // Apple Silicon Mac
-  ];
+// 안전한 실행 파일 경로 찾기
+function findExecutablePath(executable) {
+  const possiblePaths = {
+    npm: [
+      '/usr/local/bin/npm',  // GitHub Actions, Homebrew
+      '/usr/bin/npm',        // Ubuntu/Debian 기본
+      '/opt/homebrew/bin/npm' // Apple Silicon Mac
+    ],
+    node: [
+      '/usr/local/bin/node', // GitHub Actions, Homebrew
+      '/usr/bin/node',       // Ubuntu/Debian 기본
+      '/opt/homebrew/bin/node' // Apple Silicon Mac
+    ]
+  };
   
-  for (const npmPath of possiblePaths) {
-    if (fs.existsSync(npmPath)) {
-      return npmPath;
+  const paths = possiblePaths[executable] || [];
+  
+  for (const execPath of paths) {
+    if (fs.existsSync(execPath)) {
+      return execPath;
     }
   }
   
   // fallback: PATH에서 찾기 (보안 경고 발생 가능)
-  return 'npm';
+  return executable;
 }
 
 // NPM 레지스트리에서 패키지의 모든 버전 조회
@@ -65,7 +74,7 @@ function getPackageVersions(packageName, registryUrl) {
     }
     
     // 보안: 절대 경로로 npm 실행
-    const npmPath = findNpmPath();
+    const npmPath = findExecutablePath('npm');
     const result = spawnSync(npmPath, ['view', packageName, 'versions', '--json', `--registry=${registryUrl}`], {
       shell: false,
       encoding: 'utf8',
@@ -158,7 +167,9 @@ function updateWorkspaceVersions(version) {
     fs.writeFileSync(rootPkgPath, JSON.stringify(rootPkg, null, 2) + '\n');
     
     // inject-version.js 실행하여 워크스페이스 패키지들 업데이트
-    execSync('node scripts/inject-version.js', { stdio: 'inherit' });
+    const nodePath = findExecutablePath('node');
+    const scriptPath = path.join(__dirname, 'inject-version.js');
+    execSync(`${nodePath} ${scriptPath}`, { stdio: 'inherit' });
     console.log('워크스페이스 버전 업데이트 완료');
   } catch (error) {
     console.error('워크스페이스 버전 업데이트 실패:', error.message);
