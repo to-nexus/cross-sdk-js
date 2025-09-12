@@ -199,13 +199,26 @@ jobs:
       - name: Detect changed packages since last release
         id: changes
         run: |
-          # Get changed packages compared to last published version
-          LAST_TAG=$(git describe --tags --abbrev=0 --match="release/*" 2>/dev/null || echo "")
+          # Get changed packages compared to last published version (environment-specific)
+          if [[ "${{ inputs.environment }}" == "dev" ]]; then
+            # Dev environment: look for alpha tags
+            LAST_TAG=$(git tag -l "release/*-alpha.*" | sort -V | tail -n1 2>/dev/null || echo "")
+            PRERELEASE_TYPE="alpha"
+          elif [[ "${{ inputs.environment }}" == "stage" ]]; then
+            # Stage environment: look for beta tags
+            LAST_TAG=$(git tag -l "release/*-beta.*" | sort -V | tail -n1 2>/dev/null || echo "")
+            PRERELEASE_TYPE="beta"
+          else
+            # Prod environment: look for stable release tags (no prerelease suffix)
+            LAST_TAG=$(git tag -l "release/*" | grep -v -E "(alpha|beta)" | sort -V | tail -n1 2>/dev/null || echo "")
+            PRERELEASE_TYPE="stable"
+          fi
+          
           if [ -n "$LAST_TAG" ]; then
-            echo "Comparing against last tag: $LAST_TAG"
+            echo "Comparing against last $PRERELEASE_TYPE tag: $LAST_TAG"
             CHANGED_FILES=$(git diff --name-only "$LAST_TAG"..HEAD -- packages/ providers/ | grep -E "(src/|package\.json)" | head -20)
           else
-            echo "No previous release tag found, treating all packages as changed"
+            echo "No previous $PRERELEASE_TYPE release tag found, treating all packages as changed"
             CHANGED_FILES=$(find packages providers -name "package.json" | head -20)
           fi
           
@@ -641,6 +654,8 @@ jobs:
         run: |
           pnpm -w run build
           # uses package.json script: turbo run build --filter={./packages/*}
+        env:
+          APP_VERSION: ${{ steps.version.outputs.REF_VERSION }}
 
       # Removed per-package post-build version bump; using bulk version set above
 
@@ -1026,7 +1041,9 @@ jobs:
 
       - name: Build packages
         run: |
-          pnpm -w run build 
+          pnpm -w run build
+        env:
+          APP_VERSION: ${{ steps.version.outputs.BASE_VERSION }} 
       
       - name: Publish package to Nexus (prod → latest)
         if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
@@ -1454,6 +1471,8 @@ jobs:
       - name: Build CDN packages
         if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
         run: pnpm run build
+        env:
+          APP_VERSION: ${{ steps.extract_version.outputs.CURRENT_VERSION }}
 
       - name: Upload to S3 with version prefix
         if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
