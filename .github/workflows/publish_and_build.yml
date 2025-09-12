@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - ci/*
+      - feature/*
   workflow_dispatch:
     inputs:
       environment:
@@ -92,7 +93,7 @@ jobs:
       github.event_name == 'workflow_dispatch' && (
         (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
         (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage') ||
-        (startsWith(github.ref, 'refs/heads/ci/') && inputs.environment == 'dev')
+        (startsWith(github.ref, 'refs/heads/feature/') && inputs.environment == 'dev')
       ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset')
     runs-on: ubuntu-latest
     steps:
@@ -1031,7 +1032,7 @@ jobs:
     name: Build and Push Docker Image (dev)
     # develop 의 dev 전용, sample-page는 독립 실행
     if: |
-      github.event_name == 'workflow_dispatch' && ((github.ref == 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/ci/')) && inputs.environment == 'dev' && (inputs.services == 'all' || inputs.services == 'sample-page')
+      github.event_name == 'workflow_dispatch' && ((github.ref == 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/feature/')) && inputs.environment == 'dev' && (inputs.services == 'all' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
 
     environment: ${{ inputs.environment }}
