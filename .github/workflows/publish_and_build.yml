@@ -299,10 +299,11 @@ jobs:
   publish_npm_preview:
     name: Publish to Nexus NPM (preview)
     needs: [changeset_prepare, version_bump]
-    # develop(dev) | release/*(stage) 전용
+    # develop(dev) | feature/*(dev) | release/*(stage) 전용
     if: |
       github.event_name == 'workflow_dispatch' && (
         (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
+        (startsWith(github.ref, 'refs/heads/feature/') && inputs.environment == 'dev') ||
         (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage')
       ) && (inputs.services == 'all' || inputs.services == 'package-publish')
     runs-on: ubuntu-latest
