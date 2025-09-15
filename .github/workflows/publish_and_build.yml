@@ -163,7 +163,23 @@ jobs:
             TAG="latest"
           fi
           echo "Updating @to-nexus/* packages with tag: $TAG"
-          pnpm -r up "@to-nexus/*@$TAG" -P || true
+          
+          # List available @to-nexus packages in registry first
+          echo "🔍 Checking available @to-nexus packages in registry..."
+          npm search @to-nexus --registry="${NEXUS_REGISTRY_URL}" --json | head -20 || echo "Search failed, continuing..."
+          
+          # Try to update specific known @to-nexus packages
+          echo "🔍 Attempting to update known @to-nexus packages..."
+          PACKAGES_TO_UPDATE=(
+            "@to-nexus/core"
+            "@to-nexus/universal-provider"
+            "@to-nexus/sign-client"
+          )
+          
+          for pkg in "${PACKAGES_TO_UPDATE[@]}"; do
+            echo "Checking $pkg@$TAG..."
+            pnpm -r up "$pkg@$TAG" -P || echo "Failed to update $pkg@$TAG, continuing..."
+          done
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
