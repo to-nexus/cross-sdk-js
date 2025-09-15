@@ -128,14 +128,23 @@ jobs:
 
       - name: Configure npm registries (workspace .npmrc)
         run: |
+          NEXUS_REGISTRY_URL="${{ steps.registry_prepare.outputs.NEXUS_URL }}"
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
           echo "registry=https://registry.npmjs.org/" > .npmrc
           echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+          echo "Configured Nexus registry: ${NEXUS_REGISTRY_URL}"
         env:
-          NEXUS_REGISTRY_URL: ${{ steps.registry_prepare.outputs.NEXUS_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
       - name: Install pnpm
@@ -166,7 +175,9 @@ jobs:
           
           # List available @to-nexus packages in registry first
           echo "🔍 Checking available @to-nexus packages in registry..."
-          npm search @to-nexus --registry="${NEXUS_REGISTRY_URL}" --json | head -20 || echo "Search failed, continuing..."
+          REGISTRY_URL="${{ steps.registry_prepare.outputs.NEXUS_URL }}"
+          echo "Registry URL: $REGISTRY_URL"
+          npm search @to-nexus --registry="$REGISTRY_URL" --json | head -20 || echo "Search failed, continuing..."
           
           # Try to update specific known @to-nexus packages
           echo "🔍 Attempting to update known @to-nexus packages..."
