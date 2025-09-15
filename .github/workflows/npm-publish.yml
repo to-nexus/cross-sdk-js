@@ -678,14 +678,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # For dev/stage environments, allow overwriting existing tags
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, removing and recreating for dev/stage deployment"
-            git tag -d "$TAG" || true
-            git push origin ":refs/tags/$TAG" || true
-          fi
+          # For dev/stage environments, always remove existing tags first
+          echo "Removing any existing tag $TAG (dev/stage allows redeployment)"
           
-          echo "Creating tag $TAG"
+          # Remove local tag if it exists
+          git tag -d "$TAG" 2>/dev/null || echo "Local tag $TAG not found"
+          
+          # Remove remote tag if it exists
+          git push origin ":refs/tags/$TAG" 2>/dev/null || echo "Remote tag $TAG not found"
+          
+          echo "Creating new tag $TAG"
           git tag -a "$TAG" -m "Pre-Release ${{ steps.version.outputs.REF_VERSION }}"
           git push origin "$TAG"
 
