@@ -107,22 +107,15 @@ jobs:
       - name: Verify npm auth and test publish (gate)
         run: |
           set -e
-          echo "::add-mask::${NPM_TOKEN}" || true
           
-          echo "=== Verifying via -/whoami (Bearer) ==="
-          RESP=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
-          BODY=$(echo "$RESP" | head -n1)
-          STATUS=$(echo "$RESP" | tail -n1)
-          if [ "$STATUS" != "200" ]; then
-            echo "Auth verification failed (HTTP $STATUS). Aborting."
-            exit 1
-          fi
-          USER=$(printf "%s" "$BODY" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const o=JSON.parse(s);console.log(o?.username||'');}catch(e){}})")
-          if [ -n "$USER" ]; then echo "Logged in as: $USER"; else echo "Logged in (username not exposed)"; fi
+          echo "=== Verifying npm auth with configured .npmrc ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
           
           echo "=== Test publish to verify write access ==="
           TMP_DIR=$(mktemp -d)
           pushd "$TMP_DIR" > /dev/null
+          # Copy the configured .npmrc to temp directory
+          cp "$GITHUB_WORKSPACE/.npmrc" .npmrc
           NAME="@to-nexus/test-publish-ci-$(date +%s)-$RANDOM"
           npm init -y >/dev/null 2>&1
           npm pkg set name="$NAME" version="0.0.0-alpha.0" main="index.js" >/dev/null
@@ -136,7 +129,6 @@ jobs:
           rm -rf "$TMP_DIR"
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
-          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -495,42 +487,15 @@ jobs:
         if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_dev
         run: |
-          # Ensure .npmrc exists for this step
-          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
-          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
-          HOST_DOMAIN="${HOST_PATH%%/*}"
-          
-          # Create .npmrc and set npm environment variables
-          echo "registry=https://registry.npmjs.org/" > .npmrc
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
-          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
-          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
-          
-          # Also set as environment variables for npm
+          # Use the already configured .npmrc
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
-          export NPM_CONFIG_REGISTRY="https://registry.npmjs.org/"
-          export NPM_CONFIG_ALWAYS_AUTH="true"
+          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
 
-          # Publish only @to-nexus/* workspaces using pnpm recursive publish
-          echo "::add-mask::${NPM_TOKEN}" || true
-          echo "=== Verifying auth via -/whoami (gate) ==="
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
-          if [ "$STATUS" != "200" ]; then
-            echo "Auth verification failed (HTTP $STATUS). Aborting publish."
-            exit 1
-          fi
-          echo "=== Attempting npm whoami (optional) ==="
-          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may be hidden with bearer token"
+          echo "=== Verifying npm auth ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
 
           echo "=== Publishing via pnpm (recursive, @to-nexus/* only) ==="
-          # Ensure both env vars are present for npm config resolution
-          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
-          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r \
+          if pnpm -r \
             --filter "@to-nexus/*" \
             --filter "!@to-nexus/sign-client" \
             publish --access public --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
@@ -541,7 +506,6 @@ jobs:
           fi
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
-          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
       - name: Restore publishConfig.registry from HEAD (dev)
         if: inputs.environment == 'dev' && inputs.dry_run == 'false'
@@ -603,29 +567,15 @@ jobs:
         if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
         id: publish_stage
         run: |
-          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
-          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
-          HOST_DOMAIN="${HOST_PATH%%/*}"
-          
-          # Create .npmrc and set npm environment variables
-          echo "registry=https://registry.npmjs.org/" > .npmrc
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
-          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
-          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
-          
-          # Also set as environment variables for npm
+          # Use the already configured .npmrc
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
-          export NPM_CONFIG_REGISTRY="https://registry.npmjs.org/"
-          export NPM_CONFIG_ALWAYS_AUTH="true"
-
-          echo "::add-mask::${NPM_TOKEN}" || true
-          echo "=== Testing npm whoami ==="
-          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "npm whoami failed"
-          
           export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
-          if NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc" pnpm -r \
+
+          echo "=== Verifying npm auth ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
+          
+          echo "=== Publishing via pnpm (recursive, @to-nexus/* only) ==="
+          if pnpm -r \
             --filter "@to-nexus/*" \
             --filter "!@to-nexus/sign-client" \
             publish --access public --tag beta --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
@@ -636,7 +586,6 @@ jobs:
           fi
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
-          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
       - name: Restore publishConfig.registry from HEAD (stage)
         if: inputs.environment == 'stage' && inputs.dry_run == 'false'
@@ -749,32 +698,17 @@ jobs:
       
       - name: Configure npm for Nexus
         run: |
-          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
-          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
-          HOST_DOMAIN="${HOST_PATH%%/*}"
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
-          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
-          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
-          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
-          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
-          echo "always-auth=true" >> .npmrc
+          echo "//${NEXUS_REGISTRY_URL#https://}:_auth=${{ secrets.NEXUS_CREDENTIALS_BASE64 }}" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
+          echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
           echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
-          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
-          NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/.npmrc
       
       - name: Verify npm authentication
         run: |
-          echo "::add-mask::${NPM_TOKEN}" || true
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${NPM_TOKEN}" "${NEXUS_REGISTRY_URL}/-/whoami")
-          if [ "$STATUS" != "200" ]; then
-            echo "Auth verification failed (HTTP $STATUS)."
-            exit 1
-          fi
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
           npm ping --registry "${NEXUS_REGISTRY_URL}" || true
       
       - name: Install pnpm
@@ -808,6 +742,11 @@ jobs:
         run: |
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
           export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
+          
+          echo "=== Verifying npm auth before publish ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
+          
+          echo "=== Publishing to prod (latest tag) ==="
           pnpm -r \
             --filter "@to-nexus/*" \
             --filter "!@to-nexus/sign-client" \
