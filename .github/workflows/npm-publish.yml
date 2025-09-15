@@ -443,13 +443,9 @@ jobs:
             echo "No dependency overrides provided"
           fi
 
-          # 스크립트를 사용한 경우 버전이 이미 설정되었으므로 조건부 설정
-          if [[ "${{ inputs.environment }}" == "dev" ]] || [[ "${{ inputs.environment }}" == "stage" ]]; then
-            echo "스크립트에서 이미 워크스페이스 버전이 설정되었습니다."
-          else
-            # Bulk set version across all packages (prod 환경용)
-            pnpm run version:set "${REF_VERSION#v}"
-          fi
+          # 계산된 버전으로 워크스페이스 전체 버전 설정
+          echo "=== 워크스페이스 버전을 $REF_VERSION 으로 설정 ==="
+          pnpm run version:set "${REF_VERSION#v}"
 
           # Mark as bumped for downstream steps
           echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
@@ -681,13 +677,17 @@ jobs:
           TAG="release/${{ steps.version.outputs.REF_VERSION }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # For dev/stage environments, allow overwriting existing tags
           if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping"
-          else
-            git tag -a "$TAG" -m "Pre-Release ${{ steps.version.outputs.REF_VERSION }}"
-            git fetch origin "$TAG" || true
-            git push origin "$TAG" || git push --force-with-lease origin "$TAG"
+            echo "Tag $TAG already exists, removing and recreating for dev/stage deployment"
+            git tag -d "$TAG" || true
+            git push origin ":refs/tags/$TAG" || true
           fi
+          
+          echo "Creating tag $TAG"
+          git tag -a "$TAG" -m "Pre-Release ${{ steps.version.outputs.REF_VERSION }}"
+          git push origin "$TAG"
 
       - name: Create GitHub Pre-Release (dev/stage)
         if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
@@ -780,7 +780,7 @@ jobs:
           APP_VERSION: ${{ steps.version.outputs.BASE_VERSION }} 
       
       - name: Publish package to Nexus (prod → latest)
-        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
+        if: inputs.dry_run == 'false'
         run: |
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
           export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
@@ -797,7 +797,7 @@ jobs:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
       
       - name: Create and push release tag (prod)
-        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
+        if: inputs.dry_run == 'false'
         run: |
           TAG="release/${{ steps.version.outputs.BASE_VERSION }}"
           git config user.name "github-actions[bot]"
@@ -811,7 +811,7 @@ jobs:
           fi
       
       - name: Create GitHub Release (prod)
-        if: inputs.dry_run == 'false' && needs.version_bump.outputs.can_publish == 'true'
+        if: inputs.dry_run == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release/${{ steps.version.outputs.BASE_VERSION }}
