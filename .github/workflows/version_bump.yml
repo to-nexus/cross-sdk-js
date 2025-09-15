@@ -96,7 +96,7 @@ jobs:
           PKG_MAP[core]="@to-nexus/core"
           PKG_MAP[universal]="@to-nexus/universal-provider"
           PKG_MAP[sign-client]="@to-nexus/sign-client"
-          PKG_MAP[sdk]="@to-nexus/sdk"
+          # Note: @to-nexus/sdk is internal workspace package, not external
 
           IFS=',' read -ra OVRS <<< "${{ inputs.versions }}"
           declare -A OVERRIDE
@@ -110,26 +110,39 @@ jobs:
 
           resolve_by_tag() {
             local pkg="$1" tag="$2" ver
-            set +e; ver=$(npm view "${pkg}@${tag}" version 2>/dev/null); set -e
+            # Get the latest version for the specific tag
+            set +e
+            if [ "$tag" = "alpha" ] || [ "$tag" = "beta" ]; then
+              # For prerelease tags, get all versions and find the latest with the tag
+              all_versions=$(npm view "$pkg" versions --json 2>/dev/null | tr -d '[]",' | tr ' ' '\n' | grep "$tag" | sort -V | tail -n1)
+              if [ -n "$all_versions" ]; then
+                ver="$all_versions"
+              fi
+            fi
+            # Fallback to simple tag query if above didn't work
+            if [ -z "$ver" ]; then
+              ver=$(npm view "${pkg}@${tag}" version 2>/dev/null)
+            fi
+            set -e
             if [ -n "$ver" ]; then echo "$ver"; else npm view "${pkg}@latest" version; fi
           }
 
           UPGRADE_ARGS=()
           FALLBACK=0
-          for key in core universal sign-client sdk; do
+          for key in core universal sign-client; do
             pkg="${PKG_MAP[$key]}"; [ -z "$pkg" ] && continue
-            if [ -n "${OVERRIDE[$key]}" ]; then desired="${OVERRIDE[$key]}"; else
+            if [ -n "${OVERRIDE[$key]}" ]; then 
+              desired="${OVERRIDE[$key]}"
+            else
               if [ "$DEFAULT_TAG" = "alpha" ] || [ "$DEFAULT_TAG" = "beta" ]; then
-                # try tag
-                set +e; tagver=$(npm view "${pkg}@${DEFAULT_TAG}" version 2>/dev/null); rc=$?; set -e
-                if [ $rc -eq 0 ] && [ -n "$tagver" ]; then
-                  desired="$tagver"
-                else
+                # Use improved resolve_by_tag function
+                desired=$(resolve_by_tag "$pkg" "$DEFAULT_TAG")
+                if [ -z "$desired" ]; then
                   FALLBACK=1
                   desired=$(npm view "${pkg}@latest" version)
                 fi
               else
-                desired=$(npm view "${pkg}@latest" version)
+                desired=$(resolve_by_tag "$pkg" "latest")
               fi
             fi
             [ -n "$desired" ] && UPGRADE_ARGS+=("${pkg}@${desired}") && echo "Resolved ${pkg} -> ${desired}"

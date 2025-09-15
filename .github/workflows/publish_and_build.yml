@@ -174,7 +174,16 @@ jobs:
 
       - name: Bump @to-nexus/* to latest (workspace)
         run: |
-          pnpm -r up "@to-nexus/*@latest" -P || true
+          # Determine the appropriate tag based on environment
+          if [[ "${{ inputs.environment }}" == "dev" ]]; then
+            TAG="alpha"
+          elif [[ "${{ inputs.environment }}" == "stage" ]]; then
+            TAG="beta"
+          else
+            TAG="latest"
+          fi
+          echo "Updating @to-nexus/* packages with tag: $TAG"
+          pnpm -r up "@to-nexus/*@$TAG" -P || true
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
@@ -452,7 +461,7 @@ jobs:
               echo "기존 alpha 버전에서 베이스 버전 추출: $BASE_VERSION"
             fi
             
-            # 현재 레지스트리에서 최신 alpha 버전 확인 (개선된 로직)
+            # 레지스트리에서 최신 alpha 버전 확인 (인증된 npm view 사용)
             REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
             echo "🔍 레지스트리에서 기존 alpha 버전 확인 중: $REGISTRY_URL"
             echo "🔍 베이스 버전: $BASE_VERSION"
@@ -461,90 +470,53 @@ jobs:
             
             LATEST_ALPHA_NUM=-1
             
-            # 여러 패키지를 순차적으로 확인하여 기존 alpha 버전들 찾기
-            PACKAGES_TO_CHECK=("@to-nexus/appkit" "@to-nexus/appkit-siwe" "@to-nexus/sdk" "@to-nexus/appkit-core")
-            EXISTING_VERSIONS=""
+            # 대표 패키지(@to-nexus/appkit)에서 alpha 버전들 조회
+            echo "🔍 @to-nexus/appkit에서 $BASE_VERSION-alpha.* 패턴 검색 중..."
             
-            for PACKAGE in "${PACKAGES_TO_CHECK[@]}"; do
-              # 먼저 전체 버전 목록에서 찾기 (더 정확함)
-              echo "🔍 npm view $PACKAGE versions --json --registry=$REGISTRY_URL 실행 중..."
-              set +e
-              PACKAGE_VERSIONS=$(npm view "$PACKAGE" versions --json --registry="$REGISTRY_URL" 2>&1)
-              EXIT_CODE=$?
-              set -e
+            # npm view로 모든 버전 조회 (인증 정보 사용)
+            set +e
+            ALL_VERSIONS=$(npm view "@to-nexus/appkit" versions --json --registry="${REGISTRY_URL}" 2>/dev/null)
+            QUERY_EXIT_CODE=$?
+            set -e
+            
+            echo "🔍 npm view 쿼리 종료 코드: $QUERY_EXIT_CODE"
+            echo "🔍 조회 결과 길이: ${#ALL_VERSIONS}"
+            
+            if [ $QUERY_EXIT_CODE -eq 0 ] && [ -n "$ALL_VERSIONS" ] && [ "$ALL_VERSIONS" != "null" ]; then
+              # JSON 배열에서 해당 베이스 버전의 alpha 버전들 추출
+              ALPHA_VERSIONS=$(echo "$ALL_VERSIONS" | tr -d '[]",' | tr ' ' '\n' | grep "^$BASE_VERSION-alpha\." | sort -V)
+              echo "🔍 발견된 alpha 버전들: $ALPHA_VERSIONS"
               
-              echo "🔍 $PACKAGE 조회 종료 코드: $EXIT_CODE"
-              echo "🔍 $PACKAGE 조회 결과 길이: ${#PACKAGE_VERSIONS}"
-              
-              if [ $EXIT_CODE -eq 0 ] && [ -n "$PACKAGE_VERSIONS" ] && [ "$PACKAGE_VERSIONS" != "null" ] && [[ "$PACKAGE_VERSIONS" != *"404"* ]] && [[ "$PACKAGE_VERSIONS" != *"Not found"* ]]; then
-                echo "🔍 $PACKAGE에서 전체 버전 목록 발견: ${PACKAGE_VERSIONS:0:200}..."
-                EXISTING_VERSIONS="$PACKAGE_VERSIONS"
-                break
-              else
-                echo "🔍 $PACKAGE에서 전체 버전 목록 찾을 수 없음"
-                
-                # 폴백: @alpha 태그로 시도
-                echo "🔍 npm view $PACKAGE@alpha version --registry=$REGISTRY_URL 실행 중... (폴백)"
-                set +e
-                ALPHA_VERSION=$(npm view "$PACKAGE@alpha" version --registry="$REGISTRY_URL" 2>&1)
-                ALPHA_EXIT_CODE=$?
-                set -e
-                
-                echo "🔍 $PACKAGE@alpha 조회 종료 코드: $ALPHA_EXIT_CODE"
-                echo "🔍 $PACKAGE@alpha 조회 결과: '$ALPHA_VERSION'"
-                
-                if [ $ALPHA_EXIT_CODE -eq 0 ] && [ -n "$ALPHA_VERSION" ] && [ "$ALPHA_VERSION" != "null" ]; then
-                  echo "🔍 $PACKAGE@alpha에서 버전 발견: $ALPHA_VERSION"
-                  # alpha 버전에서 베이스 버전과 번호 추출
-                  if [[ "$ALPHA_VERSION" == "$BASE_VERSION-alpha."* ]]; then
-                    ALPHA_NUM=$(echo "$ALPHA_VERSION" | sed -E "s/^$BASE_VERSION-alpha\.([0-9]+)$/\1/")
-                    if [[ "$ALPHA_NUM" =~ ^[0-9]+$ ]]; then
-                      LATEST_ALPHA_NUM=$ALPHA_NUM
-                      echo "🔍 $PACKAGE@alpha에서 alpha 번호 발견: $LATEST_ALPHA_NUM"
-                      break
-                    fi
+              if [ -n "$ALPHA_VERSIONS" ]; then
+                # 가장 높은 alpha 번호 찾기
+                for version in $ALPHA_VERSIONS; do
+                  ALPHA_NUM=$(echo "$version" | sed -E "s/^$BASE_VERSION-alpha\.([0-9]+)$/\1/")
+                  if [[ "$ALPHA_NUM" =~ ^[0-9]+$ ]] && [ "$ALPHA_NUM" -gt "$LATEST_ALPHA_NUM" ]; then
+                    LATEST_ALPHA_NUM=$ALPHA_NUM
+                    echo "🔍 더 높은 alpha 번호 발견: $LATEST_ALPHA_NUM (버전: $version)"
                   fi
-                else
-                  echo "🔍 $PACKAGE@alpha에서도 버전을 찾을 수 없음"
-                fi
-              fi
-            done
-            
-            echo "🔍 최종 기존 버전 조회 결과 (처음 500자): ${EXISTING_VERSIONS:0:500}"
-            
-            if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
-              # JSON 배열에서 해당 베이스 버전의 alpha 번호들 추출 (개선된 로직)
-              ALPHA_VERSIONS=$(echo "$EXISTING_VERSIONS" | node -e "
-                try {
-                  const input = require('fs').readFileSync(0, 'utf8').trim();
-                  const versions = JSON.parse(input);
-                  const baseVersion = '$BASE_VERSION';
-                  const alphaVersions = Array.isArray(versions) ? versions : [versions];
-                  const alphaNums = alphaVersions
-                    .filter(v => typeof v === 'string' && v.startsWith(baseVersion + '-alpha.'))
-                    .map(v => {
-                      const match = v.match(/^.+-alpha\.(\d+)$/);
-                      return match ? parseInt(match[1], 10) : null;
-                    })
-                    .filter(n => n !== null && !isNaN(n));
-                  
-                  console.error('Found alpha versions for', baseVersion + ':', alphaNums);
-                  console.log(alphaNums.length > 0 ? Math.max(...alphaNums) : -1);
-                } catch(e) {
-                  console.error('Error parsing versions:', e.message);
-                  console.log(-1);
-                }
-              " 2>/dev/null)
-              
-              echo "🔍 파싱된 ALPHA_VERSIONS: '$ALPHA_VERSIONS'"
-              if [[ "$ALPHA_VERSIONS" =~ ^-?[0-9]+$ ]]; then
-                LATEST_ALPHA_NUM=$ALPHA_VERSIONS
-                echo "🔍 최신 alpha 번호 설정: $LATEST_ALPHA_NUM"
-              else
-                echo "🔍 alpha 번호 파싱 실패, 기본값 -1 유지"
+                done
               fi
             else
-              echo "🔍 기존 버전이 없거나 null"
+              echo "🔍 레지스트리에서 버전 목록을 가져올 수 없음, alpha 태그로 폴백"
+              # 폴백: alpha 태그로 직접 조회
+              set +e
+              ALPHA_VERSION=$(npm view "@to-nexus/appkit@alpha" version --registry="${REGISTRY_URL}" 2>/dev/null)
+              ALPHA_EXIT_CODE=$?
+              set -e
+              
+              if [ $ALPHA_EXIT_CODE -eq 0 ] && [ -n "$ALPHA_VERSION" ]; then
+                echo "🔍 alpha 태그에서 버전 발견: $ALPHA_VERSION"
+                if [[ "$ALPHA_VERSION" == "$BASE_VERSION-alpha."* ]]; then
+                  ALPHA_NUM=$(echo "$ALPHA_VERSION" | sed -E "s/^$BASE_VERSION-alpha\.([0-9]+)$/\1/")
+                  if [[ "$ALPHA_NUM" =~ ^[0-9]+$ ]]; then
+                    LATEST_ALPHA_NUM=$ALPHA_NUM
+                    echo "🔍 alpha 태그에서 alpha 번호 발견: $LATEST_ALPHA_NUM"
+                  fi
+                fi
+              else
+                echo "🔍 alpha 태그 조회도 실패, 기본값 사용"
+              fi
             fi
             
             # 다음 alpha 번호 계산
@@ -563,62 +535,61 @@ jobs:
               echo "기존 beta 버전에서 베이스 버전 추출: $BASE_VERSION"
             fi
             
-            # 현재 레지스트리에서 최신 beta 버전 확인 (개선된 로직)
+            # 레지스트리에서 최신 beta 버전 확인 (인증된 npm view 사용)
             REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
-            echo "레지스트리에서 기존 beta 버전 확인 중: $REGISTRY_URL"
+            echo "🔍 레지스트리에서 기존 beta 버전 확인 중: $REGISTRY_URL"
+            echo "🔍 베이스 버전: $BASE_VERSION"
+            echo "🔍 현재 환경: ${{ inputs.environment }}"
+            echo "🔍 입력된 publish_version: ${{ inputs.publish_version }}"
             
             LATEST_BETA_NUM=-1
             
-            # 여러 패키지를 순차적으로 확인하여 기존 beta 버전들 찾기
-            PACKAGES_TO_CHECK=("@to-nexus/appkit" "@to-nexus/appkit-siwe" "@to-nexus/sdk" "@to-nexus/appkit-core")
-            EXISTING_VERSIONS=""
+            # 대표 패키지(@to-nexus/appkit)에서 beta 버전들 조회
+            echo "🔍 @to-nexus/appkit에서 $BASE_VERSION-beta.* 패턴 검색 중..."
             
-            for PACKAGE in "${PACKAGES_TO_CHECK[@]}"; do
-              echo "🔍 npm view $PACKAGE versions --json --registry=$REGISTRY_URL 실행 중..."
+            # npm view로 모든 버전 조회 (인증 정보 사용)
+            set +e
+            ALL_VERSIONS=$(npm view "@to-nexus/appkit" versions --json --registry="${REGISTRY_URL}" 2>/dev/null)
+            QUERY_EXIT_CODE=$?
+            set -e
+            
+            echo "🔍 npm view 쿼리 종료 코드: $QUERY_EXIT_CODE"
+            echo "🔍 조회 결과 길이: ${#ALL_VERSIONS}"
+            
+            if [ $QUERY_EXIT_CODE -eq 0 ] && [ -n "$ALL_VERSIONS" ] && [ "$ALL_VERSIONS" != "null" ]; then
+              # JSON 배열에서 해당 베이스 버전의 beta 버전들 추출
+              BETA_VERSIONS=$(echo "$ALL_VERSIONS" | tr -d '[]",' | tr ' ' '\n' | grep "^$BASE_VERSION-beta\." | sort -V)
+              echo "🔍 발견된 beta 버전들: $BETA_VERSIONS"
+              
+              if [ -n "$BETA_VERSIONS" ]; then
+                # 가장 높은 beta 번호 찾기
+                for version in $BETA_VERSIONS; do
+                  BETA_NUM=$(echo "$version" | sed -E "s/^$BASE_VERSION-beta\.([0-9]+)$/\1/")
+                  if [[ "$BETA_NUM" =~ ^[0-9]+$ ]] && [ "$BETA_NUM" -gt "$LATEST_BETA_NUM" ]; then
+                    LATEST_BETA_NUM=$BETA_NUM
+                    echo "🔍 더 높은 beta 번호 발견: $LATEST_BETA_NUM (버전: $version)"
+                  fi
+                done
+              fi
+            else
+              echo "🔍 레지스트리에서 버전 목록을 가져올 수 없음, beta 태그로 폴백"
+              # 폴백: beta 태그로 직접 조회
               set +e
-              PACKAGE_VERSIONS=$(npm view "$PACKAGE" versions --json --registry="$REGISTRY_URL" 2>/dev/null)
-              EXIT_CODE=$?
+              BETA_VERSION=$(npm view "@to-nexus/appkit@beta" version --registry="${REGISTRY_URL}" 2>/dev/null)
+              BETA_EXIT_CODE=$?
               set -e
               
-              echo "🔍 $PACKAGE 조회 종료 코드: $EXIT_CODE"
-              
-              if [ $EXIT_CODE -eq 0 ] && [ -n "$PACKAGE_VERSIONS" ] && [ "$PACKAGE_VERSIONS" != "null" ]; then
-                echo "🔍 $PACKAGE에서 버전 발견: ${PACKAGE_VERSIONS:0:200}..."
-                EXISTING_VERSIONS="$PACKAGE_VERSIONS"
-                break
+              if [ $BETA_EXIT_CODE -eq 0 ] && [ -n "$BETA_VERSION" ]; then
+                echo "🔍 beta 태그에서 버전 발견: $BETA_VERSION"
+                if [[ "$BETA_VERSION" == "$BASE_VERSION-beta."* ]]; then
+                  BETA_NUM=$(echo "$BETA_VERSION" | sed -E "s/^$BASE_VERSION-beta\.([0-9]+)$/\1/")
+                  if [[ "$BETA_NUM" =~ ^[0-9]+$ ]]; then
+                    LATEST_BETA_NUM=$BETA_NUM
+                    echo "🔍 beta 태그에서 beta 번호 발견: $LATEST_BETA_NUM"
+                  fi
+                fi
               else
-                echo "🔍 $PACKAGE에서 버전을 찾을 수 없음"
-              fi
-            done
-            
-            echo "🔍 최종 기존 버전 조회 결과: $EXISTING_VERSIONS"
-            
-            if [ -n "$EXISTING_VERSIONS" ] && [ "$EXISTING_VERSIONS" != "null" ]; then
-              # JSON 배열에서 해당 베이스 버전의 beta 번호들 추출 (개선된 로직)
-              BETA_VERSIONS=$(echo "$EXISTING_VERSIONS" | node -e "
-                try {
-                  const input = require('fs').readFileSync(0, 'utf8').trim();
-                  const versions = JSON.parse(input);
-                  const baseVersion = '$BASE_VERSION';
-                  const betaVersions = Array.isArray(versions) ? versions : [versions];
-                  const betaNums = betaVersions
-                    .filter(v => typeof v === 'string' && v.startsWith(baseVersion + '-beta.'))
-                    .map(v => {
-                      const match = v.match(/^.+-beta\.(\d+)$/);
-                      return match ? parseInt(match[1], 10) : null;
-                    })
-                    .filter(n => n !== null && !isNaN(n));
-                  
-                  console.error('Found beta versions for', baseVersion + ':', betaNums);
-                  console.log(betaNums.length > 0 ? Math.max(...betaNums) : -1);
-                } catch(e) {
-                  console.error('Error parsing versions:', e.message);
-                  console.log(-1);
-                }
-              " 2>/dev/null)
-              
-              if [[ "$BETA_VERSIONS" =~ ^-?[0-9]+$ ]]; then
-                LATEST_BETA_NUM=$BETA_VERSIONS
+                echo "🔍 beta 태그 조회도 실패, 기본값 사용"
               fi
             fi
             
