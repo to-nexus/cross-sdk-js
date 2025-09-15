@@ -1,0 +1,318 @@
+name: CI - Publish & Build
+
+on:
+  push:
+    branches:
+      - main
+      - ci/*
+      - feature/*
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
+      services:
+        description: "배포 서비스 선택"
+        required: true
+        type: choice
+        options:
+          - all
+          - changeset
+          - package-publish
+          - sample-page
+          - cdn-publish
+
+      publish_version:
+        description: "배포 버전 입력 (release/* 브랜치는 선택사항, develop 브랜치는 필수)"
+        required: true
+        type: string
+        
+      dry_run:
+        description: "실제 퍼블리시/푸시/태깅 없이 검증만 수행"
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+      package_versions:
+        description: "외부 의존성 오버라이드 (예: core=2.19.11,universal=2.19.11,sign-client=2.19.11,sdk=1.16.6)"
+        required: false
+        default: ''
+        type: string
+
+      publish_filters:
+        description: "퍼블리시 허용 패턴(쉼표 구분). 예: @reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client"
+        required: false
+        default: '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client'
+        type: string
+
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.environment || 'na' }}-${{ inputs.services || 'na' }}
+  cancel-in-progress: true
+
+jobs:
+  display_info:
+    name: ${{ format('{0} | {1} | {2} | {3}{4}{5}{6}', inputs.services || 'auto-trigger', inputs.environment || github.ref_name, inputs.publish_version || 'latest', inputs.dry_run == 'true' && ' [DRY-RUN]' || '', inputs.package_versions && format(' | pkg:{0}', inputs.package_versions) || '', inputs.publish_filters != '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client' && ' | [CUSTOM-FILTERS]' || '', github.event_name == 'push' && ' | [AUTO-PUSH]' || '') }}
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Display Workflow Information
+        run: |
+          echo "##  Workflow Execution Info" >> $GITHUB_STEP_SUMMARY
+          echo "- **Services**: ${{ inputs.services || 'auto-trigger' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ inputs.publish_version || 'latest' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ inputs.package_versions }}" ]; then
+            echo "- **Package Versions**: ${{ inputs.package_versions }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ inputs.publish_filters }}" != "@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client" ]; then
+            echo "- **Custom Filters**: ${{ inputs.publish_filters }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  changeset_prepare:
+    name: Prepare Changeset (auto for preview)
+    # develop(dev) | release/*(stage) | feature/*(dev/stage) 전용, 해당 환경에서 다른 서비스 실행 전 자동 수행
+    environment: ${{ inputs.environment }}
+    if: |
+      github.event_name == 'workflow_dispatch' && (
+        (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
+        (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage') ||
+        (startsWith(github.ref, 'refs/heads/ci/') && inputs.environment == 'dev') ||
+        (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage'))
+      ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Resolve Nexus registry URL (prepare)
+        id: registry_prepare
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm registries (workspace .npmrc)
+        run: |
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry_prepare.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies (packages only)
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install root toolchain (turbo & scripts)
+        run: pnpm -w --filter . install --no-frozen-lockfile
+
+      - name: Ensure not in pre mode (best-effort)
+        run: pnpm dlx @changesets/cli@2.27.12 pre exit || true
+
+      - name: Bump @to-nexus/* to latest (workspace)
+        run: |
+          # Determine the appropriate tag based on environment
+          if [[ "${{ inputs.environment }}" == "dev" ]]; then
+            TAG="alpha"
+          elif [[ "${{ inputs.environment }}" == "stage" ]]; then
+            TAG="beta"
+          else
+            TAG="latest"
+          fi
+          echo "Updating @to-nexus/* packages with tag: $TAG"
+          pnpm -r up "@to-nexus/*@$TAG" -P || true
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git restore --staged .npmrc 2>/dev/null || true
+          if [ -n "$(git status --porcelain)" ]; then
+            if [ "${{ inputs.dry_run }}" = "false" ]; then
+              git commit -m "chore: bump @to-nexus/* to latest"
+              git fetch origin "${GITHUB_REF_NAME}" || true
+              git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+              git push || git push --force-with-lease
+            else
+              echo "Dry-run: dependency bump detected but not committed"
+            fi
+          else
+            echo "No dependency changes to commit"
+          fi
+
+      - name: Generate changeset from version.json or branch
+        run: |
+          PUBLISH_VERSION="${{ inputs.publish_version }}" pnpm run auto-changeset
+        
+      - name: Detect changed packages since last release
+        id: changes
+        run: |
+          # Get changed packages compared to last published version (environment-specific)
+          if [[ "${{ inputs.environment }}" == "dev" ]]; then
+            # Dev environment: look for alpha tags
+            LAST_TAG=$(git tag -l "release/*-alpha.*" | sort -V | tail -n1 2>/dev/null || echo "")
+            PRERELEASE_TYPE="alpha"
+          elif [[ "${{ inputs.environment }}" == "stage" ]]; then
+            # Stage environment: look for beta tags
+            LAST_TAG=$(git tag -l "release/*-beta.*" | sort -V | tail -n1 2>/dev/null || echo "")
+            PRERELEASE_TYPE="beta"
+          else
+            # Prod environment: look for stable release tags (no prerelease suffix)
+            LAST_TAG=$(git tag -l "release/*" | grep -v -E "(alpha|beta)" | sort -V | tail -n1 2>/dev/null || echo "")
+            PRERELEASE_TYPE="stable"
+          fi
+          
+          if [ -n "$LAST_TAG" ]; then
+            echo "Comparing against last $PRERELEASE_TYPE tag: $LAST_TAG"
+            CHANGED_FILES=$(git diff --name-only "$LAST_TAG"..HEAD -- packages/ providers/ | grep -E "(src/|package\.json)" | head -20)
+          else
+            echo "No previous $PRERELEASE_TYPE release tag found, treating all packages as changed"
+            CHANGED_FILES=$(find packages providers -name "package.json" | head -20)
+          fi
+          
+          # Extract package names from changed files
+          CHANGED_PACKAGES=""
+          for file in $CHANGED_FILES; do
+            if [[ "$file" == */package.json ]]; then
+              pkg_name=$(node -e "try { console.log(require('./$file').name) } catch(e) {}")
+              if [[ "$pkg_name" == @to-nexus/* ]] || [[ "$pkg_name" == @reown/* ]]; then
+                CHANGED_PACKAGES="$CHANGED_PACKAGES,$pkg_name"
+              fi
+            elif [[ "$file" == packages/*/src/* ]] || [[ "$file" == providers/*/src/* ]]; then
+              dir=$(dirname "$file" | sed 's|/src.*||')
+              if [ -f "$dir/package.json" ]; then
+                pkg_name=$(node -e "try { console.log(require('./$dir/package.json').name) } catch(e) {}")
+                if [[ "$pkg_name" == @to-nexus/* ]] || [[ "$pkg_name" == @reown/* ]]; then
+                  CHANGED_PACKAGES="$CHANGED_PACKAGES,$pkg_name"
+                fi
+              fi
+            fi
+          done
+          
+          CHANGED_PACKAGES=$(echo "$CHANGED_PACKAGES" | sed 's/^,//' | tr ',' '\n' | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "CHANGED_PACKAGES=${CHANGED_PACKAGES}" >> $GITHUB_OUTPUT
+          echo "Changed packages: $CHANGED_PACKAGES"
+
+      - name: Commit changeset
+        if: inputs.dry_run == 'false'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git restore --staged .npmrc 2>/dev/null || true
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: auto-generate changeset"
+            git fetch origin "${GITHUB_REF_NAME}" || true
+            git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+            git push || git push --force-with-lease
+          else
+            echo "No changes to commit"
+          fi
+
+  sonarqube:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && (inputs.environment == 'stage' || inputs.environment == 'prod') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  npm_publish:
+    name: NPM Package Publishing
+    needs: [changeset_prepare]
+    if: |
+      github.event_name == 'workflow_dispatch' && (
+        (inputs.services == 'all' || inputs.services == 'package-publish') && (
+          (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
+          (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
+          (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage') ||
+          (github.ref == 'refs/heads/main' && inputs.environment == 'prod')
+        )
+      ) || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    uses: ./.github/workflows/npm-publish.yml
+    with:
+      environment: ${{ inputs.environment || 'prod' }}
+      publish_version: ${{ inputs.publish_version }}
+      dry_run: ${{ inputs.dry_run || 'false' }}
+      package_versions: ${{ inputs.package_versions }}
+      publish_filters: ${{ inputs.publish_filters }}
+    secrets: inherit
+
+  docker_build:
+    name: Docker Image Build & Push
+    needs: [changeset_prepare]
+    if: |
+      github.event_name == 'workflow_dispatch' && (
+        (inputs.services == 'all' || inputs.services == 'sample-page') && (
+          (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
+          (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
+          (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage') ||
+          (github.ref == 'refs/heads/main' && inputs.environment == 'prod')
+        )
+      )
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      environment: ${{ inputs.environment }}
+      publish_version: ${{ inputs.publish_version }}
+      dry_run: ${{ inputs.dry_run || 'false' }}
+    secrets: inherit
+
+  cdn_publish:
+    name: CDN Publish
+    needs: [sonarqube]
+    if: |
+      github.event_name == 'workflow_dispatch' && 
+      github.ref == 'refs/heads/main' && 
+      inputs.environment == 'prod' && 
+      (inputs.services == 'all' || inputs.services == 'cdn-publish')
+    uses: ./.github/workflows/cdn-publish.yml
+    with:
+      environment: ${{ inputs.environment }}
+      dry_run: ${{ inputs.dry_run || 'false' }}
+    secrets: inherit
