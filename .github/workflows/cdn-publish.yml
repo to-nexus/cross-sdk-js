@@ -1,0 +1,122 @@
+name: CDN Publish
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: string
+      dry_run:
+        description: "실제 업로드 없이 검증만 수행"
+        required: false
+        default: 'false'
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  cdn_publish:
+    name: CDN Publish (prod)
+    if: |
+      github.ref == 'refs/heads/main' && inputs.environment == 'prod'
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Extract version from package.json
+        id: extract_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Current version: ${VERSION}"
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.CDN_ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Check existing versions in S3
+        if: inputs.dry_run == 'false'
+        id: check_versions
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 ls s3://${BUCKET_NAME}/cross-sdk/ --recursive | grep -E "cross-sdk/[0-9]+\.[0-9]+\.[0-9]+" | sed -E 's/.*cross-sdk\/([0-9]+\.[0-9]+\.[0-9]+)\/.*/\1/' | sort -V | uniq > existing_versions.txt || true
+          if [ -s existing_versions.txt ]; then
+            LATEST_VERSION=$(tail -n 1 existing_versions.txt)
+            echo "LATEST_S3_VERSION=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+            if [ "${CURRENT_VERSION}" = "${LATEST_VERSION}" ]; then
+              echo "VERSION_EXISTS=true" >> $GITHUB_OUTPUT
+            else
+              echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+            fi
+            if printf '%s\n%s\n' "${LATEST_VERSION}" "${CURRENT_VERSION}" | sort -V -C; then
+              echo "IS_NEWER=true" >> $GITHUB_OUTPUT
+            else
+              echo "IS_NEWER=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+            echo "IS_NEWER=true" >> $GITHUB_OUTPUT
+            echo "LATEST_S3_VERSION=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build CDN packages
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: pnpm run build
+        env:
+          APP_VERSION: ${{ steps.extract_version.outputs.CURRENT_VERSION }}
+
+      - name: Upload to S3 with version prefix
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 sync packages/cdn/dist/ s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ --delete --cache-control "public, max-age=31536000, immutable" --metadata-directive REPLACE
+
+      - name: Update latest if current version is newest
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+          aws s3 sync s3://${BUCKET_NAME}/cross-sdk/${CURRENT_VERSION}/ s3://${BUCKET_NAME}/cross-sdk/latest/ --delete --cache-control "public, max-age=3600" --metadata-directive REPLACE
+
+      - name: Invalidate CloudFront cache
+        if: inputs.dry_run == 'false' && steps.check_versions.outputs.VERSION_EXISTS != 'true' && steps.check_versions.outputs.IS_NEWER == 'true'
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          aws cloudfront create-invalidation --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" --paths "/cross-sdk/${CURRENT_VERSION}/*" "/cross-sdk/latest/*"
+
+      - name: CDN summary
+        run: |
+          CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
+          echo "## CDN Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${CURRENT_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry-run: ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
