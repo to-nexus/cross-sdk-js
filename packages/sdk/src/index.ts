@@ -113,7 +113,7 @@ const initCrossSdk = (
     customWallets: [
       {
         id: 'cross_wallet',
-        name: 'Cross Wallet',
+        name: 'CROSS Wallet',
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
         mobile_link: 'crossx://',
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',

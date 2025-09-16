@@ -281,7 +281,19 @@ export class W3mConnectView extends LitElement {
     const isCollapseWallets = this.features?.collapseWallets
     const shouldCollapseWallets = isCollapseWalletsOldProp || isCollapseWallets
 
+    // 🔍 디버그 포인트 1
+    console.log('🎯 walletListTemplate Debug:', {
+      isEnableWallets,
+      enableWallets: this.enableWallets,
+      features: this.features,
+      walletGuide: this.walletGuide,
+      isCollapseWalletsOldProp,
+      isCollapseWallets,
+      shouldCollapseWallets
+    })
+
     if (!isEnableWallets) {
+      console.log('❌ 지갑이 비활성화됨')
       return null
     }
     // In tg ios context, we have to preload the connection uri so we can use it to deeplink on user click
@@ -295,14 +307,15 @@ export class W3mConnectView extends LitElement {
 
     const hasOtherMethods = this.isAuthEnabled && (this.isEmailEnabled || this.isSocialEnabled)
 
-    if (hasOtherMethods && shouldCollapseWallets) {
-      return html`<wui-list-button
-        data-testid="cross-w3m-collapse-wallets-button"
-        tabIdx=${ifDefined(tabIndex)}
-        @click=${this.onContinueWalletClick.bind(this)}
-        text="Continue with a wallet"
-      ></wui-list-button>`
-    }
+    // CROSS Wallet만 표시하도록 수정 - 축소 로직 비활성화
+    // if (hasOtherMethods && shouldCollapseWallets) {
+    //   return html`<wui-list-button
+    //     data-testid="cross-w3m-collapse-wallets-button"
+    //     tabIdx=${ifDefined(tabIndex)}
+    //     @click=${this.onContinueWalletClick.bind(this)}
+    //     text="Continue with a wallet"
+    //   ></wui-list-button>`
+    // }
 
     return html`<cross-w3m-wallet-login-list
       tabIdx=${ifDefined(tabIndex)}

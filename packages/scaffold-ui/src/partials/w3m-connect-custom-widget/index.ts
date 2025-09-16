@@ -46,13 +46,22 @@ export class W3mConnectCustomWidget extends LitElement {
   public override render() {
     const { customWallets } = OptionsController.state
 
+    // 🔍 디버그 포인트 4
+    console.log('🎯 CustomWidget Debug:', {
+      customWallets,
+      customWalletsLength: customWallets?.length
+    })
+
     if (!customWallets?.length) {
+      console.log('❌ CustomWallets 없음')
       this.style.cssText = `display: none`
 
       return null
     }
 
     const wallets = this.filterOutDuplicateWallets(customWallets)
+
+    console.log('✅ CustomWallets 표시:', wallets)
 
     return html`<wui-flex flexDirection="column" gap="xs">
       ${wallets.map(
@@ -85,7 +94,22 @@ export class W3mConnectCustomWidget extends LitElement {
       const index = allRDNSs.indexOf('io.metamask.mobile')
       allRDNSs[index] = 'io.metamask'
     }
-    const filtered = wallets.filter(wallet => !allRDNSs.includes(String(wallet?.rdns)))
+
+    // 🔍 디버그 포인트 5
+    console.log('🔍 FilterDuplicates Debug:', {
+      wallets: wallets.map(w => ({ id: w.id, name: w.name, rdns: w.rdns })),
+      connectorRDNSs,
+      recentRDNSs,
+      allRDNSs
+    })
+
+    // CROSS Wallet만 사용하므로 필터링 비활성화
+    const filtered = wallets // 필터링 없이 모든 customWallets 표시
+
+    console.log(
+      '🔍 Filtered Result (no filtering):',
+      filtered.map(w => ({ id: w.id, name: w.name, rdns: w.rdns }))
+    )
 
     return filtered
   }

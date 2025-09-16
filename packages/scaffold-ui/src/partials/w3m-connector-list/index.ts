@@ -37,6 +37,15 @@ export class W3mConnectorList extends LitElement {
     const hasAnnounced = Boolean(announced && announced?.length > 0)
     const hasCustom = Boolean(custom && custom?.length > 0)
 
+    // 🔍 디버그 포인트 2
+    console.log('🔌 ConnectorList Debug:', {
+      connectors: this.connectors,
+      custom,
+      announced,
+      hasAnnounced,
+      hasCustom
+    })
+
     return html`
       <wui-flex flexDirection="column" gap="xs">
         ${this.renderConnectorWidget(hasAnnounced, hasCustom)}

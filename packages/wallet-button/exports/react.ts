@@ -118,9 +118,9 @@ export function useAppKitWallet(parameters?: {
         const customWallet = customWallets?.find(w => w.id === wallet)
         console.log('찾은 customWallet:', customWallet)
 
-        // Cross Wallet 특별 처리: w3modal에서 Browser/QR 탭 선택하게 하기
+        // CROSS Wallet 특별 처리: w3modal에서 Browser/QR 탭 선택하게 하기
         if (customWallet && wallet === 'cross_wallet') {
-          console.log('🎯 Cross Wallet 감지됨 - w3modal 열기:', wallet)
+          console.log('🎯 CROSS Wallet 감지됨 - w3modal 열기:', wallet)
 
           await ConnectorUtil.connectWalletConnect({
             walletConnect: wallet === 'cross_wallet',

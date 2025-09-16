@@ -53,8 +53,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
   // -- Private ------------------------------------------- //
   private isCrossWallet(): boolean {
     return (
-      this.wallet?.name?.includes('Cross Wallet') ||
-      this.wallet?.rdns === 'nexus.to.crosswallet.desktop'
+      this.wallet?.id === 'cross_wallet' || this.wallet?.rdns === 'nexus.to.crosswallet.desktop'
     )
   }
 
@@ -207,7 +206,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
       // 최종 선택된 커넥터 - 우선순위 기반 선택
       let connector = null
 
-      // 1순위: ANNOUNCED 커넥터 (Cross Wallet 전용)
+      // 1순위: ANNOUNCED 커넥터 (CROSS Wallet 전용)
       if (this.wallet?.rdns) {
         connector = connectors.find(
           c => c.type === 'ANNOUNCED' && c.info?.rdns === this.wallet?.rdns
