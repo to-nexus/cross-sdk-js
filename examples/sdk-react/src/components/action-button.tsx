@@ -332,7 +332,7 @@ export function ActionButtonList() {
     appKit.connect()
   }
 
-  // used for connecting cross wallet directly
+  // used for connecting CROSS wallet directly
   function handleConnectWallet() {
     connect('cross_wallet')
   }

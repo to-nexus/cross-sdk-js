@@ -47,7 +47,9 @@ export class W3mConnectRecommendedWidget extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    const connector = this.connectors.find(c => c.id === 'walletConnect')
+    const connector = this.connectors.find(
+      c => c.id === 'walletConnect' || c.type === 'WALLET_CONNECT'
+    )
     if (!connector) {
       return null
     }
