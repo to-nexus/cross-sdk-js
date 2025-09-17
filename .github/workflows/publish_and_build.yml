@@ -95,7 +95,7 @@ jobs:
         (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage') ||
         (startsWith(github.ref, 'refs/heads/ci/') && inputs.environment == 'dev') ||
         (startsWith(github.ref, 'refs/heads/feature/') && inputs.environment == 'dev')
-      ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset')
+      ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
