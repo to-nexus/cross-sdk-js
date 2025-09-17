@@ -1,7 +1,7 @@
 import type { ChainNamespace } from './TypeUtil.js'
 
 function getEnv(): string {
-  console.log('ConstantUtil.ts getEnv(), import.meta.env', import.meta.env)
+  // console.log('ConstantUtil.ts getEnv(), import.meta.env', import.meta.env)
   if (typeof import.meta !== 'undefined' && import.meta.env?.['VITE_ENV_MODE']) {
     return import.meta.env['VITE_ENV_MODE']
   }
