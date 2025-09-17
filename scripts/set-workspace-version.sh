@@ -48,6 +48,16 @@ case "$ENVIRONMENT" in
     ;;
   "stage")
     echo "Setting workspace version to beta for stage environment..."
+    
+    # If PUBLISH_VERSION is provided, use it as base version
+    if [ -n "$PUBLISH_VERSION" ]; then
+      echo "Using provided publish version: $PUBLISH_VERSION"
+      BASE_VERSION="$PUBLISH_VERSION"
+    else
+      # Fallback to package.json version
+      BASE_VERSION=$(node -p "require('./package.json').version.replace(/-alpha.*$/,'').replace(/-beta.*$/,'')" 2>/dev/null || echo "")
+    fi
+    
     # 우선순위: REGISTRY_URL env > .npmrc(@to-nexus 매핑) > .npmrc(auth 호스트) > 없음
     if [ -z "$REGISTRY_URL" ] && [ -f ".npmrc" ]; then
       REGISTRY_URL=$(grep "@to-nexus:registry" .npmrc | cut -d'=' -f2 || true)
@@ -102,7 +112,9 @@ case "$ENVIRONMENT" in
       TOKEN_STATE=$( [ ${#AUTH_HEADER[@]} -gt 0 ] && echo present || echo absent )
       echo "ℹ️ registry GET status: $HTTP_CODE, token: $TOKEN_STATE, type: ${CONTENT_TYPE:-unknown}"
       # tarball 존재 여부 확인 (e.g., sdk-<base>-beta.tgz)
-      BASE_VERSION=$(node -p "require('./package.json').version.replace(/-alpha.*$/,'').replace(/-beta.*$/,'')" 2>/dev/null || echo "")
+      if [ -z "$BASE_VERSION" ]; then
+        BASE_VERSION=$(node -p "require('./package.json').version.replace(/-alpha.*$/,'').replace(/-beta.*$/,'')" 2>/dev/null || echo "")
+      fi
       if [ -n "$BASE_VERSION" ]; then
         TARBALL_URL="${REGISTRY_URL}%40to-nexus%2Fsdk/-/sdk-${BASE_VERSION}-beta.tgz"
         if [ ${#AUTH_HEADER[@]} -gt 0 ]; then
@@ -123,12 +135,13 @@ case "$ENVIRONMENT" in
     fi
     export META_RAW
     export TARBALL_OK="${TARBALL_OK:-0}"
+    export BASE_VERSION
     node -e "
  const fs = require('fs');
  let metaStr = process.env.META_RAW || '';
  let meta = {}; try { meta = JSON.parse(metaStr || '{}'); } catch (e) {}
  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
- const baseVersion = pkg.version.replace(/-alpha.*$/, '').replace(/-beta.*$/, '');
+ const baseVersion = process.env.BASE_VERSION || pkg.version.replace(/-alpha.*$/, '').replace(/-beta.*$/, '');
  const candidatePrefix = baseVersion + '-beta';
  const distTags = (meta && meta['dist-tags']) || {};
  const versions = (meta && meta.versions) || {};
@@ -136,9 +149,29 @@ case "$ENVIRONMENT" in
  const hasBetaMeta = (betaTag && betaTag.startsWith(candidatePrefix)) || Object.keys(versions).some(v => v.startsWith(candidatePrefix));
  const hasBeta = hasBetaMeta || process.env.TARBALL_OK === '1';
  if (hasBeta) {
-   const betaVersion = candidatePrefix;
-   console.log('✅ Beta version exists (meta/tarball), using:', betaVersion);
-   pkg.version = betaVersion;
+   // Find the latest beta version with the same base version
+   const betaVersions = Object.keys(versions).filter(v => v.startsWith(candidatePrefix));
+   let selectedBetaVersion = candidatePrefix;
+   
+   if (betaVersions.length > 0) {
+     // Sort versions and get the latest one
+     betaVersions.sort((a, b) => {
+       const aMatch = a.match(/(\d+)\.(\d+)\.(\d+)-beta(?:\.(\d+))?/);
+       const bMatch = b.match(/(\d+)\.(\d+)\.(\d+)-beta(?:\.(\d+))?/);
+       if (aMatch && bMatch) {
+         const aPatch = parseInt(aMatch[4] || '0');
+         const bPatch = parseInt(bMatch[4] || '0');
+         return bPatch - aPatch; // Descending order
+       }
+       return b.localeCompare(a);
+     });
+     selectedBetaVersion = betaVersions[0];
+   } else if (betaTag && betaTag.startsWith(candidatePrefix)) {
+     selectedBetaVersion = betaTag;
+   }
+   
+   console.log('✅ Beta version exists (meta/tarball), using:', selectedBetaVersion);
+   pkg.version = selectedBetaVersion;
  } else {
    console.log('⚠️  Beta version not found, using stable:', baseVersion);
    pkg.version = baseVersion;

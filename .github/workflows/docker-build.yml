@@ -176,6 +176,15 @@ jobs:
           NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
 
+      - name: Set workspace version for stage build
+        if: inputs.publish_version != ''
+        run: |
+          # For stage, use publish_version with beta suffix to find latest beta version
+          BASE_VERSION="${{ inputs.publish_version }}"
+          echo "Using base version: $BASE_VERSION for stage environment"
+          # Pass the base version to the script via environment variable
+          PUBLISH_VERSION="$BASE_VERSION" REGISTRY_URL="${{ steps.registry_stage.outputs.NEXUS_URL }}" ./scripts/set-workspace-version.sh "stage"
+
       - name: Get Service Name
         id: env
         run: |
