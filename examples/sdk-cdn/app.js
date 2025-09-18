@@ -129,7 +129,7 @@ async function initializeApp() {
       name: 'Cross SDK',
       description: 'Cross SDK for HTML',
       url: 'https://to.nexus',
-      icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+      icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
     }
 
     // Your unique project id provided by Cross Team. If you don't have one, please contact us.

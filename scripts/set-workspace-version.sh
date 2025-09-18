@@ -6,22 +6,58 @@
 set -e
 
 ENVIRONMENT=${1:-prod}
+# ENVIRONMENT alias normalization
+if [ "$ENVIRONMENT" = "development" ]; then
+  ENVIRONMENT="dev"
+fi
 
 echo "🔧 Setting workspace version for $ENVIRONMENT environment..."
 
 case "$ENVIRONMENT" in
   "dev")
     echo "Using alpha version for dev environment"
-    # alpha 버전은 이미 설정되어 있으므로 변경 없음
-    SELECTED_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    # 루트 package.json의 버전을 기준으로 -alpha 접미사를 보장
+    ROOT_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    BASE_VERSION=$(node -e "try{const v=require('./package.json').version||'';console.log(v.replace(/-alpha.*$/,'').replace(/-beta.*$/,''))}catch(e){console.log('')}" 2>/dev/null || echo "")
+    if [ -n "$ROOT_VERSION" ] && echo "$ROOT_VERSION" | grep -q "-alpha"; then
+      SELECTED_VERSION="$ROOT_VERSION"
+    else
+      SELECTED_VERSION="${BASE_VERSION}-alpha"
+    fi
+    # 가능하면 Nexus에서 최신 alpha 버전 조회 (@to-nexus/sdk 기준)
+    if [ -z "$REGISTRY_URL" ] && [ -f ".npmrc" ]; then
+      REGISTRY_URL=$(grep "@to-nexus:registry" .npmrc | cut -d'=' -f2 || true)
+    fi
+    if [ -n "$REGISTRY_URL" ]; then
+      LATEST_ALPHA=$(NPM_CONFIG_USERCONFIG="$PWD/.npmrc" npm view "@to-nexus/sdk@alpha" version --registry "$REGISTRY_URL" 2>/dev/null || true)
+      if [ -n "$LATEST_ALPHA" ]; then
+        SELECTED_VERSION="$LATEST_ALPHA"
+        echo "Resolved latest alpha from registry: $SELECTED_VERSION"
+      else
+        echo "Could not resolve latest alpha from registry; fallback to $SELECTED_VERSION"
+      fi
+    fi
+
     if [ -n "$SELECTED_VERSION" ]; then
       node scripts/set-workspace-version.cjs "$SELECTED_VERSION" || true
       # sdkVersion 상수도 동기화하여 런타임 로그가 올바른 버전을 출력하도록 함
       node scripts/set-version.js "$SELECTED_VERSION" || true
+      # prebuild 단계에서 사용하는 주입 스크립트와도 버전을 강제 동기화
+      APP_VERSION="$SELECTED_VERSION" node scripts/inject-version.js || true
     fi
     ;;
   "stage")
     echo "Setting workspace version to beta for stage environment..."
+    
+    # If PUBLISH_VERSION is provided, use it as base version
+    if [ -n "$PUBLISH_VERSION" ]; then
+      echo "Using provided publish version: $PUBLISH_VERSION"
+      BASE_VERSION="$PUBLISH_VERSION"
+    else
+      # Fallback to package.json version
+      BASE_VERSION=$(node -p "require('./package.json').version.replace(/-alpha.*$/,'').replace(/-beta.*$/,'')" 2>/dev/null || echo "")
+    fi
+    
     # 우선순위: REGISTRY_URL env > .npmrc(@to-nexus 매핑) > .npmrc(auth 호스트) > 없음
     if [ -z "$REGISTRY_URL" ] && [ -f ".npmrc" ]; then
       REGISTRY_URL=$(grep "@to-nexus:registry" .npmrc | cut -d'=' -f2 || true)
@@ -76,7 +112,9 @@ case "$ENVIRONMENT" in
       TOKEN_STATE=$( [ ${#AUTH_HEADER[@]} -gt 0 ] && echo present || echo absent )
       echo "ℹ️ registry GET status: $HTTP_CODE, token: $TOKEN_STATE, type: ${CONTENT_TYPE:-unknown}"
       # tarball 존재 여부 확인 (e.g., sdk-<base>-beta.tgz)
-      BASE_VERSION=$(node -p "require('./package.json').version.replace(/-alpha.*$/,'').replace(/-beta.*$/,'')" 2>/dev/null || echo "")
+      if [ -z "$BASE_VERSION" ]; then
+        BASE_VERSION=$(node -p "require('./package.json').version.replace(/-alpha.*$/,'').replace(/-beta.*$/,'')" 2>/dev/null || echo "")
+      fi
       if [ -n "$BASE_VERSION" ]; then
         TARBALL_URL="${REGISTRY_URL}%40to-nexus%2Fsdk/-/sdk-${BASE_VERSION}-beta.tgz"
         if [ ${#AUTH_HEADER[@]} -gt 0 ]; then
@@ -97,12 +135,13 @@ case "$ENVIRONMENT" in
     fi
     export META_RAW
     export TARBALL_OK="${TARBALL_OK:-0}"
+    export BASE_VERSION
     node -e "
  const fs = require('fs');
  let metaStr = process.env.META_RAW || '';
  let meta = {}; try { meta = JSON.parse(metaStr || '{}'); } catch (e) {}
  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
- const baseVersion = pkg.version.replace(/-alpha.*$/, '').replace(/-beta.*$/, '');
+ const baseVersion = process.env.BASE_VERSION || pkg.version.replace(/-alpha.*$/, '').replace(/-beta.*$/, '');
  const candidatePrefix = baseVersion + '-beta';
  const distTags = (meta && meta['dist-tags']) || {};
  const versions = (meta && meta.versions) || {};
@@ -110,9 +149,29 @@ case "$ENVIRONMENT" in
  const hasBetaMeta = (betaTag && betaTag.startsWith(candidatePrefix)) || Object.keys(versions).some(v => v.startsWith(candidatePrefix));
  const hasBeta = hasBetaMeta || process.env.TARBALL_OK === '1';
  if (hasBeta) {
-   const betaVersion = candidatePrefix;
-   console.log('✅ Beta version exists (meta/tarball), using:', betaVersion);
-   pkg.version = betaVersion;
+   // Find the latest beta version with the same base version
+   const betaVersions = Object.keys(versions).filter(v => v.startsWith(candidatePrefix));
+   let selectedBetaVersion = candidatePrefix;
+   
+   if (betaVersions.length > 0) {
+     // Sort versions and get the latest one
+     betaVersions.sort((a, b) => {
+       const aMatch = a.match(/(\d+)\.(\d+)\.(\d+)-beta(?:\.(\d+))?/);
+       const bMatch = b.match(/(\d+)\.(\d+)\.(\d+)-beta(?:\.(\d+))?/);
+       if (aMatch && bMatch) {
+         const aPatch = parseInt(aMatch[4] || '0');
+         const bPatch = parseInt(bMatch[4] || '0');
+         return bPatch - aPatch; // Descending order
+       }
+       return b.localeCompare(a);
+     });
+     selectedBetaVersion = betaVersions[0];
+   } else if (betaTag && betaTag.startsWith(candidatePrefix)) {
+     selectedBetaVersion = betaTag;
+   }
+   
+   console.log('✅ Beta version exists (meta/tarball), using:', selectedBetaVersion);
+   pkg.version = selectedBetaVersion;
  } else {
    console.log('⚠️  Beta version not found, using stable:', baseVersion);
    pkg.version = baseVersion;

@@ -36,10 +36,22 @@ export class W3mAllWalletsWidget extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    const wcConnector = this.connectors.find(c => c.id === 'walletConnect')
+    const wcConnector = this.connectors.find(
+      c => c.id === 'walletConnect' || c.type === 'WALLET_CONNECT'
+    )
     const { allWallets } = OptionsController.state
 
+    // 🔍 디버그 포인트 3
+    console.log('📱 AllWalletsWidget Debug:', {
+      wcConnector,
+      allWallets,
+      connectors: this.connectors,
+      count: this.count,
+      connectorsDetail: this.connectors.map(c => ({ id: c.id, name: c.name, type: c.type }))
+    })
+
     if (!wcConnector || allWallets === 'HIDE') {
+      console.log('❌ All Wallets 숨김:', { wcConnector: !!wcConnector, allWallets })
       return null
     }
 

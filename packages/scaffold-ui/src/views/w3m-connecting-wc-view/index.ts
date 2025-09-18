@@ -121,7 +121,7 @@ export class W3mConnectingWcView extends LitElement {
       return true
     }
 
-    // window.ethereum에서 Cross Wallet 전용 체크
+    // window.ethereum에서 CROSS Wallet 전용 체크
     const isCrossWalletInWindow =
       typeof window !== 'undefined' && (window as any).ethereum && (window as any).ethereum[rdns]
 
@@ -149,23 +149,31 @@ export class W3mConnectingWcView extends LitElement {
       return true
     }
 
-    // 익스텐션 지원 브라우저에서 Cross Wallet 확인
+    // 익스텐션 지원 브라우저에서 CROSS Wallet 확인
     if (isBrowser && !ChainController.state.noAdapters && rdns) {
+      const isChrome = CoreHelperUtil.isChrome()
       const isCrossWalletFound = this.isCrossWalletInstalled(rdns)
 
       if (isCrossWalletFound) {
-        this.platforms.push('browser')
-        this.platforms.push('qrcode')
-        this.platform = 'browser'
+        // console.log('isCrossWalletFound', isCrossWalletFound)
+        if (isChrome) {
+          this.platforms.push('qrcode')
+          this.platforms.push('browser')
+          this.platform = 'qrcode'
+        } else {
+          this.platforms.push('qrcode')
+          this.platform = 'qrcode'
+        }
       } else {
         this.platforms.push('qrcode')
         this.platform = 'qrcode'
       }
-    } else {
-      this.platforms.push('qrcode')
-      this.platform = 'qrcode'
+      return true
     }
 
+    // 기본 케이스
+    this.platforms.push('qrcode')
+    this.platform = 'qrcode'
     return true
   }
 
@@ -191,9 +199,9 @@ export class W3mConnectingWcView extends LitElement {
     const isBrowserWc = isBrowser && isBrowserInstalled
     const isDesktopWc = desktop_link && !CoreHelperUtil.isMobile()
 
-    // Special handling for Cross Wallet
+    // Special handling for CROSS Wallet
     const isCrossWallet =
-      this.wallet.name?.includes('Cross Wallet') || rdns === 'nexus.to.crosswallet.desktop'
+      this.wallet.name?.includes('CROSS Wallet') || rdns === 'nexus.to.crosswallet.desktop'
 
     if (isCrossWallet && rdns) {
       this.determinePlatformsForCross({ mobile_link, rdns, isBrowser: Boolean(isBrowser) })

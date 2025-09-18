@@ -1,6 +1,7 @@
 import type { ChainNamespace } from './TypeUtil.js'
 
 function getEnv(): string {
+  // console.log('ConstantUtil.ts getEnv(), import.meta.env', import.meta.env)
   if (typeof import.meta !== 'undefined' && import.meta.env?.['VITE_ENV_MODE']) {
     return import.meta.env['VITE_ENV_MODE']
   }
@@ -13,22 +14,47 @@ function getEnv(): string {
     return process.env['NODE_ENV']
   }
 
-  return 'development'
+  return 'production'
 }
 
 export const ConstantsUtil = {
   WC_NAME_SUFFIX: '.reown.id',
   WC_NAME_SUFFIX_LEGACY: '.wcn.id',
-  BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001',  // todo: why not provide mainnet option?
-  PULSE_API_URL: 'https://pulse.walletconnect.org',   // todo: remove this
-  W3M_API_URL:
-    getEnv() === 'development'
-      ? 'https://wallet-server.crosstoken.io'   // no need to use dev-wallet-server
-      : 'https://wallet-server.crosstoken.io',
-  RELAY_URL_DEV: 'wss://cross-relay.crosstoken.io/ws',  // no need to use dev-cross-relay
-  RELAY_URL_PROD: 'wss://cross-relay.crosstoken.io/ws',
-  VERIFY_URL_DEV: 'http://cross-verify.crosstoken.io',  // no need to use dev-cross-verify
-  VERIFY_URL_PROD: 'http://cross-verify.crosstoken.io',
+  BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001', // todo: why not provide mainnet option?
+  PULSE_API_URL: 'https://pulse.walletconnect.org', // todo: remove this
+  getWeb3mApiUrl() {
+    const injectedEnv = getEnv()
+    type EnvKey = keyof typeof ConstantsUtil.W3M_API_URL
+    const envKey = injectedEnv.toUpperCase() as EnvKey
+    return ConstantsUtil.W3M_API_URL[envKey]
+  },
+  W3M_API_URL: {
+    DEVELOPMENT: 'https://wallet-server.crosstoken.io',
+    STAGE: 'https://wallet-server.crosstoken.io',
+    PRODUCTION: 'https://wallet-server.crosstoken.io'
+  },
+  getRelayUrl() {
+    const injectedEnv = getEnv()
+    type EnvKey = keyof typeof ConstantsUtil.RELAY_URL
+    const envKey = injectedEnv.toUpperCase() as EnvKey
+    return ConstantsUtil.RELAY_URL[envKey]
+  },
+  RELAY_URL: {
+    DEVELOPMENT: 'wss://dev-cross-relay.crosstoken.io/ws',
+    STAGE: 'wss://stg-cross-relay.crosstoken.io/ws',
+    PRODUCTION: 'wss://cross-relay.crosstoken.io/ws'
+  },
+  getVerifyUrl() {
+    const injectedEnv = getEnv()
+    type EnvKey = keyof typeof ConstantsUtil.VERIFY_URL
+    const envKey = injectedEnv.toUpperCase() as EnvKey
+    return ConstantsUtil.VERIFY_URL[envKey]
+  },
+  VERIFY_URL: {
+    DEVELOPMENT: 'http://cross-verify.crosstoken.io',
+    STAGE: 'http://cross-verify.crosstoken.io',
+    PRODUCTION: 'http://cross-verify.crosstoken.io'
+  },
   /* Connector IDs */
   CONNECTOR_ID: {
     WALLET_CONNECT: 'cross_wallet',

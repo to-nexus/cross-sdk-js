@@ -127,34 +127,39 @@ interface AppKitOptionsWithSdk extends AppKitOptions {
 
 // -- Helpers -------------------------------------------------------------------
 let isInitialized = false
+export enum EnvMode {
+  DEV = 'development',
+  STAGE = 'stage',
+  PROD = 'production'
+}
 
 function getEnv(): string {
   // ✅ Vite 환경 (import.meta.env.MODE 사용)
   if (import.meta?.env?.['VITE_ENV_MODE']) {
-    console.log('getEnv(), import.meta.env.VITE_ENV_MODE', import.meta.env['VITE_ENV_MODE'])
+    // console.log('getEnv(), import.meta.env', import.meta.env)
+    // console.log('getEnv(), import.meta.env.VITE_ENV_MODE', import.meta.env['VITE_ENV_MODE'])
 
     return import.meta.env['VITE_ENV_MODE']
   }
 
   // ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
   if (process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
-    console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env['NEXT_PUBLIC_ENV_MODE'])
+    // console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env['NEXT_PUBLIC_ENV_MODE'])
 
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
   // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
   if (process?.env?.['NODE_ENV']) {
-    console.log('getEnv(), process.env.NODE_ENV', process.env['NODE_ENV'])
+    // console.log('getEnv(), process.env.NODE_ENV', process.env['NODE_ENV'])
 
     return process.env['NODE_ENV']
   }
 
   // ✅ 브라우저에서 직접 주입된 환경 변수 (globalThis 사용)
+  // console.log('getEnv(), development')
 
-  console.log('getEnv(), development')
-
-  return 'development'
+  return 'production'
 }
 
 // -- Client --------------------------------------------------------------------
@@ -232,6 +237,7 @@ export class AppKit {
   private async autoSwitchWalletNetwork() {
     if (!AccountController.state.address || !ChainController.state.activeCaipNetwork) {
       console.log(`autoSwitchWalletNetwork, No address or activeCaipNetwork`)
+
       return
     }
 
@@ -268,6 +274,7 @@ export class AppKit {
     } catch (error) {
       console.warn('Failed to get current wallet chain ID:', error)
     }
+
     return undefined
   }
 
@@ -1607,6 +1614,49 @@ export class AppKit {
           }
         }
       })
+
+      // 모바일 세션 끊김 감지 이벤트 구독
+      this.listenMobileSessionDetection()
+    }
+  }
+
+  /**
+   * 모바일 세션 끊김 감지 이벤트를 구독하여 account 상태를 자동으로 동기화
+   */
+  private listenMobileSessionDetection() {
+    if (this.universalProvider?.client?.engine) {
+      // Engine의 session_disconnected 이벤트 구독
+      ;(this.universalProvider.client.engine as any).events.on(
+        'session_disconnected',
+        (event: any) => {
+          // Reason을 명확하게 표시
+          const reason = event?.result?.reason || 'unknown'
+          const topic = event?.result?.topic || 'unknown'
+
+          // 세션 끊김 시 모든 네임스페이스의 account 상태 초기화
+          this.chainNamespaces.forEach(namespace => {
+            this.resetAccount(namespace)
+
+            // 리셋 후 상태 확인
+            const accountState = ChainController.getAccountDataByChainNamespace(namespace)
+            console.log('📱 [APPKIT] Account state after reset:', {
+              namespace,
+              caipAddress: accountState?.caipAddress,
+              isConnected: Boolean(accountState?.caipAddress)
+            })
+          })
+
+          // WalletConnect 연결 상태 리셋
+          ConnectionController.resetWcConnection()
+
+          // Action-Button으로 이벤트 전달 (모달 표시용)
+          window.dispatchEvent(
+            new CustomEvent('appkit_session_disconnected', {
+              detail: event
+            })
+          )
+        }
+      )
     }
   }
 
@@ -1695,7 +1745,7 @@ export class AppKit {
 
     if (adapter && activeChain && address) {
       const balance = await adapter.getBalance({
-        address: address,
+        address,
         chainId: chainId as string | number,
         caipNetwork: this.getCaipNetwork(),
         tokens: this.options.tokens,
@@ -1742,6 +1792,7 @@ export class AppKit {
         }) || namespaceAccounts[0]
 
       if (sessionAddress) {
+        console.log(`Got ya! 😏 sessionAddress: ${sessionAddress}`)
         const caipAddress = ParseUtil.validateCaipAddress(sessionAddress)
         const { chainId, address } = ParseUtil.parseCaipAddress(caipAddress)
         ProviderUtil.setProviderId(
@@ -1779,6 +1830,13 @@ export class AppKit {
         })
       } else if (sessionNamespaces.includes(chainNamespace)) {
         this.setStatus('disconnected', chainNamespace)
+      } else if (sessionNamespaces.length === 0) {
+        this.setStatus('disconnected', chainNamespace)
+        console.log('Got ya! 😏 namespaces empty')
+      } else {
+        console.log(
+          `Got ya! 😏 namespaces not empty: ${JSON.stringify(sessionNamespaces)} and chainNamespace: ${chainNamespace}`
+        )
       }
     })
 
@@ -2167,8 +2225,15 @@ export class AppKit {
       console.error(...args)
     })
 
-    const injectedEnv = getEnv()
-    console.log(`injected env from your project: ${injectedEnv}`)
+    const envKey = getEnv().toUpperCase()
+    const verifyUrl =
+      (ConstantsUtil as any).getVerifyUrl?.() ||
+      (ConstantsUtil as any).VERIFY_URL?.[envKey] ||
+      'http://cross-verify.crosstoken.io'
+    const relayUrl =
+      (ConstantsUtil as any).getRelayUrl?.() ||
+      (ConstantsUtil as any).RELAY_URL?.[envKey] ||
+      'wss://cross-relay.crosstoken.io/ws'
 
     const universalProviderOptions: UniversalProviderOpts = {
       projectId: this.options?.projectId,
@@ -2177,17 +2242,13 @@ export class AppKit {
         description: this.options?.metadata ? this.options?.metadata.description : '',
         url: this.options?.metadata ? this.options?.metadata.url : '',
         icons: this.options?.metadata ? this.options?.metadata.icons : [''],
-        verifyUrl:
-          injectedEnv === 'development'
-            ? ConstantsUtil.VERIFY_URL_DEV
-            : ConstantsUtil.VERIFY_URL_PROD,
+        verifyUrl,
         redirect: {
           universal: this.options?.metadata?.redirect?.universal
         }
       },
       logger,
-      relayUrl:
-        injectedEnv === 'development' ? ConstantsUtil.RELAY_URL_DEV : ConstantsUtil.RELAY_URL_PROD
+      relayUrl
     }
 
     console.log(`relayUrl: ${universalProviderOptions.relayUrl}`)

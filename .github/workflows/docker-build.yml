@@ -1,0 +1,345 @@
+name: Docker Build & Push
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: string
+      publish_version:
+        description: "배포 버전"
+        required: false
+        type: string
+      dry_run:
+        description: "실제 푸시 없이 빌드만 수행"
+        required: false
+        default: 'false'
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build_and_push_dev:
+    name: Build and Push Docker Image (dev)
+    # develop 의 dev 전용, sample-page는 독립 실행
+    if: |
+      ((github.ref == 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/feature/')) && inputs.environment == 'dev'
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Resolve Nexus registry URL (dev)
+        id: registry_dev
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@to-nexus:registry=${{ steps.registry_dev.outputs.NEXUS_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Get Service Name
+        id: env
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+      - name: Build Docker Image (dry run, no push)
+        if: inputs.dry_run == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+  build_and_push_stage:
+    name: Build and Push Docker Image (stage)
+    # release/* | feature/* 의 stage 전용, sample-page는 독립 실행
+    if: |
+      (startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/feature/')) && inputs.environment == 'stage'
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Resolve Nexus registry URL (stage)
+        id: registry_stage
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@to-nexus:registry=${{ steps.registry_stage.outputs.NEXUS_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Set workspace version for stage build
+        if: inputs.publish_version != ''
+        run: |
+          # For stage, use publish_version with beta suffix to find latest beta version
+          BASE_VERSION="${{ inputs.publish_version }}"
+          echo "Using base version: $BASE_VERSION for stage environment"
+          # Add execute permission and run the script
+          chmod +x ./scripts/set-workspace-version.sh
+          PUBLISH_VERSION="$BASE_VERSION" REGISTRY_URL="${{ steps.registry_stage.outputs.NEXUS_URL }}" ./scripts/set-workspace-version.sh "stage"
+
+      - name: Get Service Name
+        id: env
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+      - name: Build Docker Image (dry run, no push)
+        if: inputs.dry_run == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc
+
+  build_and_push_prod:
+    name: Build and Push Docker Image (prod)
+    if: |
+      github.ref == 'refs/heads/main' && inputs.environment == 'prod'
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Set workspace version for prod build
+        run: |
+          # For prod, use publish_version without prerelease suffix
+          VERSION="${{ inputs.publish_version }}"
+          # Remove any existing prerelease suffix for prod
+          VERSION=$(echo "$VERSION" | sed 's/-.*$//')
+          echo "Setting workspace version to: $VERSION"
+          pnpm run version:set "$VERSION"
+
+      - name: Configure npm for Nexus
+        run: |
+          echo "//${NEXUS_REGISTRY_URL#https://}:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@to-nexus:registry=${{ secrets.NEXUS_REGISTRY_URL }}" >> .npmrc
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Get Service Name
+        id: env
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          echo "SERVICE_NAME=${REPO_NAME}" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          ENV_NAME=${{ inputs.environment }}
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "ECR_REPO=${ENV_NAME}/${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        if: inputs.dry_run == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        if: inputs.dry_run == 'false'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker Image
+        if: inputs.dry_run == 'false'
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:${{ steps.env.outputs.GIT_SHA }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.env.outputs.ECR_REPO }}:latest
+          platforms: linux/amd64
+          build-args: |
+            WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
+            SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
+            VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+          secrets: |
+            github_token=${{ secrets.READ_ONLY_REPO }}
+            npmrc=./.npmrc

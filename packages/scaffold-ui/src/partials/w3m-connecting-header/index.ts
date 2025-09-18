@@ -21,6 +21,13 @@ export class W3mConnectingHeader extends LitElement {
 
   public constructor() {
     super()
+    // Persist custom tab colors on host so they survive child re-renders
+    this.style.setProperty('--wui-tabs-active-bg', '#ffffff')
+    this.style.setProperty('--wui-tabs-active-text-color', '#222222')
+    this.style.setProperty('--wui-tabs-active-icon-color', '#222222')
+    this.style.setProperty('--wui-tabs-disabled-opacity', '1')
+    this.style.setProperty('--wui-tabs-active-disabled-text-color', '#222222')
+    this.style.setProperty('--wui-tabs-active-disabled-icon-color', '#222222')
     this.unsubscribe.push(
       ConnectionController.subscribeKey('buffering', val => (this.buffering = val))
     )
@@ -37,6 +44,7 @@ export class W3mConnectingHeader extends LitElement {
     return html`
       <wui-flex justifyContent="center" .padding=${['0', '0', 'l', '0'] as const}>
         <wui-tabs
+          style="--wui-tabs-active-bg:#fff;--wui-tabs-active-text-color:#222;--wui-tabs-active-icon-color:#222;--wui-tabs-disabled-opacity:1;--wui-tabs-active-disabled-text-color:#222;--wui-tabs-active-disabled-icon-color:#222"
           ?disabled=${this.buffering}
           .tabs=${tabs}
           .onTabChange=${this.onTabChange.bind(this)}
@@ -49,7 +57,7 @@ export class W3mConnectingHeader extends LitElement {
   private generateTabs() {
     const tabs = this.platforms.map(platform => {
       if (platform === 'browser') {
-        return { label: 'Browser', icon: 'extension', platform: 'browser' } as const
+        return { label: 'Desktop', icon: 'extension', platform: 'browser' } as const
       } else if (platform === 'mobile') {
         return { label: 'Mobile', icon: 'mobile', platform: 'mobile' } as const
       } else if (platform === 'qrcode') {

@@ -65,6 +65,25 @@ export const CoreHelperUtil = {
     )
   },
 
+  isChrome() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    const ua = window.navigator.userAgent.toLowerCase()
+
+    // Chrome은 'chrome'을 포함하지만 다른 브라우저 식별자는 포함하지 않음
+    // 주의: Chrome UA에는 'safari'도 포함되어 있으므로 safari 체크를 제거
+    return (
+      ua.includes('chrome') &&
+      !ua.includes('edg') && // Edge
+      !ua.includes('opr') && // Opera
+      !ua.includes('crios') && // Chrome iOS
+      !ua.includes('fxios') && // Firefox iOS
+      !ua.includes('edgios') // Edge iOS
+    )
+  },
+
   isClient() {
     return typeof window !== 'undefined'
   },
@@ -255,7 +274,7 @@ export const CoreHelperUtil = {
   },
 
   getApiUrl() {
-    return CommonConstants.W3M_API_URL
+    return CommonConstants.getWeb3mApiUrl()
   },
 
   getBlockchainApiUrl() {

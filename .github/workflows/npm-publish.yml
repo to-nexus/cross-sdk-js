@@ -1,0 +1,823 @@
+name: NPM Publish
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: string
+      publish_version:
+        description: "배포 버전"
+        required: true
+        type: string
+      dry_run:
+        description: "실제 퍼블리시/푸시/태깅 없이 검증만 수행"
+        required: false
+        default: 'false'
+        type: string
+      package_versions:
+        description: "외부 의존성 오버라이드"
+        required: false
+        default: ''
+        type: string
+      publish_filters:
+        description: "퍼블리시 허용 패턴"
+        required: false
+        default: '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client'
+        type: string
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  version_bump:
+    name: Version Bump (reusable)
+    # Runs for dev/stage on release/* and feature/*, and for prod on main when relevant services selected
+    if: |
+      (
+        (
+          github.ref == 'refs/heads/develop' && inputs.environment == 'dev'
+        ) || (
+          startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')
+        ) || (
+          startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage'
+        ) || (
+          github.ref == 'refs/heads/main' && inputs.environment == 'prod'
+        )
+      ) || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    uses: ./.github/workflows/version_bump.yml
+    with:
+      environment: ${{ inputs.environment || 'prod' }}
+      versions: ${{ inputs.package_versions }}
+    secrets: inherit
+
+  publish_npm_preview:
+    name: Publish to Nexus NPM (preview)
+    needs: [version_bump]
+    # develop(dev) | feature/*(dev/stage) | release/*(stage) 전용
+    if: |
+      (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
+      (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
+      (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage')
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+    steps:
+      - name: Resolve Nexus registry URL
+        id: registry
+        run: |
+          if [ "${{ inputs.environment }}" = "dev" ]; then
+            url="${DEV_VAR:-$DEV_SECRET}"
+          elif [ "${{ inputs.environment }}" = "stage" ]; then
+            url="${STAGE_VAR:-$STAGE_SECRET}"
+          else
+            url="$PROD_SECRET"
+          fi
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+        env:
+          DEV_VAR: ${{ vars.NEXUS_DEV_REGISTRY_URL }}
+          DEV_SECRET: ${{ secrets.NEXUS_DEV_REGISTRY_URL }}
+          STAGE_VAR: ${{ vars.NEXUS_STAGE_REGISTRY_URL }}
+          STAGE_SECRET: ${{ secrets.NEXUS_STAGE_REGISTRY_URL }}
+          PROD_SECRET: ${{ secrets.NEXUS_REGISTRY_URL }}
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Configure npm for Nexus
+        run: |
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
+          echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
+      - name: Verify npm auth and test publish (gate)
+        run: |
+          set -e
+          
+          echo "=== Verifying npm auth with configured .npmrc ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
+          
+          echo "=== Test publish to verify write access ==="
+          TMP_DIR=$(mktemp -d)
+          pushd "$TMP_DIR" > /dev/null
+          # Copy the configured .npmrc to temp directory
+          cp "$GITHUB_WORKSPACE/.npmrc" .npmrc
+          NAME="@to-nexus/test-publish-ci-$(date +%s)-$RANDOM"
+          npm init -y >/dev/null 2>&1
+          npm pkg set name="$NAME" version="0.0.0-alpha.0" main="index.js" >/dev/null
+          echo "console.log('ok')" > index.js
+          npm publish --access public --tag alpha --registry "${NEXUS_REGISTRY_URL}" >/dev/null
+          echo "Test publish OK: $NAME"
+          # cleanup best-effort
+          npm unpublish "$NAME" --force --registry "${NEXUS_REGISTRY_URL}" >/dev/null 2>&1 || \
+            npm deprecate "$NAME@*" "ci test package" --registry "${NEXUS_REGISTRY_URL}" >/dev/null 2>&1 || true
+          popd > /dev/null
+          rm -rf "$TMP_DIR"
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+
+      - name: Install dependencies (packages only)
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Compute version and resolve dependencies
+        id: version
+        run: |
+          # Version resolution strategy based on branch type
+          if [[ "${GITHUB_REF_NAME}" == release/* ]]; then
+            # Release branch: publish_version > branch name
+            if [ -n "${{ inputs.publish_version }}" ]; then
+              REF_VERSION="${{ inputs.publish_version }}"
+              echo "Using manual version for release branch: $REF_VERSION"
+            else
+              REF_VERSION="${GITHUB_REF_NAME#release/}"
+              echo "Using version from release branch: $REF_VERSION"
+            fi
+          else
+            # Develop/other branches: publish_version is required
+            if [ -n "${{ inputs.publish_version }}" ]; then
+              REF_VERSION="${{ inputs.publish_version }}"
+              echo "Using manual version for develop branch: $REF_VERSION"
+            else
+              echo "❌ ERROR: publish_version is required for non-release branches"
+              echo "Current branch: ${GITHUB_REF_NAME}"
+              echo "Please provide publish_version input for develop branch deployment"
+              exit 1
+            fi
+          fi
+          echo "REF_VERSION=${REF_VERSION}" >> $GITHUB_OUTPUT
+          
+          # Auto-append or increment prerelease suffix for dev/stage
+          if [[ "${{ inputs.environment }}" == "dev" ]]; then
+            echo "=== Alpha 버전 처리 시작 ==="
+            
+            # npm 인증 설정 (기존 작동 방식과 동일)
+            REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+            HOST_PATH="${REGISTRY_URL#https://}"
+            HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+            HOST_DOMAIN="${HOST_PATH%%/*}"
+            echo "@to-nexus:registry=${REGISTRY_URL}" > .npmrc
+            echo "//${HOST_PATH}/:_authToken=${{ secrets.NEXUS_NPM_TOKEN }}" >> .npmrc
+            echo "//${HOST_PATH_NO_SLASH}:_authToken=${{ secrets.NEXUS_NPM_TOKEN }}" >> .npmrc
+            echo "//${HOST_DOMAIN}/:_authToken=${{ secrets.NEXUS_NPM_TOKEN }}" >> .npmrc
+            echo "//${HOST_DOMAIN}/repository/:_authToken=${{ secrets.NEXUS_NPM_TOKEN }}" >> .npmrc
+            echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+            echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+            echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+            echo "always-auth=true" >> .npmrc
+            echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+            echo "🔍 npm 인증 설정 완료: $REGISTRY_URL"
+            
+            # 기존 alpha 버전이 포함되어 있다면 베이스 버전 추출
+            BASE_VERSION="$REF_VERSION"
+            if [[ "$REF_VERSION" == *-alpha* ]]; then
+              BASE_VERSION=$(echo "$REF_VERSION" | sed 's/-alpha.*//')
+              echo "기존 alpha 버전에서 베이스 버전 추출: $BASE_VERSION"
+            fi
+            
+            # 레지스트리에서 최신 alpha 버전 확인 (인증된 npm view 사용)
+            REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+            echo "🔍 레지스트리에서 기존 alpha 버전 확인 중: $REGISTRY_URL"
+            echo "🔍 베이스 버전: $BASE_VERSION"
+            echo "🔍 현재 환경: ${{ inputs.environment }}"
+            echo "🔍 입력된 publish_version: ${{ inputs.publish_version }}"
+            
+            LATEST_ALPHA_NUM=-1
+            
+            # 대표 패키지(@to-nexus/appkit)에서 alpha 버전들 조회
+            echo "🔍 @to-nexus/appkit에서 $BASE_VERSION-alpha.* 패턴 검색 중..."
+            
+            # npm view로 모든 버전 조회 (인증 정보 사용)
+            set +e
+            ALL_VERSIONS=$(npm view "@to-nexus/appkit" versions --json --registry="${REGISTRY_URL}" 2>/dev/null)
+            QUERY_EXIT_CODE=$?
+            set -e
+            
+            echo "🔍 npm view 쿼리 종료 코드: $QUERY_EXIT_CODE"
+            echo "🔍 조회 결과 길이: ${#ALL_VERSIONS}"
+            echo "🔍 조회 결과 내용 (처음 500자): ${ALL_VERSIONS:0:500}"
+            
+            if [ $QUERY_EXIT_CODE -eq 0 ] && [ -n "$ALL_VERSIONS" ] && [ "$ALL_VERSIONS" != "null" ] && [ "$ALL_VERSIONS" != "[]" ] && [ ${#ALL_VERSIONS} -gt 2 ]; then
+              # JSON 배열에서 해당 베이스 버전의 alpha 버전들 추출
+              ALPHA_VERSIONS=$(echo "$ALL_VERSIONS" | tr -d '[]",' | tr ' ' '\n' | grep "^$BASE_VERSION-alpha\." | sort -V)
+              echo "🔍 발견된 alpha 버전들: $ALPHA_VERSIONS"
+              
+              if [ -n "$ALPHA_VERSIONS" ]; then
+                # 가장 높은 alpha 번호 찾기
+                for version in $ALPHA_VERSIONS; do
+                  ALPHA_NUM=$(echo "$version" | sed -E "s/^$BASE_VERSION-alpha\.([0-9]+)$/\1/")
+                  if [[ "$ALPHA_NUM" =~ ^[0-9]+$ ]] && [ "$ALPHA_NUM" -gt "$LATEST_ALPHA_NUM" ]; then
+                    LATEST_ALPHA_NUM=$ALPHA_NUM
+                    echo "🔍 더 높은 alpha 번호 발견: $LATEST_ALPHA_NUM (버전: $version)"
+                  fi
+                done
+              fi
+            else
+              echo "🔍 레지스트리에서 버전 목록을 가져올 수 없음, 개별 버전 조회로 폴백"
+              
+              # 폴백 전략: 순차적으로 alpha 버전들을 확인해서 존재하는 최고 번호 찾기
+              echo "🔍 개별 alpha 버전들을 순차 조회하여 최신 찾기..."
+              
+              # alpha.0부터 시작해서 존재하지 않을 때까지 확인
+              for i in {0..20}; do
+                CHECK_VERSION="$BASE_VERSION-alpha.$i"
+                set +e
+                EXISTS=$(npm view "@to-nexus/appkit@$CHECK_VERSION" version --registry="${REGISTRY_URL}" 2>/dev/null)
+                CHECK_EXIT_CODE=$?
+                set -e
+                
+                if [ $CHECK_EXIT_CODE -eq 0 ] && [ -n "$EXISTS" ]; then
+                  echo "🔍 발견된 alpha 버전: $CHECK_VERSION"
+                  LATEST_ALPHA_NUM=$i
+                else
+                  echo "🔍 $CHECK_VERSION 없음, 최신은 alpha.$LATEST_ALPHA_NUM"
+                  break
+                fi
+              done
+              
+              if [ $LATEST_ALPHA_NUM -eq -1 ]; then
+                echo "🔍 어떤 alpha 버전도 찾을 수 없음, 기본값 사용"
+              fi
+            fi
+            
+            # 다음 alpha 번호 계산
+            NEXT_ALPHA_NUM=$((LATEST_ALPHA_NUM + 1))
+            REF_VERSION="$BASE_VERSION-alpha.$NEXT_ALPHA_NUM"
+            echo "🔍 계산된 다음 alpha 버전: $REF_VERSION (이전 최신: alpha.$LATEST_ALPHA_NUM)"
+            
+            echo "자동 증가된 alpha 버전: $REF_VERSION"
+          elif [[ "${{ inputs.environment }}" == "stage" ]]; then
+            echo "=== Beta 버전 처리 시작 ==="
+            
+            # npm 인증 설정 (기존 작동 방식과 동일)
+            REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+            HOST_PATH="${REGISTRY_URL#https://}"
+            HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+            HOST_DOMAIN="${HOST_PATH%%/*}"
+            echo "@to-nexus:registry=${REGISTRY_URL}" > .npmrc
+            echo "//${HOST_PATH}/:_authToken=${{ secrets.NEXUS_NPM_TOKEN }}" >> .npmrc
+            echo "//${HOST_PATH_NO_SLASH}:_authToken=${{ secrets.NEXUS_NPM_TOKEN }}" >> .npmrc
+            echo "//${HOST_DOMAIN}/:_authToken=${{ secrets.NEXUS_NPM_TOKEN }}" >> .npmrc
+            echo "//${HOST_DOMAIN}/repository/:_authToken=${{ secrets.NEXUS_NPM_TOKEN }}" >> .npmrc
+            echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+            echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+            echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+            echo "always-auth=true" >> .npmrc
+            echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+            echo "🔍 npm 인증 설정 완료: $REGISTRY_URL"
+            
+            # 기존 beta 버전이 포함되어 있다면 베이스 버전 추출
+            BASE_VERSION="$REF_VERSION"
+            if [[ "$REF_VERSION" == *-beta* ]]; then
+              BASE_VERSION=$(echo "$REF_VERSION" | sed 's/-beta.*//')
+              echo "기존 beta 버전에서 베이스 버전 추출: $BASE_VERSION"
+            fi
+            
+            # 레지스트리에서 최신 beta 버전 확인 (인증된 npm view 사용)
+            REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+            echo "🔍 레지스트리에서 기존 beta 버전 확인 중: $REGISTRY_URL"
+            echo "🔍 베이스 버전: $BASE_VERSION"
+            echo "🔍 현재 환경: ${{ inputs.environment }}"
+            echo "🔍 입력된 publish_version: ${{ inputs.publish_version }}"
+            
+            LATEST_BETA_NUM=-1
+            
+            # 대표 패키지(@to-nexus/appkit)에서 beta 버전들 조회
+            echo "🔍 @to-nexus/appkit에서 $BASE_VERSION-beta.* 패턴 검색 중..."
+            
+            # npm view로 모든 버전 조회 (인증 정보 사용)
+            set +e
+            ALL_VERSIONS=$(npm view "@to-nexus/appkit" versions --json --registry="${REGISTRY_URL}" 2>/dev/null)
+            QUERY_EXIT_CODE=$?
+            set -e
+            
+            echo "🔍 npm view 쿼리 종료 코드: $QUERY_EXIT_CODE"
+            echo "🔍 조회 결과 길이: ${#ALL_VERSIONS}"
+            
+            if [ $QUERY_EXIT_CODE -eq 0 ] && [ -n "$ALL_VERSIONS" ] && [ "$ALL_VERSIONS" != "null" ] && [ "$ALL_VERSIONS" != "[]" ] && [ ${#ALL_VERSIONS} -gt 2 ]; then
+              # JSON 배열에서 해당 베이스 버전의 beta 버전들 추출
+              BETA_VERSIONS=$(echo "$ALL_VERSIONS" | tr -d '[]",' | tr ' ' '\n' | grep "^$BASE_VERSION-beta\." | sort -V)
+              echo "🔍 발견된 beta 버전들: $BETA_VERSIONS"
+              
+              if [ -n "$BETA_VERSIONS" ]; then
+                # 가장 높은 beta 번호 찾기
+                for version in $BETA_VERSIONS; do
+                  BETA_NUM=$(echo "$version" | sed -E "s/^$BASE_VERSION-beta\.([0-9]+)$/\1/")
+                  if [[ "$BETA_NUM" =~ ^[0-9]+$ ]] && [ "$BETA_NUM" -gt "$LATEST_BETA_NUM" ]; then
+                    LATEST_BETA_NUM=$BETA_NUM
+                    echo "🔍 더 높은 beta 번호 발견: $LATEST_BETA_NUM (버전: $version)"
+                  fi
+                done
+              fi
+            else
+              echo "🔍 레지스트리에서 버전 목록을 가져올 수 없음, 개별 버전 조회로 폴백"
+              
+              # 폴백 전략: 순차적으로 beta 버전들을 확인해서 존재하는 최고 번호 찾기
+              echo "🔍 개별 beta 버전들을 순차 조회하여 최신 찾기..."
+              
+              # beta.0부터 시작해서 존재하지 않을 때까지 확인
+              for i in {0..20}; do
+                CHECK_VERSION="$BASE_VERSION-beta.$i"
+                set +e
+                EXISTS=$(npm view "@to-nexus/appkit@$CHECK_VERSION" version --registry="${REGISTRY_URL}" 2>/dev/null)
+                CHECK_EXIT_CODE=$?
+                set -e
+                
+                if [ $CHECK_EXIT_CODE -eq 0 ] && [ -n "$EXISTS" ]; then
+                  echo "🔍 발견된 beta 버전: $CHECK_VERSION"
+                  LATEST_BETA_NUM=$i
+                else
+                  echo "🔍 $CHECK_VERSION 없음, 최신은 beta.$LATEST_BETA_NUM"
+                  break
+                fi
+              done
+              
+              if [ $LATEST_BETA_NUM -eq -1 ]; then
+                echo "🔍 어떤 beta 버전도 찾을 수 없음, 기본값 사용"
+              fi
+            fi
+            
+            # 다음 beta 번호 계산
+            NEXT_BETA_NUM=$((LATEST_BETA_NUM + 1))
+            REF_VERSION="$BASE_VERSION-beta.$NEXT_BETA_NUM"
+            echo "계산된 다음 beta 버전: $REF_VERSION (이전 최신: beta.$LATEST_BETA_NUM)"
+            
+            echo "자동 증가된 beta 버전: $REF_VERSION"
+          fi
+          # Re-export possibly adjusted version
+          echo "REF_VERSION=${REF_VERSION}" > tmp_ref_version
+          echo "REF_VERSION=$(cat tmp_ref_version | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+          rm -f tmp_ref_version
+
+          # Apply dependency overrides (package_versions) to force external versions over workspace:*
+          if [ -n "${{ inputs.package_versions }}" ]; then
+            echo "Applying dependency overrides: ${{ inputs.package_versions }}"
+            node -e '
+              const fs = require("fs");
+              const path = require("path");
+              const raw = `${process.env.PACKAGE_VERSIONS}`;
+              const pairs = raw.split(",").map(s => s.trim()).filter(Boolean);
+              const map = {};
+              const alias = {
+                core: "@to-nexus/core",
+                universal: "@to-nexus/universal-provider",
+                "sign-client": "@to-nexus/sign-client",
+                sdk: "@to-nexus/sdk"
+              };
+              for (const p of pairs) {
+                const [k, v] = p.split("=").map(s => s && s.trim());
+                if (!k || !v) continue;
+                const full = alias[k] || k;
+                map[full] = v;
+              }
+              function collectPackageJsons(rootDir) {
+                const results = [];
+                const stack = [rootDir];
+                while (stack.length) {
+                  const dir = stack.pop();
+                  if (!fs.existsSync(dir)) continue;
+                  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                    if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
+                    const fullPath = path.join(dir, entry.name);
+                    if (entry.isDirectory()) {
+                      stack.push(fullPath);
+                    } else if (entry.isFile() && entry.name === "package.json") {
+                      results.push(fullPath);
+                    }
+                  }
+                }
+                return results;
+              }
+              const files = [...collectPackageJsons("./packages"), ...collectPackageJsons("./providers")];
+              for (const file of files) {
+                const pkg = JSON.parse(fs.readFileSync(file, "utf8"));
+                let changed = false;
+                for (const section of ["dependencies","devDependencies","peerDependencies"]) {
+                  if (!pkg[section]) continue;
+                  for (const depName of Object.keys(map)) {
+                      if (pkg[section][depName]) {
+                      if (pkg[section][depName] !== map[depName]) {
+                        pkg[section][depName] = map[depName];
+                        changed = true;
+                        console.log(`Updated ${file}: ${depName} -> ${map[depName]}`);
+                      }
+                  }
+                  }
+                }
+                if (changed) {
+                  fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + "\n");
+                }
+              }
+            ' \
+            PACKAGE_VERSIONS='${{ inputs.package_versions }}'
+          else
+            echo "No dependency overrides provided"
+          fi
+
+          # 계산된 버전으로 워크스페이스 전체 버전 설정
+          echo "=== 워크스페이스 버전을 $REF_VERSION 으로 설정 ==="
+          pnpm run version:set "${REF_VERSION#v}"
+
+          # Mark as bumped for downstream steps
+          echo "VERSION_BUMPED=true" >> $GITHUB_OUTPUT
+
+          # Keep version changes staged (no commit). Publish will read bumped versions
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "VERSION_CHANGES_READY=true" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION_CHANGES_READY=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build packages (packages only)
+        run: |
+          pnpm -w run build
+          # uses package.json script: turbo run build --filter={./packages/*}
+        env:
+          APP_VERSION: ${{ steps.version.outputs.REF_VERSION }}
+
+      # Removed per-package post-build version bump; using bulk version set above
+
+      - name: Override publishConfig.registry to env registry (dev/stage, exclude sign-client)
+        if: inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const target = process.env.NEXUS_URL;
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let count=0;
+            for(const f of files){
+              const pkg=JSON.parse(fs.readFileSync(f, "utf8"));
+              if(pkg.name && /^@to-nexus\//.test(pkg.name)){
+                if(pkg.name === "@to-nexus/sign-client") continue; // exclude from any publish-related mutations
+                pkg.publishConfig = pkg.publishConfig || {};
+                if(pkg.publishConfig.registry !== target){
+                  pkg.publishConfig.registry = target;
+                  fs.writeFileSync(f, JSON.stringify(pkg, null, 2) + "\n");
+                  console.log("publishConfig.registry ->", target, "in", f);
+                  count++;
+                }
+              }
+            }
+            console.log("Updated", count, "package.json files");
+          '
+        env:
+          NEXUS_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+
+      - name: Publish package to Nexus (dev → alpha)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
+        id: publish_dev
+        run: |
+          # Use the already configured .npmrc
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
+
+          echo "=== Verifying npm auth ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
+
+          echo "=== Publishing via pnpm (recursive, @to-nexus/* only) ==="
+          if pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag alpha --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
+          else
+            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+
+      - name: Restore publishConfig.registry from HEAD (dev)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const { execSync } = require("child_process");
+            const fs = require("fs");
+            const path = require("path");
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let reverted=0;
+            for(const f of files){
+              const curr = JSON.parse(fs.readFileSync(f, "utf8"));
+              if(!curr.name || !/^@to-nexus\//.test(curr.name)) continue;
+              try{
+                const headJson = execSync(`git show HEAD:${f}`,{stdio:["ignore","pipe","pipe"]}).toString();
+                const head = JSON.parse(headJson);
+                const headReg = head.publishConfig && head.publishConfig.registry;
+                if(curr.publishConfig && curr.publishConfig.registry && headReg && curr.publishConfig.registry !== headReg){
+                  curr.publishConfig.registry = headReg;
+                  fs.writeFileSync(f, JSON.stringify(curr, null, 2) + "\n");
+                  reverted++;
+                }
+              }catch(e){ /* ignore if file not in HEAD */ }
+            }
+            console.log("publishConfig.registry restored for", reverted, "files");
+          '
+
+      - name: Commit version changes (dev - after successful publish)
+        if: inputs.environment == 'dev' && inputs.dry_run == 'false' && steps.publish_dev.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          git add -A
+          git restore --staged .npmrc 2>/dev/null || true
+          git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
+          git fetch origin "${GITHUB_REF_NAME}" || true
+          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+          git push || git push --force-with-lease
+
+      - name: Rollback version changes (dev - if publish failed)
+        if: inputs.environment == 'dev' && failure() && steps.version.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          echo "⚠️ Publish failed, rolling back version changes..."
+          git reset --hard HEAD
+
+      - name: Publish package to Nexus (stage → beta)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.version.outputs.VERSION_BUMPED == 'true'
+        id: publish_stage
+        run: |
+          # Use the already configured .npmrc
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
+
+          echo "=== Verifying npm auth ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
+          
+          echo "=== Publishing via pnpm (recursive, @to-nexus/* only) ==="
+          if pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag beta --registry "${NEXUS_REGISTRY_URL}" --no-git-checks; then
+            echo "PUBLISH_SUCCESS=true" >> $GITHUB_OUTPUT
+          else
+            echo "PUBLISH_SUCCESS=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        env:
+          NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
+
+      - name: Restore publishConfig.registry from HEAD (stage)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false'
+        run: |
+          node -e '
+            const { execSync } = require("child_process");
+            const fs = require("fs");
+            const path = require("path");
+            function collect(root){
+              const out=[]; if(!fs.existsSync(root)) return out;
+              const stack=[root];
+              while(stack.length){
+                const dir=stack.pop();
+                for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+                  if(ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+                  const p=path.join(dir, ent.name);
+                  if(ent.isDirectory()) stack.push(p);
+                  else if(ent.isFile() && ent.name === "package.json") out.push(p);
+                }
+              }
+              return out;
+            }
+            const files=[...collect("./packages"), ...collect("./providers")];
+            let reverted=0;
+            for(const f of files){
+              const curr = JSON.parse(fs.readFileSync(f, "utf8"));
+              if(!curr.name || !/^@to-nexus\//.test(curr.name)) continue;
+              try{
+                const headJson = execSync(`git show HEAD:${f}`,{stdio:["ignore","pipe","pipe"]}).toString();
+                const head = JSON.parse(headJson);
+                const headReg = head.publishConfig && head.publishConfig.registry;
+                if(curr.publishConfig && curr.publishConfig.registry && headReg && curr.publishConfig.registry !== headReg){
+                  curr.publishConfig.registry = headReg;
+                  fs.writeFileSync(f, JSON.stringify(curr, null, 2) + "\n");
+                  reverted++;
+                }
+              }catch(e){ /* ignore if file not in HEAD */ }
+            }
+            console.log("publishConfig.registry restored for", reverted, "files");
+          '
+
+      - name: Commit version changes (stage - after successful publish)
+        if: inputs.environment == 'stage' && inputs.dry_run == 'false' && steps.publish_stage.outputs.PUBLISH_SUCCESS == 'true' && steps.version.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          git add -A
+          git restore --staged .npmrc 2>/dev/null || true
+          git commit -m "chore: set workspace version to ${{ steps.version.outputs.REF_VERSION }}"
+          git fetch origin "${GITHUB_REF_NAME}" || true
+          git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
+          git push || git push --force-with-lease
+
+      - name: Rollback version changes (stage - if publish failed)
+        if: inputs.environment == 'stage' && failure() && steps.version.outputs.VERSION_CHANGES_READY == 'true'
+        run: |
+          echo "⚠️ Publish failed, rolling back version changes..."
+          git reset --hard HEAD
+
+      - name: Create and push pre-release tag (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        run: |
+          # Use REF_VERSION as-is since it already contains the prerelease suffix
+          TAG="release/${{ steps.version.outputs.REF_VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # For dev/stage environments, always remove existing tags first
+          echo "Removing any existing tag $TAG (dev/stage allows redeployment)"
+          
+          # Remove local tag if it exists
+          git tag -d "$TAG" 2>/dev/null || echo "Local tag $TAG not found"
+          
+          # Remove remote tag if it exists
+          git push origin ":refs/tags/$TAG" 2>/dev/null || echo "Remote tag $TAG not found"
+          
+          echo "Creating new tag $TAG"
+          git tag -a "$TAG" -m "Pre-Release ${{ steps.version.outputs.REF_VERSION }}"
+          git push origin "$TAG"
+
+      - name: Create GitHub Pre-Release (dev/stage)
+        if: (inputs.environment == 'dev' || inputs.environment == 'stage') && inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.REF_VERSION }}
+          name: Pre-Release ${{ steps.version.outputs.REF_VERSION }} (${{ inputs.environment }})
+          prerelease: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dry-run summary (no publish/tag)
+        if: inputs.dry_run == 'true'
+        run: |
+          echo "## Dry Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ steps.version.outputs.REF_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Actions Skipped: publish, tag, GitHub Release" >> $GITHUB_STEP_SUMMARY
+
+  publish_npm_prod:
+    name: Publish to Nexus NPM (prod)
+    needs: [version_bump]
+    if: |
+      github.ref == 'refs/heads/main' && inputs.environment == 'prod'
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Configure npm for Nexus
+        run: |
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
+          echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+      
+      - name: Verify npm authentication
+        run: |
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
+          npm ping --registry "${NEXUS_REGISTRY_URL}" || true
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.5.0
+      
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      
+      - name: Compute version
+        id: version
+        run: |
+          VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+          BASE_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Set workspace version to base (prod)
+        run: |
+          pnpm run version:set "${{ steps.version.outputs.BASE_VERSION }}"
+
+      - name: Build packages
+        run: |
+          pnpm -w run build
+        env:
+          APP_VERSION: ${{ steps.version.outputs.BASE_VERSION }} 
+      
+      - name: Publish package to Nexus (prod → latest)
+        if: inputs.dry_run == 'false'
+        run: |
+          export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
+          export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
+          
+          echo "=== Verifying npm auth before publish ==="
+          npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
+          
+          echo "=== Publishing to prod (latest tag) ==="
+          pnpm -r \
+            --filter "@to-nexus/*" \
+            --filter "!@to-nexus/sign-client" \
+            publish --access public --tag latest --registry "${NEXUS_REGISTRY_URL}" --no-git-checks
+        env:
+          NEXUS_REGISTRY_URL: ${{ secrets.NEXUS_REGISTRY_URL }}
+      
+      - name: Create and push release tag (prod)
+        if: inputs.dry_run == 'false'
+        run: |
+          TAG="release/${{ steps.version.outputs.BASE_VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git fetch origin "$TAG" || true
+            git push origin "$TAG" || git push --force-with-lease origin "$TAG"
+          fi
+      
+      - name: Create GitHub Release (prod)
+        if: inputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release/${{ steps.version.outputs.BASE_VERSION }}
+          name: Release v${{ steps.version.outputs.BASE_VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

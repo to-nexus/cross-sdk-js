@@ -105,18 +105,18 @@ const redirectUrl = window.location.href
 //   projectId,
 //   redirectUrl,
 //   metadata: {
-//     name: 'Cross SDK',
+//     name: 'Cross JS SDK Sample',
 //     description: 'Cross SDK for React',
 //     url: 'https://to.nexus',
-//     icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+//     icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 //   },
 //   themeMode: 'light'
 // })
 const metadata = {
-  name: 'Cross SDK',
+  name: 'Cross JS SDK Sample',
   description: 'Cross SDK for React',
   url: 'https://to.nexus',
-  icons: ['https://contents.crosstoken.io/wallet/token/images/CROSSx.svg']
+  icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 }
 
 initCrossSdk(projectId, redirectUrl, metadata, 'dark')
@@ -168,12 +168,171 @@ export function ActionButtonList() {
     // contractArgs change tracking
   }, [contractArgs?.args])
 
+  // 세션 관리 로직 (SDK에서 이벤트 리스너 제거 후 DApp에서 직접 관리)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (!document.hidden) {
+        // 탭 변경 시 완전한 세션 검증
+        const isSessionActive = await validateAndCleanupSessions(true)
+      }
+    }
+
+    const handlePageFocus = async () => {
+      if (!isOpen) {
+        const isSessionActive = await validateAndCleanupSessions(true)
+      }
+    }
+
+    const handlePageBlur = () => {}
+
+    const validateAndCleanupSessions = async (isSessionCheck: boolean): Promise<boolean> => {
+      try {
+        // UniversalProvider를 통한 세션 확인
+        if (walletProvider?.client?.engine) {
+          // TypeScript 타입 캐스팅으로 validateAndCleanupSessions 메서드 접근
+          const isSessionActive = await (
+            walletProvider.client.engine as any
+          ).validateAndCleanupSessions(isSessionCheck)
+
+          // Engine에서 반환된 결과 사용 (이미 최종 세션 상태를 확인함)
+          return isSessionActive
+        }
+        return false
+      } catch (error) {
+        return false
+      }
+    }
+
+    // 이벤트 리스너 등록
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handlePageFocus)
+    window.addEventListener('blur', handlePageBlur)
+
+    // AppKit에서 전달된 세션 끊김 이벤트 구독
+    const handleSessionDisconnected = (event: CustomEvent) => {
+      console.log('📱 [ACTION-BUTTON] AppKit session disconnected event received:', event.detail)
+    }
+
+    window.addEventListener(
+      'appkit_session_disconnected',
+      handleSessionDisconnected as EventListener
+    )
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handlePageFocus)
+      window.removeEventListener('blur', handlePageBlur)
+      window.removeEventListener(
+        'appkit_session_disconnected',
+        handleSessionDisconnected as EventListener
+      )
+    }
+  }, [isOpen])
+
+  // 수동으로 세션 상태 확인하는 함수 (읽기 전용)
+  const getSessionStatus = async () => {
+    if (!walletProvider?.client?.engine) {
+      showError('Engine not available', 'Engine is not initialized')
+      return
+    }
+
+    try {
+      // Engine의 getSessionStatus 메서드 호출
+      const result = await (walletProvider.client.engine as any).getSessionStatus()
+
+      if (result.error) {
+        showError('Session Check Failed', `Error: ${result.error}`)
+        return
+      }
+
+      if (result.total === 0) {
+        // 세션이 없다고 나와도 실제로는 있을 수 있으므로 더 자세한 확인
+
+        // 직접 세션 확인
+        const directSessions =
+          (walletProvider.client.engine as any).client?.session?.getAll?.() || []
+        if (directSessions.length > 0) {
+          showSuccess(
+            'Sessions Found (Direct Check)',
+            `Found ${directSessions.length} sessions via direct check. Engine getSessionStatus may have an issue.`
+          )
+        } else {
+          showSuccess('No Active Sessions', 'There are no active sessions to check')
+        }
+        return
+      }
+
+      // 결과 메시지 생성
+      const sessionDetails = result.sessions
+        .map((session: any) => {
+          const statusIcon = session.status === 'healthy' ? '✅' : '❌'
+          const topicShort = session.topic.substring(0, 8) + '...'
+          const errorInfo = session.error ? ` (${session.error})` : ''
+          return `${statusIcon} ${topicShort} - ${session.status}${errorInfo}`
+        })
+        .join('\n')
+
+      const resultMessage =
+        `Session Status Check Complete:\n\n` +
+        `Total Sessions: ${result.total}\n` +
+        `Healthy: ${result.healthy}\n` +
+        `Disconnected: ${result.disconnected}\n\n` +
+        `Details:\n${sessionDetails}`
+
+      if (result.disconnected > 0) {
+        showError('Session Check Results', resultMessage)
+      } else {
+        showSuccess('All Sessions Healthy', resultMessage)
+      }
+    } catch (error) {
+      console.error('📱 [ACTION-BUTTON] Error checking session status:', error)
+      showError('Session Check Failed', `Error: ${error}`)
+    }
+  }
+
+  // 수동으로 세션 삭제 테스트하는 함수
+  const testManualSessionDeletion = async () => {
+    try {
+      if (!walletProvider?.client?.engine) {
+        showError('Engine not available', 'Universal Provider engine is not available')
+        return
+      }
+
+      // 현재 세션 확인
+      const sessions = walletProvider.client.session.getAll()
+
+      if (sessions.length === 0) {
+        showError('No Sessions', 'No active sessions found')
+        return
+      }
+
+      // 첫 번째 세션 삭제
+      const sessionToDelete = sessions[0]
+
+      await (walletProvider.client.engine as any).deleteSession({
+        topic: sessionToDelete?.topic,
+        emitEvent: true
+      })
+
+      // 삭제 후 세션 확인
+      const sessionsAfter = walletProvider.client.session.getAll()
+
+      showSuccess(
+        'Manual Session Deletion',
+        `Deleted session: ${sessionToDelete?.topic.substring(0, 8)}...\nSessions before: ${sessions.length}, after: ${sessionsAfter.length}`
+      )
+    } catch (error) {
+      console.error('📱 [ACTION-BUTTON] Error in manual session deletion:', error)
+      showError('Manual Session Deletion Failed', `Error: ${error}`)
+    }
+  }
+
   // used for connecting wallet with wallet list
   function handleConnect() {
     appKit.connect()
   }
 
-  // used for connecting cross wallet directly
+  // used for connecting CROSS wallet directly
   function handleConnectWallet() {
     connect('cross_wallet')
   }
@@ -826,6 +985,15 @@ Check console for full details.`
         <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
         <button onClick={handleProviderRequest}>Provider Request</button>
         <button onClick={logTopicInfo}>Get Topic Info</button>
+        <button onClick={getSessionStatus} style={{ backgroundColor: '#28a745', color: 'white' }}>
+          Get Session Status (Read Only)
+        </button>
+        <button
+          onClick={testManualSessionDeletion}
+          style={{ backgroundColor: '#dc3545', color: 'white' }}
+        >
+          Test Manual Session Deletion
+        </button>
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>

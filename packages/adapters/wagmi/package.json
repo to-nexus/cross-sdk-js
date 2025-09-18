@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-adapter-wagmi",
-  "version": "1.16.6",
+  "version": "1.17.0-beta.2",
   "type": "module",
   "main": "./dist/esm/src/index.js",
   "types": "./dist/types/src/index.d.ts",
@@ -26,7 +26,7 @@
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
     "@walletconnect/utils": "2.18.0",
-    "@to-nexus/universal-provider": "2.19.11",
+    "@to-nexus/universal-provider": "2.19.13",
     "valtio": "1.13.2"
   },
   "optionalDependencies": {
@@ -53,5 +53,8 @@
   },
   "bugs": {
     "url": "https://github.com/to-nexus/appkit/issues"
+  },
+  "publishConfig": {
+    "registry": "https://package.cross-nexus.com/repository/dev-cross-sdk-js"
   }
 }
