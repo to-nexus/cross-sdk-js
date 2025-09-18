@@ -87,14 +87,15 @@ jobs:
 
   changeset_prepare:
     name: Prepare Changeset (auto for preview)
-    # develop(dev) | release/*(stage) | feature/*(dev/stage) 전용, 해당 환경에서 다른 서비스 실행 전 자동 수행
+    # develop(dev) | release/*(stage) | main(prod) | feature/*(dev/stage) 전용, 해당 환경에서 다른 서비스 실행 전 자동 수행
     environment: ${{ inputs.environment }}
     if: |
       github.event_name == 'workflow_dispatch' && (
         (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
         (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage') ||
         (startsWith(github.ref, 'refs/heads/ci/') && inputs.environment == 'dev') ||
-        (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage'))
+        (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
+        (github.ref == 'refs/heads/main' && inputs.environment == 'prod')
       ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset' || inputs.services == 'sample-page')
     runs-on: ubuntu-latest
     steps:
