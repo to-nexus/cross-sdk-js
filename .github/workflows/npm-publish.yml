@@ -737,10 +737,12 @@ jobs:
       
       - name: Configure npm for Nexus
         run: |
+          NEXUS_REGISTRY_URL="${{ secrets.NEXUS_REGISTRY_URL }}"
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
           echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
@@ -749,15 +751,16 @@ jobs:
           echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
           echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
           echo "always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
           echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
           echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
-          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
       
       - name: Verify npm authentication
         run: |
+          NEXUS_REGISTRY_URL="${{ secrets.NEXUS_REGISTRY_URL }}"
           npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
           npm ping --registry "${NEXUS_REGISTRY_URL}" || true
         env:
@@ -795,6 +798,8 @@ jobs:
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
           export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
           
+          NEXUS_REGISTRY_URL="${{ secrets.NEXUS_REGISTRY_URL }}"
+          
           echo "=== Verifying npm auth before publish ==="
           npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
           
@@ -805,7 +810,7 @@ jobs:
             publish --access public --tag latest --registry "${NEXUS_REGISTRY_URL}" --no-git-checks
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
-      
+
       - name: Create and push release tag (prod)
         if: inputs.dry_run == 'false'
         run: |
