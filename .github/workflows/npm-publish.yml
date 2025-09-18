@@ -740,8 +740,7 @@ jobs:
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
-          echo "registry=https://registry.npmjs.org/" > .npmrc
-          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" >> .npmrc
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
           echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
@@ -750,17 +749,36 @@ jobs:
           echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
           echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
           echo "always-auth=true" >> .npmrc
-          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
           echo "Using Nexus registry: ${NEXUS_REGISTRY_URL}"
           echo "### NPM Publish Registry\n${NEXUS_REGISTRY_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
           NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
       
-      - name: Verify npm authentication
+      - name: Verify npm auth and test publish (gate)
         run: |
+          set -e
+          
+          echo "=== Verifying npm auth with configured .npmrc ==="
           npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
-          npm ping --registry "${NEXUS_REGISTRY_URL}" || true
+          
+          echo "=== Test publish to verify write access ==="
+          TMP_DIR=$(mktemp -d)
+          pushd "$TMP_DIR" > /dev/null
+          # Copy the configured .npmrc to temp directory
+          cp "$GITHUB_WORKSPACE/.npmrc" .npmrc
+          NAME="@to-nexus/test-publish-ci-$(date +%s)-$RANDOM"
+          npm init -y >/dev/null 2>&1
+          npm pkg set name="$NAME" version="0.0.0-prod.0" main="index.js" >/dev/null
+          echo "console.log('ok')" > index.js
+          npm publish --access public --tag prod --registry "${NEXUS_REGISTRY_URL}" >/dev/null
+          echo "Test publish OK: $NAME"
+          # cleanup best-effort
+          npm unpublish "$NAME" --force --registry "${NEXUS_REGISTRY_URL}" >/dev/null 2>&1 || \
+            npm deprecate "$NAME@*" "ci test package" --registry "${NEXUS_REGISTRY_URL}" >/dev/null 2>&1 || true
+          popd > /dev/null
+          rm -rf "$TMP_DIR"
         env:
           NEXUS_REGISTRY_URL: ${{ steps.registry.outputs.NEXUS_URL }}
       
