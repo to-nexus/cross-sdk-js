@@ -737,7 +737,6 @@ jobs:
       
       - name: Configure npm for Nexus
         run: |
-          NEXUS_REGISTRY_URL="${{ secrets.NEXUS_REGISTRY_URL }}"
           HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
           HOST_PATH_NO_SLASH="${HOST_PATH%/}"
           HOST_DOMAIN="${HOST_PATH%%/*}"
@@ -760,7 +759,6 @@ jobs:
       
       - name: Verify npm authentication
         run: |
-          NEXUS_REGISTRY_URL="${{ secrets.NEXUS_REGISTRY_URL }}"
           npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
           npm ping --registry "${NEXUS_REGISTRY_URL}" || true
         env:
@@ -797,8 +795,6 @@ jobs:
         run: |
           export NPM_CONFIG_USERCONFIG="$GITHUB_WORKSPACE/.npmrc"
           export npm_config_userconfig="$GITHUB_WORKSPACE/.npmrc"
-          
-          NEXUS_REGISTRY_URL="${{ secrets.NEXUS_REGISTRY_URL }}"
           
           echo "=== Verifying npm auth before publish ==="
           npm whoami --registry "${NEXUS_REGISTRY_URL}" || echo "whoami may not work with basic auth"
