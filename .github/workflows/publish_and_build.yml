@@ -153,6 +153,42 @@ jobs:
         with:
           version: 9.5.0
 
+      - name: Pre-install package version cleanup (prod only)
+        run: |
+          # For production environment, ensure no alpha/beta versions before install
+          if [[ "${{ inputs.environment }}" == "prod" ]]; then
+            echo "🔍 Production environment detected - cleaning alpha/beta versions before install..."
+            
+            PACKAGES_TO_UPDATE=(
+              "@to-nexus/core"
+              "@to-nexus/universal-provider"
+              "@to-nexus/sign-client"
+            )
+            
+            # Find and replace alpha/beta versions in package.json files
+            find . -name "package.json" -not -path "./node_modules/*" -exec grep -l "@to-nexus.*alpha\|@to-nexus.*beta" {} \; | while read file; do
+              echo "Fixing alpha/beta versions in: $file"
+              # Replace alpha/beta versions with latest available
+              for pkg in "${PACKAGES_TO_UPDATE[@]}"; do
+                # Get latest version from registry
+                LATEST_VERSION=$(npm view "$pkg" version --registry="${{ steps.registry_prepare.outputs.NEXUS_URL }}" 2>/dev/null || echo "")
+                if [ -n "$LATEST_VERSION" ]; then
+                  echo "Updating $pkg to $LATEST_VERSION in $file"
+                  sed -i.bak "s|\"$pkg\": \"[^\"]*\"|\"$pkg\": \"$LATEST_VERSION\"|g" "$file"
+                fi
+              done
+            done
+            
+            # Clean up backup files
+            find . -name "package.json.bak" -delete
+            
+            # Show what was changed
+            echo "Modified package.json files:"
+            git diff --name-only || echo "No changes detected"
+          else
+            echo "Non-production environment (${{ inputs.environment }}) - skipping version cleanup"
+          fi
+
       - name: Install dependencies (packages only)
         run: pnpm install --no-frozen-lockfile
 
