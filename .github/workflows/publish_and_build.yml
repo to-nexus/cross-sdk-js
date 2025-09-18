@@ -185,6 +185,10 @@ jobs:
             # Show what was changed
             echo "Modified package.json files:"
             git diff --name-only || echo "No changes detected"
+            
+            # Remove lockfile to force fresh resolution
+            echo "🗑️ Removing pnpm-lock.yaml to force fresh dependency resolution..."
+            rm -f pnpm-lock.yaml
           else
             echo "Non-production environment (${{ inputs.environment }}) - skipping version cleanup"
           fi
