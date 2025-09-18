@@ -732,7 +732,7 @@ jobs:
       - name: Resolve Nexus registry URL
         id: registry
         run: |
-          url="${{ secrets.NEXUS_REGISTRY_URL }}"
+          url="${{ vars.NEXUS_PROD_REGISTRY_URL }}"
           echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
       
       - name: Configure npm for Nexus
