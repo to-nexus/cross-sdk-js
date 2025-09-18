@@ -9,6 +9,8 @@ ENVIRONMENT=${1:-prod}
 # ENVIRONMENT alias normalization
 if [ "$ENVIRONMENT" = "development" ]; then
   ENVIRONMENT="dev"
+elif [ "$ENVIRONMENT" = "production" ]; then
+  ENVIRONMENT="prod"
 fi
 
 echo "🔧 Setting workspace version for $ENVIRONMENT environment..."
