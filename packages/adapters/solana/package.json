@@ -56,7 +56,7 @@
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-utils": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
-    "@to-nexus/universal-provider": "2.19.14-alpha.2",
+    "@to-nexus/universal-provider": "2.19.13",
     "@wallet-standard/app": "1.1.0",
     "@wallet-standard/base": "1.1.0",
     "@wallet-standard/features": "1.0.3",
