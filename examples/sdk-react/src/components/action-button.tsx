@@ -205,7 +205,31 @@ export function ActionButtonList() {
 
           // cleanup 이후의 최종 세션 상태를 읽어 boolean으로 환산
           const status = await (walletProvider.client.engine as any).getSessionStatus()
-          const isActive = Boolean(status && status.total > 0 && status.disconnected === 0)
+
+          // 현재 UniversalProvider 세션 토픽 기준으로 우선 판정
+          let isActive = false
+          try {
+            const universalProvider = await getUniversalProvider()
+            const currentTopic = universalProvider?.session?.topic
+
+            if (currentTopic && status?.sessions?.length) {
+              const current = status.sessions.find((s: any) => s.topic === currentTopic)
+              isActive = current?.status === 'healthy'
+            } else {
+              // 토픽이 없다면 보수적 fallback: 최소 1개 healthy 존재 여부
+              isActive = Boolean(status && status.total > 0 && status.healthy > 0)
+            }
+          } catch (e) {
+            // UniversalProvider 접근 오류 시 fallback로 처리
+            isActive = Boolean(status && status.total > 0 && status.healthy > 0)
+          }
+
+          // 확장 프로그램(EIP1193Provider) 연결의 경우 Universal Provider 세션이 없을 수 있으므로
+          // 계정이 연결되어 있으면 활성로 간주
+          const isExtensionProvider = walletProvider?.constructor?.name === 'EIP1193Provider'
+          if (!isActive && isExtensionProvider && account?.isConnected) {
+            isActive = true
+          }
 
           return isActive
         }
