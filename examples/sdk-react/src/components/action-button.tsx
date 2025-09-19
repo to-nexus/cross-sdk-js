@@ -170,45 +170,57 @@ export function ActionButtonList() {
 
   // 세션 관리 로직 (SDK에서 이벤트 리스너 제거 후 DApp에서 직접 관리)
   useEffect(() => {
+    // 페이지 가시성 변경 시(탭 전환 포함) 세션 상태를 강제로 재검증합니다.
+    // document.hidden === false 경우에만 호출하여 불필요한 연산을 줄입니다.
     const handleVisibilityChange = async () => {
       if (!document.hidden) {
-        // 탭 변경 시 완전한 세션 검증
+        // 탭 활성화 시: 엔진에 cleanup 포함 강제 점검을 요청
         const isSessionActive = await validateAndCleanupSessions(true)
+        // 필요하다면 isSessionActive 결과에 따라 UI/스토어를 업데이트하세요.
       }
     }
 
+    // 브라우저 포커스 획득 시 세션을 재검증합니다.
+    // 모달이 열려있는 경우(isOpen)에는 중복 호출을 피합니다.
     const handlePageFocus = async () => {
       if (!isOpen) {
         const isSessionActive = await validateAndCleanupSessions(true)
+        // isSessionActive를 사용해 재연결 유도, 알림 노출 등 후속 처리 가능
       }
     }
 
+    // 포커스 해제 시에는 현재 별도 동작을 하지 않습니다. 필요 시 리소스 정리 등을 추가하세요.
     const handlePageBlur = () => {}
 
+    // 엔진에 세션 점검/정리를 위임하는 도우미 함수입니다.
+    // isSessionCheck=true 이면 엔진 내부에서 cleanup 후 재확인을 수행합니다.
     const validateAndCleanupSessions = async (isSessionCheck: boolean): Promise<boolean> => {
       try {
-        // UniversalProvider를 통한 세션 확인
+        // UniversalProvider 엔진 존재 여부 확인 (확장 프로그램 연결 등에서는 세션이 없을 수 있음)
         if (walletProvider?.client?.engine) {
-          // TypeScript 타입 캐스팅으로 validateAndCleanupSessions 메서드 접근
+          // 타입 캐스팅은 공개된 엔진 타입 정의 전 예시입니다. 실제 서비스에서는 명시적 타입 선언을 권장합니다.
           const isSessionActive = await (
             walletProvider.client.engine as any
           ).validateAndCleanupSessions(isSessionCheck)
 
-          // Engine에서 반환된 결과 사용 (이미 최종 세션 상태를 확인함)
+          // 엔진에서 최종 상태를 반환하므로 그대로 결과를 사용합니다.
           return isSessionActive
         }
+        // 엔진이 없는 연결(예: 브라우저 확장)에서는 false를 반환합니다.
         return false
       } catch (error) {
+        // 엔진 예외 발생 시 false로 처리하고, 필요 시 오류 로깅/알림을 추가하세요.
         return false
       }
     }
 
-    // 이벤트 리스너 등록
+    // 이벤트 리스너 등록: 페이지 가시성/포커스/블러
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('focus', handlePageFocus)
     window.addEventListener('blur', handlePageBlur)
 
-    // AppKit에서 전달된 세션 끊김 이벤트 구독
+    // AppKit이 브리지한 세션 끊김 이벤트를 구독합니다.
+    // 이 이벤트가 발생하면 연결 상태 UI 초기화, 재연결 유도, 캐시 삭제 등을 수행하세요.
     const handleSessionDisconnected = (event: CustomEvent) => {
       console.log('📱 [ACTION-BUTTON] AppKit session disconnected event received:', event.detail)
     }
@@ -218,6 +230,7 @@ export function ActionButtonList() {
       handleSessionDisconnected as EventListener
     )
 
+    // 언마운트 시 이벤트 리스너 해제
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handlePageFocus)
@@ -229,15 +242,17 @@ export function ActionButtonList() {
     }
   }, [isOpen])
 
-  // 수동으로 세션 상태 확인하는 함수 (읽기 전용)
+  // 수동으로 세션 상태를 조회하는 (읽기 전용) 함수입니다.
+  // UI 디버깅 버튼과 같이 사용하여 현재 세션의 건강 상태를 점검합니다.
   const getSessionStatus = async () => {
     if (!walletProvider?.client?.engine) {
+      // 엔진이 없다면 Universal Provider 기반 세션이 없을 수 있으므로 안내 메시지를 노출합니다.
       showError('Engine not available', 'Engine is not initialized')
       return
     }
 
     try {
-      // Engine의 getSessionStatus 메서드 호출
+      // 엔진의 getSessionStatus는 요약된 세션 정보를 반환합니다.
       const result = await (walletProvider.client.engine as any).getSessionStatus()
 
       if (result.error) {
@@ -246,9 +261,7 @@ export function ActionButtonList() {
       }
 
       if (result.total === 0) {
-        // 세션이 없다고 나와도 실제로는 있을 수 있으므로 더 자세한 확인
-
-        // 직접 세션 확인
+        // 총 세션 0으로 보고되더라도 실제 세션이 있을 수 있어 직접 재확인합니다.
         const directSessions =
           (walletProvider.client.engine as any).client?.session?.getAll?.() || []
         if (directSessions.length > 0) {
@@ -262,7 +275,7 @@ export function ActionButtonList() {
         return
       }
 
-      // 결과 메시지 생성
+      // 각 세션의 상태를 간략한 텍스트로 가공하여 사용자에게 표시합니다.
       const sessionDetails = result.sessions
         .map((session: any) => {
           const statusIcon = session.status === 'healthy' ? '✅' : '❌'
@@ -290,7 +303,8 @@ export function ActionButtonList() {
     }
   }
 
-  // 수동으로 세션 삭제 테스트하는 함수
+  // 세션을 수동으로 삭제하는 테스트 함수입니다.
+  // 운영 코드에서는 특정 조건(에러 누적, 지연 복구 실패 등)에서만 호출하도록 설계하세요.
   const testManualSessionDeletion = async () => {
     try {
       if (!walletProvider?.client?.engine) {
@@ -298,7 +312,7 @@ export function ActionButtonList() {
         return
       }
 
-      // 현재 세션 확인
+      // 현재 보유 중인 세션 목록을 조회합니다.
       const sessions = walletProvider.client.session.getAll()
 
       if (sessions.length === 0) {
@@ -306,15 +320,15 @@ export function ActionButtonList() {
         return
       }
 
-      // 첫 번째 세션 삭제
+      // 첫 번째 세션을 예시로 삭제합니다. 실제에서는 사용자 선택/정책에 따라 토픽을 지정하세요.
       const sessionToDelete = sessions[0]
 
       await (walletProvider.client.engine as any).deleteSession({
         topic: sessionToDelete?.topic,
-        emitEvent: true
+        emitEvent: true // true면 appkit 측에서 관련 이벤트를 브로드캐스트할 수 있습니다.
       })
 
-      // 삭제 후 세션 확인
+      // 삭제 후 재조회하여 결과를 사용자에게 안내합니다.
       const sessionsAfter = walletProvider.client.session.getAll()
 
       showSuccess(
