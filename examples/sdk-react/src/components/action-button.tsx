@@ -177,6 +177,7 @@ export function ActionButtonList() {
         // 탭 활성화 시: 엔진에 cleanup 포함 강제 점검을 요청
         const isSessionActive = await validateAndCleanupSessions(true)
         // 필요하다면 isSessionActive 결과에 따라 UI/스토어를 업데이트하세요.
+        console.log('📱 [ACTION-BUTTON] isSessionActive:    ' + isSessionActive)
       }
     }
 
@@ -186,6 +187,7 @@ export function ActionButtonList() {
       if (!isOpen) {
         const isSessionActive = await validateAndCleanupSessions(true)
         // isSessionActive를 사용해 재연결 유도, 알림 노출 등 후속 처리 가능
+        console.log('📱 [ACTION-BUTTON] isSessionActive:', isSessionActive)
       }
     }
 
@@ -198,13 +200,14 @@ export function ActionButtonList() {
       try {
         // UniversalProvider 엔진 존재 여부 확인 (확장 프로그램 연결 등에서는 세션이 없을 수 있음)
         if (walletProvider?.client?.engine) {
-          // 타입 캐스팅은 공개된 엔진 타입 정의 전 예시입니다. 실제 서비스에서는 명시적 타입 선언을 권장합니다.
-          const isSessionActive = await (
-            walletProvider.client.engine as any
-          ).validateAndCleanupSessions(isSessionCheck)
+          // cleanup/검증 트리거
+          await (walletProvider.client.engine as any).validateAndCleanupSessions(isSessionCheck)
 
-          // 엔진에서 최종 상태를 반환하므로 그대로 결과를 사용합니다.
-          return isSessionActive
+          // cleanup 이후의 최종 세션 상태를 읽어 boolean으로 환산
+          const status = await (walletProvider.client.engine as any).getSessionStatus()
+          const isActive = Boolean(status && status.total > 0 && status.disconnected === 0)
+
+          return isActive
         }
         // 엔진이 없는 연결(예: 브라우저 확장)에서는 false를 반환합니다.
         return false
