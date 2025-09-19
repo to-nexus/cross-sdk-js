@@ -136,7 +136,13 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
-  const { connect } = useAppKitWallet()
+  const {
+    connect,
+    connectCrossWallet,
+    connectCrossExtensionWallet,
+    isInstalledCrossExtensionWallet,
+    isPending: isWalletPending
+  } = useAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -163,6 +169,9 @@ export function ActionButtonList() {
   )
   // amount of cross to send
   const SEND_CROSS_AMOUNT = network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : 1
+
+  // 훅에서 직접 익스텐션 설치 여부 확인
+  const isExtensionInstalled = isInstalledCrossExtensionWallet()
 
   useEffect(() => {
     // contractArgs change tracking
@@ -365,6 +374,32 @@ export function ActionButtonList() {
     } catch (error) {
       console.error('📱 [ACTION-BUTTON] Error in manual session deletion:', error)
       showError('Manual Session Deletion Failed', `Error: ${error}`)
+    }
+  }
+
+  // CROSS Wallet QR 코드 연결 핸들러 (모바일에서는 딥링크)
+  const handleConnectCrossWallet = async () => {
+    try {
+      await connectCrossWallet()
+    } catch (error) {
+      console.error('CROSS Wallet QR 연결 실패:', error)
+      showError('연결 실패', `CROSS Wallet QR 연결에 실패했습니다: ${error}`)
+    }
+  }
+
+  // CROSS Wallet 익스텐션 직접 연결 핸들러
+  const handleConnectCrossExtension = async () => {
+    try {
+      if (!isExtensionInstalled) {
+        showError('익스텐션 미설치', 'CROSS Wallet 익스텐션이 설치되지 않았습니다.')
+        return
+      }
+
+      await connectCrossExtensionWallet()
+      showSuccess('익스텐션 연결 성공', 'CROSS Wallet 익스텐션이 연결되었습니다.')
+    } catch (error) {
+      console.error('CROSS Wallet 익스텐션 연결 실패:', error)
+      showError('연결 실패', `CROSS Wallet 익스텐션 연결에 실패했습니다: ${error}`)
     }
   }
 
@@ -998,61 +1033,158 @@ Check console for full details.`
 
   return (
     <div>
-      <div className="action-button-list">
-        <button onClick={handleConnect}>{account?.isConnected ? 'Connected' : 'Connect'}</button>
-        <button onClick={handleConnectWallet}>
-          {account?.isConnected ? 'CROSSx Connected' : 'Connect CROSSx'}
-        </button>
-        <button onClick={handleDisconnect}>Disconnect</button>
-        <button onClick={handleSwitchNetwork}>Switch to Cross</button>
-        <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
-        <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
-        <button onClick={handleSwitchNetworkEther}>Switch to Ether</button>
+      {/* 연결 관리 섹션 */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
+          🔗 연결 관리 (Connection Management)
+        </h3>
+        {/* 연결되지 않은 상태: 연결 버튼들 표시 */}
+        {!account?.isConnected && (
+          <>
+            <div className="action-button-list">
+              <button onClick={handleConnect} disabled={isLoading}>
+                Connect
+              </button>
+              <button onClick={handleConnectWallet} disabled={isLoading}>
+                Connect CROSSx
+              </button>
+            </div>
+            <div className="action-button-list" style={{ marginTop: '10px' }}>
+              <button onClick={handleConnectCrossWallet} disabled={isWalletPending}>
+                {isWalletPending ? 'Connecting...' : 'Connect CROSS Wallet (QR)'}
+              </button>
+              <button
+                onClick={handleConnectCrossExtension}
+                disabled={isWalletPending || !isExtensionInstalled}
+                style={{
+                  backgroundColor: !isExtensionInstalled ? '#9E9E9E' : '',
+                  color: !isExtensionInstalled ? 'white' : ''
+                }}
+              >
+                {isWalletPending
+                  ? 'Connecting...'
+                  : `Connect Extension${!isExtensionInstalled ? ' (Not Installed)' : ''}`}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* 연결된 상태: Disconnect 버튼만 표시 */}
+        {account?.isConnected && (
+          <div className="action-button-list">
+            <button
+              onClick={handleDisconnect}
+              style={{ backgroundColor: '#dc3545', color: 'white' }}
+            >
+              Disconnect
+            </button>
+          </div>
+        )}
+        <div className="action-button-list" style={{ marginTop: '10px' }}>
+          <button onClick={getSessionStatus} style={{ backgroundColor: '#28a745', color: 'white' }}>
+            Get Session Status (Read Only)
+          </button>
+          <button
+            onClick={testManualSessionDeletion}
+            style={{ backgroundColor: '#dc3545', color: 'white' }}
+          >
+            Test Manual Session Deletion
+          </button>
+          <button onClick={logTopicInfo}>Get Topic Info</button>
+        </div>
       </div>
-      <div className="action-button-list" style={{ marginTop: '10px' }}>
-        <button onClick={handleSendNative}>
-          Send {SEND_CROSS_AMOUNT} {contractData[network.chainId as keyof typeof contractData].coin}
-        </button>
-        <button onClick={handleSendERC20Token}>Send 1 ERC20</button>
-        <button onClick={handleSendTransaction}>Send Custom Transaction</button>
-        <button onClick={handleSendNativeWithDynamicFee}>Send 1 CROSS with Dynamic Fee</button>
-        <button onClick={handleSendERC20TokenWithDynamicFee}>Send 1 ERC20 with Dynamic Fee</button>
-        <button onClick={handleSendTransactionWithDynamicFee}>
-          Send Custom Transaction with Dynamic Fee
-        </button>
+
+      {/* 체인 관리 섹션 */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
+          ⛓️ 체인 관리 (Chain Management)
+        </h3>
+        <div className="action-button-list">
+          <button onClick={handleSwitchNetwork}>Switch to Cross</button>
+          <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
+          <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
+          <button onClick={handleSwitchNetworkEther}>Switch to Ether</button>
+        </div>
+        <div className="action-button-list" style={{ marginTop: '10px' }}>
+          <div
+            style={{
+              padding: '10px',
+              backgroundColor: '#f5f5f5',
+              borderRadius: '5px',
+              fontSize: '14px',
+              color: '#666'
+            }}
+          >
+            현재 체인: <strong>{network.caipNetwork?.name || 'Unknown'}</strong> (Chain ID:{' '}
+            {network.chainId})
+          </div>
+        </div>
       </div>
-      <div className="action-button-list" style={{ marginTop: '10px' }}>
-        <button onClick={handleSignMessage}>Sign Message</button>
-        <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
-        <button onClick={handleProviderRequest}>Provider Request</button>
-        <button onClick={logTopicInfo}>Get Topic Info</button>
-        <button onClick={getSessionStatus} style={{ backgroundColor: '#28a745', color: 'white' }}>
-          Get Session Status (Read Only)
-        </button>
-        <button
-          onClick={testManualSessionDeletion}
-          style={{ backgroundColor: '#dc3545', color: 'white' }}
-        >
-          Test Manual Session Deletion
-        </button>
+
+      {/* 전송 섹션 */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
+          💸 전송 (Send Transactions)
+        </h3>
+        <div className="action-button-list">
+          <button onClick={handleSendNative}>
+            Send {SEND_CROSS_AMOUNT}{' '}
+            {contractData[network.chainId as keyof typeof contractData].coin}
+          </button>
+          <button onClick={handleSendERC20Token}>Send 1 ERC20</button>
+          <button onClick={handleSendTransaction}>Send Custom Transaction</button>
+        </div>
+        <div className="action-button-list" style={{ marginTop: '10px' }}>
+          <button onClick={handleSendNativeWithDynamicFee}>Send 1 CROSS with Dynamic Fee</button>
+          <button onClick={handleSendERC20TokenWithDynamicFee}>
+            Send 1 ERC20 with Dynamic Fee
+          </button>
+          <button onClick={handleSendTransactionWithDynamicFee}>
+            Send Custom Transaction with Dynamic Fee
+          </button>
+        </div>
       </div>
-      <div className="action-button-list" style={{ marginTop: '10px' }}>
-        <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>
-        <button onClick={() => getBalanceOfERC20()}>Get Balance of ERC20</button>
-        <button onClick={getBalanceOfNFT}>Get Balance of NFT</button>
-        <button onClick={getBalanceFromWalletWithChainFilter}>
-          Get Balance from Wallet with ChainFilter
-        </button>
-        <button onClick={getBalanceFromWalletWithAssetFilter}>
-          Get Specific Token Balance from Wallet
-        </button>
-        <button onClick={getBalanceFromWalletOnMultipleChains}>
-          Get Multi Chain Balance from Wallet
-        </button>
-        <button onClick={getBalanceFromWalletByTokenType}>
-          Get Balance from Wallet by AssetFilterType
-        </button>
+
+      {/* 서명 섹션 */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
+          ✍️ 서명 (Sign & Provider)
+        </h3>
+        <div className="action-button-list">
+          <button onClick={handleSignMessage}>Sign Message</button>
+          <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
+          <button onClick={handleProviderRequest}>Provider Request</button>
+        </div>
       </div>
+
+      {/* 잔액 조회 섹션 */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
+          💰 잔액 조회 (Balance Inquiry)
+        </h3>
+        <div className="action-button-list">
+          <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>
+          <button onClick={() => getBalanceOfERC20()}>Get Balance of ERC20</button>
+          <button onClick={getBalanceOfNFT}>Get Balance of NFT</button>
+        </div>
+        <div className="action-button-list" style={{ marginTop: '10px' }}>
+          <button onClick={getBalanceFromWalletWithChainFilter}>
+            Get Balance from Wallet with ChainFilter
+          </button>
+          <button onClick={getBalanceFromWalletWithAssetFilter}>
+            Get Specific Token Balance from Wallet
+          </button>
+        </div>
+        <div className="action-button-list" style={{ marginTop: '10px' }}>
+          <button onClick={getBalanceFromWalletOnMultipleChains}>
+            Get Multi Chain Balance from Wallet
+          </button>
+          <button onClick={getBalanceFromWalletByTokenType}>
+            Get Balance from Wallet by AssetFilterType
+          </button>
+        </div>
+      </div>
+
       <ResultModal
         isOpen={isOpen}
         onClose={closeModal}
