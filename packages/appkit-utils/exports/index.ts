@@ -1,6 +1,5 @@
-import type UniversalProvider from '@to-nexus/universal-provider'
-
 import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
+import type UniversalProvider from '@to-nexus/universal-provider'
 
 export { ConstantsUtil } from '../src/ConstantsUtil.js'
 export { PresetsUtil } from '../src/PresetsUtil.js'
@@ -8,6 +7,7 @@ export { HelpersUtil } from '../src/HelpersUtil.js'
 export { ErrorUtil } from '../src/ErrorUtil.js'
 export { LoggerUtil } from '../src/LoggerUtil.js'
 export { CaipNetworksUtil, getBlockchainApiRpcUrl } from '../src/CaipNetworkUtil.js'
+export { CrossWalletUtil } from '../src/CrossWalletUtil.js'
 export type { SocialProvider } from '../src/TypeUtil.js'
 
 export { SocialProviderEnum } from '../src/TypeUtil.js'

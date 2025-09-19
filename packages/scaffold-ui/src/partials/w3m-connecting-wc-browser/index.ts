@@ -9,6 +9,7 @@ import {
   ModalController
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
+import { CrossWalletUtil } from '@to-nexus/appkit-utils'
 
 import { html } from 'lit'
 import { state } from 'lit/decorators.js'
@@ -63,80 +64,20 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
       return
     }
 
-    // 1순위: ANNOUNCED 커넥터에서 정확한 RDNS로 찾기
-    const { connectors } = ConnectorController.state
-    const announced = connectors.filter(
-      c => c.type === 'ANNOUNCED' && c.info?.rdns === this.wallet?.rdns
+    // 공통 CrossWalletUtil 사용 (ConnectorController.state 전달)
+    this.isCrossWalletInstalled = CrossWalletUtil.isExtensionInstalled(
+      this.wallet.rdns,
+      ConnectorController.state
     )
 
-    if (announced && announced.length > 0) {
-      this.isCrossWalletInstalled = true
-      return
+    // 디버깅 정보 출력
+    if (this.wallet.rdns === 'nexus.to.crosswallet.desktop') {
+      const debugInfo = CrossWalletUtil.getExtensionDebugInfo(
+        this.wallet.rdns,
+        ConnectorController.state
+      )
+      console.log('Cross Wallet Detection Debug:', debugInfo)
     }
-
-    // 2순위: window에서 Cross Wallet 전용 체크
-    if (typeof window !== 'undefined') {
-      const rdns = this.wallet.rdns
-
-      // Cross Wallet의 정확한 RDNS 체크
-      if (rdns === 'nexus.to.crosswallet.desktop') {
-        const ethereum = (window as any).ethereum
-
-        // 디버깅을 위한 로그
-        console.log('Cross Wallet Detection Debug:', {
-          hasEthereum: !!ethereum,
-          hasRdnsProperty: !!(ethereum && ethereum[rdns]),
-          rdns,
-          ethereumKeys: ethereum ? Object.keys(ethereum) : [],
-          providers: ethereum?.providers ? ethereum.providers.length : 0
-        })
-
-        // 1. RDNS 기반 직접 체크
-        const crossWallet = ethereum && ethereum[rdns]
-        if (crossWallet) {
-          console.log('Cross Wallet found via RDNS:', crossWallet)
-          this.isCrossWalletInstalled = true
-          return
-        }
-
-        // 2. ethereum providers 배열에서 Cross Wallet 찾기
-        if (ethereum && ethereum.providers && Array.isArray(ethereum.providers)) {
-          const crossProvider = ethereum.providers.find((provider: any) => {
-            const hasRdns = provider.rdns === rdns
-            const hasName = provider._metadata?.name?.includes('Cross Wallet')
-            const isCross = provider.isCrossWallet
-
-            console.log('Provider check:', {
-              rdns: provider.rdns,
-              name: provider._metadata?.name,
-              isCrossWallet: provider.isCrossWallet,
-              matches: hasRdns || hasName || isCross
-            })
-
-            return hasRdns || hasName || isCross
-          })
-
-          if (crossProvider) {
-            console.log('Cross Wallet found in providers:', crossProvider)
-            this.isCrossWalletInstalled = true
-            return
-          }
-        }
-
-        // 3. 글로벌 스코프에서 Cross Wallet 찾기
-        if ((window as any)[rdns]) {
-          console.log('Cross Wallet found in global scope')
-          this.isCrossWalletInstalled = true
-          return
-        }
-
-        // Cross Wallet이 실제로 설치되지 않음을 확인
-        console.log('Cross Wallet not found - will show install links')
-      }
-    }
-
-    // Cross Wallet이 설치되지 않음
-    this.isCrossWalletInstalled = false
   }
 
   private renderStoreLinks() {
