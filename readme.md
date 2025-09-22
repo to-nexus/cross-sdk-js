@@ -14,7 +14,8 @@
 ## ✨ Features
 
 - 🔗 **Easy Wallet Connection**: Seamlessly connect to various wallets
-- 🌐 **Multi-chain Support**: Cross, BSC, and more blockchain networks
+- 🎯 **CROSS Wallet Integration**: QR code, deep link, and browser extension support
+- 🌐 **Multi-chain Support**: Cross, BSC, Kaia, Ethereum and more blockchain networks
 - 🎨 **Customizable UI**: Beautiful and modern interface components
 - 🛡️ **Type Safety**: Full TypeScript support
 - 📱 **Mobile Ready**: Cross-platform compatibility
@@ -26,6 +27,7 @@
 This monorepo contains the following packages:
 
 ### Core Packages
+
 - `@to-nexus/cross-sdk` - Main SDK package
 - `@to-nexus/appkit` - AppKit components
 - `@to-nexus/appkit-core` - Core functionality
@@ -33,19 +35,23 @@ This monorepo contains the following packages:
 - `@to-nexus/common` - Common types and utilities
 
 ### UI Components
+
 - `@to-nexus/ui` - Core UI components
 - `@to-nexus/scaffold-ui` - Scaffold UI components
 - `@to-nexus/appkit-wallet-button` - Wallet button component
 
 ### Adapters
+
 - `@to-nexus/appkit-adapter-ethers` - Ethers.js adapter
 - `@to-nexus/appkit-adapter-wagmi` - Wagmi adapter
 
 ### Authentication
+
 - `@to-nexus/siwe` - Sign-in with Ethereum
 - `@to-nexus/siwx` - Sign-in with X (extended)
 
 ### Tools
+
 - `@to-nexus/cli` - CLI tools
 - `@to-nexus/cdn` - CDN distribution
 
@@ -81,11 +87,35 @@ const sdk = initCrossSdk({
 await sdk.connect()
 ```
 
+### CROSS Wallet 연결
+
+CROSS SDK는 CROSS Wallet과의 다양한 연결 방법을 제공합니다:
+
+```typescript
+import {
+  connectCrossExtensionWallet,
+  connectCrossWallet,
+  isInstalledCrossExtensionWallet
+} from '@to-nexus/cross-sdk'
+
+// QR 코드/딥링크로 모바일 CROSS Wallet 연결
+await connectCrossWallet()
+
+// 브라우저 익스텐션으로 직접 연결
+await connectCrossExtensionWallet()
+
+// 익스텐션 설치 상태 확인
+const isInstalled = isInstalledCrossExtensionWallet()
+```
+
+> 📖 **자세한 사용법**: [CROSS Wallet 연결 방법](./docs/cross-wallet-connection.md)에서 React, Vanilla JS, CDN 환경별 상세한 구현 방법을 확인하세요.
+
 ### React Integration
 
 ```tsx
-import { initCrossSdk, AccountController } from '@to-nexus/cross-sdk'
 import { useEffect, useState } from 'react'
+
+import { AccountController, initCrossSdk } from '@to-nexus/cross-sdk'
 
 function App() {
   const [account, setAccount] = useState(null)
@@ -101,11 +131,7 @@ function App() {
     })
   }, [])
 
-  return (
-    <div>
-      {account ? `Connected: ${account}` : 'Not connected'}
-    </div>
-  )
+  return <div>{account ? `Connected: ${account}` : 'Not connected'}</div>
 }
 ```
 
@@ -114,23 +140,26 @@ function App() {
 ### Prerequisites
 
 - Node.js ^20.18.0
-    - pnpm
-    - turbo
+  - pnpm
+  - turbo
 
 ### Environment Setup
 
 1. **Clone the repository**
-    ```bash
+
+   ```bash
    git clone https://github.com/your-org/cross-sdk-js.git
    cd cross-sdk-js
    ```
 
 2. **Install dependencies**
-    ```bash
-    pnpm install
-    ```
+
+   ```bash
+   pnpm install
+   ```
 
 3. **Set up environment variables**
+
    ```bash
    # For examples
    cd examples/sdk-react
@@ -138,6 +167,7 @@ function App() {
    ```
 
    Update `.env` with your configuration:
+
    ```bash
    VITE_PROJECT_ID=your-project-id
    VITE_ENV_MODE=development
@@ -193,6 +223,8 @@ cross-sdk-js/
 
 - **Cross Chain** (Mainnet & Testnet)
 - **Binance Smart Chain** (Mainnet & Testnet)
+- **Kaia** (Mainnet & Testnet)
+- **Ethereum** (Mainnet & Testnet)
 - More networks coming soon...
 
 ## 🔧 Configuration
@@ -219,7 +251,7 @@ interface CrossSdkParams {
 ```typescript
 const sdk = initCrossSdk({
   projectId: 'your-project-id',
-  themeMode: 'dark', // or 'light'
+  themeMode: 'dark' // or 'light'
   // Custom theme variables can be set via CSS
 })
 ```
@@ -231,14 +263,19 @@ const sdk = initCrossSdk({
 This project uses [Changesets](https://github.com/changesets/changesets) for version management.
 
     ```bash
+
 # Add a changeset
+
 pnpm changeset
 
 # Version packages
+
 pnpm changeset:version
 
 # Publish packages
+
 pnpm changeset:publish
+
 ```
 
 ### Release Channels
@@ -276,3 +313,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
+```
