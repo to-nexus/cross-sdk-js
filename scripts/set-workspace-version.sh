@@ -113,12 +113,12 @@ case "$ENVIRONMENT" in
       rm -f "$TMP_FILE" "$HDR_FILE" || true
       TOKEN_STATE=$( [ ${#AUTH_HEADER[@]} -gt 0 ] && echo present || echo absent )
       echo "ℹ️ registry GET status: $HTTP_CODE, token: $TOKEN_STATE, type: ${CONTENT_TYPE:-unknown}"
-      # tarball 존재 여부 확인 (e.g., sdk-<base>-beta.tgz)
+      # tarball 존재 여부 확인 (e.g., sdk-<base>-beta.0.tgz)
       if [ -z "$BASE_VERSION" ]; then
         BASE_VERSION=$(node -p "require('./package.json').version.replace(/-alpha.*$/,'').replace(/-beta.*$/,'')" 2>/dev/null || echo "")
       fi
       if [ -n "$BASE_VERSION" ]; then
-        TARBALL_URL="${REGISTRY_URL}%40to-nexus%2Fsdk/-/sdk-${BASE_VERSION}-beta.tgz"
+        TARBALL_URL="${REGISTRY_URL}%40to-nexus%2Fsdk/-/sdk-${BASE_VERSION}-beta.0.tgz"
         if [ ${#AUTH_HEADER[@]} -gt 0 ]; then
           TARBALL_CODE=$(curl -sI "${AUTH_HEADER[@]}" "$TARBALL_URL" -o /dev/null -w "%{http_code}" 2>/dev/null || echo "000")
         else
