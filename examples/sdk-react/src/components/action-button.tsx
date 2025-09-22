@@ -136,13 +136,7 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
-  const {
-    connect,
-    connectCrossWallet,
-    connectCrossExtensionWallet,
-    isInstalledCrossExtensionWallet,
-    isPending: isWalletPending
-  } = useAppKitWallet()
+  const { connect } = useAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -170,93 +164,51 @@ export function ActionButtonList() {
   // amount of cross to send
   const SEND_CROSS_AMOUNT = network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : 1
 
-  // 훅에서 직접 익스텐션 설치 여부 확인
-  const isExtensionInstalled = isInstalledCrossExtensionWallet()
-
   useEffect(() => {
     // contractArgs change tracking
   }, [contractArgs?.args])
 
   // 세션 관리 로직 (SDK에서 이벤트 리스너 제거 후 DApp에서 직접 관리)
   useEffect(() => {
-    // 페이지 가시성 변경 시(탭 전환 포함) 세션 상태를 강제로 재검증합니다.
-    // document.hidden === false 경우에만 호출하여 불필요한 연산을 줄입니다.
     const handleVisibilityChange = async () => {
       if (!document.hidden) {
-        // 탭 활성화 시: 엔진에 cleanup 포함 강제 점검을 요청
+        // 탭 변경 시 완전한 세션 검증
         const isSessionActive = await validateAndCleanupSessions(true)
-        // 필요하다면 isSessionActive 결과에 따라 UI/스토어를 업데이트하세요.
-        console.log('📱 [ACTION-BUTTON] isSessionActive:    ' + isSessionActive)
       }
     }
 
-    // 브라우저 포커스 획득 시 세션을 재검증합니다.
-    // 모달이 열려있는 경우(isOpen)에는 중복 호출을 피합니다.
     const handlePageFocus = async () => {
       if (!isOpen) {
         const isSessionActive = await validateAndCleanupSessions(true)
-        // isSessionActive를 사용해 재연결 유도, 알림 노출 등 후속 처리 가능
-        console.log('📱 [ACTION-BUTTON] isSessionActive:', isSessionActive)
       }
     }
 
-    // 포커스 해제 시에는 현재 별도 동작을 하지 않습니다. 필요 시 리소스 정리 등을 추가하세요.
     const handlePageBlur = () => {}
 
-    // 엔진에 세션 점검/정리를 위임하는 도우미 함수입니다.
-    // isSessionCheck=true 이면 엔진 내부에서 cleanup 후 재확인을 수행합니다.
     const validateAndCleanupSessions = async (isSessionCheck: boolean): Promise<boolean> => {
       try {
-        // UniversalProvider 엔진 존재 여부 확인 (확장 프로그램 연결 등에서는 세션이 없을 수 있음)
+        // UniversalProvider를 통한 세션 확인
         if (walletProvider?.client?.engine) {
-          // cleanup/검증 트리거
-          await (walletProvider.client.engine as any).validateAndCleanupSessions(isSessionCheck)
+          // TypeScript 타입 캐스팅으로 validateAndCleanupSessions 메서드 접근
+          const isSessionActive = await (
+            walletProvider.client.engine as any
+          ).validateAndCleanupSessions(isSessionCheck)
 
-          // cleanup 이후의 최종 세션 상태를 읽어 boolean으로 환산
-          const status = await (walletProvider.client.engine as any).getSessionStatus()
-
-          // 현재 UniversalProvider 세션 토픽 기준으로 우선 판정
-          let isActive = false
-          try {
-            const universalProvider = await getUniversalProvider()
-            const currentTopic = universalProvider?.session?.topic
-
-            if (currentTopic && status?.sessions?.length) {
-              const current = status.sessions.find((s: any) => s.topic === currentTopic)
-              isActive = current?.status === 'healthy'
-            } else {
-              // 토픽이 없다면 보수적 fallback: 최소 1개 healthy 존재 여부
-              isActive = Boolean(status && status.total > 0 && status.healthy > 0)
-            }
-          } catch (e) {
-            // UniversalProvider 접근 오류 시 fallback로 처리
-            isActive = Boolean(status && status.total > 0 && status.healthy > 0)
-          }
-
-          // 확장 프로그램(EIP1193Provider) 연결의 경우 Universal Provider 세션이 없을 수 있으므로
-          // 계정이 연결되어 있으면 활성로 간주
-          const isExtensionProvider = walletProvider?.constructor?.name === 'EIP1193Provider'
-          if (!isActive && isExtensionProvider && account?.isConnected) {
-            isActive = true
-          }
-
-          return isActive
+          // Engine에서 반환된 결과 사용 (이미 최종 세션 상태를 확인함)
+          return isSessionActive
         }
-        // 엔진이 없는 연결(예: 브라우저 확장)에서는 false를 반환합니다.
         return false
       } catch (error) {
-        // 엔진 예외 발생 시 false로 처리하고, 필요 시 오류 로깅/알림을 추가하세요.
         return false
       }
     }
 
-    // 이벤트 리스너 등록: 페이지 가시성/포커스/블러
+    // 이벤트 리스너 등록
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('focus', handlePageFocus)
     window.addEventListener('blur', handlePageBlur)
 
-    // AppKit이 브리지한 세션 끊김 이벤트를 구독합니다.
-    // 이 이벤트가 발생하면 연결 상태 UI 초기화, 재연결 유도, 캐시 삭제 등을 수행하세요.
+    // AppKit에서 전달된 세션 끊김 이벤트 구독
     const handleSessionDisconnected = (event: CustomEvent) => {
       console.log('📱 [ACTION-BUTTON] AppKit session disconnected event received:', event.detail)
     }
@@ -266,7 +218,6 @@ export function ActionButtonList() {
       handleSessionDisconnected as EventListener
     )
 
-    // 언마운트 시 이벤트 리스너 해제
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handlePageFocus)
@@ -278,17 +229,15 @@ export function ActionButtonList() {
     }
   }, [isOpen])
 
-  // 수동으로 세션 상태를 조회하는 (읽기 전용) 함수입니다.
-  // UI 디버깅 버튼과 같이 사용하여 현재 세션의 건강 상태를 점검합니다.
+  // 수동으로 세션 상태 확인하는 함수 (읽기 전용)
   const getSessionStatus = async () => {
     if (!walletProvider?.client?.engine) {
-      // 엔진이 없다면 Universal Provider 기반 세션이 없을 수 있으므로 안내 메시지를 노출합니다.
       showError('Engine not available', 'Engine is not initialized')
       return
     }
 
     try {
-      // 엔진의 getSessionStatus는 요약된 세션 정보를 반환합니다.
+      // Engine의 getSessionStatus 메서드 호출
       const result = await (walletProvider.client.engine as any).getSessionStatus()
 
       if (result.error) {
@@ -297,7 +246,9 @@ export function ActionButtonList() {
       }
 
       if (result.total === 0) {
-        // 총 세션 0으로 보고되더라도 실제 세션이 있을 수 있어 직접 재확인합니다.
+        // 세션이 없다고 나와도 실제로는 있을 수 있으므로 더 자세한 확인
+
+        // 직접 세션 확인
         const directSessions =
           (walletProvider.client.engine as any).client?.session?.getAll?.() || []
         if (directSessions.length > 0) {
@@ -311,7 +262,7 @@ export function ActionButtonList() {
         return
       }
 
-      // 각 세션의 상태를 간략한 텍스트로 가공하여 사용자에게 표시합니다.
+      // 결과 메시지 생성
       const sessionDetails = result.sessions
         .map((session: any) => {
           const statusIcon = session.status === 'healthy' ? '✅' : '❌'
@@ -339,8 +290,7 @@ export function ActionButtonList() {
     }
   }
 
-  // 세션을 수동으로 삭제하는 테스트 함수입니다.
-  // 운영 코드에서는 특정 조건(에러 누적, 지연 복구 실패 등)에서만 호출하도록 설계하세요.
+  // 수동으로 세션 삭제 테스트하는 함수
   const testManualSessionDeletion = async () => {
     try {
       if (!walletProvider?.client?.engine) {
@@ -348,7 +298,7 @@ export function ActionButtonList() {
         return
       }
 
-      // 현재 보유 중인 세션 목록을 조회합니다.
+      // 현재 세션 확인
       const sessions = walletProvider.client.session.getAll()
 
       if (sessions.length === 0) {
@@ -356,15 +306,15 @@ export function ActionButtonList() {
         return
       }
 
-      // 첫 번째 세션을 예시로 삭제합니다. 실제에서는 사용자 선택/정책에 따라 토픽을 지정하세요.
+      // 첫 번째 세션 삭제
       const sessionToDelete = sessions[0]
 
       await (walletProvider.client.engine as any).deleteSession({
         topic: sessionToDelete?.topic,
-        emitEvent: true // true면 appkit 측에서 관련 이벤트를 브로드캐스트할 수 있습니다.
+        emitEvent: true
       })
 
-      // 삭제 후 재조회하여 결과를 사용자에게 안내합니다.
+      // 삭제 후 세션 확인
       const sessionsAfter = walletProvider.client.session.getAll()
 
       showSuccess(
@@ -374,32 +324,6 @@ export function ActionButtonList() {
     } catch (error) {
       console.error('📱 [ACTION-BUTTON] Error in manual session deletion:', error)
       showError('Manual Session Deletion Failed', `Error: ${error}`)
-    }
-  }
-
-  // CROSS Wallet QR 코드 연결 핸들러 (모바일에서는 딥링크)
-  const handleConnectCrossWallet = async () => {
-    try {
-      await connectCrossWallet()
-    } catch (error) {
-      console.error('CROSS Wallet QR 연결 실패:', error)
-      showError('연결 실패', `CROSS Wallet QR 연결에 실패했습니다: ${error}`)
-    }
-  }
-
-  // CROSS Wallet 익스텐션 직접 연결 핸들러
-  const handleConnectCrossExtension = async () => {
-    try {
-      if (!isExtensionInstalled) {
-        showError('익스텐션 미설치', 'CROSS Wallet 익스텐션이 설치되지 않았습니다.')
-        return
-      }
-
-      await connectCrossExtensionWallet()
-      showSuccess('익스텐션 연결 성공', 'CROSS Wallet 익스텐션이 연결되었습니다.')
-    } catch (error) {
-      console.error('CROSS Wallet 익스텐션 연결 실패:', error)
-      showError('연결 실패', `CROSS Wallet 익스텐션 연결에 실패했습니다: ${error}`)
     }
   }
 
@@ -1033,158 +957,61 @@ Check console for full details.`
 
   return (
     <div>
-      {/* 연결 관리 섹션 */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
-          🔗 연결 관리 (Connection Management)
-        </h3>
-        {/* 연결되지 않은 상태: 연결 버튼들 표시 */}
-        {!account?.isConnected && (
-          <>
-            <div className="action-button-list">
-              <button onClick={handleConnect} disabled={isLoading}>
-                Connect
-              </button>
-              <button onClick={handleConnectWallet} disabled={isLoading}>
-                Connect CROSSx
-              </button>
-            </div>
-            <div className="action-button-list" style={{ marginTop: '10px' }}>
-              <button onClick={handleConnectCrossWallet} disabled={isWalletPending}>
-                {isWalletPending ? 'Connecting...' : 'Connect CROSS Wallet (QR)'}
-              </button>
-              <button
-                onClick={handleConnectCrossExtension}
-                disabled={isWalletPending || !isExtensionInstalled}
-                style={{
-                  backgroundColor: !isExtensionInstalled ? '#9E9E9E' : '',
-                  color: !isExtensionInstalled ? 'white' : ''
-                }}
-              >
-                {isWalletPending
-                  ? 'Connecting...'
-                  : `Connect Extension${!isExtensionInstalled ? ' (Not Installed)' : ''}`}
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* 연결된 상태: Disconnect 버튼만 표시 */}
-        {account?.isConnected && (
-          <div className="action-button-list">
-            <button
-              onClick={handleDisconnect}
-              style={{ backgroundColor: '#dc3545', color: 'white' }}
-            >
-              Disconnect
-            </button>
-          </div>
-        )}
-        <div className="action-button-list" style={{ marginTop: '10px' }}>
-          <button onClick={getSessionStatus} style={{ backgroundColor: '#28a745', color: 'white' }}>
-            Get Session Status (Read Only)
-          </button>
-          <button
-            onClick={testManualSessionDeletion}
-            style={{ backgroundColor: '#dc3545', color: 'white' }}
-          >
-            Test Manual Session Deletion
-          </button>
-          <button onClick={logTopicInfo}>Get Topic Info</button>
-        </div>
+      <div className="action-button-list">
+        <button onClick={handleConnect}>{account?.isConnected ? 'Connected' : 'Connect'}</button>
+        <button onClick={handleConnectWallet}>
+          {account?.isConnected ? 'CROSSx Connected' : 'Connect CROSSx'}
+        </button>
+        <button onClick={handleDisconnect}>Disconnect</button>
+        <button onClick={handleSwitchNetwork}>Switch to Cross</button>
+        <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
+        <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
+        <button onClick={handleSwitchNetworkEther}>Switch to Ether</button>
       </div>
-
-      {/* 체인 관리 섹션 */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
-          ⛓️ 체인 관리 (Chain Management)
-        </h3>
-        <div className="action-button-list">
-          <button onClick={handleSwitchNetwork}>Switch to Cross</button>
-          <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
-          <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
-          <button onClick={handleSwitchNetworkEther}>Switch to Ether</button>
-        </div>
-        <div className="action-button-list" style={{ marginTop: '10px' }}>
-          <div
-            style={{
-              padding: '10px',
-              backgroundColor: '#f5f5f5',
-              borderRadius: '5px',
-              fontSize: '14px',
-              color: '#666'
-            }}
-          >
-            현재 체인: <strong>{network.caipNetwork?.name || 'Unknown'}</strong> (Chain ID:{' '}
-            {network.chainId})
-          </div>
-        </div>
+      <div className="action-button-list" style={{ marginTop: '10px' }}>
+        <button onClick={handleSendNative}>
+          Send {SEND_CROSS_AMOUNT} {contractData[network.chainId as keyof typeof contractData].coin}
+        </button>
+        <button onClick={handleSendERC20Token}>Send 1 ERC20</button>
+        <button onClick={handleSendTransaction}>Send Custom Transaction</button>
+        <button onClick={handleSendNativeWithDynamicFee}>Send 1 CROSS with Dynamic Fee</button>
+        <button onClick={handleSendERC20TokenWithDynamicFee}>Send 1 ERC20 with Dynamic Fee</button>
+        <button onClick={handleSendTransactionWithDynamicFee}>
+          Send Custom Transaction with Dynamic Fee
+        </button>
       </div>
-
-      {/* 전송 섹션 */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
-          💸 전송 (Send Transactions)
-        </h3>
-        <div className="action-button-list">
-          <button onClick={handleSendNative}>
-            Send {SEND_CROSS_AMOUNT}{' '}
-            {contractData[network.chainId as keyof typeof contractData].coin}
-          </button>
-          <button onClick={handleSendERC20Token}>Send 1 ERC20</button>
-          <button onClick={handleSendTransaction}>Send Custom Transaction</button>
-        </div>
-        <div className="action-button-list" style={{ marginTop: '10px' }}>
-          <button onClick={handleSendNativeWithDynamicFee}>Send 1 CROSS with Dynamic Fee</button>
-          <button onClick={handleSendERC20TokenWithDynamicFee}>
-            Send 1 ERC20 with Dynamic Fee
-          </button>
-          <button onClick={handleSendTransactionWithDynamicFee}>
-            Send Custom Transaction with Dynamic Fee
-          </button>
-        </div>
+      <div className="action-button-list" style={{ marginTop: '10px' }}>
+        <button onClick={handleSignMessage}>Sign Message</button>
+        <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
+        <button onClick={handleProviderRequest}>Provider Request</button>
+        <button onClick={logTopicInfo}>Get Topic Info</button>
+        <button onClick={getSessionStatus} style={{ backgroundColor: '#28a745', color: 'white' }}>
+          Get Session Status (Read Only)
+        </button>
+        <button
+          onClick={testManualSessionDeletion}
+          style={{ backgroundColor: '#dc3545', color: 'white' }}
+        >
+          Test Manual Session Deletion
+        </button>
       </div>
-
-      {/* 서명 섹션 */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
-          ✍️ 서명 (Sign & Provider)
-        </h3>
-        <div className="action-button-list">
-          <button onClick={handleSignMessage}>Sign Message</button>
-          <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
-          <button onClick={handleProviderRequest}>Provider Request</button>
-        </div>
+      <div className="action-button-list" style={{ marginTop: '10px' }}>
+        <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>
+        <button onClick={() => getBalanceOfERC20()}>Get Balance of ERC20</button>
+        <button onClick={getBalanceOfNFT}>Get Balance of NFT</button>
+        <button onClick={getBalanceFromWalletWithChainFilter}>
+          Get Balance from Wallet with ChainFilter
+        </button>
+        <button onClick={getBalanceFromWalletWithAssetFilter}>
+          Get Specific Token Balance from Wallet
+        </button>
+        <button onClick={getBalanceFromWalletOnMultipleChains}>
+          Get Multi Chain Balance from Wallet
+        </button>
+        <button onClick={getBalanceFromWalletByTokenType}>
+          Get Balance from Wallet by AssetFilterType
+        </button>
       </div>
-
-      {/* 잔액 조회 섹션 */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
-          💰 잔액 조회 (Balance Inquiry)
-        </h3>
-        <div className="action-button-list">
-          <button onClick={getBalanceOfNative}>Get Balance of CROSS</button>
-          <button onClick={() => getBalanceOfERC20()}>Get Balance of ERC20</button>
-          <button onClick={getBalanceOfNFT}>Get Balance of NFT</button>
-        </div>
-        <div className="action-button-list" style={{ marginTop: '10px' }}>
-          <button onClick={getBalanceFromWalletWithChainFilter}>
-            Get Balance from Wallet with ChainFilter
-          </button>
-          <button onClick={getBalanceFromWalletWithAssetFilter}>
-            Get Specific Token Balance from Wallet
-          </button>
-        </div>
-        <div className="action-button-list" style={{ marginTop: '10px' }}>
-          <button onClick={getBalanceFromWalletOnMultipleChains}>
-            Get Multi Chain Balance from Wallet
-          </button>
-          <button onClick={getBalanceFromWalletByTokenType}>
-            Get Balance from Wallet by AssetFilterType
-          </button>
-        </div>
-      </div>
-
       <ResultModal
         isOpen={isOpen}
         onClose={closeModal}
