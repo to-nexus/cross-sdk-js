@@ -275,4 +275,75 @@ export class SdkActions extends Component {
       alert('EIP-712 sign failed')
     }
   }
+
+  // ===== Helpers for UI binding =====
+  // 연결 상태 확인: 계정 상태가 connected 이고 주소가 존재할 때 true
+  isConnected(): boolean {
+    const status = (window as any).CrossSdk?.AccountController?.state?.status
+    const address = (window as any).CrossSdk?.AccountController?.state?.address
+    return status === 'connected' && Boolean(address)
+  }
+
+  // 사용자 주소, 체인ID(HEX/DEC), 네이티브 잔액/심볼 요약 반환
+  async getSdkSummary(): Promise<{
+    address?: string
+    chainIdHex?: `0x${string}`
+    chainId?: number
+    nativeBalance?: string
+    nativeSymbol?: string
+  }> {
+    if (!window.CrossSdk) throw new Error('SDK not loaded')
+
+    const address = (window as any).CrossSdk?.AccountController?.state?.address
+    const nativeBalance = (window as any).CrossSdk?.AccountController?.state?.balance
+    const nativeSymbol = (window as any).CrossSdk?.AccountController?.state?.balanceSymbol
+
+    const instance = window.CrossSdkInstance
+    if (!instance?.getUniversalProvider) throw new Error('SDK instance not initialized')
+
+    const up = await instance.getUniversalProvider()
+    let chainIdHex: `0x${string}` | undefined
+    let chainId: number | undefined
+    try {
+      chainIdHex = (await up?.request({ method: 'eth_chainId', params: [] })) as `0x${string}`
+      chainId = chainIdHex ? parseInt(chainIdHex, 16) : undefined
+    } catch {
+      // provider가 없거나 요청 실패 시 안전하게 무시
+    }
+
+    return { address, chainIdHex, chainId, nativeBalance, nativeSymbol }
+  }
+
+  // 토큰/잔액 최신화 트리거 (옵션)
+  async refreshBalances(): Promise<void> {
+    if (!window.CrossSdk) return
+    await (window as any).CrossSdk.AccountController.fetchTokenBalance()
+  }
+
+  // UniversalProvider 세션 강제 정리 + SDK 연결 해제
+  async onClickForceDisconnectSessions() {
+    if (!window.CrossSdk) return alert('SDK not loaded')
+
+    try {
+      const { walletProvider } = (window as any).CrossSdkInstance?.getProviders?.() || {}
+      const engine = walletProvider?.client?.engine
+
+      if (engine) {
+        const sessions = walletProvider.client.session.getAll()
+        await Promise.all(
+          sessions.map((s: any) =>
+            (engine as any).deleteSession({ topic: s.topic, emitEvent: true })
+          )
+        )
+      }
+
+      // AppKit 레벨 연결 정리
+      await window.CrossSdk.ConnectionController.disconnect()
+
+      alert('Force disconnected')
+    } catch (e) {
+      console.error(e)
+      alert('Force disconnect failed')
+    }
+  }
 }
