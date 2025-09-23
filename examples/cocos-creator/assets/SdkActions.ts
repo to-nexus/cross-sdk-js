@@ -1,6 +1,6 @@
-import { Component, _decorator } from 'cc'
+import { Component, Label, _decorator } from 'cc'
 
-const { ccclass } = _decorator
+const { ccclass, property } = _decorator
 
 declare global {
   interface Window {
@@ -11,18 +11,31 @@ declare global {
 
 @ccclass('SdkActions')
 export class SdkActions extends Component {
+  @property(Label) connectButtonLabel: Label = null!
+  @property(Label) addressLabel: Label = null!
+  @property(Label) chainIdLabel: Label = null!
+  @property(Label) nativeBalanceLabel: Label = null!
+
   // 1) 연결/해제/네트워크
-  onClickConnect() {
+  async onClickConnect() {
     if (!window.CrossSdk) {
       alert('SDK not loaded')
       return
     }
-    window.CrossSdk.useAppKitWallet().connect('cross_wallet')
+    await window.CrossSdk.useAppKitWallet().connect('cross_wallet')
+    // 연결 완료 후 즉시 라벨/요약 갱신
+    this.updateConnectButtonLabel()
+    try {
+      await this.refreshBalances()
+    } catch {}
+    await this.updateSummaryLabels()
   }
 
   async onClickDisconnect() {
     if (!window.CrossSdk) return
     await window.CrossSdk.ConnectionController.disconnect()
+    this.updateConnectButtonLabel() // 즉시 갱신
+    await this.updateSummaryLabels()
   }
 
   onClickSwitchToCross() {
@@ -277,6 +290,35 @@ export class SdkActions extends Component {
   }
 
   // ===== Helpers for UI binding =====
+  // 연결 버튼 라벨 토글: 연결됨 => 'Cross Connected', 해제됨 => 'Cross Connect'
+  updateConnectButtonLabel() {
+    if (!this.connectButtonLabel) return
+    const status = (window as any).CrossSdk?.AccountController?.state?.status
+    const address = (window as any).CrossSdk?.AccountController?.state?.address
+    console.log('status:', status)
+    console.log('address:', address)
+    const connected = status === 'connected' && Boolean(address)
+    console.log('connected:', connected)
+    this.connectButtonLabel.string = connected ? `Cross\nConnected` : `Cross\nConnect`
+  }
+
+  // 요약 라벨 갱신: address / chainId / native balance
+  async updateSummaryLabels() {
+    try {
+      const summary = await this.getSdkSummary()
+      if (this.addressLabel) this.addressLabel.string = summary.address || 'Not connected'
+      if (this.chainIdLabel) this.chainIdLabel.string = summary.chainId ? `${summary.chainId}` : '-'
+      if (this.nativeBalanceLabel)
+        this.nativeBalanceLabel.string = summary.nativeBalance
+          ? `${summary.nativeBalance}`.trim()
+          : '-'
+    } catch (e) {
+      if (this.addressLabel) this.addressLabel.string = 'Not connected'
+      if (this.chainIdLabel) this.chainIdLabel.string = '-'
+      if (this.nativeBalanceLabel) this.nativeBalanceLabel.string = '-'
+    }
+  }
+
   // 연결 상태 확인: 계정 상태가 connected 이고 주소가 존재할 때 true
   isConnected(): boolean {
     const status = (window as any).CrossSdk?.AccountController?.state?.status
@@ -305,8 +347,22 @@ export class SdkActions extends Component {
     let chainIdHex: `0x${string}` | undefined
     let chainId: number | undefined
     try {
-      chainIdHex = (await up?.request({ method: 'eth_chainId', params: [] })) as `0x${string}`
-      chainId = chainIdHex ? parseInt(chainIdHex, 16) : undefined
+      const raw = await up?.request({ method: 'eth_chainId', params: [] })
+      if (typeof raw === 'string') {
+        if (raw.startsWith('0x') || raw.startsWith('0X')) {
+          chainIdHex = raw as `0x${string}`
+          chainId = parseInt(raw, 16)
+        } else {
+          const asNumber = Number(raw)
+          if (!Number.isNaN(asNumber)) {
+            chainId = asNumber
+            chainIdHex = `0x${asNumber.toString(16)}` as `0x${string}`
+          }
+        }
+      } else if (typeof raw === 'number') {
+        chainId = raw
+        chainIdHex = `0x${raw.toString(16)}` as `0x${string}`
+      }
     } catch {
       // provider가 없거나 요청 실패 시 안전하게 무시
     }
@@ -345,5 +401,128 @@ export class SdkActions extends Component {
       console.error(e)
       alert('Force disconnect failed')
     }
+  }
+
+  // 0) SDK 준비 대기
+  private async waitSdkReady(timeoutMs = 5000) {
+    const start = Date.now()
+    while ((!window.CrossSdk || !window.CrossSdkInstance) && Date.now() - start < timeoutMs) {
+      await new Promise(r => setTimeout(r, 50))
+    }
+    if (!window.CrossSdk || !window.CrossSdkInstance) {
+      throw new Error('SDK not ready')
+    }
+  }
+
+  // 1) UniversalProvider 불러오기(없으면 undefined)
+  private async getUniversalProviderSafe() {
+    try {
+      const instance = window.CrossSdkInstance
+      if (!instance?.getUniversalProvider) return undefined
+      return await instance.getUniversalProvider()
+    } catch {
+      return undefined
+    }
+  }
+
+  // 2) 엔진 핸들(있으면 WalletConnect 세션 엔진)
+  private getEngineSafe() {
+    try {
+      const { walletProvider } = (window as any).CrossSdkInstance?.getProviders?.() || {}
+      return walletProvider?.client?.engine
+    } catch {
+      return undefined
+    }
+  }
+
+  // 3) 최초 세션 활성 여부 점검(주소/세션/엔진 기준)
+  async checkInitialSessionActive(): Promise<boolean> {
+    await this.waitSdkReady()
+
+    // a) 가장 빠른 경로: 계정 상태가 이미 복구됨
+    const status = (window as any).CrossSdk?.AccountController?.state?.status
+    const address = (window as any).CrossSdk?.AccountController?.state?.address
+    if (status === 'connected' && address) {
+      return true
+    }
+
+    // b) UniversalProvider 세션 존재 여부
+    const up = await this.getUniversalProviderSafe()
+    if (up?.session?.topic) {
+      return true
+    }
+
+    // c) 엔진 자체 상태(check after cleanup)
+    const engine = this.getEngineSafe()
+    if (engine?.getSessionStatus) {
+      try {
+        // cleanup 없이 읽기
+        const statusObj = await (engine as any).getSessionStatus()
+        if (statusObj?.total > 0 && statusObj?.healthy > 0) {
+          return true
+        }
+      } catch {}
+    }
+
+    return false
+  }
+
+  // 4) 최초 액세스 시 Provider 워밍업(확장/모바일에서 주소 복구 트리거용)
+  async warmupProviderIfAny() {
+    const up = await this.getUniversalProviderSafe()
+    try {
+      // 세션 있는 경우 계정 요청으로 내부 상태를 빠르게 복구
+      if (up?.session) {
+        await up.request({ method: 'eth_requestAccounts', params: [] })
+      }
+    } catch {
+      // 확장 연결 등에서 실패해도 무시
+    }
+  }
+
+  async start() {
+    // 1) SDK 준비 후 provider 워밍업
+    try {
+      await this.warmupProviderIfAny()
+    } catch {}
+
+    // 2) 최초 연결 여부 판단 → 버튼 라벨 즉시 반영
+    const active = await this.checkInitialSessionActive()
+    this.updateConnectButtonLabel()
+    await this.updateSummaryLabels()
+
+    // 3) 상태 변화 구독(이미 추가했다면 중복 X)
+    if (window.CrossSdk?.AccountController?.subscribeKey) {
+      ;(this as any)._unsubs ||= []
+      ;(this as any)._unsubs.push(
+        window.CrossSdk.AccountController.subscribeKey('status', () => {
+          this.updateConnectButtonLabel()
+          this.updateSummaryLabels()
+        }),
+        window.CrossSdk.AccountController.subscribeKey('address', () => {
+          this.updateConnectButtonLabel()
+          this.updateSummaryLabels()
+        }),
+        window.CrossSdk.AccountController.subscribeKey('balance', () => {
+          this.updateSummaryLabels()
+        }),
+        window.CrossSdk.AccountController.subscribeKey('balanceSymbol', () => {
+          this.updateSummaryLabels()
+        })
+      )
+    }
+
+    // 4) 포커스 복귀 시 재점검(모바일 딥링크/탭 전환 대응)
+    window.addEventListener(
+      'focus',
+      () =>
+        setTimeout(() => {
+          this.updateConnectButtonLabel()
+          this.updateSummaryLabels()
+        }, 300),
+      {
+        passive: true
+      }
+    )
   }
 }

@@ -10528,7 +10528,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "userName",
+    "_name": "userAddress",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -10622,7 +10622,7 @@
     "_actualFontSize": 20,
     "_fontSize": 20,
     "_fontFamily": "Arial",
-    "_lineHeight": 20,
+    "_lineHeight": 0,
     "_overflow": 2,
     "_enableWrapText": true,
     "_font": null,
@@ -10918,7 +10918,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "num",
+    "_name": "chainId",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -11257,8 +11257,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 59,
-      "height": 59
+      "width": 55,
+      "height": 55
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -11288,12 +11288,12 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "997adfc1-de9e-4182-b64e-e427c4cddb9f@f9941",
+      "__uuid__": "402ce9ca-80b5-442b-b7e4-44e3454008a4@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -11308,7 +11308,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "num",
+    "_name": "nativeBalance",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -11399,10 +11399,10 @@
     "_string": "999999",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 26,
-    "_fontSize": 25,
+    "_actualFontSize": 16,
+    "_fontSize": 15,
     "_fontFamily": "Arial",
-    "_lineHeight": 25,
+    "_lineHeight": 0,
     "_overflow": 2,
     "_enableWrapText": true,
     "_font": null,
@@ -25340,7 +25340,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Label",
+    "_name": "Cross Connect Label",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -25660,6 +25660,18 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "connectButtonLabel": {
+      "__id__": 675
+    },
+    "addressLabel": {
+      "__id__": 277
+    },
+    "chainIdLabel": {
+      "__id__": 287
+    },
+    "nativeBalanceLabel": {
+      "__id__": 297
+    },
     "_id": "4cfqqYFupFAKoQGVyx0Fmz"
   },
   {
