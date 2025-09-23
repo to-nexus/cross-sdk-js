@@ -9,6 +9,49 @@ declare global {
   }
 }
 
+const contractData = {
+  612044: {
+    coin: 'CROSS',
+    erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
+    erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
+  },
+  612055: {
+    coin: 'CROSS',
+    erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
+    erc721: ''
+  },
+  97: {
+    coin: 'BNB',
+    erc20: '',
+    erc721: ''
+  },
+  56: {
+    coin: 'BNB',
+    erc20: '',
+    erc721: ''
+  },
+  1001: {
+    coin: 'KAIA',
+    erc20: '0xd4846dddf83278d10b92bf6c169c5951d6f5abb8',
+    erc721: ''
+  },
+  8217: {
+    coin: 'KAIA',
+    erc20: '',
+    erc721: ''
+  },
+  1: {
+    coin: 'ETH',
+    erc20: '',
+    erc721: ''
+  },
+  11155111: {
+    coin: 'ETH',
+    erc20: '',
+    erc721: ''
+  }
+}
+
 @ccclass('SdkActions')
 export class SdkActions extends Component {
   @property(Label) connectButtonLabel: Label = null!
@@ -38,16 +81,20 @@ export class SdkActions extends Component {
     await this.updateSummaryLabels()
   }
 
-  onClickSwitchToCross() {
+  async onClickSwitchToCross() {
     const instance = window.CrossSdkInstance
     if (!instance) return alert('SDK not initialized')
-    // crossTestnet은 CDN 네임스페이스가 아니라 instance.switchNetwork로 전환
-    // sdk-cdn 예제와 동일하게 instance.switchNetwork(network) 사용 가능
+
+    const { chainId } = await this.getSdkSummary()
+    const target = chainId === 612044 ? window.CrossSdk.crossMainnet : window.CrossSdk.crossTestnet
+
     try {
-      // 기본 네트워크 전환은 네트워크 선택 UI로 처리하는 것을 권장
-      alert('Use your network modal to switch network (see sdk-cdn example).')
+      await instance.switchNetwork(target) // ← AppKit 경로로 전환 (필수)
+      // UI는 구독으로 자동 반영되지만, 즉시 반영 원하면:
+      this.updateConnectButtonLabel()
+      await this.updateSummaryLabels()
     } catch (e) {
-      console.error(e)
+      alert((e as Error).message || 'Switch network failed')
     }
   }
 
@@ -83,8 +130,9 @@ export class SdkActions extends Component {
         customData: { metadata: 'demo' }
       })
       console.log('Signed:', sig)
+      alert('Signed message: ' + sig)
     } catch (e) {
-      alert('Connect wallet first')
+      alert((e as Error).message)
     }
   }
 
@@ -92,7 +140,7 @@ export class SdkActions extends Component {
   async onClickSendNative() {
     if (!window.CrossSdk) return alert('SDK not loaded')
     try {
-      await window.CrossSdk.SendController.sendNativeToken({
+      const resTx = await window.CrossSdk.SendController.sendNativeToken({
         data: '0x',
         receiverAddress: '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379',
         sendTokenAmount: 1,
@@ -100,9 +148,12 @@ export class SdkActions extends Component {
         customData: { metadata: 'Cocos demo' },
         type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.LEGACY
       })
-      alert('Send native submitted')
+      this.updateConnectButtonLabel()
+      await this.updateSummaryLabels()
+
+      alert(JSON.stringify(resTx))
     } catch (e) {
-      alert('Connect wallet first')
+      alert((e as Error).message)
     }
   }
 
@@ -207,23 +258,28 @@ export class SdkActions extends Component {
     }
   }
 
-  // 9) ERC20 전송 (EVM)
   async onClickSendERC20() {
     if (!window.CrossSdk) return alert('SDK not loaded')
     try {
-      const caipContract = prompt('ERC20 CAIP address (e.g. eip155:1:0x... )') || ''
-      if (!caipContract) return
-      await window.CrossSdk.SendController.sendERC20Token({
+      const { chainId } = await this.getSdkSummary() // 이미 구현된 헬퍼
+      if (!chainId) return alert('Connect wallet first')
+      const ERC20_ADDRESS = contractData[chainId as keyof typeof contractData].erc20
+      const erc20 = ERC20_ADDRESS // 토큰 주소
+      const caipContract = `eip155:${chainId}:${erc20}`
+
+      const resTx = await window.CrossSdk.SendController.sendERC20Token({
         receiverAddress: '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379',
-        contractAddress: caipContract,
+        contractAddress: caipContract, // ← CAIP-2 형식
         sendTokenAmount: 1,
         decimals: '18',
         type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.LEGACY
       })
-      alert('Send ERC20 submitted')
+      this.updateConnectButtonLabel()
+      await this.updateSummaryLabels()
+
+      alert(JSON.stringify(resTx))
     } catch (e) {
-      console.error(e)
-      alert('Send ERC20 failed')
+      alert((e as Error).message)
     }
   }
 
@@ -307,7 +363,12 @@ export class SdkActions extends Component {
     try {
       const summary = await this.getSdkSummary()
       if (this.addressLabel) this.addressLabel.string = summary.address || 'Not connected'
-      if (this.chainIdLabel) this.chainIdLabel.string = summary.chainId ? `${summary.chainId}` : '-'
+      if (this.chainIdLabel)
+        this.chainIdLabel.string = summary.chainId
+          ? summary.chainId === 612044
+            ? `Cross Testnet\n${summary.chainId}`
+            : `Cross Mainnet\n${summary.chainId}`
+          : '-'
       if (this.nativeBalanceLabel)
         this.nativeBalanceLabel.string = summary.nativeBalance
           ? `${summary.nativeBalance}`.trim()
