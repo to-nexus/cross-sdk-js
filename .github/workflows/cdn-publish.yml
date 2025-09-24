@@ -74,12 +74,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Set workspace version for prod
+        if: inputs.environment == 'prod'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          CLEAN_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
+          echo "Setting workspace version to clean version: $CLEAN_VERSION"
+          pnpm run version:set "$CLEAN_VERSION"
+
       - name: Extract version from package.json
         id: extract_version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Current version: ${VERSION}"
+          # For prod environment, remove any prerelease suffix (beta, alpha)
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            CLEAN_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
+            echo "CURRENT_VERSION=${CLEAN_VERSION}" >> $GITHUB_OUTPUT
+            echo "Original version: ${VERSION}"
+            echo "Clean version for prod: ${CLEAN_VERSION}"
+          else
+            echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+            echo "Current version: ${VERSION}"
+          fi
 
       - name: Configure AWS Credentials
         if: inputs.dry_run == 'false'
