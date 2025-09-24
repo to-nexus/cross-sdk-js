@@ -45,6 +45,32 @@ jobs:
         with:
           version: 9.5.0
 
+      - name: Resolve Nexus registry URL
+        id: registry
+        run: |
+          url="${{ secrets.NEXUS_REGISTRY_URL }}"
+          echo "NEXUS_URL=$url" >> $GITHUB_OUTPUT
+
+      - name: Configure npm for Nexus
+        run: |
+          NEXUS_REGISTRY_URL="${{ steps.registry.outputs.NEXUS_URL }}"
+          HOST_PATH="${NEXUS_REGISTRY_URL#https://}"
+          HOST_PATH_NO_SLASH="${HOST_PATH%/}"
+          HOST_DOMAIN="${HOST_PATH%%/*}"
+          echo "@to-nexus:registry=${NEXUS_REGISTRY_URL}" > .npmrc
+          echo "//${HOST_PATH}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//${HOST_PATH}/:always-auth=true" >> .npmrc
+          echo "//${HOST_PATH_NO_SLASH}:always-auth=true" >> .npmrc
+          echo "//${HOST_DOMAIN}/repository/:always-auth=true" >> .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "NPM_CONFIG_USERCONFIG=$GITHUB_WORKSPACE/.npmrc" >> $GITHUB_ENV
+          echo "Configured Nexus registry: ${NEXUS_REGISTRY_URL}"
+        env:
+          NPM_TOKEN: ${{ secrets.NEXUS_NPM_TOKEN }}
+
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
