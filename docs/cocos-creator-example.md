@@ -369,27 +369,14 @@ async onClickSwitchToCross() {
 
 ## 빌드 및 배포
 
-### 1. 웹 빌드
+Cocos Creator 에디터에서:
 
-```bash
-# 웹 플랫폼용 빌드
-cocos build --platform web-mobile --mode release
-cocos build --platform web-desktop --mode release
-```
-
-### 2. 모바일 빌드
-
-#### 안드로이드
-
-1. Android SDK/NDK 설치 (안드로이드 설정 요구사항 참조)
-2. 서명 인증서 구성
-3. 빌드: `cocos build --platform android --mode release`
-
-#### iOS
-
-1. Xcode 및 iOS SDK 설치
-2. Apple Developer 인증서 구성
-3. 빌드: `cocos build --platform ios --mode release`
+1. **프로젝트 메뉴** → **빌드 발행** 선택 (또는 `Ctrl/Cmd + Shift + B`)
+2. **빌드 설정**:
+   - **발행 플랫폼**: `Web Mobile` 또는 `Web Desktop` 선택
+   - **빌드 경로**: 기본값 `build/` 사용
+3. **빌드** 버튼 클릭
+4. 빌드 완료 후 **실행** 버튼 클릭하여 테스트
 
 ## 중요 사항
 
