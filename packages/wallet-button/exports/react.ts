@@ -167,67 +167,6 @@ export function useAppKitWallet(parameters?: {
     [connectors, handleSuccess, handleError]
   )
 
-  // CROSS Wallet 전용 연결 함수들
-  const connectCrossWallet = useCallback(async () => {
-    connect('cross_wallet')
-  }, [connect])
-
-  const connectCrossExtensionWallet = useCallback(async () => {
-    try {
-      WalletButtonController.setPending(true)
-      WalletButtonController.setError(undefined)
-
-      const { customWallets } = OptionsController.state
-      const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')
-
-      if (!crossWallet) {
-        throw new Error('CROSS Wallet이 customWallets에 설정되지 않았습니다.')
-      }
-
-      if (!crossWallet.rdns) {
-        throw new Error('CROSS Wallet RDNS가 설정되지 않았습니다.')
-      }
-
-      // 익스텐션 설치 확인
-      const currentConnectors = ConnectorController.state.connectors
-      const announced = currentConnectors.filter(
-        c => c.type === 'ANNOUNCED' && c.info?.rdns === crossWallet.rdns
-      )
-
-      if (!announced || announced.length === 0) {
-        throw new Error('CROSS Wallet 익스텐션이 설치되지 않았습니다.')
-      }
-
-      const browserConnector = announced[0]
-      if (browserConnector) {
-        await ConnectorUtil.connectExternal(browserConnector).then(handleSuccess)
-      } else {
-        throw new Error('CROSS Wallet 커넥터를 찾을 수 없습니다.')
-      }
-    } catch (err) {
-      handleError(err)
-    } finally {
-      WalletButtonController.setPending(false)
-    }
-  }, [handleSuccess, handleError])
-
-  const isInstalledCrossExtensionWallet = useCallback(() => {
-    const { customWallets } = OptionsController.state
-    const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')
-
-    if (!crossWallet || !crossWallet.rdns) {
-      return false
-    }
-
-    // ANNOUNCED 커넥터에서 정확한 RDNS로 찾기
-    const { connectors } = ConnectorController.state
-    const announced = connectors.filter(
-      c => c.type === 'ANNOUNCED' && c.info?.rdns === crossWallet.rdns
-    )
-
-    return announced && announced.length > 0
-  }, [])
-
   return {
     data: walletButtonData,
     error: walletButtonError,
@@ -235,9 +174,6 @@ export function useAppKitWallet(parameters?: {
     isPending: isWalletButtonConnecting,
     isError: Boolean(walletButtonError),
     isSuccess: Boolean(walletButtonData),
-    connect,
-    connectCrossWallet,
-    connectCrossExtensionWallet,
-    isInstalledCrossExtensionWallet
+    connect
   }
 }

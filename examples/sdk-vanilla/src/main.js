@@ -155,7 +155,6 @@ let walletInfo = {}
 let eip155Provider = null
 let contractArgs = null
 let previousCaipAddress = null // 이전 주소를 저장하기 위한 변수
-let isExtensionInstalled = false
 
 // Helper functions
 function getERC20CAIPAddress() {
@@ -312,66 +311,6 @@ const updateTheme = mode => {
   const nexusLogo = document.getElementById('nexus-logo')
   if (nexusLogo) {
     nexusLogo.src = mode === 'dark' ? './nexus-logo-white.png' : './nexus-logo.png'
-  }
-}
-
-// CROSS Wallet 전용 함수들
-async function handleConnectCrossWallet() {
-  try {
-    await appkitWallet.connectCrossWallet()
-    showSuccess('CROSS Wallet 연결 시작됨', 'QR 코드를 스캔하거나 딥링크를 통해 연결하세요.')
-  } catch (error) {
-    console.error('CROSS Wallet QR 연결 실패:', error)
-    showError('연결 실패', `CROSS Wallet QR 연결에 실패했습니다: ${error.message}`)
-  }
-}
-
-async function handleConnectCrossExtension() {
-  try {
-    if (!isExtensionInstalled) {
-      showError('익스텐션 미설치', 'CROSS Wallet 익스텐션이 설치되지 않았습니다.')
-      return
-    }
-
-    await appkitWallet.connectCrossExtensionWallet()
-    showSuccess('익스텐션 연결 성공', 'CROSS Wallet 익스텐션이 연결되었습니다.')
-  } catch (error) {
-    console.error('CROSS Wallet 익스텐션 연결 실패:', error)
-    showError('연결 실패', `CROSS Wallet 익스텐션 연결에 실패했습니다: ${error.message}`)
-  }
-}
-
-function checkExtensionInstalled() {
-  isExtensionInstalled = appkitWallet.isInstalledCrossExtensionWallet()
-  updateCrossWalletButtons()
-}
-
-function updateCrossWalletButtons() {
-  const qrButton = document.getElementById('connect-cross-wallet-qr')
-  const extensionButton = document.getElementById('connect-cross-wallet-extension')
-
-  if (qrButton) {
-    if (accountState.isConnected) {
-      qrButton.style.display = 'none'
-    } else {
-      qrButton.style.display = 'block'
-      qrButton.disabled = appkitWallet.isPending
-      qrButton.textContent = appkitWallet.isPending ? 'Connecting...' : 'Connect CROSS Wallet (QR)'
-    }
-  }
-
-  if (extensionButton) {
-    if (accountState.isConnected) {
-      extensionButton.style.display = 'none'
-    } else {
-      extensionButton.style.display = 'block'
-      extensionButton.disabled = appkitWallet.isPending || !isExtensionInstalled
-      extensionButton.style.backgroundColor = !isExtensionInstalled ? '#9E9E9E' : ''
-      extensionButton.style.color = !isExtensionInstalled ? 'white' : ''
-      extensionButton.textContent = appkitWallet.isPending
-        ? 'Connecting...'
-        : `Connect Extension${!isExtensionInstalled ? ' (Not Installed)' : ''}`
-    }
   }
 }
 
@@ -775,21 +714,9 @@ crossSdk.subscribeAccount(state => {
     2
   )
   // connect-wallet 버튼 텍스트 업데이트
-  const connectWalletBtn = document.getElementById('connect-wallet')
-  if (connectWalletBtn) {
-    if (accountState.isConnected) {
-      connectWalletBtn.textContent = 'Disconnect'
-      connectWalletBtn.style.backgroundColor = '#dc3545'
-      connectWalletBtn.style.color = 'white'
-    } else {
-      connectWalletBtn.textContent = 'Connect Wallet'
-      connectWalletBtn.style.backgroundColor = ''
-      connectWalletBtn.style.color = ''
-    }
-  }
-
-  // CROSS Wallet 버튼들 업데이트
-  updateCrossWalletButtons()
+  document.getElementById('connect-wallet').textContent = accountState.isConnected
+    ? 'Connected'
+    : 'Connect Wallet'
 
   // 주소가 변경되었을 때만 토큰 잔액을 가져옵니다
   if (accountState.caipAddress && accountState.caipAddress !== previousCaipAddress) {
@@ -891,14 +818,6 @@ document.getElementById('get-balance-native')?.addEventListener('click', getBala
 document.getElementById('get-balance-erc20')?.addEventListener('click', () => getBalanceOfERC20())
 document.getElementById('get-balance-nft')?.addEventListener('click', getBalanceOfNFT)
 
-// CROSS Wallet 버튼 이벤트 리스너
-document
-  .getElementById('connect-cross-wallet-qr')
-  ?.addEventListener('click', handleConnectCrossWallet)
-document
-  .getElementById('connect-cross-wallet-extension')
-  ?.addEventListener('click', handleConnectCrossExtension)
-
 // Initialize contract args when account and network are ready
 function initializeContractArgs() {
   if (contractArgs || !getFROM_ADDRESS() || !networkState?.caipNetwork?.chainNamespace) return
@@ -926,11 +845,6 @@ updateTheme(themeState.themeMode)
 // 모달 이벤트 설정
 setupNetworkModalEvents()
 setupResultModalEvents()
-
-// CROSS Wallet 익스텐션 설치 상태 주기적 체크
-checkExtensionInstalled()
-setInterval(checkExtensionInstalled, 3000)
-
 // Initialize contract args when state changes
 crossSdk.subscribeAccount(() => {
   setTimeout(initializeContractArgs, 100)
