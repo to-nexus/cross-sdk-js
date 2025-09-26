@@ -15,10 +15,13 @@ type OpenTarget = '_blank' | '_self' | 'popupWindow' | '_top'
 export const CoreHelperUtil = {
   isMobile() {
     if (this.isClient()) {
-      return Boolean(
-        window.matchMedia('(pointer:coarse)').matches ||
-          /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(navigator.userAgent)
+      const pointerCoarse = window.matchMedia('(pointer:coarse)').matches
+      const userAgentTest = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(
+        navigator.userAgent
       )
+      const result = Boolean(pointerCoarse || userAgentTest)
+
+      return result
     }
 
     return false
@@ -84,8 +87,6 @@ export const CoreHelperUtil = {
     )
   },
 
-<<<<<<< Updated upstream
-=======
   isCROSSxBrowser() {
     if (!this.isClient()) {
       return false
@@ -102,7 +103,16 @@ export const CoreHelperUtil = {
       return false
     }
 
-    return window.matchMedia('(orientation: landscape)').matches
+    const result = window.matchMedia('(orientation: landscape)').matches
+    console.log('[DEBUG] isLandscape() - Result:', result)
+    console.log(
+      '[DEBUG] isLandscape() - Window dimensions:',
+      window.innerWidth,
+      'x',
+      window.innerHeight
+    )
+
+    return result
   },
 
   isMobileLandscape() {
@@ -117,17 +127,11 @@ export const CoreHelperUtil = {
       navigator.userAgent
     )
 
-    // iPad 시뮬레이터는 macOS UserAgent를 사용하지만 화면 크기로 구분 가능
-    // iPad Air: 1180x820, iPad mini: 1024x768, iPad Pro: 1366x1024
-    // 1300px 이하이고 터치 디바이스이면 태블릿으로 간주
-    const isTabletSize = isCoarsePointer && window.innerWidth <= 1100
-
-    const result = isLandscapeResult && isCoarsePointer && (isMobileDevice || isTabletSize)
+    const result = isLandscapeResult && isCoarsePointer && isMobileDevice
 
     return result
   },
 
->>>>>>> Stashed changes
   isClient() {
     return typeof window !== 'undefined'
   },
@@ -209,8 +213,18 @@ export const CoreHelperUtil = {
     }
     const encodedWcUrl = encodeURIComponent(wcUri)
 
+    // CROSS 브라우저에서 모바일일 경우 from=crossx 파라미터 추가
+    let redirectUrl = `${safeAppUrl}wc?uri=${encodedWcUrl}`
+    if (this.isCROSSxBrowser()) {
+      redirectUrl += '%26from%3Dcrossx'
+    } else if (this.isMobile()) {
+      redirectUrl += '%26from%3Dmobile-browser'
+    } else {
+      redirectUrl += '%26from%3Dbrowser'
+    }
+
     return {
-      redirect: `${safeAppUrl}wc?uri=${encodedWcUrl}`,
+      redirect: redirectUrl,
       href: safeAppUrl
     }
   },
@@ -225,8 +239,18 @@ export const CoreHelperUtil = {
     }
     const encodedWcUrl = encodeURIComponent(wcUri)
 
+    // CROSS 브라우저에서 모바일일 경우 from=crossx 파라미터 추가
+    let redirectUrl = `${safeAppUrl}wc?uri=${encodedWcUrl}`
+    if (this.isCROSSxBrowser()) {
+      redirectUrl += '%26from%3Dcrossx'
+    } else if (this.isMobile()) {
+      redirectUrl += '%26from%3Dmobile-browser'
+    } else {
+      redirectUrl += '%26from%3Dbrowser'
+    }
+
     return {
-      redirect: `${safeAppUrl}wc?uri=${encodedWcUrl}`,
+      redirect: redirectUrl,
       href: safeAppUrl
     }
   },

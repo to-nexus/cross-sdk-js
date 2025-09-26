@@ -53,12 +53,14 @@ export default css`
     height: 100%;
     display: flex;
     flex-direction: column;
+    border-left: 1px solid var(--wui-color-gray-glass-005);
     background: var(--wui-color-modal-bg);
   }
 
   .landscape-tabs {
     flex: 0 0 auto;
     padding: var(--wui-spacing-l);
+    border-bottom: 1px solid var(--wui-color-gray-glass-005);
     background: var(--wui-color-modal-bg);
   }
 
@@ -75,6 +77,7 @@ export default css`
     flex: 0 0 auto;
     padding: var(--wui-spacing-l);
     background: var(--wui-color-modal-bg);
+    border-top: 1px solid var(--wui-color-gray-glass-005);
   }
 
   .qr-section {

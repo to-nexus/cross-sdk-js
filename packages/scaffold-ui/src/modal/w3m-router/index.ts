@@ -1,5 +1,5 @@
 import type { RouterControllerState } from '@to-nexus/appkit-core'
-import { RouterController, TooltipController } from '@to-nexus/appkit-core'
+import { CoreHelperUtil, RouterController, TooltipController } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
 import { LitElement, html } from 'lit'
@@ -80,7 +80,9 @@ export class W3mRouter extends LitElement {
       case 'Create':
         return html`<cross-w3m-connect-view walletGuide="explore"></cross-w3m-connect-view>`
       case 'ConnectingWalletConnect':
-        return html`<cross-w3m-connecting-wc-view></cross-w3m-connecting-wc-view>`
+        return CoreHelperUtil.isMobileLandscape()
+          ? html`<cross-w3m-connecting-wc-landscape-view></cross-w3m-connecting-wc-landscape-view>`
+          : html`<cross-w3m-connecting-wc-view></cross-w3m-connecting-wc-view>`
       case 'ConnectingWalletConnectBasic':
         return html`<cross-w3m-connecting-wc-basic-view></cross-w3m-connecting-wc-basic-view>`
       case 'ConnectingExternal':
