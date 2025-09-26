@@ -43,6 +43,20 @@ export default css`
     will-change: border-radius, background-color;
   }
 
+<<<<<<< Updated upstream
+=======
+  /* 실제 모바일 디바이스의 랜드스케이프 모드에서만 모달 확장 */
+  @media (orientation: landscape) and (pointer: coarse) and (max-width: 1100px) {
+    wui-card {
+      max-width: 700px;
+      width: 700px;
+      height: 360px;
+      max-height: 360px;
+      margin: 0;
+    }
+  }
+
+>>>>>>> Stashed changes
   :host(.embedded) wui-card {
     max-width: 400px;
   }
