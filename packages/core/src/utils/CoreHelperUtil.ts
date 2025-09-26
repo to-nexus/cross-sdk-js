@@ -84,8 +84,6 @@ export const CoreHelperUtil = {
     )
   },
 
-<<<<<<< Updated upstream
-=======
   isCROSSxBrowser() {
     if (!this.isClient()) {
       return false
@@ -127,7 +125,6 @@ export const CoreHelperUtil = {
     return result
   },
 
->>>>>>> Stashed changes
   isClient() {
     return typeof window !== 'undefined'
   },
