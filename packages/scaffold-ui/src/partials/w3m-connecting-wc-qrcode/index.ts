@@ -1,6 +1,7 @@
 import {
   AssetUtil,
   ConnectionController,
+  CoreHelperUtil,
   EventsController,
   ThemeController
 } from '@to-nexus/appkit-core'
@@ -37,6 +38,33 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
   public override render() {
     this.onRenderProxy()
 
+    // 가로모드에서는 QR 코드만 표시
+    if (CoreHelperUtil.isMobileLandscape()) {
+      return html`
+        <wui-flex
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          .padding=${['0', '0', '0', '0']}
+          gap="0"
+          style="width: 100%; height: 100%;"
+        >
+          ${this.ready && this.uri
+            ? html` ${this.qrCodeTemplate()} `
+            : html`
+                <wui-shimmer
+                  borderRadius="l"
+                  width="270px"
+                  height="270px"
+                  style="width: 270px; height: 270px; max-width: 270px; max-height: 270px;"
+                >
+                </wui-shimmer>
+              `}
+        </wui-flex>
+      `
+    }
+
+    // 세로모드에서는 기존 UI 유지
     return html`
       <wui-flex
         flexDirection="column"
@@ -44,7 +72,9 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
         .padding=${['0', 'xl', 'xl', 'xl']}
         gap="xl"
       >
-        <wui-shimmer borderRadius="l" width="100%"> ${this.qrCodeTemplate()} </wui-shimmer>
+        <wui-shimmer borderRadius="l" width="100%" style="max-width:300px;">
+          ${this.qrCodeTemplate()}
+        </wui-shimmer>
 
         <wui-text variant="paragraph-500" color="fg-100">
           Scan this QR Code with your phone
