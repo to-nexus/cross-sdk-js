@@ -1,7 +1,7 @@
 {
   "name": "@to-nexus/appkit-adapter-polkadot",
   "private": true,
-  "version": "1.17.1-beta.1",
+  "version": "1.17.1-beta.2",
   "scripts": {
     "build:clean": "rm -rf dist",
     "build": "tsc --build tsconfig.build.json",
