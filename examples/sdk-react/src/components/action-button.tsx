@@ -184,7 +184,7 @@ export function ActionButtonList() {
     const handleVisibilityChange = async () => {
       if (!document.hidden) {
         // 탭 활성화 시: 엔진에 cleanup 포함 강제 점검을 요청
-        const isSessionActive = await validateAndCleanupSessions(true)
+        const isSessionActive = await checkWalletConnectionStatus(true)
         // 필요하다면 isSessionActive 결과에 따라 UI/스토어를 업데이트하세요.
         console.log('📱 [ACTION-BUTTON] isSessionActive:    ' + isSessionActive)
       }
@@ -194,7 +194,7 @@ export function ActionButtonList() {
     // 모달이 열려있는 경우(isOpen)에는 중복 호출을 피합니다.
     const handlePageFocus = async () => {
       if (!isOpen) {
-        const isSessionActive = await validateAndCleanupSessions(true)
+        const isSessionActive = await checkWalletConnectionStatus(true)
         // isSessionActive를 사용해 재연결 유도, 알림 노출 등 후속 처리 가능
         console.log('📱 [ACTION-BUTTON] isSessionActive:', isSessionActive)
       }
@@ -203,34 +203,27 @@ export function ActionButtonList() {
     // 포커스 해제 시에는 현재 별도 동작을 하지 않습니다. 필요 시 리소스 정리 등을 추가하세요.
     const handlePageBlur = () => {}
 
-    // 엔진에 세션 점검/정리를 위임하는 도우미 함수입니다.
-    // isSessionCheck=true 이면 엔진 내부에서 cleanup 후 재확인을 수행합니다.
-    const validateAndCleanupSessions = async (isSessionCheck: boolean): Promise<boolean> => {
+    // 지갑 연결 상태를 확인하는 도우미 함수입니다.
+    // shouldCleanup=true 이면 엔진 내부에서 세션 정리 후 상태를 확인합니다.
+    const checkWalletConnectionStatus = async (shouldCleanup: boolean): Promise<boolean> => {
       try {
         // UniversalProvider 엔진 존재 여부 확인 (확장 프로그램 연결 등에서는 세션이 없을 수 있음)
         if (walletProvider?.client?.engine) {
-          // cleanup/검증 트리거
-          await (walletProvider.client.engine as any).validateAndCleanupSessions(isSessionCheck)
-
-          // cleanup 이후의 최종 세션 상태를 읽어 boolean으로 환산
-          const status = await (walletProvider.client.engine as any).getSessionStatus()
-
-          // 현재 UniversalProvider 세션 토픽 기준으로 우선 판정
+          // Engine의 간단한 세션 활성 상태 확인 함수 사용
           let isActive = false
           try {
             const universalProvider = await getUniversalProvider()
             const currentTopic = universalProvider?.session?.topic
 
-            if (currentTopic && status?.sessions?.length) {
-              const current = status.sessions.find((s: any) => s.topic === currentTopic)
-              isActive = current?.status === 'healthy'
-            } else {
-              // 토픽이 없다면 보수적 fallback: 최소 1개 healthy 존재 여부
-              isActive = Boolean(status && status.total > 0 && status.healthy > 0)
-            }
-          } catch (e) {
-            // UniversalProvider 접근 오류 시 fallback로 처리
-            isActive = Boolean(status && status.total > 0 && status.healthy > 0)
+            // Engine의 validateSessionAndGetStatus 함수로 단순화
+            isActive = await (walletProvider.client.engine as any).validateSessionAndGetStatus(
+              currentTopic,
+              shouldCleanup
+            )
+          } catch (error) {
+            console.error('Error checking session active status:', error)
+            // 에러 발생 시 비활성 상태로 처리
+            isActive = false
           }
 
           // 확장 프로그램(EIP1193Provider) 연결의 경우 Universal Provider 세션이 없을 수 있으므로

@@ -32,7 +32,18 @@ declare module 'react' {
 export function useAppKitWallet(parameters?: {
   onSuccess?: (data: ParsedCaipAddress) => void
   onError?: (error: Error) => void
-}) {
+}): {
+  data: ParsedCaipAddress | undefined
+  error: Error | undefined
+  isReady: boolean | undefined
+  isPending: boolean
+  isError: boolean
+  isSuccess: boolean
+  connect: (wallet: Wallet) => Promise<void>
+  connectCrossWallet: () => Promise<void>
+  connectCrossExtensionWallet: () => Promise<void>
+  isInstalledCrossExtensionWallet: () => boolean
+} {
   const { connectors } = useSnapshot(ConnectorController.state)
   const {
     pending: isWalletButtonConnecting,
@@ -43,12 +54,14 @@ export function useAppKitWallet(parameters?: {
 
   const { onSuccess, onError } = parameters ?? {}
 
-  // Prefetch wallet buttons
-  // useEffect(() => {
-  //   if (!isWalletButtonReady) {
-  // ApiController.fetchWalletButtons()
-  // }
-  // }, [isWalletButtonReady])
+  /*
+   * Prefetch wallet buttons
+   * useEffect(() => {
+   *   if (!isWalletButtonReady) {
+   * ApiController.fetchWalletButtons()
+   * }
+   * }, [isWalletButtonReady])
+   */
 
   useEffect(
     () =>
@@ -111,28 +124,31 @@ export function useAppKitWallet(parameters?: {
           return
         }
 
-        // added by Harvey-Probe for direct access to custom wallets
-        // console.log('커스텀 지갑 직접 접근 시작')
+        /*
+         * Added by Harvey-Probe for direct access to custom wallets
+         * console.log('커스텀 지갑 직접 접근 시작')
+         */
         const { customWallets } = OptionsController.state
-        // console.log('customWallets:', customWallets)
+        // Console.log('customWallets:', customWallets)
         const customWallet = customWallets?.find(w => w.id === wallet)
-        // console.log('찾은 customWallet:', customWallet)
+        // Console.log('찾은 customWallet:', customWallet)
 
         // CROSS Wallet 특별 처리: w3modal에서 Browser/QR 탭 선택하게 하기
         if (customWallet && wallet === 'cross_wallet') {
-          // console.log('🎯 CROSS Wallet 감지됨 - w3modal 열기:', wallet)
+          // Console.log('🎯 CROSS Wallet 감지됨 - w3modal 열기:', wallet)
 
           await ConnectorUtil.connectWalletConnect({
             walletConnect: wallet === 'cross_wallet',
             connector: connectors.find(c => c.id === wallet) as Connector | undefined,
             wallet: customWallet
           }).then(handleSuccess)
+
           return
         }
 
         // 다른 브라우저 익스텐션의 경우 직접 연결 시도
         if (customWallet?.rdns && wallet !== 'cross_wallet') {
-          // console.log('🔍 다른 브라우저 확장 프로그램 감지됨, rdns:', customWallet.rdns)
+          // Console.log('🔍 다른 브라우저 확장 프로그램 감지됨, rdns:', customWallet.rdns)
           const currentConnectors = ConnectorController.state.connectors
           const announced = currentConnectors.filter(
             c => c.type === 'ANNOUNCED' && c.id === customWallet.rdns
@@ -141,9 +157,9 @@ export function useAppKitWallet(parameters?: {
           if (announced && announced.length > 0) {
             const browserConnector = announced[0]
             if (browserConnector) {
-              // console.log('🚀 브라우저 커넥터로 직접 연결 시도 중...')
+              // Console.log('🚀 브라우저 커넥터로 직접 연결 시도 중...')
               await ConnectorUtil.connectExternal(browserConnector).then(handleSuccess)
-              // console.log('✅ 브라우저 커넥터 연결 성공!')
+              // Console.log('✅ 브라우저 커넥터 연결 성공!')
               return
             }
           }
@@ -215,7 +231,7 @@ export function useAppKitWallet(parameters?: {
     const { customWallets } = OptionsController.state
     const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')
 
-    if (!crossWallet || !crossWallet.rdns) {
+    if (!crossWallet?.rdns) {
       return false
     }
 
