@@ -15,13 +15,10 @@ type OpenTarget = '_blank' | '_self' | 'popupWindow' | '_top'
 export const CoreHelperUtil = {
   isMobile() {
     if (this.isClient()) {
-      const pointerCoarse = window.matchMedia('(pointer:coarse)').matches
-      const userAgentTest = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(
-        navigator.userAgent
+      return Boolean(
+        window.matchMedia('(pointer:coarse)').matches ||
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(navigator.userAgent)
       )
-      const result = Boolean(pointerCoarse || userAgentTest)
-
-      return result
     }
 
     return false
@@ -103,16 +100,7 @@ export const CoreHelperUtil = {
       return false
     }
 
-    const result = window.matchMedia('(orientation: landscape)').matches
-    console.log('[DEBUG] isLandscape() - Result:', result)
-    console.log(
-      '[DEBUG] isLandscape() - Window dimensions:',
-      window.innerWidth,
-      'x',
-      window.innerHeight
-    )
-
-    return result
+    return window.matchMedia('(orientation: landscape)').matches
   },
 
   isMobileLandscape() {
@@ -127,7 +115,28 @@ export const CoreHelperUtil = {
       navigator.userAgent
     )
 
-    const result = isLandscapeResult && isCoarsePointer && isMobileDevice
+    // iPad 시뮬레이터는 macOS UserAgent를 사용하지만 화면 크기로 구분 가능
+    // iPad Air: 1180x820, iPad mini: 1024x768, iPad Pro: 1366x1024
+    // 가로, 세로 중 큰 값이 1100 이상이면 태블릿으로 간주 (큰 화면은 세로 모드)
+    const maxDimension = Math.max(window.innerWidth, window.innerHeight)
+    const isTabletSize = isCoarsePointer && maxDimension >= 1100
+
+    // 태블릿 크기가 아니고, 실제 모바일 디바이스일 때만 landscape 모드 사용
+    const result = isLandscapeResult && isCoarsePointer && isMobileDevice && !isTabletSize
+
+    console.log('[DEBUG] isMobileLandscape() - UserAgent:', navigator.userAgent)
+    console.log(
+      '[DEBUG] isMobileLandscape() - Window dimensions:',
+      window.innerWidth,
+      'x',
+      window.innerHeight
+    )
+    console.log('[DEBUG] isMobileLandscape() - maxDimension:', maxDimension)
+    console.log('[DEBUG] isMobileLandscape() - isLandscape():', isLandscapeResult)
+    console.log('[DEBUG] isMobileLandscape() - isCoarsePointer:', isCoarsePointer)
+    console.log('[DEBUG] isMobileLandscape() - isMobileDevice:', isMobileDevice)
+    console.log('[DEBUG] isMobileLandscape() - isTabletSize:', isTabletSize)
+    console.log('[DEBUG] isMobileLandscape() - Final result:', result)
 
     return result
   },
@@ -213,18 +222,8 @@ export const CoreHelperUtil = {
     }
     const encodedWcUrl = encodeURIComponent(wcUri)
 
-    // CROSS 브라우저에서 모바일일 경우 from=crossx 파라미터 추가
-    let redirectUrl = `${safeAppUrl}wc?uri=${encodedWcUrl}`
-    if (this.isCROSSxBrowser()) {
-      redirectUrl += '%26from%3Dcrossx'
-    } else if (this.isMobile()) {
-      redirectUrl += '%26from%3Dmobile-browser'
-    } else {
-      redirectUrl += '%26from%3Dbrowser'
-    }
-
     return {
-      redirect: redirectUrl,
+      redirect: `${safeAppUrl}wc?uri=${encodedWcUrl}`,
       href: safeAppUrl
     }
   },
@@ -239,18 +238,8 @@ export const CoreHelperUtil = {
     }
     const encodedWcUrl = encodeURIComponent(wcUri)
 
-    // CROSS 브라우저에서 모바일일 경우 from=crossx 파라미터 추가
-    let redirectUrl = `${safeAppUrl}wc?uri=${encodedWcUrl}`
-    if (this.isCROSSxBrowser()) {
-      redirectUrl += '%26from%3Dcrossx'
-    } else if (this.isMobile()) {
-      redirectUrl += '%26from%3Dmobile-browser'
-    } else {
-      redirectUrl += '%26from%3Dbrowser'
-    }
-
     return {
-      redirect: redirectUrl,
+      redirect: `${safeAppUrl}wc?uri=${encodedWcUrl}`,
       href: safeAppUrl
     }
   },
