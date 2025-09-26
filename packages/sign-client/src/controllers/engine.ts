@@ -3174,10 +3174,11 @@ export class Engine extends IEngine {
       let i = 0
       const numItemsToDelete = this.recentlyDeletedLimit / 2
       for (const k of this.recentlyDeletedMap.keys()) {
-        if (i++ >= numItemsToDelete) {
+        if (i >= numItemsToDelete) {
           break
         }
         this.recentlyDeletedMap.delete(k)
+        i += 1
       }
     }
   }
@@ -3410,7 +3411,8 @@ export class Engine extends IEngine {
         )
       }
 
-      for (const session of activeSessions) {
+      // 모든 세션에 대해 병렬로 ping 처리
+      const sessionProcessingPromises = activeSessions.map(async session => {
         const isFirstEntry = this.firstDAppEntryAfterSession.get(session.topic)
         console.log(
           '📱 [DEBUG] Processing session:',
@@ -3430,7 +3432,8 @@ export class Engine extends IEngine {
             )
             // 첫 진입 플래그 제거 (이제 일반 세션이 됨)
             this.firstDAppEntryAfterSession.set(session.topic, false)
-            continue
+
+            return { success: true, topic: session.topic }
           }
 
           // 이후 진입인 경우 ping + 세션 유효성 검증 수행
@@ -3440,15 +3443,17 @@ export class Engine extends IEngine {
           )
 
           const currentSession = this.client.session.get(session.topic)
-          if (!currentSession) {
-            console.log('📱 [ENGINE] Session not found in store, cleaning up:', session.topic)
-            await this.deleteSession({ topic: session.topic, emitEvent: false })
-          } else {
+          if (currentSession) {
             console.log(
               '📱 [DEBUG] Session validation passed for:',
               `${session.topic.substring(0, 8)}...`
             )
+          } else {
+            console.log('📱 [ENGINE] Session not found in store, cleaning up:', session.topic)
+            await this.deleteSession({ topic: session.topic, emitEvent: false })
           }
+
+          return { success: true, topic: session.topic }
         } catch (error) {
           console.log('📱 [ENGINE] Session ping failed:', session.topic, error.message)
 
@@ -3471,8 +3476,13 @@ export class Engine extends IEngine {
               disconnectError
             )
           }
+
+          return { success: false, topic: session.topic, error }
         }
-      }
+      })
+
+      // 모든 세션 처리 완료까지 대기
+      await Promise.allSettled(sessionProcessingPromises)
     } catch (error) {
       console.error('📱 [ENGINE] Error checking session status:', error)
     } finally {
@@ -3488,7 +3498,8 @@ export class Engine extends IEngine {
 
       return {
         total: activeSessions.length,
-        healthy: activeSessions.length, // 진행 중이므로 모두 healthy로 가정
+        // 진행 중이므로 모두 healthy로 가정
+        healthy: activeSessions.length,
         disconnected: 0,
         sessions: activeSessions.map(s => ({
           topic: s.topic,
@@ -3512,27 +3523,46 @@ export class Engine extends IEngine {
       let healthyCount = 0
       let disconnectedCount = 0
 
-      for (const session of activeSessions) {
+      // 모든 세션에 대해 병렬로 ping 처리
+      const pingPromises = activeSessions.map(async session => {
         try {
           // Ping을 통한 연결 상태 확인
           await this.ping({ topic: session.topic })
 
-          sessionResults.push({
+          return {
             topic: session.topic,
-            status: 'healthy'
-          })
-          healthyCount++
+            status: 'healthy' as const
+          }
         } catch (error: any) {
-          sessionResults.push({
+          return {
             topic: session.topic,
-            status: 'disconnected',
+            status: 'disconnected' as const,
             error: error?.message || 'Ping failed'
-          })
-          disconnectedCount++
-
-          // 읽기 전용이므로 세션을 정리하지 않음 (상태만 확인)
+          }
         }
-      }
+      })
+
+      // 모든 ping 결과 수집
+      const pingResults = await Promise.allSettled(pingPromises)
+
+      pingResults.forEach(result => {
+        if (result.status === 'fulfilled') {
+          sessionResults.push(result.value)
+          if (result.value.status === 'healthy') {
+            healthyCount += 1
+          } else {
+            disconnectedCount += 1
+          }
+        } else {
+          // Promise.allSettled에서 rejected된 경우 (예상치 못한 에러)
+          disconnectedCount += 1
+          sessionResults.push({
+            topic: 'unknown',
+            status: 'disconnected',
+            error: 'Unexpected error during ping'
+          })
+        }
+      })
 
       const result = {
         total: activeSessions.length,
@@ -3552,6 +3582,42 @@ export class Engine extends IEngine {
       }
     } finally {
       this.isCheckingSession = false
+    }
+  }
+
+  /**
+   * 세션 검증 후 활성 상태 반환 함수
+   * 세션 정리/검증을 수행한 후 UniversalProvider의 현재 세션 활성 상태를 반환
+   * @param currentTopic - UniversalProvider의 현재 세션 토픽
+   * @param shouldCleanup - 세션 정리 수행 여부 (true: cleanup 수행, false: 상태만 확인)
+   * @returns Promise<boolean> - 세션이 활성 상태인지 여부
+   */
+  public validateSessionAndGetStatus = async (
+    currentTopic?: string,
+    shouldCleanup = false
+  ): Promise<boolean> => {
+    try {
+      // Cleanup/검증 트리거
+      await this.validateAndCleanupSessions(shouldCleanup)
+
+      // Cleanup 이후의 최종 세션 상태를 읽어 boolean으로 환산
+      const status = await this.getSessionStatus()
+
+      // 현재 UniversalProvider 세션 토픽 기준으로 우선 판정
+      if (currentTopic && status?.sessions?.length) {
+        const current = status.sessions.find(
+          (s: { topic: string; status: string }) => s.topic === currentTopic
+        )
+
+        return current?.status === 'healthy'
+      }
+
+      // 토픽이 없다면 보수적 fallback: 최소 1개 healthy 존재 여부
+      return Boolean(status && status.total > 0 && status.healthy > 0)
+    } catch (error) {
+      console.error('📱 [ENGINE] Error checking session active status:', error)
+
+      return false
     }
   }
 }
