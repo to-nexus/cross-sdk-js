@@ -159,10 +159,10 @@ async function initializeApp() {
       { id: 'ethereum-testnet', name: 'Ethereum Testnet', network: etherTestnet }
     ]
 
-    // Contract addresses and constants
-    const ERC20_ADDRESS = contractData[network.chainId].erc20
+    // Contract addresses and constants (초기값은 Cross Testnet 사용)
+    const ERC20_ADDRESS = contractData[612044].erc20
     const ERC20_DECIMALS = 18
-    const ERC721_ADDRESS = contractData[network.chainId].erc721
+    const ERC721_ADDRESS = contractData[612044].erc721
     const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
     const SEND_ERC20_AMOUNT = 1
     const SEND_CROSS_AMOUNT = 1
