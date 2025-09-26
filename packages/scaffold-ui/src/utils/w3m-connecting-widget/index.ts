@@ -155,42 +155,37 @@ export class W3mConnectingWidget extends LitElement {
           <wui-text align="center" variant="small-500" color="fg-200">${subLabel}</wui-text>
         </wui-flex>
 
-        ${
-          this.secondaryBtnLabel
-            ? html`
-                <wui-button
-                  variant="accent"
-                  size="md"
-                  ?disabled=${this.isRetrying || (!this.error && this.buffering)}
-                  @click=${this.onTryAgain.bind(this)}
-                  data-testid="cross-w3m-connecting-widget-secondary-button"
-                >
-                  <wui-icon
-                    color="inherit"
-                    slot="iconLeft"
-                    name=${this.secondaryBtnIcon}
-                  ></wui-icon>
-                  ${this.secondaryBtnLabel}
-                </wui-button>
-              `
-            : null
-        }
+        ${this.secondaryBtnLabel
+          ? html`
+              <wui-button
+                variant="accent"
+                size="md"
+                ?disabled=${this.isRetrying || (!this.error && this.buffering)}
+                @click=${this.onTryAgain.bind(this)}
+                data-testid="cross-w3m-connecting-widget-secondary-button"
+              >
+                <wui-icon color="inherit" slot="iconLeft" name=${this.secondaryBtnIcon}></wui-icon>
+                ${this.secondaryBtnLabel}
+              </wui-button>
+            `
+          : null}
       </wui-flex>
 
-      ${
-        this.isWalletConnect
-          ? html`
-              <wui-flex .padding=${['0', 'xl', 'xl', 'xl'] as const} justifyContent="center">
-                <wui-link @click=${this.onCopyUri} color="fg-200" data-testid="wui-link-copy">
-                  <wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></wui-icon>
-                  Copy link
-                </wui-link>
-              </wui-flex>
-            `
-          : null
-      }
-
-      <cross-w3m-mobile-download-links .wallet=${this.wallet}></w3m-mobile-download-links>
+      ${this.isWalletConnect && !CoreHelperUtil.isMobileLandscape()
+        ? html`
+            <wui-flex .padding=${['0', 'xl', 'xl', 'xl'] as const} justifyContent="center">
+              <wui-link @click=${this.onCopyUri} color="fg-200" data-testid="wui-link-copy">
+                <wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></wui-icon>
+                Copy link
+              </wui-link>
+            </wui-flex>
+          `
+        : null}
+      ${CoreHelperUtil.isMobileLandscape()
+        ? null
+        : html`<cross-w3m-mobile-download-links
+            .wallet=${this.wallet}
+          ></cross-w3m-mobile-download-links>`}
     `
   }
 

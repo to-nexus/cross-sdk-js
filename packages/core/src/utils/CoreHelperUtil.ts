@@ -15,10 +15,13 @@ type OpenTarget = '_blank' | '_self' | 'popupWindow' | '_top'
 export const CoreHelperUtil = {
   isMobile() {
     if (this.isClient()) {
-      return Boolean(
-        window.matchMedia('(pointer:coarse)').matches ||
-          /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(navigator.userAgent)
+      const pointerCoarse = window.matchMedia('(pointer:coarse)').matches
+      const userAgentTest = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(
+        navigator.userAgent
       )
+      const result = Boolean(pointerCoarse || userAgentTest)
+
+      return result
     }
 
     return false
@@ -82,6 +85,51 @@ export const CoreHelperUtil = {
       !ua.includes('fxios') && // Firefox iOS
       !ua.includes('edgios') // Edge iOS
     )
+  },
+
+  isCROSSxBrowser() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    const ua = window.navigator.userAgent
+
+    // CROSS 브라우저는 UserAgent에 CROSSx/${version} 패턴을 포함
+    return /CROSSx\/[\d.]+/i.test(ua)
+  },
+
+  isLandscape() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    const result = window.matchMedia('(orientation: landscape)').matches
+    console.log('[DEBUG] isLandscape() - Result:', result)
+    console.log(
+      '[DEBUG] isLandscape() - Window dimensions:',
+      window.innerWidth,
+      'x',
+      window.innerHeight
+    )
+
+    return result
+  },
+
+  isMobileLandscape() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    const isLandscapeResult = this.isLandscape()
+    const isCoarsePointer = window.matchMedia('(pointer:coarse)').matches
+    // 실제 모바일 디바이스 체크 (UserAgent 기반)
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(
+      navigator.userAgent
+    )
+
+    const result = isLandscapeResult && isCoarsePointer && isMobileDevice
+
+    return result
   },
 
   isClient() {
@@ -165,8 +213,18 @@ export const CoreHelperUtil = {
     }
     const encodedWcUrl = encodeURIComponent(wcUri)
 
+    // CROSS 브라우저에서 모바일일 경우 from=crossx 파라미터 추가
+    let redirectUrl = `${safeAppUrl}wc?uri=${encodedWcUrl}`
+    if (this.isCROSSxBrowser()) {
+      redirectUrl += '%26from%3Dcrossx'
+    } else if (this.isMobile()) {
+      redirectUrl += '%26from%3Dmobile-browser'
+    } else {
+      redirectUrl += '%26from%3Dbrowser'
+    }
+
     return {
-      redirect: `${safeAppUrl}wc?uri=${encodedWcUrl}`,
+      redirect: redirectUrl,
       href: safeAppUrl
     }
   },
@@ -181,8 +239,18 @@ export const CoreHelperUtil = {
     }
     const encodedWcUrl = encodeURIComponent(wcUri)
 
+    // CROSS 브라우저에서 모바일일 경우 from=crossx 파라미터 추가
+    let redirectUrl = `${safeAppUrl}wc?uri=${encodedWcUrl}`
+    if (this.isCROSSxBrowser()) {
+      redirectUrl += '%26from%3Dcrossx'
+    } else if (this.isMobile()) {
+      redirectUrl += '%26from%3Dmobile-browser'
+    } else {
+      redirectUrl += '%26from%3Dbrowser'
+    }
+
     return {
-      redirect: `${safeAppUrl}wc?uri=${encodedWcUrl}`,
+      redirect: redirectUrl,
       href: safeAppUrl
     }
   },
