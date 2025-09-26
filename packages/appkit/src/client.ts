@@ -1221,7 +1221,6 @@ export class AppKit {
       readContract: async (args: ReadContractArgs) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
         const caipNetwork = this.getCaipNetwork()
-        console.log(`Appkit ReadContract - caipNetwork: ${caipNetwork?.id}`)
         const provider = ProviderUtil.getProvider(
           ChainController.state.activeChain as ChainNamespace
         )
@@ -1230,10 +1229,6 @@ export class AppKit {
         }
 
         const result = await adapter?.readContract({ ...args, provider, caipNetwork })
-        console.log(
-          'Appkit ReadContract result',
-          JSON.stringify(result, (key, val) => (typeof val === 'bigint' ? val.toString() : val))
-        )
 
         return result
       },
