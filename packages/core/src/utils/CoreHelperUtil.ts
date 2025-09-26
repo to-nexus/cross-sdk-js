@@ -124,20 +124,6 @@ export const CoreHelperUtil = {
     // 태블릿 크기가 아니고, 실제 모바일 디바이스일 때만 landscape 모드 사용
     const result = isLandscapeResult && isCoarsePointer && isMobileDevice && !isTabletSize
 
-    console.log('[DEBUG] isMobileLandscape() - UserAgent:', navigator.userAgent)
-    console.log(
-      '[DEBUG] isMobileLandscape() - Window dimensions:',
-      window.innerWidth,
-      'x',
-      window.innerHeight
-    )
-    console.log('[DEBUG] isMobileLandscape() - maxDimension:', maxDimension)
-    console.log('[DEBUG] isMobileLandscape() - isLandscape():', isLandscapeResult)
-    console.log('[DEBUG] isMobileLandscape() - isCoarsePointer:', isCoarsePointer)
-    console.log('[DEBUG] isMobileLandscape() - isMobileDevice:', isMobileDevice)
-    console.log('[DEBUG] isMobileLandscape() - isTabletSize:', isTabletSize)
-    console.log('[DEBUG] isMobileLandscape() - Final result:', result)
-
     return result
   },
 
