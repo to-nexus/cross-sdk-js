@@ -34,10 +34,28 @@ export const ConstantsUtil = {
     PRODUCTION: 'https://wallet-server.crosstoken.io'
   },
   getRelayUrl() {
-    const injectedEnv = getEnv()
-    type EnvKey = keyof typeof ConstantsUtil.RELAY_URL
-    const envKey = injectedEnv.toUpperCase() as EnvKey
-    return ConstantsUtil.RELAY_URL[envKey]
+    // VITE_CROSS_RELAY 환경변수가 있으면 우선 사용 (Vite 전용)
+    if (typeof import.meta !== 'undefined' && import.meta.env?.['VITE_CROSS_RELAY']) {
+      console.log(
+        'Using VITE_CROSS_RELAY from import.meta.env:',
+        import.meta.env['VITE_CROSS_RELAY']
+      )
+      return import.meta.env['VITE_CROSS_RELAY']
+    }
+
+    // CROSS_RELAY 환경변수가 있으면 우선 사용
+    if (typeof import.meta !== 'undefined' && import.meta.env?.['CROSS_RELAY']) {
+      console.log('Using CROSS_RELAY from import.meta.env:', import.meta.env['CROSS_RELAY'])
+      return import.meta.env['CROSS_RELAY']
+    }
+
+    if (typeof process !== 'undefined' && process.env?.['CROSS_RELAY']) {
+      console.log('Using CROSS_RELAY from process.env:', process.env['CROSS_RELAY'])
+      return process.env['CROSS_RELAY']
+    }
+
+    console.log('Using relay URL:', ConstantsUtil.RELAY_URL.PRODUCTION)
+    return ConstantsUtil.RELAY_URL.PRODUCTION
   },
   RELAY_URL: {
     DEVELOPMENT: 'wss://dev-cross-relay.crosstoken.io/ws',
