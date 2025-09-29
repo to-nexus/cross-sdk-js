@@ -185,7 +185,7 @@ export function useAppKitWallet(parameters?: {
 
   // CROSS Wallet 전용 연결 함수들
   const connectCrossWallet = useCallback(async () => {
-    connect('cross_wallet')
+    await connect('cross_wallet')
   }, [connect])
 
   const connectCrossExtensionWallet = useCallback(async () => {

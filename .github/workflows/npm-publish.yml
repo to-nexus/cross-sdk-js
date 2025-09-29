@@ -794,7 +794,14 @@ jobs:
       - name: Compute version
         id: version
         run: |
-          VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+          # 입력 파라미터 publish_version을 우선으로 사용
+          if [ -n "${{ inputs.publish_version }}" ]; then
+            VERSION="${{ inputs.publish_version }}"
+            echo "Using manual version from input: $VERSION"
+          else
+            VERSION=$(node -e "const fs=require('fs'); let v=null; if(fs.existsSync('version.json')){v=JSON.parse(fs.readFileSync('version.json','utf8')).version;} else {v=require('./package.json').version;} console.log(v)")
+            echo "Using version from file: $VERSION"
+          fi
           BASE_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_OUTPUT

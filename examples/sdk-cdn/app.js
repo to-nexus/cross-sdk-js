@@ -159,10 +159,10 @@ async function initializeApp() {
       { id: 'ethereum-testnet', name: 'Ethereum Testnet', network: etherTestnet }
     ]
 
-    // Contract addresses and constants
-    const ERC20_ADDRESS = contractData[network.chainId].erc20
+    // Contract addresses and constants (초기값은 Cross Testnet 사용)
+    const ERC20_ADDRESS = contractData[612044].erc20
     const ERC20_DECIMALS = 18
-    const ERC721_ADDRESS = contractData[network.chainId].erc721
+    const ERC721_ADDRESS = contractData[612044].erc721
     const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
     const SEND_ERC20_AMOUNT = 1
     const SEND_CROSS_AMOUNT = 1
@@ -341,65 +341,6 @@ async function initializeApp() {
       const nexusLogo = document.getElementById('nexus-logo')
       if (nexusLogo) {
         nexusLogo.src = mode === 'dark' ? './nexus-logo-white.png' : 'nexus-logo.png'
-      }
-    }
-
-    // CROSS Wallet 전용 함수들
-    async function handleConnectCrossWallet() {
-      try {
-        await appkitWallet.connectCrossWallet()
-        alert('✅ CROSS Wallet 연결 시작됨\n\nQR 코드를 스캔하거나 딥링크를 통해 연결하세요.')
-      } catch (error) {
-        console.error('CROSS Wallet QR 연결 실패:', error)
-        alert(`❌ 연결 실패\n\nCROSS Wallet QR 연결에 실패했습니다: ${error.message}`)
-      }
-    }
-
-    async function handleConnectCrossExtension() {
-      try {
-        const isExtensionInstalled = appkitWallet.isInstalledCrossExtensionWallet()
-
-        if (!isExtensionInstalled) {
-          alert('❌ 익스텐션 미설치\n\nCROSS Wallet 익스텐션이 설치되지 않았습니다.')
-          return
-        }
-
-        await appkitWallet.connectCrossExtensionWallet()
-        alert('✅ 익스텐션 연결 성공\n\nCROSS Wallet 익스텐션이 연결되었습니다.')
-      } catch (error) {
-        console.error('CROSS Wallet 익스텐션 연결 실패:', error)
-        alert(`❌ 연결 실패\n\nCROSS Wallet 익스텐션 연결에 실패했습니다: ${error.message}`)
-      }
-    }
-
-    function updateCrossWalletButtons() {
-      const qrButton = document.getElementById('connect-cross-wallet-qr')
-      const extensionButton = document.getElementById('connect-cross-wallet-extension')
-      const isPending = appkitWallet.isPending
-      const isExtensionInstalled = appkitWallet.isInstalledCrossExtensionWallet()
-
-      if (qrButton) {
-        if (accountState.isConnected) {
-          qrButton.style.display = 'none'
-        } else {
-          qrButton.style.display = 'block'
-          qrButton.disabled = isPending
-          qrButton.textContent = isPending ? 'Connecting...' : 'Connect CROSS Wallet (QR)'
-        }
-      }
-
-      if (extensionButton) {
-        if (accountState.isConnected) {
-          extensionButton.style.display = 'none'
-        } else {
-          extensionButton.style.display = 'block'
-          extensionButton.disabled = isPending || !isExtensionInstalled
-          extensionButton.style.backgroundColor = !isExtensionInstalled ? '#9E9E9E' : ''
-          extensionButton.style.color = !isExtensionInstalled ? 'white' : ''
-          extensionButton.textContent = isPending
-            ? 'Connecting...'
-            : `Connect Extension${!isExtensionInstalled ? ' (Not Installed)' : ''}`
-        }
       }
     }
 
@@ -869,21 +810,9 @@ ${JSON.stringify(status.sessions, null, 2)}`)
         2
       )
       // connect-wallet 버튼 텍스트 업데이트
-      const connectWalletBtn = document.getElementById('connect-wallet')
-      if (connectWalletBtn) {
-        if (accountState.isConnected) {
-          connectWalletBtn.textContent = 'Disconnect'
-          connectWalletBtn.style.backgroundColor = '#dc3545'
-          connectWalletBtn.style.color = 'white'
-        } else {
-          connectWalletBtn.textContent = 'Connect Wallet'
-          connectWalletBtn.style.backgroundColor = ''
-          connectWalletBtn.style.color = ''
-        }
-      }
-
-      // CROSS Wallet 버튼들 업데이트
-      updateCrossWalletButtons()
+      document.getElementById('connect-wallet').textContent = accountState.isConnected
+        ? 'Connected'
+        : 'Connect Wallet'
 
       // 주소가 변경되었을 때만 토큰 잔액을 가져옵니다
       if (accountState.caipAddress && accountState.caipAddress !== previousCaipAddress) {
@@ -994,14 +923,6 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     document
       .getElementById('test-manual-session-deletion')
       ?.addEventListener('click', testManualSessionDeletion)
-
-    // CROSS Wallet 버튼 이벤트 리스너
-    document
-      .getElementById('connect-cross-wallet-qr')
-      ?.addEventListener('click', handleConnectCrossWallet)
-    document
-      .getElementById('connect-cross-wallet-extension')
-      ?.addEventListener('click', handleConnectCrossExtension)
 
     // Initialize contract args when account and network are ready
     function initializeContractArgs() {

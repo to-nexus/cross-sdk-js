@@ -414,7 +414,6 @@ export const EthersMethods = {
       throw new Error('readContract - provider is undefined')
     }
 
-    console.log(`readContract - chainId: ${chainId}`)
     const browserProvider = new BrowserProvider(provider, chainId)
     const contract = new Contract(data.contractAddress, data.abi, browserProvider)
     if (!contract || !data.method) {

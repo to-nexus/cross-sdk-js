@@ -84,6 +84,49 @@ export const CoreHelperUtil = {
     )
   },
 
+  isCROSSxBrowser() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    const ua = window.navigator.userAgent
+
+    // CROSS 브라우저는 UserAgent에 CROSSx/${version} 패턴을 포함
+    return /CROSSx\/[\d.]+/i.test(ua)
+  },
+
+  isLandscape() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    return window.matchMedia('(orientation: landscape)').matches
+  },
+
+  isMobileLandscape() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    const isLandscapeResult = this.isLandscape()
+    const isCoarsePointer = window.matchMedia('(pointer:coarse)').matches
+    // 실제 모바일 디바이스 체크 (UserAgent 기반)
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(
+      navigator.userAgent
+    )
+
+    // iPad 시뮬레이터는 macOS UserAgent를 사용하지만 화면 크기로 구분 가능
+    // iPad Air: 1180x820, iPad mini: 1024x768, iPad Pro: 1366x1024
+    // 가로, 세로 중 큰 값이 1100 이상이면 태블릿으로 간주 (큰 화면은 세로 모드)
+    const maxDimension = Math.max(window.innerWidth, window.innerHeight)
+    const isTabletSize = isCoarsePointer && maxDimension >= 1100
+
+    // 태블릿 크기가 아니고, 실제 모바일 디바이스일 때만 landscape 모드 사용
+    const result = isLandscapeResult && isCoarsePointer && isMobileDevice && !isTabletSize
+
+    return result
+  },
+
   isClient() {
     return typeof window !== 'undefined'
   },
