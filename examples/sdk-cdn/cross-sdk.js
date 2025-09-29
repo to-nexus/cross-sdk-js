@@ -1,4 +1,4 @@
-import { h as AppKit, e as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, j as ApiController, k as ConnectionController, l as ConstantsUtil, m as ConnectorUtil, p as WalletUtil, q as ConnectorController, O as OptionsController, E as EthersAdapter, s as networkList, t as ConstantsUtil$1, Z, u as etherTestnet, v as etherMainnet, w as kaiaTestnet, y as kaiaMainnet, z as bscTestnet, B as bscMainnet, D as crossTestnet, F as crossMainnet, G as AccountController, H as SendController } from "./index.es-DLRhv-CL.js";
+import { h as AppKit, e as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, j as ApiController, k as ConnectionController, l as ConstantsUtil, m as ConnectorUtil, p as WalletUtil, q as ConnectorController, O as OptionsController, E as EthersAdapter, s as networkList, t as ConstantsUtil$1, Z, u as etherTestnet, v as etherMainnet, w as kaiaTestnet, y as kaiaMainnet, z as bscTestnet, B as bscMainnet, D as crossTestnet, F as crossMainnet, G as AccountController, H as SendController } from "./index.es-DhjFYmdo.js";
 function createAppKit(options) {
   return new AppKit({
     ...options,
@@ -74,17 +74,17 @@ function createAppKitWalletButton() {
   }
   return walletButton;
 }
-const p = new EthersAdapter(), d = {
+const p = new EthersAdapter(), m = {
   name: "Cross SDK",
   description: "Cross SDK for HTML",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
 }, w = (e) => {
-  const { projectId: t, redirectUrl: s, metadata: o, themeMode: a, defaultNetwork: r } = e;
-  return m(t, s, o, a, r);
-}, m = (e, t, s, o, a) => {
-  const r = {
-    ...d,
+  const { projectId: t, redirectUrl: s, metadata: o, themeMode: r, defaultNetwork: a } = e;
+  return d(t, s, o, r, a);
+}, d = (e, t, s, o, r) => {
+  const a = {
+    ...m,
     ...s,
     redirect: {
       universal: t
@@ -93,8 +93,8 @@ const p = new EthersAdapter(), d = {
   return createAppKit({
     adapters: [p],
     networks: networkList,
-    defaultNetwork: a,
-    metadata: r,
+    defaultNetwork: r,
+    metadata: a,
     projectId: e,
     themeMode: o || "light",
     features: {
@@ -132,10 +132,11 @@ const p = new EthersAdapter(), d = {
 }, C = () => createAppKitWalletButton();
 if (typeof window !== "undefined") {
   window.CrossSdk = {
-    initCrossSdk: m,
+    initCrossSdk: d,
     initCrossSdkWithParams: w,
     useAppKitWallet: C,
     ConnectionController,
+    ConnectorUtil,
     SendController,
     AccountController,
     crossMainnet,
@@ -153,6 +154,7 @@ if (typeof window !== "undefined") {
 export {
   AccountController,
   ConnectionController,
+  ConnectorUtil,
   ConstantsUtil$1 as ConstantsUtil,
   SendController,
   Z as UniversalProvider,
@@ -162,7 +164,7 @@ export {
   crossTestnet,
   etherMainnet,
   etherTestnet,
-  m as initCrossSdk,
+  d as initCrossSdk,
   w as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,

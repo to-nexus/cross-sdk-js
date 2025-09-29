@@ -1,4 +1,4 @@
-import { a0 as process$1, a1 as getDefaultExportFromCjs, a2 as subscribe, a3 as snapshot, a4 as p$1, a5 as a, a6 as w, C as ChainController, q as ConnectorController, e as CoreHelperUtil, k as ConnectionController, a7 as ProviderUtil, W as WalletButtonController, j as ApiController, l as ConstantsUtil, m as ConnectorUtil, p as WalletUtil, O as OptionsController, G as AccountController, h as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, s as networkList, t as ConstantsUtil$1, Z, u as etherTestnet, v as etherMainnet, w as kaiaTestnet, y as kaiaMainnet, z as bscTestnet, B as bscMainnet, D as crossTestnet, F as crossMainnet, H as SendController } from "./index.es-DLRhv-CL.js";
+import { a0 as process$1, a1 as getDefaultExportFromCjs, a2 as subscribe, a3 as snapshot, a4 as p$1, a5 as a, a6 as w, C as ChainController, q as ConnectorController, e as CoreHelperUtil, k as ConnectionController, a7 as ProviderUtil, W as WalletButtonController, j as ApiController, l as ConstantsUtil, m as ConnectorUtil, p as WalletUtil, O as OptionsController, G as AccountController, h as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, s as networkList, t as ConstantsUtil$1, Z, u as etherTestnet, v as etherMainnet, w as kaiaTestnet, y as kaiaMainnet, z as bscTestnet, B as bscMainnet, D as crossTestnet, F as crossMainnet, H as SendController } from "./index.es-DhjFYmdo.js";
 var react = { exports: {} };
 var react_production = {};
 var hasRequiredReact_production;
@@ -1999,6 +1999,24 @@ function useAppKitWallet(parameters) {
       WalletButtonController.setPending(false);
     }
   }, [connectors, handleSuccess, handleError]);
+  const connectCrossWallet = reactExports.useCallback(async () => {
+    connect("cross_wallet");
+  }, [connect]);
+  const connectCrossExtensionWallet = reactExports.useCallback(async () => {
+    try {
+      WalletButtonController.setPending(true);
+      WalletButtonController.setError(void 0);
+      const result = await ConnectorUtil.connectCrossExtensionWallet();
+      handleSuccess(result);
+    } catch (err) {
+      handleError(err);
+    } finally {
+      WalletButtonController.setPending(false);
+    }
+  }, [handleSuccess, handleError]);
+  const isInstalledCrossExtensionWallet = reactExports.useCallback(() => {
+    return ConnectorUtil.isInstalledCrossExtensionWallet();
+  }, []);
   return {
     data: walletButtonData,
     error: walletButtonError,
@@ -2006,7 +2024,10 @@ function useAppKitWallet(parameters) {
     isPending: isWalletButtonConnecting,
     isError: Boolean(walletButtonError),
     isSuccess: Boolean(walletButtonData),
-    connect
+    connect,
+    connectCrossWallet,
+    connectCrossExtensionWallet,
+    isInstalledCrossExtensionWallet
   };
 }
 let modal = void 0;

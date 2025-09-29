@@ -182,6 +182,61 @@ async function initializeApp() {
     let isPageActive = true
     let lastActiveTime = Date.now()
 
+    // 버튼 가시성 및 상태 업데이트 함수
+    function updateButtonVisibility() {
+      const isConnected = accountState?.isConnected || false
+
+      // 연결 관련 버튼들
+      const connectWallet = document.getElementById('connect-wallet')
+      const connectCrossExtension = document.getElementById('connect-cross-extension')
+      const checkCrossExtension = document.getElementById('check-cross-extension')
+      const disconnectWallet = document.getElementById('disconnect-wallet')
+      const switchNetwork = document.getElementById('switch-network')
+
+      if (isConnected) {
+        // 연결된 상태: disconnect 버튼만 표시
+        if (connectWallet) connectWallet.style.display = 'none'
+        if (connectCrossExtension) connectCrossExtension.style.display = 'none'
+        if (checkCrossExtension) checkCrossExtension.style.display = 'none'
+        if (disconnectWallet) disconnectWallet.style.display = 'inline-block'
+        if (switchNetwork) switchNetwork.style.display = 'inline-block'
+      } else {
+        // 연결되지 않은 상태: 연결 버튼들 표시
+        if (connectWallet) connectWallet.style.display = 'inline-block'
+        if (connectCrossExtension) connectCrossExtension.style.display = 'inline-block'
+        if (checkCrossExtension) checkCrossExtension.style.display = 'inline-block'
+        if (disconnectWallet) disconnectWallet.style.display = 'none'
+        if (switchNetwork) switchNetwork.style.display = 'none'
+
+        // Cross Extension Wallet 버튼 활성화/비활성화 상태 업데이트
+        updateCrossExtensionButtonState()
+      }
+    }
+
+    // Cross Extension Wallet 버튼 상태 업데이트 함수
+    function updateCrossExtensionButtonState() {
+      const connectCrossExtension = document.getElementById('connect-cross-extension')
+
+      if (connectCrossExtension && window.CrossSdk?.ConnectorUtil) {
+        try {
+          const isInstalled = window.CrossSdk.ConnectorUtil.isInstalledCrossExtensionWallet()
+
+          if (isInstalled) {
+            connectCrossExtension.disabled = false
+            connectCrossExtension.title = 'Cross Extension Wallet에 연결'
+            connectCrossExtension.style.opacity = '1'
+          } else {
+            connectCrossExtension.disabled = true
+            connectCrossExtension.title = 'Cross Extension Wallet이 설치되지 않았습니다'
+            connectCrossExtension.style.opacity = '0.6'
+          }
+        } catch (error) {
+          // SDK가 아직 로드되지 않은 경우 기본 상태 유지
+          console.log('SDK not ready for extension check:', error.message)
+        }
+      }
+    }
+
     // Helper functions
     function getERC20CAIPAddress() {
       return `${networkState.caipNetworkId}:${ERC20_ADDRESS}`
@@ -809,10 +864,14 @@ ${JSON.stringify(status.sessions, null, 2)}`)
         (key, value) => (typeof value === 'bigint' ? value.toString() : value),
         2
       )
-      // connect-wallet 버튼 텍스트 업데이트
-      document.getElementById('connect-wallet').textContent = accountState.isConnected
-        ? 'Connected'
-        : 'Connect Wallet'
+      // connect-wallet 버튼 텍스트 안전하게 업데이트
+      const connectWalletBtn = document.getElementById('connect-wallet')
+      if (connectWalletBtn) {
+        connectWalletBtn.textContent = accountState.isConnected ? 'Connected' : 'Connect Wallet'
+      }
+
+      // 버튼 가시성 업데이트
+      updateButtonVisibility()
 
       // 주소가 변경되었을 때만 토큰 잔액을 가져옵니다
       if (accountState.caipAddress && accountState.caipAddress !== previousCaipAddress) {
@@ -839,7 +898,12 @@ ${JSON.stringify(status.sessions, null, 2)}`)
           ? '0.0001 ETH'
           : '1 ' + contractData[networkState?.chainId]?.coin || 'CROSS'
       document.getElementById('networkState').textContent = JSON.stringify(state, null, 2)
-      document.getElementById('switch-network').textContent = networkState.caipNetwork.name
+
+      // switch-network 버튼 텍스트 안전하게 업데이트
+      const switchNetworkBtn = document.getElementById('switch-network')
+      if (switchNetworkBtn && networkState.caipNetwork?.name) {
+        switchNetworkBtn.textContent = networkState.caipNetwork.name
+      }
     })
 
     crossSdk.subscribeState(state => {
@@ -869,11 +933,8 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     // Button event listeners
     const connectWallet = document.getElementById('connect-wallet')
     connectWallet.addEventListener('click', async () => {
-      if (accountState.isConnected) {
-        await appkitWallet.disconnect()
-      } else {
-        await appkitWallet.connect('cross_wallet')
-      }
+      // 이제는 연결만 담당 (disconnect는 별도 버튼으로 처리)
+      await appkitWallet.connect('cross_wallet')
     })
 
     document.getElementById('toggle-theme')?.addEventListener('click', () => {
@@ -886,7 +947,10 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     const switchNetwork = document.getElementById('switch-network')
 
     switchNetwork.addEventListener('click', () => {
-      createNetworkModal()
+      // 연결된 상태에서만 네트워크 모달 열기
+      if (accountState.isConnected) {
+        createNetworkModal()
+      }
     })
 
     // Action button event listeners
@@ -917,6 +981,62 @@ ${JSON.stringify(status.sessions, null, 2)}`)
       .getElementById('get-balance-erc20')
       ?.addEventListener('click', () => getBalanceOfERC20())
     document.getElementById('get-balance-nft')?.addEventListener('click', getBalanceOfNFT)
+
+    // Cross Extension Wallet 버튼 이벤트 리스너
+    document.getElementById('connect-cross-extension')?.addEventListener('click', async () => {
+      try {
+        const result = await window.CrossSdk.ConnectorUtil.connectCrossExtensionWallet()
+        alert(`✅ Cross Extension Wallet 연결 성공!\n\n주소: ${result.address}`)
+      } catch (error) {
+        console.error('Cross Extension Wallet 연결 실패:', error)
+
+        // 에러 메시지 분석하여 사용자 취소 여부 확인
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        const isUserRejection =
+          errorMessage.includes('User rejected') ||
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('User cancelled') ||
+          errorMessage.includes('Connection rejected') ||
+          errorMessage.includes('Connection rejected by user') ||
+          errorMessage.includes('Modal closed') ||
+          errorMessage.includes('rejected') ||
+          errorMessage.includes('cancelled') ||
+          errorMessage.includes('denied')
+
+        const isTimeout = errorMessage.includes('Connection timeout')
+
+        if (isUserRejection) {
+          alert('❌ 연결 취소됨\n\n사용자가 지갑 연결을 취소했습니다.')
+        } else if (isTimeout) {
+          alert('⏰ 연결 시간 초과\n\n지갑 연결 요청이 시간 초과되었습니다. 다시 시도해주세요.')
+        } else if (errorMessage.includes('익스텐션이 설치되지 않았습니다')) {
+          alert(
+            '📦 익스텐션 미설치\n\nCross Extension Wallet이 설치되지 않았습니다. 먼저 익스텐션을 설치해주세요.'
+          )
+        } else if (errorMessage.includes('customWallets에 설정되지 않았습니다')) {
+          alert(
+            '⚙️ 설정 오류\n\nCross Wallet이 올바르게 설정되지 않았습니다. 개발자에게 문의해주세요.'
+          )
+        } else {
+          alert(`❌ 연결 실패\n\n지갑 연결 중 오류가 발생했습니다: ${errorMessage}`)
+        }
+      }
+    })
+
+    document.getElementById('check-cross-extension')?.addEventListener('click', () => {
+      const isInstalled = window.CrossSdk.ConnectorUtil.isInstalledCrossExtensionWallet()
+      alert(`Cross Extension Wallet 설치 상태: ${isInstalled ? '✅ 설치됨' : '❌ 설치되지 않음'}`)
+    })
+
+    document.getElementById('disconnect-wallet')?.addEventListener('click', async () => {
+      try {
+        await appkitWallet.disconnect()
+        alert('✅ 지갑 연결이 해제되었습니다.')
+      } catch (error) {
+        console.error('지갑 연결 해제 실패:', error)
+        alert(`❌ 연결 해제 실패: ${error.message}`)
+      }
+    })
 
     // 세션 관리 버튼 이벤트 리스너
     document.getElementById('get-session-status')?.addEventListener('click', getSessionStatus)
@@ -954,9 +1074,11 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     // 세션 관리 초기화
     initializeSessionManagement()
 
-    // CROSS Wallet 버튼 상태 주기적 업데이트
-    updateCrossWalletButtons()
-    setInterval(updateCrossWalletButtons, 1000)
+    // Cross Extension Wallet 버튼 상태 주기적 업데이트 (SDK 로드 후)
+    setTimeout(() => {
+      updateCrossExtensionButtonState()
+      setInterval(updateCrossExtensionButtonState, 3000) // 3초마다 확인
+    }, 1000) // 1초 후 시작
 
     // Initialize contract args when state changes
     crossSdk.subscribeAccount(() => {
@@ -966,6 +1088,21 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     crossSdk.subscribeNetwork(() => {
       setTimeout(initializeContractArgs, 100)
     })
+
+    // 초기 버튼 상태 설정
+    updateButtonVisibility()
+
+    // 초기 버튼 텍스트 설정
+    const connectWalletBtn = document.getElementById('connect-wallet')
+    const switchNetworkBtn = document.getElementById('switch-network')
+
+    if (connectWalletBtn) {
+      connectWalletBtn.textContent = accountState.isConnected ? 'Connected' : 'Connect Wallet'
+    }
+
+    if (switchNetworkBtn) {
+      switchNetworkBtn.textContent = networkState.caipNetwork?.name || 'Switch Network'
+    }
 
     console.log('App initialized successfully!')
   } catch (error) {

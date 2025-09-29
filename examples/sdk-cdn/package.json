@@ -6,9 +6,11 @@
   "scripts": {
     "start": "http-server -a localhost -c-1",
     "dev": "http-server -a localhost -c-1 --cors",
-    "serve": "python3 -m http.server"
+    "serve": "python3 -m http.server",
+    "update-cdn": "./update-cdn-files.sh",
+    "build-and-serve": "npm run update-cdn && npm run dev"
   },
   "devDependencies": {
     "http-server": "^14.1.1"
   }
-} 
+}

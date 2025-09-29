@@ -5,6 +5,7 @@
 import {
   AccountController,
   ConnectionController,
+  ConnectorUtil,
   ConstantsUtil,
   type CrossSdkParams,
   type Metadata,
@@ -29,6 +30,7 @@ export {
   initCrossSdkWithParams,
   useAppKitWallet,
   ConnectionController,
+  ConnectorUtil,
   SendController,
   AccountController,
   crossMainnet,
@@ -53,6 +55,7 @@ declare global {
       initCrossSdkWithParams: typeof initCrossSdkWithParams
       useAppKitWallet: typeof useAppKitWallet
       ConnectionController: typeof ConnectionController
+      ConnectorUtil: typeof ConnectorUtil
       SendController: typeof SendController
       AccountController: typeof AccountController
       crossMainnet: typeof crossMainnet
@@ -76,6 +79,7 @@ if (typeof window !== 'undefined') {
     initCrossSdkWithParams,
     useAppKitWallet,
     ConnectionController,
+    ConnectorUtil,
     SendController,
     AccountController,
     crossMainnet,

@@ -9,7 +9,7 @@ import {
   type ThemeMode
 } from '@to-nexus/appkit-core'
 import type { CustomWallet } from '@to-nexus/appkit-core'
-import { createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
+import { ConnectorUtil, createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
 import {
   bscMainnet,
   bscTestnet,
@@ -153,5 +153,6 @@ export {
   etherMainnet,
   etherTestnet,
   UniversalProvider,
-  ConstantsUtil
+  ConstantsUtil,
+  ConnectorUtil
 }
