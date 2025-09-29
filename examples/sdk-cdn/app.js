@@ -178,6 +178,10 @@ async function initializeApp() {
     let contractArgs = null
     let previousCaipAddress = null // 이전 주소를 저장하기 위한 변수
 
+    // 세션 관리 관련 변수들
+    let isPageActive = true
+    let lastActiveTime = Date.now()
+
     // Helper functions
     function getERC20CAIPAddress() {
       return `${networkState.caipNetworkId}:${ERC20_ADDRESS}`
@@ -189,6 +193,76 @@ async function initializeApp() {
 
     function getSEND_ERC20_AMOUNT_IN_WEI() {
       return ConnectionController.parseUnits(SEND_ERC20_AMOUNT.toString(), ERC20_DECIMALS)
+    }
+
+    // 세션 상태 확인 함수
+    async function checkWalletConnectionStatus(shouldCleanup = false) {
+      try {
+        // UniversalProvider 엔진 존재 여부 확인
+        if (eip155Provider?.client?.engine) {
+          // Engine의 validateSessionAndGetStatus 함수 호출
+          const universalProvider = eip155Provider
+          const currentTopic = universalProvider?.session?.topic
+
+          const isActive = await eip155Provider.client.engine.validateSessionAndGetStatus(
+            currentTopic,
+            shouldCleanup
+          )
+
+          return isActive
+        }
+
+        // 엔진이 없는 연결(예: 브라우저 확장)에서는 계정 연결 상태로 판단
+        return accountState?.isConnected || false
+      } catch (error) {
+        console.error('Error checking wallet connection status:', error)
+        return false
+      }
+    }
+
+    // 페이지 포커스 관리
+    function handlePageFocus() {
+      console.log('📱 [CDN] Page focused - checking session status')
+      isPageActive = true
+      lastActiveTime = Date.now()
+
+      // 세션 상태 확인 (cleanup 수행)
+      if (accountState?.isConnected) {
+        checkWalletConnectionStatus(true)
+          .then(isActive => {
+            if (!isActive) {
+              console.log('📱 [CDN] Session is no longer active, updating UI')
+              // 세션이 끊어진 경우 UI 업데이트를 위해 강제로 상태 갱신
+              // 실제 disconnect는 SDK 내부에서 처리됨
+            }
+          })
+          .catch(error => {
+            console.error('📱 [CDN] Error during session check:', error)
+          })
+      }
+    }
+
+    function handlePageBlur() {
+      console.log('📱 [CDN] Page blurred')
+      isPageActive = false
+    }
+
+    // 페이지 visibility 이벤트 리스너 설정
+    function initializeSessionManagement() {
+      if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            handlePageFocus()
+          } else {
+            handlePageBlur()
+          }
+        })
+
+        window.addEventListener('focus', handlePageFocus)
+        window.addEventListener('blur', handlePageBlur)
+
+        console.log('📱 [CDN] Session management initialized')
+      }
     }
 
     // 네트워크 선택 팝업 생성 함수
@@ -669,6 +743,64 @@ Check console for full details.`)
       }
     }
 
+    // 세션 상태 확인 함수 (읽기 전용)
+    async function getSessionStatus() {
+      try {
+        if (!eip155Provider?.client?.engine) {
+          alert('❌ Session Status Error\n\nEngine not available')
+          return
+        }
+
+        const status = await eip155Provider.client.engine.getSessionStatus()
+
+        alert(`✅ Session Status (Read Only)
+
+📊 Total: ${status.total}
+💚 Healthy: ${status.healthy}
+💔 Disconnected: ${status.disconnected}
+
+📋 Sessions:
+${JSON.stringify(status.sessions, null, 2)}`)
+      } catch (error) {
+        console.error('Error getting session status:', error)
+        alert(`❌ Session Status Error\n\nError: ${error.message}`)
+      }
+    }
+
+    // 수동 세션 삭제 테스트 함수
+    async function testManualSessionDeletion() {
+      try {
+        if (!eip155Provider?.client?.engine) {
+          alert('❌ Session Deletion Error\n\nEngine not available')
+          return
+        }
+
+        // 현재 세션들 가져오기
+        const sessions = eip155Provider.client.session.getAll()
+
+        if (sessions.length === 0) {
+          alert('❌ No Sessions\n\nNo active sessions to delete')
+          return
+        }
+
+        // 첫 번째 세션 삭제 (테스트용)
+        const sessionToDelete = sessions[0]
+        await eip155Provider.client.engine.deleteSession({
+          topic: sessionToDelete.topic,
+          emitEvent: true // 이벤트를 발생시켜 UI 업데이트 트리거
+        })
+
+        alert(`✅ Session Deleted
+
+🗑️ Manually deleted session: ${sessionToDelete.topic.substring(0, 8)}...
+
+📊 Remaining sessions: ${sessions.length - 1}`)
+      } catch (error) {
+        console.error('Error deleting session:', error)
+        alert(`❌ Session Deletion Error\n\nError: ${error.message}`)
+      }
+    }
+
     // Subscribe to state changes
     crossSdk.subscribeAccount(state => {
       accountState = state
@@ -786,6 +918,12 @@ Check console for full details.`)
       ?.addEventListener('click', () => getBalanceOfERC20())
     document.getElementById('get-balance-nft')?.addEventListener('click', getBalanceOfNFT)
 
+    // 세션 관리 버튼 이벤트 리스너
+    document.getElementById('get-session-status')?.addEventListener('click', getSessionStatus)
+    document
+      .getElementById('test-manual-session-deletion')
+      ?.addEventListener('click', testManualSessionDeletion)
+
     // Initialize contract args when account and network are ready
     function initializeContractArgs() {
       if (contractArgs || !getFROM_ADDRESS() || !networkState?.caipNetwork?.chainNamespace) return
@@ -812,6 +950,13 @@ Check console for full details.`)
 
     // 모달 이벤트 설정
     setupNetworkModalEvents()
+
+    // 세션 관리 초기화
+    initializeSessionManagement()
+
+    // CROSS Wallet 버튼 상태 주기적 업데이트
+    updateCrossWalletButtons()
+    setInterval(updateCrossWalletButtons, 1000)
 
     // Initialize contract args when state changes
     crossSdk.subscribeAccount(() => {

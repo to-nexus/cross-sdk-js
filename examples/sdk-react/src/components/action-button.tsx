@@ -172,29 +172,52 @@ export function ActionButtonList() {
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (!document.hidden) {
-        // 탭 변경 시 완전한 세션 검증
-        const isSessionActive = await validateAndCleanupSessions(true)
+        // 탭 활성화 시: 엔진에 cleanup 포함 강제 점검을 요청
+        const isSessionActive = await checkWalletConnectionStatus(true)
+        // 필요하다면 isSessionActive 결과에 따라 UI/스토어를 업데이트하세요.
+        console.log('📱 [ACTION-BUTTON] isSessionActive:    ' + isSessionActive)
       }
     }
 
     const handlePageFocus = async () => {
       if (!isOpen) {
-        const isSessionActive = await validateAndCleanupSessions(true)
+        const isSessionActive = await checkWalletConnectionStatus(true)
+        // isSessionActive를 사용해 재연결 유도, 알림 노출 등 후속 처리 가능
+        console.log('📱 [ACTION-BUTTON] isSessionActive:', isSessionActive)
       }
     }
 
     const handlePageBlur = () => {}
 
-    const validateAndCleanupSessions = async (isSessionCheck: boolean): Promise<boolean> => {
+    // 지갑 연결 상태를 확인하는 도우미 함수입니다.
+    // shouldCleanup=true 이면 엔진 내부에서 세션 정리 후 상태를 확인합니다.
+    const checkWalletConnectionStatus = async (shouldCleanup: boolean): Promise<boolean> => {
       try {
         // UniversalProvider를 통한 세션 확인
         if (walletProvider?.client?.engine) {
-          // TypeScript 타입 캐스팅으로 validateAndCleanupSessions 메서드 접근
-          const isSessionActive = await (
-            walletProvider.client.engine as any
-          ).validateAndCleanupSessions(isSessionCheck)
+          // Engine의 간단한 세션 활성 상태 확인 함수 사용
+          let isSessionActive = false
+          try {
+            const universalProvider = await getUniversalProvider()
+            const currentTopic = universalProvider?.session?.topic
 
-          // Engine에서 반환된 결과 사용 (이미 최종 세션 상태를 확인함)
+            // Engine의 validateSessionAndGetStatus 함수로 단순화
+            isSessionActive = await (
+              walletProvider.client.engine as any
+            ).validateSessionAndGetStatus(currentTopic, shouldCleanup)
+          } catch (error) {
+            console.error('Error checking session active status:', error)
+            // 에러 발생 시 비활성 상태로 처리
+            isSessionActive = false
+          }
+
+          // 확장 프로그램(EIP1193Provider) 연결의 경우 Universal Provider 세션이 없을 수 있으므로
+          // 계정이 연결되어 있으면 활성로 간주
+          const isExtensionProvider = walletProvider?.constructor?.name === 'EIP1193Provider'
+          if (!isSessionActive && isExtensionProvider && account?.isConnected) {
+            isSessionActive = true
+          }
+
           return isSessionActive
         }
         return false
