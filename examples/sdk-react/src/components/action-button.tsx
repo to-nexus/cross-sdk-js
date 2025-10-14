@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import {
   AccountController,
@@ -136,9 +136,11 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
-  const { connect } = useAppKitWallet()
+  const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
+    useAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
+  const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
 
   // erc20 token contract address
   const ERC20_ADDRESS = contractData[network.chainId as keyof typeof contractData]
@@ -168,33 +170,78 @@ export function ActionButtonList() {
     // contractArgs change tracking
   }, [contractArgs?.args])
 
+  // Cross Extension Wallet 설치 상태 확인 함수를 메모이제이션
+  const checkExtensionInstalled = useCallback(() => {
+    try {
+      const installed = isInstalledCrossExtensionWallet()
+      setIsCrossExtensionInstalled(installed)
+    } catch (error) {
+      console.error('Extension 설치 상태 확인 중 오류:', error)
+      setIsCrossExtensionInstalled(false)
+    }
+  }, [isInstalledCrossExtensionWallet])
+
+  // Cross Extension Wallet 설치 상태 확인
+  useEffect(() => {
+    // 초기 확인
+    checkExtensionInstalled()
+
+    // 3초마다 확인 (익스텐션이 설치/제거될 수 있음)
+    const interval = setInterval(checkExtensionInstalled, 3000)
+
+    return () => clearInterval(interval)
+  }, [checkExtensionInstalled])
+
   // 세션 관리 로직 (SDK에서 이벤트 리스너 제거 후 DApp에서 직접 관리)
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (!document.hidden) {
-        // 탭 변경 시 완전한 세션 검증
-        const isSessionActive = await validateAndCleanupSessions(true)
+        // 탭 활성화 시: 엔진에 cleanup 포함 강제 점검을 요청
+        const isSessionActive = await checkWalletConnectionStatus(true)
+        // 필요하다면 isSessionActive 결과에 따라 UI/스토어를 업데이트하세요.
+        console.log('📱 [ACTION-BUTTON] isSessionActive:    ' + isSessionActive)
       }
     }
 
     const handlePageFocus = async () => {
       if (!isOpen) {
-        const isSessionActive = await validateAndCleanupSessions(true)
+        const isSessionActive = await checkWalletConnectionStatus(true)
+        // isSessionActive를 사용해 재연결 유도, 알림 노출 등 후속 처리 가능
+        console.log('📱 [ACTION-BUTTON] isSessionActive:', isSessionActive)
       }
     }
 
     const handlePageBlur = () => {}
 
-    const validateAndCleanupSessions = async (isSessionCheck: boolean): Promise<boolean> => {
+    // 지갑 연결 상태를 확인하는 도우미 함수입니다.
+    // shouldCleanup=true 이면 엔진 내부에서 세션 정리 후 상태를 확인합니다.
+    const checkWalletConnectionStatus = async (shouldCleanup: boolean): Promise<boolean> => {
       try {
         // UniversalProvider를 통한 세션 확인
         if (walletProvider?.client?.engine) {
-          // TypeScript 타입 캐스팅으로 validateAndCleanupSessions 메서드 접근
-          const isSessionActive = await (
-            walletProvider.client.engine as any
-          ).validateAndCleanupSessions(isSessionCheck)
+          // Engine의 간단한 세션 활성 상태 확인 함수 사용
+          let isSessionActive = false
+          try {
+            const universalProvider = await getUniversalProvider()
+            const currentTopic = universalProvider?.session?.topic
 
-          // Engine에서 반환된 결과 사용 (이미 최종 세션 상태를 확인함)
+            // Engine의 validateSessionAndGetStatus 함수로 단순화
+            isSessionActive = await (
+              walletProvider.client.engine as any
+            ).validateSessionAndGetStatus(currentTopic, shouldCleanup)
+          } catch (error) {
+            console.error('Error checking session active status:', error)
+            // 에러 발생 시 비활성 상태로 처리
+            isSessionActive = false
+          }
+
+          // 확장 프로그램(EIP1193Provider) 연결의 경우 Universal Provider 세션이 없을 수 있으므로
+          // 계정이 연결되어 있으면 활성로 간주
+          const isExtensionProvider = walletProvider?.constructor?.name === 'EIP1193Provider'
+          if (!isSessionActive && isExtensionProvider && account?.isConnected) {
+            isSessionActive = true
+          }
+
           return isSessionActive
         }
         return false
@@ -335,6 +382,105 @@ export function ActionButtonList() {
   // used for connecting CROSS wallet directly
   function handleConnectWallet() {
     connect('cross_wallet')
+  }
+
+  // Cross Extension Wallet 직접 연결
+  const handleConnectCrossExtension = async () => {
+    try {
+      setIsLoading(true)
+
+      // 연결 시작 전 현재 연결 상태 저장
+      const wasConnectedBefore = account?.isConnected
+      const addressBefore = account?.address
+
+      console.log('🚀 Cross Extension Wallet 연결 시도 시작')
+      console.log('연결 전 상태:', { wasConnectedBefore, addressBefore })
+
+      const result = await connectCrossExtensionWallet()
+
+      console.log('🎉 connectCrossExtensionWallet 완료:', result)
+
+      // 연결 성공 후 실제로 새로운 연결이 이루어졌는지 확인
+      // 짧은 지연 후 상태 재확인
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      const isNowConnected = account?.isConnected
+      const addressAfter = account?.address
+
+      console.log('연결 후 상태:', { isNowConnected, addressAfter })
+
+      // 실제로 연결 상태가 변경되었는지 확인
+      if (!isNowConnected || (wasConnectedBefore && addressBefore === addressAfter)) {
+        throw new Error('Connection verification failed - no state change detected')
+      }
+
+      // 연결 성공 후 상태 즉시 업데이트
+      checkExtensionInstalled()
+
+      showSuccess(
+        'Cross Extension Wallet 연결 성공!',
+        'Cross Extension Wallet이 성공적으로 연결되었습니다.'
+      )
+      console.log('✅ Cross Extension Wallet 연결 성공')
+    } catch (error) {
+      console.error('Cross Extension Wallet 연결 실패:', error)
+
+      // 에러 메시지 분석하여 사용자 취소 여부 확인
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const isUserRejection =
+        errorMessage.includes('User rejected') ||
+        errorMessage.includes('User denied') ||
+        errorMessage.includes('User cancelled') ||
+        errorMessage.includes('Connection rejected') ||
+        errorMessage.includes('Connection rejected by user') ||
+        errorMessage.includes('Modal closed') ||
+        errorMessage.includes('rejected') ||
+        errorMessage.includes('cancelled') ||
+        errorMessage.includes('denied')
+
+      const isTimeout = errorMessage.includes('Connection timeout')
+
+      if (isUserRejection) {
+        showError('연결 취소됨', '사용자가 지갑 연결을 취소했습니다.')
+      } else if (isTimeout) {
+        showError('연결 시간 초과', '지갑 연결 요청이 시간 초과되었습니다. 다시 시도해주세요.')
+      } else if (errorMessage.includes('익스텐션이 설치되지 않았습니다')) {
+        showError(
+          '익스텐션 미설치',
+          'Cross Extension Wallet이 설치되지 않았습니다. 먼저 익스텐션을 설치해주세요.'
+        )
+      } else if (errorMessage.includes('customWallets에 설정되지 않았습니다')) {
+        showError(
+          '설정 오류',
+          'Cross Wallet이 올바르게 설정되지 않았습니다. 개발자에게 문의해주세요.'
+        )
+      } else {
+        showError('연결 실패', `지갑 연결 중 오류가 발생했습니다: ${errorMessage}`)
+      }
+
+      // 연결 실패 후에도 상태 확인
+      checkExtensionInstalled()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Cross Extension Wallet 설치 상태 확인
+  const handleCheckCrossExtension = () => {
+    // 즉시 상태 업데이트 후 결과 표시
+    checkExtensionInstalled()
+
+    // 약간의 지연 후 최신 상태로 메시지 표시
+    setTimeout(() => {
+      if (isCrossExtensionInstalled) {
+        showSuccess('Cross Extension Wallet 설치됨', 'Cross Extension Wallet이 설치되어 있습니다.')
+      } else {
+        showError(
+          'Cross Extension Wallet 설치되지 않음',
+          'Cross Extension Wallet을 먼저 설치해주세요.'
+        )
+      }
+    }, 100)
   }
 
   // 토픽 정보를 로깅하는 함수
@@ -958,15 +1104,44 @@ Check console for full details.`
   return (
     <div>
       <div className="action-button-list">
-        <button onClick={handleConnect}>{account?.isConnected ? 'Connected' : 'Connect'}</button>
-        <button onClick={handleConnectWallet}>
-          {account?.isConnected ? 'CROSSx Connected' : 'Connect CROSSx'}
-        </button>
-        <button onClick={handleDisconnect}>Disconnect</button>
-        <button onClick={handleSwitchNetwork}>Switch to Cross</button>
-        <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
-        <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
-        <button onClick={handleSwitchNetworkEther}>Switch to Ether</button>
+        {/* 연결되지 않은 경우에만 연결 버튼들 표시 */}
+        {!account?.isConnected && (
+          <>
+            <button onClick={handleConnect}>Connect</button>
+            <button onClick={handleConnectWallet}>Connect CROSSx</button>
+            <button
+              onClick={handleConnectCrossExtension}
+              disabled={!isCrossExtensionInstalled || isLoading}
+              style={{
+                backgroundColor: isCrossExtensionInstalled ? '#007bff' : '#6c757d',
+                color: 'white',
+                cursor: isCrossExtensionInstalled && !isLoading ? 'pointer' : 'not-allowed',
+                opacity: isCrossExtensionInstalled && !isLoading ? 1 : 0.6
+              }}
+            >
+              {isLoading ? 'Connecting...' : 'Connect Cross Extension'}
+            </button>
+            <button onClick={handleCheckCrossExtension}>
+              Check Cross Extension ({isCrossExtensionInstalled ? '✅' : '❌'})
+            </button>
+          </>
+        )}
+
+        {/* 연결된 경우에만 연결 해제 및 네트워크 변경 버튼들 표시 */}
+        {account?.isConnected && (
+          <>
+            <button
+              onClick={handleDisconnect}
+              style={{ backgroundColor: '#dc3545', color: 'white' }}
+            >
+              Disconnect
+            </button>
+            <button onClick={handleSwitchNetwork}>Switch to Cross</button>
+            <button onClick={handleSwitchNetworkBsc}>Switch to BSC</button>
+            <button onClick={handleSwitchNetworkKaia}>Switch to Kaia</button>
+            <button onClick={handleSwitchNetworkEther}>Switch to Ether</button>
+          </>
+        )}
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSendNative}>

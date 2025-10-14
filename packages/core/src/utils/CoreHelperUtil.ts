@@ -528,5 +528,24 @@ export const CoreHelperUtil = {
     const newUrl = beforeKeyValue + newKeyValue + afterKeyValue
 
     return newUrl
+  },
+
+  isMiniWindow() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    // 높이가 300 이하일 때
+    const isSmallHeight = window.innerHeight <= 300
+
+    // 모바일 디바이스 체크
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/u.test(
+      navigator.userAgent
+    )
+    const isCoarsePointer = window.matchMedia('(pointer:coarse)').matches
+
+    const result = isMobileDevice && isCoarsePointer && isSmallHeight
+
+    return result
   }
 }

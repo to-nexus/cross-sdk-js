@@ -115,7 +115,7 @@ export function useAppKitWallet(parameters?: {
         // console.log('커스텀 지갑 직접 접근 시작')
         const { customWallets } = OptionsController.state
         // console.log('customWallets:', customWallets)
-        const customWallet = customWallets?.find(w => w.id === wallet)
+        const customWallet = customWallets?.find((w: any) => w.id === wallet)
         // console.log('찾은 customWallet:', customWallet)
 
         // CROSS Wallet 특별 처리: w3modal에서 Browser/QR 탭 선택하게 하기
@@ -167,6 +167,27 @@ export function useAppKitWallet(parameters?: {
     [connectors, handleSuccess, handleError]
   )
 
+  const connectCrossWallet = useCallback(async () => {
+    connect('cross_wallet')
+  }, [connect])
+
+  const connectCrossExtensionWallet = useCallback(async () => {
+    try {
+      WalletButtonController.setPending(true)
+      WalletButtonController.setError(undefined)
+      const result = await ConnectorUtil.connectCrossExtensionWallet()
+      handleSuccess(result)
+    } catch (err) {
+      handleError(err)
+    } finally {
+      WalletButtonController.setPending(false)
+    }
+  }, [handleSuccess, handleError])
+
+  const isInstalledCrossExtensionWallet = useCallback(() => {
+    return ConnectorUtil.isInstalledCrossExtensionWallet()
+  }, [])
+
   return {
     data: walletButtonData,
     error: walletButtonError,
@@ -174,6 +195,9 @@ export function useAppKitWallet(parameters?: {
     isPending: isWalletButtonConnecting,
     isError: Boolean(walletButtonError),
     isSuccess: Boolean(walletButtonData),
-    connect
+    connect,
+    connectCrossWallet,
+    connectCrossExtensionWallet,
+    isInstalledCrossExtensionWallet
   }
 }
