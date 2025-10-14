@@ -466,6 +466,9 @@ importers:
       '@to-nexus/appkit-wallet-button':
         specifier: workspace:*
         version: link:../wallet-button
+      '@to-nexus/sdk':
+        specifier: workspace:*
+        version: link:../sdk
       '@to-nexus/universal-provider':
         specifier: 2.19.14
         version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -15499,7 +15502,7 @@ snapshots:
 
   asn1.js@5.4.1:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       inherits: 2.0.4
       minimalistic-assert: 1.0.1
       safer-buffer: 2.1.2
