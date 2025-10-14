@@ -19,7 +19,11 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
       throw new Error('cross-w3m-connecting-wc-mobile: No wallet provided')
     }
     this.secondaryBtnLabel = undefined
-    this.secondaryLabel = ConstantsUtil.CONNECT_LABELS.MOBILE
+    // 미니 윈도우일 때는 다른 텍스트 표시
+    const isMiniWindow = CoreHelperUtil.isMiniWindow()
+    this.secondaryLabel = isMiniWindow
+      ? 'Tap to switch connection method'
+      : ConstantsUtil.CONNECT_LABELS.MOBILE
     document.addEventListener('visibilitychange', this.onBuffering.bind(this))
     EventsController.sendEvent({
       type: 'track',
@@ -28,7 +32,9 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
     })
     this.btnLabelTimeout = setTimeout(() => {
       this.secondaryBtnLabel = 'Try again'
-      this.secondaryLabel = ConstantsUtil.CONNECT_LABELS.MOBILE
+      this.secondaryLabel = isMiniWindow
+        ? 'Tap to switch connection method'
+        : ConstantsUtil.CONNECT_LABELS.MOBILE
     }, ConstantsUtil.FIVE_SEC_MS)
     this.labelTimeout = setTimeout(() => {
       this.secondaryLabel = `Hold tight... it's taking longer than expected`
@@ -61,7 +67,10 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
         const target = CoreHelperUtil.isIframe() ? '_top' : '_self'
         CoreHelperUtil.openHref(redirect, target)
         clearTimeout(this.labelTimeout)
-        this.secondaryLabel = ConstantsUtil.CONNECT_LABELS.MOBILE
+        const isMiniWindow = CoreHelperUtil.isMiniWindow()
+        this.secondaryLabel = isMiniWindow
+          ? 'Tap to switch connection method'
+          : ConstantsUtil.CONNECT_LABELS.MOBILE
       } catch (e) {
         EventsController.sendEvent({
           type: 'track',

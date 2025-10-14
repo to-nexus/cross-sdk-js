@@ -43,8 +43,19 @@ export default css`
     will-change: border-radius, background-color;
   }
 
+  /* 미니 윈도우 모드 - 최우선 적용 */
+  @media (pointer: coarse) and (max-height: 300px) {
+    wui-card {
+      max-width: 300px !important;
+      width: 300px !important;
+      height: 300px !important;
+      max-height: 300px !important;
+      margin: 0;
+    }
+  }
+
   /* 실제 모바일 디바이스의 랜드스케이프 모드에서만 모달 확장 */
-  @media (orientation: landscape) and (pointer: coarse) and (max-width: 1200px) {
+  @media (orientation: landscape) and (pointer: coarse) and (max-width: 1200px) and (min-width: 650px) and (min-height: 300px) {
     wui-card {
       max-width: 700px;
       width: 700px;
