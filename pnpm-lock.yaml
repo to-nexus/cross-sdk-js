@@ -175,7 +175,7 @@ importers:
         version: link:../../appkit-utils
       '@to-nexus/universal-provider':
         specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
+        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@wallet-standard/app':
         specifier: 1.1.0
         version: 1.1.0
@@ -236,7 +236,7 @@ importers:
         version: link:../../wallet
       '@to-nexus/universal-provider':
         specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
+        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@walletconnect/utils':
         specifier: 2.18.0
         version: 2.18.0
@@ -320,7 +320,7 @@ importers:
         version: link:../../wallet
       '@to-nexus/universal-provider':
         specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
+        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@wallet-standard/app':
         specifier: 1.1.0
         version: 1.1.0
@@ -466,9 +466,6 @@ importers:
       '@to-nexus/appkit-wallet-button':
         specifier: workspace:*
         version: link:../wallet-button
-      '@to-nexus/sdk':
-        specifier: workspace:*
-        version: link:../sdk
       '@to-nexus/universal-provider':
         specifier: 2.19.14
         version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -12240,7 +12237,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
       '@types/debug': 4.1.12
-      debug: 4.3.4
+      debug: 4.4.3
       pony-cause: 2.1.11
       semver: 7.7.2
       uuid: 9.0.1
@@ -13340,50 +13337,6 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/core@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@walletconnect/heartbeat': 1.2.2
-      '@walletconnect/jsonrpc-provider': 1.0.14
-      '@walletconnect/jsonrpc-types': 1.0.4
-      '@walletconnect/jsonrpc-utils': 1.0.8
-      '@walletconnect/jsonrpc-ws-connection': 1.0.16(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@walletconnect/keyvaluestorage': 1.1.1
-      '@walletconnect/logger': 2.1.2
-      '@walletconnect/relay-api': 1.0.11
-      '@walletconnect/relay-auth': 1.1.0
-      '@walletconnect/safe-json': 1.0.2
-      '@walletconnect/time': 1.0.2
-      '@walletconnect/types': 2.19.0
-      '@walletconnect/utils': 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
-      '@walletconnect/window-getters': 1.0.1
-      events: 3.3.0
-      lodash.isequal: 4.5.0
-      uint8arrays: 3.1.0
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@react-native-async-storage/async-storage'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - bufferutil
-      - db0
-      - ioredis
-      - typescript
-      - uploadthing
-      - utf-8-validate
-      - zod
-
   '@to-nexus/core@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
@@ -13552,42 +13505,6 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/sign-client@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@to-nexus/core': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
-      '@walletconnect/events': 1.0.1
-      '@walletconnect/heartbeat': 1.2.2
-      '@walletconnect/jsonrpc-utils': 1.0.8
-      '@walletconnect/logger': 2.1.2
-      '@walletconnect/time': 1.0.2
-      '@walletconnect/types': 2.19.0
-      '@walletconnect/utils': 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
-      events: 3.3.0
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@react-native-async-storage/async-storage'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - bufferutil
-      - db0
-      - ioredis
-      - typescript
-      - uploadthing
-      - utf-8-validate
-      - zod
-
   '@to-nexus/sign-client@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
       '@to-nexus/core': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
@@ -13690,46 +13607,6 @@ snapshots:
       - aws4fetch
       - bufferutil
       - db0
-      - ioredis
-      - typescript
-      - uploadthing
-      - utf-8-validate
-      - zod
-
-  '@to-nexus/universal-provider@2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@to-nexus/sign-client': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
-      '@walletconnect/events': 1.0.1
-      '@walletconnect/jsonrpc-http-connection': 1.0.8(encoding@0.1.13)
-      '@walletconnect/jsonrpc-provider': 1.0.14
-      '@walletconnect/jsonrpc-types': 1.0.4
-      '@walletconnect/jsonrpc-utils': 1.0.8
-      '@walletconnect/keyvaluestorage': 1.1.1
-      '@walletconnect/logger': 2.1.2
-      '@walletconnect/types': 2.19.0
-      '@walletconnect/utils': 2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
-      events: 3.3.0
-      lodash: 4.17.21
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@react-native-async-storage/async-storage'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - bufferutil
-      - db0
-      - encoding
       - ioredis
       - typescript
       - uploadthing
@@ -14973,50 +14850,6 @@ snapshots:
       - ioredis
       - uploadthing
 
-  '@walletconnect/utils@2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@noble/ciphers': 1.2.1
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@walletconnect/jsonrpc-utils': 1.0.8
-      '@walletconnect/keyvaluestorage': 1.1.1
-      '@walletconnect/relay-api': 1.0.11
-      '@walletconnect/relay-auth': 1.1.0
-      '@walletconnect/safe-json': 1.0.2
-      '@walletconnect/time': 1.0.2
-      '@walletconnect/types': 2.19.0
-      '@walletconnect/window-getters': 1.0.1
-      '@walletconnect/window-metadata': 1.0.1
-      detect-browser: 5.3.0
-      elliptic: 6.6.1
-      query-string: 7.1.3
-      uint8arrays: 3.1.0
-      viem: 2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@react-native-async-storage/async-storage'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - bufferutil
-      - db0
-      - ioredis
-      - typescript
-      - uploadthing
-      - utf-8-validate
-      - zod
-
   '@walletconnect/utils@2.19.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
       '@noble/ciphers': 1.2.1
@@ -15496,7 +15329,7 @@ snapshots:
 
   asn1.js@4.10.1:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       inherits: 2.0.4
       minimalistic-assert: 1.0.1
 
@@ -16189,7 +16022,7 @@ snapshots:
 
   create-ecdh@4.0.4:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       elliptic: 6.5.4
 
   create-hash@1.2.0:
@@ -16479,7 +16312,7 @@ snapshots:
 
   diffie-hellman@5.0.3:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       miller-rabin: 4.0.1
       randombytes: 2.1.0
 
@@ -16947,7 +16780,7 @@ snapshots:
 
   eth-lib@0.2.8:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       elliptic: 6.5.4
       xhr-request-promise: 0.1.3
 
@@ -18971,7 +18804,7 @@ snapshots:
 
   miller-rabin@4.0.1:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       brorand: 1.1.0
 
   mime-db@1.52.0: {}
@@ -19832,7 +19665,7 @@ snapshots:
 
   public-encrypt@4.0.3:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       browserify-rsa: 4.1.1
       create-hash: 1.2.0
       parse-asn1: 5.1.9
@@ -21187,23 +21020,6 @@ snapshots:
       abitype: 1.0.8(typescript@5.7.3)(zod@4.1.11)
       isows: 1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       ox: 0.6.7(typescript@5.7.3)(zod@4.1.11)
-      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    optionalDependencies:
-      typescript: 5.7.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - zod
-
-  viem@2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10):
-    dependencies:
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.7.3)(zod@3.22.4)
-      isows: 1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
-      ox: 0.6.7(typescript@5.7.3)(zod@3.22.4)
       ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
       typescript: 5.7.3
