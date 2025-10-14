@@ -82,6 +82,7 @@ import UniversalProvider from '@to-nexus/universal-provider'
 import type { UniversalProviderOpts } from '@to-nexus/universal-provider'
 import type { SessionTypes } from '@walletconnect/types'
 
+import { PACKAGE_VERSION } from '../exports/constants.js'
 import type { AdapterBlueprint } from './adapters/ChainAdapterBlueprint.js'
 import { W3mFrameProviderSingleton } from './auth-provider/W3MFrameProviderSingleton.js'
 import { type ProviderStoreUtilState, ProviderUtil } from './store/ProviderUtil.js'
@@ -211,6 +212,10 @@ export class AppKit {
     ]
     this.defaultCaipNetwork = this.extendDefaultCaipNetwork(options)
     this.chainAdapters = this.createAdapters(options.adapters as AdapterBlueprint[])
+
+    // 전역 객체에 SDK 버전 노출
+    this.exposeGlobalVersion()
+
     this.initialize(options)
     // This.sendInitializeEvent(options)
   }
@@ -276,6 +281,19 @@ export class AppKit {
     }
 
     return undefined
+  }
+
+  /**
+   * 전역 객체에 SDK 버전을 노출하여 콘솔에서 접근 가능하게 함
+   */
+  private exposeGlobalVersion() {
+    if (typeof window !== 'undefined') {
+      ;(window as any).__nexus = {
+        ...(window as any).__nexus,
+        sdkVersion: PACKAGE_VERSION
+      }
+      console.log('SDK version:', PACKAGE_VERSION)
+    }
   }
 
   private sendInitializeEvent(options: AppKitOptionsWithSdk) {
@@ -1827,7 +1845,7 @@ export class AppKit {
         this.setStatus('disconnected', chainNamespace)
       } else if (sessionNamespaces.length === 0) {
         this.setStatus('disconnected', chainNamespace)
-        console.log('Got ya! 😏 namespaces empty')
+        // console.log('Got ya! 😏 namespaces empty')
       } else {
         console.log(
           `Got ya! 😏 namespaces not empty: ${JSON.stringify(sessionNamespaces)} and chainNamespace: ${chainNamespace}`

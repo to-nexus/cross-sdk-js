@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import { sdkVersion } from '@to-nexus/sdk'
 import { AccountController, ConnectionController, useAppKitAccount } from '@to-nexus/sdk/react'
 
-console.log('SDK version:', sdkVersion)
 export function AccountInfo() {
   const [fetched, setFetched] = useState(false)
   const account = useAppKitAccount()
