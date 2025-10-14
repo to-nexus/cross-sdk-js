@@ -9,6 +9,7 @@ import {
   CoreHelperUtil,
   EventsController,
   ModalController,
+  OptionsController,
   RouterController,
   StorageUtil,
   type WcWallet
@@ -71,6 +72,9 @@ export const ConnectorUtil = {
   },
   connectExternal(connector: Connector): Promise<ParsedCaipAddress> {
     return new Promise(async (resolve, reject) => {
+      let isResolved = false
+      let connectionStartTime = Date.now()
+
       // 새로운 연결 시작 전 기존 연결 해제 (지갑에 disconnect 이벤트 전달)
       const isAlreadyConnected = Boolean(AccountController.state.address)
       if (isAlreadyConnected) {
@@ -81,18 +85,63 @@ export const ConnectorUtil = {
         }
       }
 
+      // 연결 상태 변화 감지
       const unsubscribeChainController = ChainController.subscribeKey('activeCaipAddress', val => {
-        if (val) {
+        // 연결이 시작된 후에만 성공으로 처리 (이전 연결 상태 무시)
+        if (val && !isResolved && Date.now() - connectionStartTime > 100) {
+          isResolved = true
           ModalController.close()
           unsubscribeChainController()
+          clearTimeout(timeout)
           resolve(ParseUtil.parseCaipAddress(val))
         }
       })
 
-      ConnectionController.connectExternal(connector, connector.chain).catch(() => {
-        unsubscribeChainController()
-        reject(new Error('Connection rejected'))
+      // 모달 상태 감지 (사용자가 모달을 닫으면 연결 취소로 간주)
+      const unsubscribeModalController = ModalController.subscribeKey('open', isOpen => {
+        // 모달이 닫히고 아직 연결되지 않았으면 사용자가 취소한 것으로 간주
+        if (!isOpen && !isResolved && Date.now() - connectionStartTime > 1000) {
+          isResolved = true
+          unsubscribeChainController()
+          unsubscribeModalController()
+          clearTimeout(timeout)
+          reject(new Error('Connection rejected by user'))
+        }
       })
+
+      // 타임아웃 설정 (30초)
+      const timeout = setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true
+          unsubscribeChainController()
+          unsubscribeModalController()
+          reject(new Error('Connection timeout'))
+        }
+      }, 30000)
+
+      try {
+        await ConnectionController.connectExternal(connector, connector.chain)
+        // 연결 요청이 성공적으로 전송되었지만, 실제 연결은 사용자 승인 대기 중
+      } catch (error) {
+        if (!isResolved) {
+          isResolved = true
+          clearTimeout(timeout)
+          unsubscribeChainController()
+          unsubscribeModalController()
+
+          // 에러 메시지 분석
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          if (
+            errorMessage.includes('User rejected') ||
+            errorMessage.includes('User denied') ||
+            errorMessage.includes('rejected')
+          ) {
+            reject(new Error('Connection rejected by user'))
+          } else {
+            reject(new Error('Connection failed'))
+          }
+        }
+      }
     })
   },
   connectSocial(social: SocialProvider): Promise<ParsedCaipAddress> {
@@ -251,5 +300,49 @@ export const ConnectorUtil = {
 
       connectSocial()
     })
+  },
+
+  connectCrossExtensionWallet(): Promise<ParsedCaipAddress> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { customWallets } = OptionsController.state
+        const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')
+        if (!crossWallet) {
+          throw new Error('CROSS Wallet이 customWallets에 설정되지 않았습니다.')
+        }
+        if (!crossWallet.rdns) {
+          throw new Error('CROSS Wallet RDNS가 설정되지 않았습니다.')
+        }
+        const currentConnectors = ConnectorController.state.connectors
+        const announced = currentConnectors.filter(c => {
+          return c.type === 'ANNOUNCED' && c.info?.rdns === crossWallet.rdns
+        })
+        if (!announced || announced.length === 0) {
+          throw new Error('CROSS Wallet 익스텐션이 설치되지 않았습니다.')
+        }
+        const browserConnector = announced[0]
+        if (browserConnector) {
+          const result = await ConnectorUtil.connectExternal(browserConnector)
+          resolve(result)
+        } else {
+          throw new Error('CROSS Wallet 커넥터를 찾을 수 없습니다.')
+        }
+      } catch (err) {
+        reject(err)
+      }
+    })
+  },
+
+  isInstalledCrossExtensionWallet(): boolean {
+    const { customWallets } = OptionsController.state
+    const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')
+    if (!crossWallet || !crossWallet.rdns) {
+      return false
+    }
+    const { connectors } = ConnectorController.state
+    const announced = connectors.filter(c => {
+      return c.type === 'ANNOUNCED' && c.info?.rdns === crossWallet.rdns
+    })
+    return announced && announced.length > 0
   }
 }

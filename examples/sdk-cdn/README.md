@@ -32,21 +32,27 @@ sdk-cdn/
 ### 1. Install Dependencies
 
 ```bash
-# From project root
-cd packages/sdk-cdn
+# Navigate to CDN example directory
+cd examples/sdk-cdn
 
 # Install dependencies (includes http-server)
-pnpm install
+npm install
 ```
 
 ### 2. Run the Server
 
 **Option A: Using npm script (Recommended)**
+
 ```bash
-pnpm start
+# Development server with CORS support
+npm run dev
+
+# Or basic server
+npm start
 ```
 
 **Option B: Using npx (if http-server not installed globally)**
+
 ```bash
 # With specific port
 npx http-server -p 8080 -c-1
@@ -56,6 +62,7 @@ npx http-server -c-1
 ```
 
 **Option C: Using global http-server**
+
 ```bash
 # Install globally first
 npm install -g http-server
@@ -65,6 +72,7 @@ http-server -c-1
 ```
 
 **Option D: Using Python (if available)**
+
 ```bash
 python3 -m http.server 8080
 ```
@@ -89,11 +97,13 @@ Use any of these URLs to access the application in your browser.
 If you encounter this error, try one of these solutions:
 
 1. **Use npx (Recommended):**
+
    ```bash
    npx http-server -p 8080 -c-1
    ```
 
 2. **Install globally:**
+
    ```bash
    npm install -g http-server
    ```
@@ -118,18 +128,21 @@ pnpm start
 If you get a port conflict error, you have several options:
 
 **Option 1: Use auto port allocation (Recommended)**
+
 ```bash
 # Remove the -p flag to let http-server find an available port
 npx http-server -c-1
 ```
 
 **Option 2: Try a different specific port**
+
 ```bash
 npx http-server -p 3000 -c-1
 # Then access http://localhost:3000
 ```
 
 **Option 3: Find available ports**
+
 ```bash
 # Check what's using port 8080
 lsof -i :8080
@@ -145,13 +158,13 @@ kill -9 <PID>
 Update the following settings in `app.js`:
 
 ```javascript
-const projectId = 'YOUR_PROJECT_ID'; // Change to actual project ID
+const projectId = 'YOUR_PROJECT_ID' // Change to actual project ID
 const metadata = {
-    name: 'Cross SDK CDN Sample',
-    description: 'Sample using Cross SDK via CDN',
-    url: window.location.origin,
-    icons: ['https://your-app-icon.com/icon.png'] // Change to actual icon URL
-};
+  name: 'Cross SDK CDN Sample',
+  description: 'Sample using Cross SDK via CDN',
+  url: window.location.origin,
+  icons: ['https://your-app-icon.com/icon.png'] // Change to actual icon URL
+}
 ```
 
 ## CDN Usage
@@ -173,49 +186,49 @@ Cross SDK CDN supports multiple versioning strategies:
 
 ### Version Strategy Recommendations
 
-| Use Case | Version Tag | Description |
-|----------|-------------|-------------|
-| **Production** | `@1.8.1` | Specific version for stability |
-| **Development** | `@latest` | Always get the newest version |
-| **Legacy Support** | `@1.7.0` | Previous versions for compatibility |
+| Use Case           | Version Tag | Description                         |
+| ------------------ | ----------- | ----------------------------------- |
+| **Production**     | `@1.8.1`    | Specific version for stability      |
+| **Development**    | `@latest`   | Always get the newest version       |
+| **Legacy Support** | `@1.7.0`    | Previous versions for compatibility |
 
 ### Using SDK
 
 ```javascript
 // SDK is exposed globally as window.CrossSdk
-const sdk = window.CrossSdk;
+const sdk = window.CrossSdk
 
 // Initialize SDK
 await sdk.initCrossSdk({
-    projectId: 'YOUR_PROJECT_ID',
-    metadata: {
-        name: 'My App',
-        description: 'My App Description',
-        url: 'https://myapp.com',
-        icons: ['https://myapp.com/icon.png']
-    },
-    chains: [sdk.crossTestnet]
-});
+  projectId: 'YOUR_PROJECT_ID',
+  metadata: {
+    name: 'My App',
+    description: 'My App Description',
+    url: 'https://myapp.com',
+    icons: ['https://myapp.com/icon.png']
+  },
+  chains: [sdk.crossTestnet]
+})
 
 // Connect wallet
-const session = await sdk.connect();
+const session = await sdk.connect()
 
 // Get account information
-const accounts = await sdk.getAccounts();
-const balance = await sdk.getBalance();
+const accounts = await sdk.getAccounts()
+const balance = await sdk.getBalance()
 
 // Sign message
 const signature = await sdk.signMessage({
-    message: 'Hello World',
-    account: accounts[0]
-});
+  message: 'Hello World',
+  account: accounts[0]
+})
 
 // Send transaction
 const hash = await sdk.sendTransaction({
-    to: '0x...',
-    value: sdk.parseEther('0.001'),
-    account: accounts[0]
-});
+  to: '0x...',
+  value: sdk.parseEther('0.001'),
+  account: accounts[0]
+})
 ```
 
 ## Supported Networks
@@ -246,11 +259,13 @@ Access-Control-Allow-Headers: Content-Type
 ```
 
 **Temporary Solutions:**
+
 1. **Use a CORS proxy** (for development only)
 2. **Download SDK locally** (not recommended for production)
 3. **Request CDN server update** (recommended for production)
 
 **For Production:**
+
 - Ensure CDN server has proper CORS headers
 - Use UMD/IIFE format instead of ES modules
 - Consider self-hosting the SDK files
@@ -325,4 +340,4 @@ When publishing a new version:
 
 ## License
 
-MIT License - see LICENSE file for details. 
+MIT License - see LICENSE file for details.
