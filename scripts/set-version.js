@@ -35,7 +35,9 @@ function printUsageAndExit(message) {
   if (message) {
     console.error(message)
   }
-  console.log('Usage: node scripts/set-version.js <version> [--include-reown] [--target-package=<package-name>]')
+  console.log(
+    'Usage: node scripts/set-version.js <version> [--include-reown] [--target-package=<package-name>]'
+  )
   console.log('Example: node scripts/set-version.js 1.16.6')
   console.log('Example: node scripts/set-version.js 1.7.0 --include-reown')
   console.log('Example: node scripts/set-version.js 1.7.0 --target-package=@reown/appkit-polyfills')
@@ -73,6 +75,19 @@ function updateSdkVersionConstant(filePath, newVersion) {
   return { prev, next: newVersion }
 }
 
+function updatePackageVersionConstant(filePath, newVersion) {
+  if (!fs.existsSync(filePath)) return false
+  const original = fs.readFileSync(filePath, 'utf8')
+  const versionRegex = /export\s+const\s+PACKAGE_VERSION\s*=\s*['\"]([^'\"]+)['\"]\s*;?/m
+  const match = original.match(versionRegex)
+  if (!match) return false
+  const prev = match[1]
+  if (prev === newVersion) return false
+  const updated = original.replace(versionRegex, `export const PACKAGE_VERSION = '${newVersion}'`)
+  fs.writeFileSync(filePath, updated, 'utf8')
+  return { prev, next: newVersion }
+}
+
 function setVersionForPackage(packageJsonPath, newVersion) {
   const pkg = readJson(packageJsonPath)
   if (!pkg || typeof pkg !== 'object') return false
@@ -90,7 +105,7 @@ function main() {
   const includeReown = args.includes('--include-reown')
   const targetPackageArg = args.find(arg => arg.startsWith('--target-package='))
   const targetPackage = targetPackageArg ? targetPackageArg.split('=')[1] : null
-  
+
   if (!versionArg) {
     printUsageAndExit('Error: version is required')
   }
@@ -141,6 +156,25 @@ function main() {
     }
   } catch (err) {
     console.error('Failed to update sdkVersion constant:', err instanceof Error ? err.message : err)
+  }
+
+  // AppKit의 PACKAGE_VERSION 상수도 동기화합니다.
+  try {
+    const appkitConstantsPath = path.join(repoRoot, 'packages', 'appkit', 'exports', 'constants.ts')
+    const change = updatePackageVersionConstant(appkitConstantsPath, versionArg)
+    if (change) {
+      results.push({
+        location: appkitConstantsPath,
+        name: 'PACKAGE_VERSION',
+        prev: change.prev,
+        next: change.next
+      })
+    }
+  } catch (err) {
+    console.error(
+      'Failed to update PACKAGE_VERSION constant:',
+      err instanceof Error ? err.message : err
+    )
   }
 
   if (results.length === 0) {
