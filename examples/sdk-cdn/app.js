@@ -71,8 +71,10 @@ async function initializeApp() {
       AccountController,
       ConnectionController,
       ConstantsUtil,
-      SendController
+      SendController,
+      sdkVersion
     } = CrossSdk
+    console.log('SDK version:', sdkVersion)
 
     const contractData = {
       612044: {
