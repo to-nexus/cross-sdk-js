@@ -23,6 +23,21 @@ on:
         options:
           - 'false'
           - 'true'
+  workflow_call:
+    inputs:
+      environment:
+        description: "배포 환경 선택"
+        required: true
+        type: string
+      version:
+        description: "배포할 버전 (예: 1.0.0)"
+        required: true
+        type: string
+      dry_run:
+        description: "실제 업로드 없이 검증만 수행"
+        required: false
+        default: 'false'
+        type: string
 
 permissions:
   id-token: write
