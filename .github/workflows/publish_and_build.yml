@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
       - ci/*
       - feature/*
   workflow_dispatch:
@@ -26,6 +27,7 @@ on:
           - package-publish
           - sample-page
           - cdn-publish
+          - cocos-creator
 
       publish_version:
         description: "배포 버전 입력 (release/* 브랜치는 선택사항, develop 브랜치는 필수)"
@@ -96,7 +98,7 @@ jobs:
         (startsWith(github.ref, 'refs/heads/ci/') && inputs.environment == 'dev') ||
         (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
         (github.ref == 'refs/heads/main' && inputs.environment == 'prod')
-      ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset' || inputs.services == 'sample-page')
+      ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset' || inputs.services == 'sample-page' || inputs.services == 'cocos-creator')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -383,5 +385,24 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       publish_version: ${{ inputs.publish_version }}
+      dry_run: ${{ inputs.dry_run || 'false' }}
+    secrets: inherit
+
+  cocos_creator_deploy:
+    name: Cocos Creator Deploy
+    needs: [changeset_prepare]
+    if: |
+      github.event_name == 'workflow_dispatch' && (
+        (inputs.services == 'all' || inputs.services == 'cocos-creator') && (
+          (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
+          (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
+          (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage') ||
+          (github.ref == 'refs/heads/main' && inputs.environment == 'prod')
+        )
+      )
+    uses: ./.github/workflows/cocos-creator-deploy.yml
+    with:
+      environment: ${{ inputs.environment }}
+      version: ${{ inputs.publish_version }}
       dry_run: ${{ inputs.dry_run || 'false' }}
     secrets: inherit
