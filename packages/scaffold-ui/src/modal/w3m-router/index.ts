@@ -79,10 +79,23 @@ export class W3mRouter extends LitElement {
         return html`<cross-w3m-connect-view></cross-w3m-connect-view>`
       case 'Create':
         return html`<cross-w3m-connect-view walletGuide="explore"></cross-w3m-connect-view>`
-      case 'ConnectingWalletConnect':
-        return CoreHelperUtil.isMobileLandscape()
-          ? html`<cross-w3m-connecting-wc-landscape-view></cross-w3m-connecting-wc-landscape-view>`
-          : html`<cross-w3m-connecting-wc-view></cross-w3m-connecting-wc-view>`
+      case 'ConnectingWalletConnect': {
+        // 우선순위: isMiniWindow > isMobileLandscape > 기본
+        const isMini = CoreHelperUtil.isMiniWindow()
+        const isLandscape = CoreHelperUtil.isMobileLandscape()
+
+        console.log('🔍 [Router] ConnectingWalletConnect:', {
+          isMini,
+          isLandscape,
+          selectedView: isMini ? 'mini' : isLandscape ? 'landscape' : 'default'
+        })
+
+        return isMini
+          ? html`<cross-w3m-connecting-wc-mini-view></cross-w3m-connecting-wc-mini-view>`
+          : isLandscape
+            ? html`<cross-w3m-connecting-wc-landscape-view></cross-w3m-connecting-wc-landscape-view>`
+            : html`<cross-w3m-connecting-wc-view></cross-w3m-connecting-wc-view>`
+      }
       case 'ConnectingWalletConnectBasic':
         return html`<cross-w3m-connecting-wc-basic-view></cross-w3m-connecting-wc-basic-view>`
       case 'ConnectingExternal':

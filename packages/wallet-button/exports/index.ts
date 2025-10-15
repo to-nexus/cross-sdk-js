@@ -6,6 +6,9 @@ export * from '../src/scaffold-ui/appkit-wallet-button/index.js'
 // -- Types ------------------------------------------------------------
 export type { Wallet } from '../src/utils/TypeUtil.js'
 
+// -- Cross Extension Wallet Utils --------------------------------------------
+export { ConnectorUtil } from '../src/utils/ConnectorUtil.js'
+
 // -- Utils & Other -----------------------------------------------------
 let walletButton: AppKitWalletButton | undefined = undefined
 

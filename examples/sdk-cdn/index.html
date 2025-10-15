@@ -17,8 +17,16 @@
       <h1 class="page-title">CROSS SDK - CDN Example</h1>
 
       <div class="appkit-buttons-container">
-        <button id="connect-wallet">Pending</button>
-        <button id="switch-network">Pending</button>
+        <button id="connect-wallet">Connect Wallet</button>
+        <button id="connect-cross-extension">Connect Cross Extension</button>
+        <button id="check-cross-extension">Check Cross Extension</button>
+        <button
+          id="disconnect-wallet"
+          style="background-color: #dc3545; color: white; display: none"
+        >
+          Disconnect
+        </button>
+        <button id="switch-network">Switch Network</button>
         <button id="toggle-theme">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -137,7 +145,7 @@
     <!-- Load Cross SDK from CDN -->
     <script type="module">
       // Import all SDK functions from CDN
-      import * as CrossSdk from '../../packages/cdn/dist/cross-sdk.js'
+      import * as CrossSdk from './cross-sdk.js'
 
       // Make SDK available globally
       window.CrossSdk = CrossSdk

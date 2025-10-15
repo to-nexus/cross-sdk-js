@@ -5,6 +5,7 @@
 import {
   AccountController,
   ConnectionController,
+  ConnectorUtil,
   ConstantsUtil,
   type CrossSdkParams,
   type Metadata,
@@ -20,6 +21,7 @@ import {
   initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
+  sdkVersion,
   useAppKitWallet
 } from '@to-nexus/sdk'
 
@@ -29,6 +31,7 @@ export {
   initCrossSdkWithParams,
   useAppKitWallet,
   ConnectionController,
+  ConnectorUtil,
   SendController,
   AccountController,
   crossMainnet,
@@ -40,7 +43,8 @@ export {
   etherMainnet,
   etherTestnet,
   UniversalProvider,
-  ConstantsUtil
+  ConstantsUtil,
+  sdkVersion
 }
 
 // Export types
@@ -53,6 +57,7 @@ declare global {
       initCrossSdkWithParams: typeof initCrossSdkWithParams
       useAppKitWallet: typeof useAppKitWallet
       ConnectionController: typeof ConnectionController
+      ConnectorUtil: typeof ConnectorUtil
       SendController: typeof SendController
       AccountController: typeof AccountController
       crossMainnet: typeof crossMainnet
@@ -65,6 +70,7 @@ declare global {
       etherTestnet: typeof etherTestnet
       UniversalProvider: typeof UniversalProvider
       ConstantsUtil: typeof ConstantsUtil
+      sdkVersion: typeof sdkVersion
     }
   }
 }
@@ -76,6 +82,7 @@ if (typeof window !== 'undefined') {
     initCrossSdkWithParams,
     useAppKitWallet,
     ConnectionController,
+    ConnectorUtil,
     SendController,
     AccountController,
     crossMainnet,
@@ -87,6 +94,7 @@ if (typeof window !== 'undefined') {
     etherMainnet,
     etherTestnet,
     UniversalProvider,
-    ConstantsUtil
+    ConstantsUtil,
+    sdkVersion
   }
 }

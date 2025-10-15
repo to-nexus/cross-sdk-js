@@ -7,6 +7,10 @@ on:
         description: "배포 환경 선택"
         required: true
         type: string
+      publish_version:
+        description: "배포할 버전 (지정하지 않으면 package.json 버전 사용)"
+        required: false
+        type: string
       dry_run:
         description: "실제 업로드 없이 검증만 수행"
         required: false
@@ -77,24 +81,41 @@ jobs:
       - name: Set workspace version for prod
         if: inputs.environment == 'prod'
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          CLEAN_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
-          echo "Setting workspace version to clean version: $CLEAN_VERSION"
-          pnpm run version:set "$CLEAN_VERSION"
+          if [ -n "${{ inputs.publish_version }}" ]; then
+            # Use the specified publish_version
+            VERSION="${{ inputs.publish_version }}"
+            echo "Using specified version: $VERSION"
+          else
+            # Fallback to package.json version
+            VERSION=$(node -p "require('./package.json').version")
+            CLEAN_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
+            VERSION="$CLEAN_VERSION"
+            echo "Using package.json clean version: $VERSION"
+          fi
+          echo "Setting workspace version to: $VERSION"
+          pnpm run version:set "$VERSION"
 
       - name: Extract version from package.json
         id: extract_version
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          # For prod environment, remove any prerelease suffix (beta, alpha)
-          if [ "${{ inputs.environment }}" = "prod" ]; then
-            CLEAN_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
-            echo "CURRENT_VERSION=${CLEAN_VERSION}" >> $GITHUB_OUTPUT
-            echo "Original version: ${VERSION}"
-            echo "Clean version for prod: ${CLEAN_VERSION}"
-          else
+          if [ -n "${{ inputs.publish_version }}" ]; then
+            # Use the specified publish_version
+            VERSION="${{ inputs.publish_version }}"
             echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
-            echo "Current version: ${VERSION}"
+            echo "Using specified version: ${VERSION}"
+          else
+            # Fallback to package.json version
+            VERSION=$(node -p "require('./package.json').version")
+            # For prod environment, remove any prerelease suffix (beta, alpha)
+            if [ "${{ inputs.environment }}" = "prod" ]; then
+              CLEAN_VERSION=$(echo "$VERSION" | sed 's/-.*$//')
+              echo "CURRENT_VERSION=${CLEAN_VERSION}" >> $GITHUB_OUTPUT
+              echo "Original version: ${VERSION}"
+              echo "Clean version for prod: ${CLEAN_VERSION}"
+            else
+              echo "CURRENT_VERSION=${VERSION}" >> $GITHUB_OUTPUT
+              echo "Current version: ${VERSION}"
+            fi
           fi
 
       - name: Configure AWS Credentials
@@ -161,4 +182,5 @@ jobs:
           CURRENT_VERSION="${{ steps.extract_version.outputs.CURRENT_VERSION }}"
           echo "## CDN Publish Summary" >> $GITHUB_STEP_SUMMARY
           echo "- Version: ${CURRENT_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- Specified Version: ${{ inputs.publish_version || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
           echo "- Dry-run: ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY

@@ -1,4 +1,5 @@
 import {
+  ConnectorUtil,
   bscMainnet,
   bscTestnet,
   crossMainnet,
@@ -840,6 +841,10 @@ crossSdk.subscribeAccount(state => {
     (key, value) => (typeof value === 'bigint' ? value.toString() : value),
     2
   )
+
+  // 버튼 가시성 업데이트
+  updateButtonVisibility(accountState.isConnected)
+
   // connect-wallet 버튼 텍스트 업데이트
   document.getElementById('connect-wallet').textContent = accountState.isConnected
     ? 'Connected'
@@ -896,6 +901,56 @@ crossSdk.subscribeProviders(state => {
   eip155Provider = state['eip155']
 })
 
+// 버튼 표시/숨김을 관리하는 함수
+function updateButtonVisibility(isConnected) {
+  // 연결 관련 버튼들
+  const connectButtons = [
+    document.getElementById('connect-wallet'),
+    document.getElementById('connect-cross-extension'),
+    document.getElementById('check-cross-extension')
+  ]
+
+  // 연결 해제 버튼
+  const disconnectButton = document.getElementById('disconnect-wallet')
+
+  // 네트워크 변경 버튼
+  const switchNetworkButton = document.getElementById('switch-network')
+
+  if (isConnected) {
+    // 연결됨: 연결 버튼들 숨기고, disconnect 버튼 표시
+    connectButtons.forEach(button => {
+      if (button) {
+        button.style.display = 'none'
+      }
+    })
+
+    if (disconnectButton) {
+      disconnectButton.style.display = 'inline-block'
+    }
+
+    if (switchNetworkButton) {
+      switchNetworkButton.style.display = 'inline-block'
+      // switch-network 버튼은 그대로 유지
+    }
+  } else {
+    // 연결 안됨: 연결 버튼들 표시하고, disconnect 버튼 숨김
+    connectButtons.forEach(button => {
+      if (button) {
+        button.style.display = 'inline-block'
+      }
+    })
+
+    if (disconnectButton) {
+      disconnectButton.style.display = 'none'
+    }
+
+    if (switchNetworkButton) {
+      switchNetworkButton.style.display = 'inline-block'
+      // switch-network 버튼은 그대로 유지
+    }
+  }
+}
+
 // Button event listeners
 const connectWallet = document.getElementById('connect-wallet')
 connectWallet.addEventListener('click', async () => {
@@ -906,11 +961,72 @@ connectWallet.addEventListener('click', async () => {
   }
 })
 
+// Cross Extension Wallet 직접 연결 버튼
+const connectCrossExtension = document.getElementById('connect-cross-extension')
+connectCrossExtension.addEventListener('click', async () => {
+  try {
+    const result = await ConnectorUtil.connectCrossExtensionWallet()
+    console.log('Cross Extension Wallet 연결 성공:', result)
+    alert('Cross Extension Wallet 연결 성공!')
+  } catch (error) {
+    console.error('Cross Extension Wallet 연결 실패:', error)
+
+    // 에러 메시지 분석하여 사용자 취소 여부 확인
+    const errorMessage = error?.message || String(error)
+    const isUserRejection =
+      errorMessage.includes('User rejected') ||
+      errorMessage.includes('User denied') ||
+      errorMessage.includes('User cancelled') ||
+      errorMessage.includes('Connection rejected') ||
+      errorMessage.includes('Connection rejected by user') ||
+      errorMessage.includes('Modal closed') ||
+      errorMessage.includes('rejected') ||
+      errorMessage.includes('cancelled') ||
+      errorMessage.includes('denied')
+
+    const isTimeout = errorMessage.includes('Connection timeout')
+
+    if (isUserRejection) {
+      alert('연결 취소됨: 사용자가 지갑 연결을 취소했습니다.')
+    } else if (isTimeout) {
+      alert('연결 시간 초과: 지갑 연결 요청이 시간 초과되었습니다. 다시 시도해주세요.')
+    } else if (errorMessage.includes('익스텐션이 설치되지 않았습니다')) {
+      alert(
+        '익스텐션 미설치: Cross Extension Wallet이 설치되지 않았습니다. 먼저 익스텐션을 설치해주세요.'
+      )
+    } else if (errorMessage.includes('customWallets에 설정되지 않았습니다')) {
+      alert('설정 오류: Cross Wallet이 올바르게 설정되지 않았습니다. 개발자에게 문의해주세요.')
+    } else {
+      alert(`연결 실패: 지갑 연결 중 오류가 발생했습니다 - ${errorMessage}`)
+    }
+  }
+})
+
+// Cross Extension Wallet 설치 확인 버튼
+const checkCrossExtension = document.getElementById('check-cross-extension')
+checkCrossExtension.addEventListener('click', () => {
+  const isInstalled = ConnectorUtil.isInstalledCrossExtensionWallet()
+  console.log('Cross Extension Wallet 설치 상태:', isInstalled)
+  alert(`Cross Extension Wallet ${isInstalled ? '설치됨' : '설치되지 않음'}`)
+})
+
 document.getElementById('toggle-theme')?.addEventListener('click', () => {
   const newTheme = themeState.themeMode === 'dark' ? 'light' : 'dark'
   crossSdk.setThemeMode(newTheme)
   themeState = { ...themeState, themeMode: newTheme }
   updateTheme(newTheme)
+})
+
+// Disconnect 버튼 이벤트 리스너
+const disconnectWallet = document.getElementById('disconnect-wallet')
+disconnectWallet.addEventListener('click', async () => {
+  try {
+    await appkitWallet.disconnect()
+    console.log('지갑 연결 해제 완료')
+  } catch (error) {
+    console.error('지갑 연결 해제 실패:', error)
+    alert(`연결 해제 실패: ${error.message}`)
+  }
 })
 
 const switchNetwork = document.getElementById('switch-network')
@@ -985,6 +1101,12 @@ initializeSessionManagement()
 // Initialize contract args when state changes
 crossSdk.subscribeAccount(() => {
   setTimeout(initializeContractArgs, 100)
+})
+
+// 페이지 로드 시 초기 버튼 상태 설정
+window.addEventListener('DOMContentLoaded', () => {
+  // 초기에는 연결되지 않은 상태로 버튼 설정
+  updateButtonVisibility(false)
 })
 
 crossSdk.subscribeNetwork(() => {

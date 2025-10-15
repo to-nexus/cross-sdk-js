@@ -1,5 +1,5 @@
 {
-  "version": "1.17.1-beta.3",
+  "version": "1.17.3-beta.1",
   "name": "cross-sdk-js-monorepo",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "beta:increment": "node scripts/increment-alpha-beta-version.js",
     "prebuild": "node scripts/inject-version.js",
     "build:clean": "turbo run build:clean --filter={./packages/*}",
-    "build:sample-apps": "turbo run build --filter={./examples/*}",
+    "build:sample-apps": "turbo run build --filter={./examples/*} --filter=!@examples/cocos-creator",
     "build:example:wagmi-cdn": "pnpm build; pnpm --filter @examples/html-wagmi-cdn build",
     "build:example:vue-wagmi": "pnpm --filter @examples/vue-wagmi build",
     "build:example:parcel-react-wagmi": "pnpm --filter @examples/parcel-react-wagmi build",
@@ -30,6 +30,7 @@
     "build:laboratory": "pnpm build; pnpm --filter=./apps/laboratory build",
     "build:laboratory-new": "pnpm build; pnpm --filter=./apps/laboratory-new build",
     "build:examples": "pnpm build; pnpm --filter=./examples -r build",
+    "build:cocos-creator": "pnpm --filter @examples/cocos-creator build",
     "build:browser-extension": "pnpm --filter @apps/browser-extension build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage.enabled=true --coverage.reporter=html --coverage.reportOnFailure=true --coverage.all=false --coverage.reportsDirectory=.coverage && vite preview --outDir .coverage --open --port 4777",

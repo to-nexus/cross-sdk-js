@@ -2,8 +2,16 @@
   "creator": {
     "version": "3.8.7"
   },
-  "name": "NewProject",
+  "name": "@examples/cocos-creator",
+  "private": true,
+  "version": "1.0.0",
   "type": "3d",
   "uuid": "8306398c-7e3c-4300-a464-959acbec29d8",
-  "_sourceId": "0bd80113-4da4-4e0a-90c9-c8d85d3b77b7"
+  "_sourceId": "0bd80113-4da4-4e0a-90c9-c8d85d3b77b7",
+  "scripts": {
+    "build": "npm run build:web-desktop && npm run build:web-mobile",
+    "build:web-desktop": "mkdir -p dist/web-desktop && cp -r build-templates/web-desktop/* dist/web-desktop/",
+    "build:web-mobile": "mkdir -p dist/web-mobile && cp -r build-templates/web-mobile/* dist/web-mobile/",
+    "dev": "echo 'Open this project in Cocos Creator 3.8.7 to run in development mode'"
+  }
 }

@@ -112,6 +112,8 @@ export class W3mModal extends LitElement {
 
   // -- Private ------------------------------------------- //
   private contentTemplate() {
+    const isMiniWindow = CoreHelperUtil.isMiniWindow()
+
     return html` <wui-card
       shake="${this.shake}"
       data-embedded="${ifDefined(this.enableEmbedded)}"
@@ -120,7 +122,7 @@ export class W3mModal extends LitElement {
       tabindex="0"
       data-testid="cross-w3m-modal-card"
     >
-      <cross-w3m-header></cross-w3m-header>
+      ${isMiniWindow ? null : html`<cross-w3m-header></cross-w3m-header>`}
       <cross-w3m-router></cross-w3m-router>
       <cross-w3m-snackbar></cross-w3m-snackbar>
       <cross-w3m-alertbar></cross-w3m-alertbar>
