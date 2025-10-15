@@ -672,8 +672,8 @@ build-templates/
 {
   "general": {
     "designResolution": {
-      "width": 1280, // 가로형 해상도
-      "height": 720,
+      "width": 960, // 가로형 해상도
+      "height": 640,
       "fitWidth": true, // 너비 맞춤
       "fitHeight": true // 높이 맞춤
     }
