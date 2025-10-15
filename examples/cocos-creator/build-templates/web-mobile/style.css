@@ -48,6 +48,22 @@ body {
   background: #000;
 }
 
+/* 모바일에서 브라우저 UI 영역 고려 */
+@media screen and (max-width: 768px) {
+  #GameDiv {
+    height: calc(100vh - 60px) !important; /* 상단/하단 브라우저 UI 공간 확보 */
+    padding: 10px 0;
+  }
+}
+
+/* 작은 모바일에서 더 많은 여백 */
+@media screen and (max-width: 480px) {
+  #GameDiv {
+    height: calc(100vh - 80px) !important;
+    padding: 15px 0;
+  }
+}
+
 #Cocos3dGameContainer {
   width: 100%;
   height: 100%;
@@ -65,6 +81,7 @@ body {
   object-fit: contain;
   background: #000;
   display: block;
+  transform-origin: center center;
 }
 
 .footer {
@@ -126,6 +143,25 @@ body {
   .footer {
     font-size: 10px;
     bottom: 5px;
+  }
+
+  /* 모바일에서 게임 UI 스케일링 - 상태 UI 고려하여 적당히 조정 */
+  #GameCanvas {
+    transform: scale(1.1);
+  }
+}
+
+/* 작은 모바일 화면에서 적당한 스케일링 */
+@media screen and (max-width: 480px) {
+  #GameCanvas {
+    transform: scale(1.2);
+  }
+}
+
+/* 매우 작은 화면에서도 상태 UI가 보이도록 제한 */
+@media screen and (max-width: 360px) {
+  #GameCanvas {
+    transform: scale(1.3);
   }
 }
 

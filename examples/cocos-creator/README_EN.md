@@ -672,8 +672,8 @@ This project is optimized for mobile landscape mode:
 {
   "general": {
     "designResolution": {
-      "width": 1280, // Landscape resolution
-      "height": 720,
+      "width": 960, // Landscape resolution
+      "height": 640,
       "fitWidth": true, // Fit width
       "fitHeight": true // Fit height
     }
@@ -702,13 +702,36 @@ This project is optimized for mobile landscape mode:
   height: 100vh !important;
 }
 
-/* Support various screen ratios */
-@media screen and (orientation: landscape) {
-  /* Landscape optimization */
+/* Adjust height considering browser UI area on mobile */
+@media screen and (max-width: 768px) {
+  #GameDiv {
+    height: calc(100vh - 60px) !important; /* Reserve space for status UI */
+    padding: 10px 0;
+  }
+
+  #GameCanvas {
+    transform: scale(1.1); /* Moderate scaling to preserve status UI */
+    transform-origin: center center;
+  }
 }
 
-@media screen and (orientation: portrait) {
-  /* Portrait support */
+/* More margin for small mobile screens */
+@media screen and (max-width: 480px) {
+  #GameDiv {
+    height: calc(100vh - 80px) !important;
+    padding: 15px 0;
+  }
+
+  #GameCanvas {
+    transform: scale(1.2); /* Moderate scaling */
+  }
+}
+
+/* Preserve status UI even on very small screens */
+@media screen and (max-width: 360px) {
+  #GameCanvas {
+    transform: scale(1.3); /* Limited scaling */
+  }
 }
 
 /* Notch support */

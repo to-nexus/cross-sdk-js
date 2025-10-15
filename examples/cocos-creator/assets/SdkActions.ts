@@ -130,7 +130,10 @@ export class SdkActions extends Component {
         customData: { metadata: 'demo' }
       })
       console.log('Signed:', sig)
-      // alert('Signed message: ' + sig)
+
+      setTimeout(() => {
+        alert('Signed message: ' + sig)
+      }, 3000)
     } catch (e) {
       alert((e as Error).message)
     }
@@ -151,6 +154,9 @@ export class SdkActions extends Component {
       this.updateConnectButtonLabel()
       await this.updateSummaryLabels()
 
+      setTimeout(() => {
+        alert(JSON.stringify(resTx))
+      }, 3000)
       // alert(JSON.stringify(resTx))
     } catch (e) {
       alert((e as Error).message)
@@ -276,7 +282,9 @@ export class SdkActions extends Component {
       })
       this.updateConnectButtonLabel()
       await this.updateSummaryLabels()
-
+      setTimeout(() => {
+        alert(JSON.stringify(resTx))
+      }, 3000)
       // alert(JSON.stringify(resTx))
     } catch (e) {
       alert((e as Error).message)
