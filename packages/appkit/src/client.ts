@@ -1655,7 +1655,8 @@ export class AppKit {
             console.log('📱 [APPKIT] Account state after reset:', {
               namespace,
               caipAddress: accountState?.caipAddress,
-              isConnected: Boolean(accountState?.caipAddress)
+              isConnected: Boolean(accountState?.caipAddress),
+              status: accountState?.status
             })
           })
 
