@@ -27,20 +27,20 @@ console.log(`Injected version ${versionToInject} into ${filePath}`)
 
 // Keep SDK runtime constant in sync as well so examples/logs show the right version
 try {
-  const sdkExportsPath = path.join(__dirname, '../packages/sdk/exports/index.ts')
-  if (fs.existsSync(sdkExportsPath)) {
-    const sdkSrc = fs.readFileSync(sdkExportsPath, 'utf8')
+  const sdkConstantsPath = path.join(__dirname, '../packages/sdk/src/constants.ts')
+  if (fs.existsSync(sdkConstantsPath)) {
+    const sdkSrc = fs.readFileSync(sdkConstantsPath, 'utf8')
     const replaced = sdkSrc.replace(
-      /export\s+const\s+sdkVersion\s*=\s*'[^']*';/,
-      `export const sdkVersion = '${versionToInject}';`
+      /export\s+const\s+SDK_VERSION\s*=\s*'[^']*'/,
+      `export const SDK_VERSION = '${versionToInject}'`
     )
     if (replaced !== sdkSrc) {
-      fs.writeFileSync(sdkExportsPath, replaced, 'utf8')
-      console.log(`Injected sdkVersion ${versionToInject} into ${sdkExportsPath}`)
+      fs.writeFileSync(sdkConstantsPath, replaced, 'utf8')
+      console.log(`Injected SDK_VERSION ${versionToInject} into ${sdkConstantsPath}`)
     } else {
-      console.log(`sdkVersion already set to ${versionToInject} in ${sdkExportsPath}`)
+      console.log(`SDK_VERSION already set to ${versionToInject} in ${sdkConstantsPath}`)
     }
   }
 } catch (err) {
-  console.error('Failed to inject sdkVersion:', err instanceof Error ? err.message : err)
+  console.error('Failed to inject SDK_VERSION:', err instanceof Error ? err.message : err)
 }

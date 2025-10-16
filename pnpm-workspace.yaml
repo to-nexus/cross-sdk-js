@@ -16,8 +16,9 @@ packages:
   - 'packages/cli'
   - 'examples/sdk-react'
   - 'examples/sdk-html'
+  - 'examples/sdk-vanilla'
+  - 'examples/sdk-cdn'
+  - 'examples/cocos-creator'
   - 'packages/cdn'
   - 'packages/sign-client'
   - 'providers/universal-provider' # 추가
-  - 'examples/sdk-vanilla'
-  - 'packages/cdn'
