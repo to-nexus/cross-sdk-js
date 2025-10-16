@@ -1,4 +1,4 @@
-import { h as AppKit, e as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, j as ApiController, k as ConnectionController, l as ConstantsUtil, m as ConnectorUtil, p as WalletUtil, q as ConnectorController, O as OptionsController, E as EthersAdapter, s as networkList, t as ConstantsUtil$1, Z, u as etherTestnet, v as etherMainnet, w as kaiaTestnet, y as kaiaMainnet, z as bscTestnet, B as bscMainnet, D as crossTestnet, F as crossMainnet, G as AccountController, H as SendController } from "./index.es-DhjFYmdo.js";
+import { h as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, j as ApiController, k as ConnectionController, l as ConstantsUtil, m as ConnectorUtil, p as WalletUtil, q as ConnectorController, O as OptionsController, E as EthersAdapter, s as networkList, t as ConstantsUtil$1, Z, u as etherTestnet, v as etherMainnet, w as kaiaTestnet, y as kaiaMainnet, z as bscTestnet, B as bscMainnet, D as crossTestnet, F as crossMainnet, G as AccountController, H as SendController } from "./index.es-CRsArSgd.js";
 function createAppKit(options) {
   return new AppKit({
     ...options,
@@ -129,7 +129,7 @@ const p = new EthersAdapter(), m = {
     ],
     allWallets: "HIDE"
   });
-}, C = () => createAppKitWalletButton();
+}, C = () => createAppKitWalletButton(), x = "1.17.5";
 if (typeof window !== "undefined") {
   window.CrossSdk = {
     initCrossSdk: d,
@@ -148,7 +148,8 @@ if (typeof window !== "undefined") {
     etherMainnet,
     etherTestnet,
     UniversalProvider: Z,
-    ConstantsUtil: ConstantsUtil$1
+    ConstantsUtil: ConstantsUtil$1,
+    sdkVersion: x
   };
 }
 export {
@@ -168,6 +169,7 @@ export {
   w as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
+  x as sdkVersion,
   C as useAppKitWallet
 };
 //# sourceMappingURL=cross-sdk.js.map

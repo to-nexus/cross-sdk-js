@@ -23,6 +23,8 @@ import {
 } from '@to-nexus/appkit/networks'
 import UniversalProvider from '@to-nexus/universal-provider'
 
+import { SDK_VERSION } from './constants.js'
+
 export type {
   SendTransactionArgs,
   WriteContractArgs,
@@ -136,6 +138,8 @@ export const useAppKitWallet = () => {
 
   return walletButton
 }
+
+export const sdkVersion = SDK_VERSION
 
 export {
   initCrossSdkWithParams,
