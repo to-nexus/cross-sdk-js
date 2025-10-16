@@ -208,8 +208,18 @@ export const CoreHelperUtil = {
     }
     const encodedWcUrl = encodeURIComponent(wcUri)
 
+    // CROSS 브라우저에서 모바일일 경우 from=crossx 파라미터 추가
+    let redirectUrl = `${safeAppUrl}wc?uri=${encodedWcUrl}`
+    if (this.isCROSSxBrowser()) {
+      redirectUrl += '%26from%3Dcrossx'
+    } else if (this.isMobile()) {
+      redirectUrl += '%26from%3Dmobile-browser'
+    } else {
+      redirectUrl += '%26from%3Dbrowser'
+    }
+
     return {
-      redirect: `${safeAppUrl}wc?uri=${encodedWcUrl}`,
+      redirect: redirectUrl,
       href: safeAppUrl
     }
   },
@@ -224,8 +234,18 @@ export const CoreHelperUtil = {
     }
     const encodedWcUrl = encodeURIComponent(wcUri)
 
+    // CROSS 브라우저에서 모바일일 경우 from=crossx 파라미터 추가
+    let redirectUrl = `${safeAppUrl}wc?uri=${encodedWcUrl}`
+    if (this.isCROSSxBrowser()) {
+      redirectUrl += '%26from%3Dcrossx'
+    } else if (this.isMobile()) {
+      redirectUrl += '%26from%3Dmobile-browser'
+    } else {
+      redirectUrl += '%26from%3Dbrowser'
+    }
+
     return {
-      redirect: `${safeAppUrl}wc?uri=${encodedWcUrl}`,
+      redirect: redirectUrl,
       href: safeAppUrl
     }
   },
