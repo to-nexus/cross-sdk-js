@@ -148,8 +148,11 @@ export class SdkActions extends Component {
         receiverAddress: '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379',
         sendTokenAmount: 1,
         decimals: '18',
+        gas: BigInt(147726), // optional (you can set this your calculated gas or skip it)
+        maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+        maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
         customData: { metadata: 'Cocos demo' },
-        type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
       })
       this.updateConnectButtonLabel()
       await this.updateSummaryLabels()
@@ -278,7 +281,13 @@ export class SdkActions extends Component {
         contractAddress: caipContract, // ← CAIP-2 형식
         sendTokenAmount: 1,
         decimals: '18',
-        type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        gas: BigInt(147726), // optional (you can set this your calculated gas or skip it)
+        maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+        maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
+        customData: {
+          metadata: 'Game Developer can add custom data to the transaction'
+        },
+        type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
       })
       this.updateConnectButtonLabel()
       await this.updateSummaryLabels()
