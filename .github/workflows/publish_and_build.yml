@@ -171,11 +171,29 @@ jobs:
               echo "Fixing alpha/beta versions in: $file"
               # Replace alpha/beta versions with latest available
               for pkg in "${PACKAGES_TO_UPDATE[@]}"; do
-                # Get latest version from registry
+                # Get latest version from registry with multiple fallbacks
+                LATEST_VERSION=""
+                
+                # Try to get latest version from registry
                 LATEST_VERSION=$(npm view "$pkg" version --registry="${{ steps.registry_prepare.outputs.NEXUS_URL }}" 2>/dev/null || echo "")
+                
+                # If registry lookup failed, try without explicit registry
+                if [ -z "$LATEST_VERSION" ]; then
+                  LATEST_VERSION=$(npm view "$pkg" version 2>/dev/null || echo "")
+                fi
+                
+                # If still no version found, extract base version from existing alpha version
+                if [ -z "$LATEST_VERSION" ]; then
+                  echo "Warning: Could not fetch latest version for $pkg from registry, extracting base version"
+                  LATEST_VERSION=$(grep -o "\"$pkg\": \"[^\"]*\"" "$file" | sed 's/.*: "\([^-]*\)-.*/\1/' | tr -d '"')
+                fi
+                
                 if [ -n "$LATEST_VERSION" ]; then
                   echo "Updating $pkg to $LATEST_VERSION in $file"
-                  sed -i.bak "s|\"$pkg\": \"[^\"]*\"|\"$pkg\": \"$LATEST_VERSION\"|g" "$file"
+                  # More precise sed pattern to match alpha/beta versions
+                  sed -i.bak "s|\"$pkg\": \"[^\"]*-\(alpha\|beta\)[^\"]*\"|\"$pkg\": \"$LATEST_VERSION\"|g" "$file"
+                else
+                  echo "Error: Could not determine version for $pkg"
                 fi
               done
             done
