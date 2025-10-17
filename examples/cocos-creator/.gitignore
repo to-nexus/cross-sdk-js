@@ -7,7 +7,8 @@ temp/
 local/
 # build/
 profiles/
-native
+# native  # 빌드 결과물 (build/web-desktop/assets/main/native)은 Git에 포함
+/native  # 루트의 native 폴더만 제외 (Cocos Creator 프로젝트 파일)
 #//////////////////////////
 # NPM
 #//////////////////////////

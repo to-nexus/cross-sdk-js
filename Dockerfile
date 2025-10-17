@@ -67,6 +67,7 @@ RUN addgroup -S nexus && adduser -S -G nexus nexus
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-react/dist /usr/share/nginx/html/react
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-vanilla/dist /usr/share/nginx/html/vanilla
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-cdn /usr/share/nginx/html/cdn
+COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/cocos-creator/build/web-desktop /usr/share/nginx/html/cocos
 
 # 랜딩 페이지 복사
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/index.html /usr/share/nginx/html/index.html

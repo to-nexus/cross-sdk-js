@@ -26,6 +26,7 @@
 This monorepo contains the following packages:
 
 ### Core Packages
+
 - `@to-nexus/cross-sdk` - Main SDK package
 - `@to-nexus/appkit` - AppKit components
 - `@to-nexus/appkit-core` - Core functionality
@@ -33,19 +34,23 @@ This monorepo contains the following packages:
 - `@to-nexus/common` - Common types and utilities
 
 ### UI Components
+
 - `@to-nexus/ui` - Core UI components
 - `@to-nexus/scaffold-ui` - Scaffold UI components
 - `@to-nexus/appkit-wallet-button` - Wallet button component
 
 ### Adapters
+
 - `@to-nexus/appkit-adapter-ethers` - Ethers.js adapter
 - `@to-nexus/appkit-adapter-wagmi` - Wagmi adapter
 
 ### Authentication
+
 - `@to-nexus/siwe` - Sign-in with Ethereum
 - `@to-nexus/siwx` - Sign-in with X (extended)
 
 ### Tools
+
 - `@to-nexus/cli` - CLI tools
 - `@to-nexus/cdn` - CDN distribution
 
@@ -84,8 +89,9 @@ await sdk.connect()
 ### React Integration
 
 ```tsx
-import { initCrossSdk, AccountController } from '@to-nexus/cross-sdk'
 import { useEffect, useState } from 'react'
+
+import { AccountController, initCrossSdk } from '@to-nexus/cross-sdk'
 
 function App() {
   const [account, setAccount] = useState(null)
@@ -101,11 +107,7 @@ function App() {
     })
   }, [])
 
-  return (
-    <div>
-      {account ? `Connected: ${account}` : 'Not connected'}
-    </div>
-  )
+  return <div>{account ? `Connected: ${account}` : 'Not connected'}</div>
 }
 ```
 
@@ -114,23 +116,26 @@ function App() {
 ### Prerequisites
 
 - Node.js ^20.18.0
-    - pnpm
-    - turbo
+  - pnpm
+  - turbo
 
 ### Environment Setup
 
 1. **Clone the repository**
-    ```bash
+
+   ```bash
    git clone https://github.com/your-org/cross-sdk-js.git
    cd cross-sdk-js
    ```
 
 2. **Install dependencies**
-    ```bash
-    pnpm install
-    ```
+
+   ```bash
+   pnpm install
+   ```
 
 3. **Set up environment variables**
+
    ```bash
    # For examples
    cd examples/sdk-react
@@ -138,6 +143,7 @@ function App() {
    ```
 
    Update `.env` with your configuration:
+
    ```bash
    VITE_PROJECT_ID=your-project-id
    VITE_ENV_MODE=development
@@ -159,6 +165,27 @@ function App() {
 - `pnpm --filter sdk-react dev` - Run React example
 - `pnpm --filter sdk-vanilla dev` - Run Vanilla JS example
 - `pnpm --filter sdk-cdn dev` - Run CDN example
+
+#### Cocos Creator Example
+
+Cocos Creator 프로젝트는 별도의 실행 방법이 필요합니다:
+
+```bash
+# 1. Cocos Creator 에디터에서 프로젝트 빌드
+# examples/cocos-creator 프로젝트를 열고 Web Desktop/Mobile로 빌드
+
+# 2. 빌드된 파일을 정적 서버로 실행
+cd examples/cocos-creator/build/web-desktop
+npx serve -p 3000 .
+```
+
+또는 Docker를 사용하여 모든 예제를 한번에 실행:
+
+```bash
+docker build -t cross-sdk-examples .
+docker run -p 8080:8080 cross-sdk-examples
+# 접속: http://localhost:8080/cocos/
+```
 
 ### Building Examples
 
@@ -185,7 +212,8 @@ cross-sdk-js/
 ├── examples/
 │   ├── sdk-react/        # React example
 │   ├── sdk-vanilla/      # Vanilla JS example
-│   └── sdk-cdn/          # CDN example
+│   ├── sdk-cdn/          # CDN example
+│   └── cocos-creator/    # Cocos Creator game engine example
 └── scripts/              # Build scripts
 ```
 
@@ -219,7 +247,7 @@ interface CrossSdkParams {
 ```typescript
 const sdk = initCrossSdk({
   projectId: 'your-project-id',
-  themeMode: 'dark', // or 'light'
+  themeMode: 'dark' // or 'light'
   // Custom theme variables can be set via CSS
 })
 ```
@@ -231,14 +259,19 @@ const sdk = initCrossSdk({
 This project uses [Changesets](https://github.com/changesets/changesets) for version management.
 
     ```bash
+
 # Add a changeset
+
 pnpm changeset
 
 # Version packages
+
 pnpm changeset:version
 
 # Publish packages
+
 pnpm changeset:publish
+
 ```
 
 ### Release Channels
@@ -276,3 +309,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
+```

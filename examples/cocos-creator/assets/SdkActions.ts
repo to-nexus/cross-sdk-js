@@ -148,8 +148,11 @@ export class SdkActions extends Component {
         receiverAddress: '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379',
         sendTokenAmount: 1,
         decimals: '18',
+        gas: BigInt(147726), // optional (you can set this your calculated gas or skip it)
+        maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+        maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
         customData: { metadata: 'Cocos demo' },
-        type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
       })
       this.updateConnectButtonLabel()
       await this.updateSummaryLabels()
@@ -278,7 +281,13 @@ export class SdkActions extends Component {
         contractAddress: caipContract, // ← CAIP-2 형식
         sendTokenAmount: 1,
         decimals: '18',
-        type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        gas: BigInt(147726), // optional (you can set this your calculated gas or skip it)
+        maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+        maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
+        customData: {
+          metadata: 'Game Developer can add custom data to the transaction'
+        },
+        type: window.CrossSdk.ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
       })
       this.updateConnectButtonLabel()
       await this.updateSummaryLabels()
@@ -415,25 +424,55 @@ export class SdkActions extends Component {
     const up = await instance.getUniversalProvider()
     let chainIdHex: `0x${string}` | undefined
     let chainId: number | undefined
+
+    // 연결 상태 확인
+    const isConnected = window.CrossSdk?.AccountController?.state?.status === 'connected'
+    const hasNoSession = !up?.session
+    const isExtensionProvider = hasNoSession && isConnected
+
+    // 연결되지 않은 경우 chainId를 반환하지 않음
+    if (!isConnected) {
+      return { address, chainIdHex, chainId, nativeBalance, nativeSymbol }
+    }
+
     try {
-      const raw = await up?.request({ method: 'eth_chainId', params: [] })
-      if (typeof raw === 'string') {
-        if (raw.startsWith('0x') || raw.startsWith('0X')) {
-          chainIdHex = raw as `0x${string}`
-          chainId = parseInt(raw, 16)
-        } else {
-          const asNumber = Number(raw)
-          if (!Number.isNaN(asNumber)) {
-            chainId = asNumber
-            chainIdHex = `0x${asNumber.toString(16)}` as `0x${string}`
+      // 우선순위 1: SDK Instance의 getCaipNetwork() 메서드 사용
+      // 익스텐션/모바일 지갑 모두 지원
+      if (instance?.getCaipNetwork && typeof instance.getCaipNetwork === 'function') {
+        try {
+          const caipNetwork = instance.getCaipNetwork()
+          // caipNetwork.id 또는 caipNetwork.chainId 확인
+          const networkChainId = caipNetwork?.id || caipNetwork?.chainId
+          if (networkChainId) {
+            chainId = Number(networkChainId)
+            chainIdHex = `0x${chainId.toString(16)}` as `0x${string}`
           }
+        } catch (e) {
+          console.warn('[getSdkSummary] getCaipNetwork() 실패:', e)
         }
-      } else if (typeof raw === 'number') {
-        chainId = raw
-        chainIdHex = `0x${raw.toString(16)}` as `0x${string}`
       }
-    } catch {
-      // provider가 없거나 요청 실패 시 안전하게 무시
+
+      // 우선순위 2: 익스텐션이 아닌 경우 UniversalProvider의 eth_chainId 요청 사용
+      if (!chainId && !isExtensionProvider) {
+        const raw = await up?.request({ method: 'eth_chainId', params: [] })
+        if (typeof raw === 'string') {
+          if (raw.startsWith('0x') || raw.startsWith('0X')) {
+            chainIdHex = raw as `0x${string}`
+            chainId = parseInt(raw, 16)
+          } else {
+            const asNumber = Number(raw)
+            if (!Number.isNaN(asNumber)) {
+              chainId = asNumber
+              chainIdHex = `0x${asNumber.toString(16)}` as `0x${string}`
+            }
+          }
+        } else if (typeof raw === 'number') {
+          chainId = raw
+          chainIdHex = `0x${raw.toString(16)}` as `0x${string}`
+        }
+      }
+    } catch (e) {
+      console.warn('[getSdkSummary] chainId 가져오기 실패:', e)
     }
 
     return { address, chainIdHex, chainId, nativeBalance, nativeSymbol }
