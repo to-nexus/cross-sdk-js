@@ -99,14 +99,17 @@
   "packageManager": "pnpm@9.5.0",
   "pnpm": {
     "overrides": {
-      "@solana/web3.js": "1.95.8"
+      "@solana/web3.js": "1.95.8",
+      "viem": "~2.23.0"
     }
   },
   "resolutions": {
-    "@solana/web3.js": "1.95.8"
+    "@solana/web3.js": "1.95.8",
+    "viem": "~2.23.0"
   },
   "overrides": {
-    "@solana/web3.js": "1.95.8"
+    "@solana/web3.js": "1.95.8",
+    "viem": "~2.23.0"
   },
   "@parcel/resolver-default": {
     "packageExports": true

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type CreateConfigParameters, createConnector } from '@wagmi/core'
 import { SwitchChainError, getAddress } from 'viem'
 import type { Address } from 'viem'
@@ -38,8 +39,8 @@ export function authConnector(parameters: AuthParameters) {
     type: 'AUTH',
     chain: CommonConstantsUtil.CHAIN.EVM,
 
-    async connect(options = {}) {
-      const provider = await this.getProvider()
+    async connect(options: any = {}) {
+      const provider = await this.getProvider() as any
       let chainId = options.chainId
 
       if (options.isReconnecting) {
@@ -61,7 +62,7 @@ export function authConnector(parameters: AuthParameters) {
         preferredAccountType: OptionsController.state.defaultAccountTypes.eip155
       })
 
-      currentAccounts = accounts?.map(a => a.address as Address) || [address as Address]
+      currentAccounts = accounts?.map((a: any) => a.address as Address) || [address as Address]
 
       await provider.getSmartAccountEnabledNetworks()
 
@@ -75,11 +76,11 @@ export function authConnector(parameters: AuthParameters) {
           id: parsedChainId,
           unsuported: false
         }
-      }
+      } as any
     },
 
     async disconnect() {
-      const provider = await this.getProvider()
+      const provider = await this.getProvider() as any
       await provider.disconnect()
     },
 
@@ -94,8 +95,8 @@ export function authConnector(parameters: AuthParameters) {
     },
 
     async getProvider() {
-      if (!this.provider) {
-        this.provider = W3mFrameProviderSingleton.getInstance({
+      if (!this['provider']) {
+        this['provider'] = W3mFrameProviderSingleton.getInstance({
           projectId: parameters.options.projectId,
           enableLogger: parameters.options.enableAuthLogger,
           onTimeout: () => {
@@ -104,18 +105,18 @@ export function authConnector(parameters: AuthParameters) {
         })
       }
 
-      return Promise.resolve(this.provider)
+      return Promise.resolve(this['provider'])
     },
 
     async getChainId() {
-      const provider: W3mFrameProvider = await this.getProvider()
+      const provider = await this.getProvider() as any
       const { chainId } = await provider.getChainId()
 
       return parseChainId(chainId)
     },
 
     async isAuthorized() {
-      const provider = await this.getProvider()
+      const provider = await this.getProvider() as any
 
       return Promise.resolve(provider.getLoginEmailUsed())
     },
@@ -126,14 +127,14 @@ export function authConnector(parameters: AuthParameters) {
         if (!chain) {
           throw new SwitchChainError(new Error('chain not found on connector.'))
         }
-        const provider = await this.getProvider()
+        const provider = await this.getProvider() as any
         // We connect instead, since changing the chain may cause the address to change as well
         const response = await provider.connect({
           chainId,
           preferredAccountType: OptionsController.state.defaultAccountTypes.eip155
         })
 
-        currentAccounts = response?.accounts?.map(a => a.address as Address) || [
+        currentAccounts = response?.accounts?.map((a: any) => a.address as Address) || [
           response.address as Address
         ]
 
@@ -165,7 +166,7 @@ export function authConnector(parameters: AuthParameters) {
     },
 
     async onDisconnect(_error?: Error) {
-      const provider = await this.getProvider()
+      const provider = await this.getProvider() as any
       await provider.disconnect()
     }
   }))

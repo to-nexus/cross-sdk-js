@@ -289,10 +289,10 @@ export function walletConnect(
         }
         config.emitter.emit('change', { chainId: Number(chainId) })
 
-        const requestedChains = await this.getRequestedChainsIds()
-        this.setRequestedChainsIds([...requestedChains, chainId])
+        const requestedChains = await this['getRequestedChainsIds']()
+        this['setRequestedChainsIds']([...requestedChains, chainId])
 
-        return { ...chainToSwitch, id: chainToSwitch.id as number }
+        return { ...chainToSwitch, id: chainToSwitch.id as number } as any
       } catch (err) {
         const error = err as RpcError
 
@@ -328,10 +328,10 @@ export function walletConnect(
             params: [addEthereumChain]
           })
 
-          const requestedChains = await this.getRequestedChainsIds()
-          this.setRequestedChainsIds([...requestedChains, chainId])
+          const requestedChains = await this['getRequestedChainsIds']()
+          this['setRequestedChainsIds']([...requestedChains, chainId])
 
-          return { ...chainToSwitch, id: (chainToSwitch as any).id as number }
+          return { ...chainToSwitch, id: (chainToSwitch as any).id as number } as any
         } catch (e) {
           throw new UserRejectedRequestError(e as Error)
         }
@@ -352,10 +352,10 @@ export function walletConnect(
       config.emitter.emit('change', { chainId })
     },
     onConnect(_connectInfo: any) {
-      this.setRequestedChainsIds(caipNetworks.map((x: any) => Number(x.id)))
+      this['setRequestedChainsIds'](caipNetworks.map((x: any) => Number(x.id)))
     },
     async onDisconnect(_error?: Error) {
-      this.setRequestedChainsIds([])
+      this['setRequestedChainsIds']([])
       config.emitter.emit('disconnect')
 
       const provider = await this.getProvider() as any
@@ -376,7 +376,7 @@ export function walletConnect(
         sessionDelete = undefined
       }
       if (!connect) {
-        connect = this.onConnect.bind(this)
+        connect = this['onConnect'].bind(this)
         provider.on('connect', connect)
       }
     },
@@ -422,7 +422,7 @@ export function walletConnect(
 
       const connectorChains = config.chains.map((x: any) => x.id)
 
-      const namespaceChains = this.getNamespaceChainsIds()
+      const namespaceChains = this['getNamespaceChainsIds']()
 
       if (namespaceChains.length && !namespaceChains.some((id: number) => connectorChains.includes(id))) {
         return false
