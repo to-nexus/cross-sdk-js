@@ -1,6 +1,8 @@
 import { createConfig, http } from 'wagmi'
 import { bsc, bscTestnet, mainnet, sepolia } from 'wagmi/chains'
-import { injected, walletConnect } from 'wagmi/connectors'
+import { coinbaseWallet, walletConnect } from 'wagmi/connectors'
+
+import { crossExtensionConnector } from './utils/custom-injected'
 
 // Cross Chain configurations
 export const crossTestnet = {
@@ -56,13 +58,35 @@ export const kaiaTestnet = {
 // WalletConnect project ID
 const projectId = import.meta.env['VITE_PROJECT_ID'] || 'YOUR_PROJECT_ID'
 
+// Metadata for WalletConnect
+const metadata = {
+  name: 'Cross SDK Wagmi Example',
+  description: 'Cross SDK with Wagmi Integration',
+  url: 'http://localhost:3014',
+  icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
+}
+
 export const wagmiConfig = createConfig({
   chains: [mainnet, sepolia, bsc, bscTestnet, crossTestnet, crossMainnet, kaia, kaiaTestnet],
   connectors: [
-    injected(),
+    // Cross Extension Wallet (커스텀 connector로 명시적 감지)
+    crossExtensionConnector(),
+    // WalletConnect v2 with QR modal
     walletConnect({
       projectId,
-      showQrModal: true
+      metadata,
+      showQrModal: true,
+      qrModalOptions: {
+        themeMode: 'light',
+        themeVariables: {
+          '--wcm-z-index': '9999'
+        }
+      }
+    }),
+    // Coinbase Wallet
+    coinbaseWallet({
+      appName: metadata.name,
+      appLogoUrl: metadata.icons[0]
     })
   ],
   transports: {
@@ -74,5 +98,8 @@ export const wagmiConfig = createConfig({
     [crossMainnet.id]: http(),
     [kaia.id]: http(),
     [kaiaTestnet.id]: http()
-  }
+  },
+  // EIP-6963을 통해 여러 injected provider를 자동으로 감지
+  // MetaMask와 다른 EIP-6963 호환 지갑들이 자동으로 감지됨
+  multiInjectedProviderDiscovery: true
 })
