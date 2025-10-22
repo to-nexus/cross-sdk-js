@@ -44,6 +44,7 @@ import {
 import { sampleErc20ABI } from '../contracts/sample-erc20'
 import { sampleErc721ABI } from '../contracts/sample-erc721'
 import { useResultModal } from '../hooks/use-result-modal'
+import { NetworkSelectorModal } from './network-selector-modal'
 import { ResultModal } from './result-modal'
 
 const contractData = {
@@ -156,6 +157,7 @@ export function ActionButtonList() {
   const [isLoading, setIsLoading] = useState(false)
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
   const [isWagmiLoading, setIsWagmiLoading] = useState(false)
+  const [isNetworkModalOpen, setIsNetworkModalOpen] = useState(false)
 
   // Wagmi hooks
   const wagmiAccount = useAccount()
@@ -280,6 +282,18 @@ export function ActionButtonList() {
   // amount of cross to send
   const SEND_CROSS_AMOUNT = network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : 1
 
+  // 지원 네트워크 목록
+  const supportedNetworks = [
+    { chainId: 612044, name: 'Cross Testnet' },
+    { chainId: 612055, name: 'Cross Mainnet' },
+    { chainId: 1, name: 'Ethereum' },
+    { chainId: 11155111, name: 'Sepolia' },
+    { chainId: 56, name: 'BSC' },
+    { chainId: 97, name: 'BSC Testnet' },
+    { chainId: 8217, name: 'Kaia' },
+    { chainId: 1001, name: 'Kaia Testnet' }
+  ]
+
   // ERC20 토큰 잔액 읽기 (Wagmi)
   const { data: wagmiErc20Balance, refetch: refetchErc20Balance } = useReadContract({
     address: ERC20_ADDRESS,
@@ -288,6 +302,17 @@ export function ActionButtonList() {
     args: wagmiAccount.address ? [wagmiAccount.address] : undefined,
     query: {
       enabled: !!wagmiAccount.address && !!ERC20_ADDRESS
+    }
+  })
+
+  // ERC721 NFT 잔액 읽기 (Wagmi)
+  const { data: wagmiNftBalance, refetch: refetchNftBalance } = useReadContract({
+    address: ERC721_ADDRESS,
+    abi: sampleErc721ABI,
+    functionName: 'balanceOf',
+    args: wagmiAccount.address ? [wagmiAccount.address] : undefined,
+    query: {
+      enabled: !!wagmiAccount.address && !!ERC721_ADDRESS && ERC721_ADDRESS !== '0x'
     }
   })
 
@@ -1398,6 +1423,96 @@ Check console for full details.`
     }
   }
 
+  // Wagmi: Send Native Token (네트워크별 적절한 양)
+  async function handleWagmiSendNative() {
+    if (!wagmiAccount.address) {
+      showError('Error in Wagmi Send Native', 'Please connect wallet first.')
+      return
+    }
+
+    try {
+      const hash = await sendTransactionAsync({
+        to: RECEIVER_ADDRESS,
+        value: parseEther(SEND_CROSS_AMOUNT.toString())
+      })
+
+      showSuccess(
+        'Wagmi Send Native Token Successful!',
+        `Transaction Hash: ${hash}\nTo: ${RECEIVER_ADDRESS}\nValue: ${SEND_CROSS_AMOUNT} ${contractData[network.chainId as keyof typeof contractData].coin}`
+      )
+    } catch (error) {
+      console.error('Error sending native token with Wagmi:', error)
+      showError('Error in Wagmi Send Native', `Error: ${(error as Error).message}`)
+    }
+  }
+
+  // Wagmi: Get NFT Balance
+  async function handleWagmiGetNftBalance() {
+    if (!wagmiAccount.isConnected) {
+      showError('Error in Wagmi Get NFT Balance', 'Please connect wallet first.')
+      return
+    }
+
+    const address = contractData[network.chainId as keyof typeof contractData].erc721
+
+    if (address === '') {
+      showError('Error in Wagmi Get NFT Balance', 'Contract does not exist on this network.')
+      return
+    }
+
+    try {
+      await refetchNftBalance()
+
+      if (wagmiNftBalance !== undefined) {
+        showSuccess(
+          'Wagmi Get NFT Balance Successful!',
+          `NFT Balance: ${wagmiNftBalance.toString()}\nContract: ${ERC721_ADDRESS}`
+        )
+      } else {
+        showError('Error in Wagmi Get NFT Balance', 'Failed to fetch NFT balance')
+      }
+    } catch (error) {
+      console.error('Error getting NFT balance with Wagmi:', error)
+      showError('Error in Wagmi Get NFT Balance', `Error: ${(error as Error).message}`)
+    }
+  }
+
+  // Wagmi: Mint NFT (Custom Contract Write 예제)
+  async function handleWagmiMintNft() {
+    if (!wagmiAccount.isConnected) {
+      showError('Error in Wagmi Mint NFT', 'Please connect wallet first.')
+      return
+    }
+
+    const address = contractData[network.chainId as keyof typeof contractData].erc721
+
+    if (address === '') {
+      showError('Error in Wagmi Mint NFT', 'Contract does not exist on this network.')
+      return
+    }
+
+    try {
+      // Generate unique token ID
+      const uuidHex = uuidv4().replace(/-/g, '')
+      const tokenId = BigInt(`0x${uuidHex}`).toString()
+
+      const hash = await writeContractAsync({
+        address: ERC721_ADDRESS,
+        abi: sampleErc721ABI,
+        functionName: 'mintTo',
+        args: [wagmiAccount.address as `0x${string}`, BigInt(tokenId)]
+      })
+
+      showSuccess(
+        'Wagmi Mint NFT Successful!',
+        `Transaction Hash: ${hash}\nToken ID: ${tokenId}\nTo: ${wagmiAccount.address}`
+      )
+    } catch (error) {
+      console.error('Error minting NFT with Wagmi:', error)
+      showError('Error in Wagmi Mint NFT', `Error: ${(error as Error).message}`)
+    }
+  }
+
   // Wagmi를 사용한 지갑 연결
   async function handleWagmiConnect(connectorId?: string) {
     // 중복 요청 방지
@@ -1717,47 +1832,22 @@ Check console for full details.`
               })}
           </>
         )}
+        {/* 네트워크 변경 */}
+        <button
+          onClick={() => setIsNetworkModalOpen(true)}
+          style={{ backgroundColor: '#6f42c1', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Switch Network
+        </button>
+
+        {/* 잔액 조회 */}
         <button
           onClick={handleWagmiGetBalance}
           style={{ backgroundColor: '#0056b3', color: 'white' }}
           disabled={!wagmiAccount.isConnected}
         >
           Wagmi: Get Balance
-        </button>
-        <button
-          onClick={handleWagmiSignMessage}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Sign Message
-        </button>
-        <button
-          onClick={handleWagmiSendTransaction}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Send 0.001 ETH
-        </button>
-        <button
-          onClick={() => handleWagmiSwitchChain(612044)}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Switch to Cross Testnet
-        </button>
-        <button
-          onClick={() => handleWagmiSwitchChain(1)}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Switch to Ethereum
-        </button>
-        <button
-          onClick={handleWagmiSignTypedData}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Sign Typed Data V4
         </button>
         <button
           onClick={handleWagmiGetErc20Balance}
@@ -1767,12 +1857,54 @@ Check console for full details.`
           Wagmi: Get ERC20 Balance
         </button>
         <button
+          onClick={handleWagmiGetNftBalance}
+          style={{ backgroundColor: '#0056b3', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Get NFT Balance
+        </button>
+
+        {/* 서명 */}
+        <button
+          onClick={handleWagmiSignMessage}
+          style={{ backgroundColor: '#0056b3', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Sign Message
+        </button>
+        <button
+          onClick={handleWagmiSignTypedData}
+          style={{ backgroundColor: '#0056b3', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Sign Typed Data V4
+        </button>
+
+        {/* 전송 */}
+        <button
+          onClick={handleWagmiSendNative}
+          style={{ backgroundColor: '#0056b3', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Send {SEND_CROSS_AMOUNT}{' '}
+          {contractData[network.chainId as keyof typeof contractData].coin}
+        </button>
+        <button
           onClick={handleWagmiSendErc20}
           style={{ backgroundColor: '#0056b3', color: 'white' }}
           disabled={!wagmiAccount.isConnected}
         >
           Wagmi: Send 1 ERC20 Token
         </button>
+        <button
+          onClick={handleWagmiMintNft}
+          style={{ backgroundColor: '#0056b3', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Mint NFT (Custom Transaction)
+        </button>
+
+        {/* 연결 해제 */}
         <button
           onClick={handleWagmiDisconnect}
           style={{ backgroundColor: '#dc3545', color: 'white' }}
@@ -1781,6 +1913,17 @@ Check console for full details.`
           Wagmi: Disconnect
         </button>
       </div>
+
+      {/* 네트워크 선택 모달 */}
+      <NetworkSelectorModal
+        isOpen={isNetworkModalOpen}
+        onClose={() => setIsNetworkModalOpen(false)}
+        onSelectNetwork={handleWagmiSwitchChain}
+        networks={supportedNetworks}
+        currentChainId={wagmiAccount.chainId}
+      />
+
+      {/* 결과 모달 */}
       <ResultModal
         isOpen={isOpen}
         onClose={closeModal}
