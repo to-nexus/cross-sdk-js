@@ -159,12 +159,12 @@ export function authConnector(parameters: AuthParameters) {
       }
     },
 
-    onChainChanged(chain) {
+    onChainChanged(chain: string) {
       const chainId = Number(chain)
       config.emitter.emit('change', { chainId })
     },
 
-    async onDisconnect(_error) {
+    async onDisconnect(_error?: Error) {
       const provider = await this.getProvider()
       await provider.disconnect()
     }

@@ -202,7 +202,7 @@ export class WagmiAdapter extends AdapterBlueprint {
       pollingInterval: this.pendingTransactionsFilter.pollingInterval,
       /* Magic RPC does not support the pending transactions. We handle transaction for the AuthConnector cases in AppKit client to handle all clients at once. Adding the onError handler to avoid the error to throw. */
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onError: () => {},
+      onError: () => { },
       onTransactions: () => {
         this.emit('pendingTransactions')
         LimitterUtil.increase('pendingTransactions')
@@ -337,6 +337,42 @@ export class WagmiAdapter extends AdapterBlueprint {
     params: AdapterBlueprint.SignEIP712Params
   ): Promise<AdapterBlueprint.SignEIP712Result> {
     return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
+  }
+
+  public async etherSignMessage(
+    params: AdapterBlueprint.EtherSignMessageParams
+  ): Promise<AdapterBlueprint.EtherSignMessageResult> {
+    try {
+      const signature = await signMessage(this.wagmiConfig, {
+        message: params.message,
+        account: params.address as Hex
+      })
+
+      return { signature }
+    } catch (error) {
+      throw new Error('WagmiAdapter:etherSignMessage - Sign message failed')
+    }
+  }
+
+  public async signTypedDataV4(
+    params: AdapterBlueprint.SignTypedDataV4Params
+  ): Promise<AdapterBlueprint.SignTypedDataV4Result> {
+    try {
+      // signTypedDataV4는 wagmi에서 직접 지원하지 않으므로 provider를 통해 호출
+      const { provider } = params
+      if (!provider) {
+        throw new Error('WagmiAdapter:signTypedDataV4 - provider is undefined')
+      }
+
+      const signature = await provider.request({
+        method: 'eth_signTypedData_v4',
+        params: [(params.paramsData as any).account, JSON.stringify(params.paramsData)]
+      })
+
+      return { signature }
+    } catch (error) {
+      throw new Error('WagmiAdapter:signTypedDataV4 - Sign typed data failed')
+    }
   }
 
   public async sendTransaction(
