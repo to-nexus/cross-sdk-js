@@ -6,7 +6,8 @@ import {
   ConnectionController,
   ConstantsUtil,
   SendController,
-  type ThemeMode
+  type ThemeMode,
+  type ChainAdapter
 } from '@to-nexus/appkit-core'
 import type { CustomWallet } from '@to-nexus/appkit-core'
 import { ConnectorUtil, createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
@@ -69,12 +70,13 @@ export type CrossSdkParams = {
   metadata?: Metadata
   themeMode?: ThemeMode
   defaultNetwork?: SupportedNetworks
+  adapters?: ChainAdapter[]
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork } = params
+  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters } = params
 
-  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork)
+  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters)
 }
 
 // Create modal
@@ -83,8 +85,8 @@ const initCrossSdk = (
   redirectUrl?: string,
   metadata?: Metadata,
   themeMode?: ThemeMode,
-  adapters?: ChainAdapter[],
-  defaultNetwork?: SupportedNetworks
+  defaultNetwork?: SupportedNetworks,
+  adapters?: ChainAdapter[]
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
