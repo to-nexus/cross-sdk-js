@@ -99,7 +99,10 @@
   "packageManager": "pnpm@9.5.0",
   "pnpm": {
     "overrides": {
-      "@solana/web3.js": "1.95.8"
+      "@solana/web3.js": "1.95.8",
+      "@wagmi/core": "2.16.4",
+      "wagmi": "2.14.11",
+      "viem": "^2.38.0"
     }
   },
   "resolutions": {

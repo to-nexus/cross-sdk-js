@@ -25,18 +25,22 @@ import {
 } from '@to-nexus/sdk/react'
 import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
-import { parseEther } from 'viem'
+import { parseEther, parseUnits } from 'viem'
 import {
   useAccount,
   useBalance,
   useConnect,
+  useEstimateGas,
+  useReadContract,
   useSendTransaction,
   useSignMessage,
+  useSignTypedData,
   useSwitchChain,
-  useDisconnect as useWagmiDisconnect
+  useDisconnect as useWagmiDisconnect,
+  useWaitForTransactionReceipt,
+  useWriteContract
 } from 'wagmi'
 
-import { sampleEIP712 } from '../contracts/sample-eip712'
 import { sampleErc20ABI } from '../contracts/sample-erc20'
 import { sampleErc721ABI } from '../contracts/sample-erc721'
 import { useResultModal } from '../hooks/use-result-modal'
@@ -159,7 +163,12 @@ export function ActionButtonList() {
     address: wagmiAccount.address
   })
   const { signMessageAsync } = useSignMessage()
-  const { sendTransactionAsync } = useSendTransaction()
+  const { signTypedDataAsync } = useSignTypedData()
+  const { sendTransactionAsync, data: txHash } = useSendTransaction()
+  const { data: txReceipt, isLoading: isConfirming } = useWaitForTransactionReceipt({
+    hash: txHash
+  })
+  const { writeContractAsync } = useWriteContract()
   const { disconnectAsync: wagmiDisconnect } = useWagmiDisconnect()
   const { switchChainAsync } = useSwitchChain()
   const { connectors, connectAsync } = useConnect()
@@ -167,14 +176,36 @@ export function ActionButtonList() {
   // Cross Extension Wallet 설치 상태 확인 함수 (sdk-react와 동일)
   const checkWagmiCrossExtension = useCallback(() => {
     try {
-      const installed = isInstalledCrossExtensionWallet()
+      // ✅ window.crossWallet을 직접 확인 (SDK 함수 대신)
+      const crossWallet = (window as any).crossWallet
+      const hasCrossWallet = !!crossWallet
+
+      // 또는 ethereum.providers에서 확인
+      const ethereum = (window as any).ethereum
+      const hasCrossInProviders = ethereum?.providers?.some(
+        (p: any) => p.isCrossWallet || p.isCross || p.isCrossExtension
+      )
+
+      const installed = hasCrossWallet || hasCrossInProviders
       setIsCrossExtensionInstalled(installed)
 
       // 디버깅: Cross Extension 상태 출력
       if (installed) {
-        console.log('✅ Cross Extension installed and detected by SDK')
+        console.log('✅ Cross Extension installed and detected')
+        console.log('  - window.crossWallet:', !!crossWallet)
+        console.log('  - in providers:', hasCrossInProviders)
       } else {
-        console.log('❌ Cross Extension NOT detected by SDK')
+        console.log('❌ Cross Extension NOT detected')
+        console.log('  - window.crossWallet:', !!crossWallet)
+        console.log('  - ethereum.providers:', ethereum?.providers?.length || 0)
+      }
+
+      // SDK 함수도 확인
+      try {
+        const sdkDetected = isInstalledCrossExtensionWallet()
+        console.log('  - SDK isInstalledCrossExtensionWallet():', sdkDetected)
+      } catch (e) {
+        console.log('  - SDK detection error:', e)
       }
     } catch (error) {
       console.error('Wagmi: Extension 설치 상태 확인 중 오류:', error)
@@ -249,6 +280,17 @@ export function ActionButtonList() {
   // amount of cross to send
   const SEND_CROSS_AMOUNT = network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : 1
 
+  // ERC20 토큰 잔액 읽기 (Wagmi)
+  const { data: wagmiErc20Balance, refetch: refetchErc20Balance } = useReadContract({
+    address: ERC20_ADDRESS,
+    abi: sampleErc20ABI,
+    functionName: 'balanceOf',
+    args: wagmiAccount.address ? [wagmiAccount.address] : undefined,
+    query: {
+      enabled: !!wagmiAccount.address && !!ERC20_ADDRESS
+    }
+  })
+
   useEffect(() => {
     // contractArgs change tracking
   }, [contractArgs?.args])
@@ -256,13 +298,20 @@ export function ActionButtonList() {
   // Cross Extension Wallet 설치 상태 확인 함수를 메모이제이션
   const checkExtensionInstalled = useCallback(() => {
     try {
-      const installed = isInstalledCrossExtensionWallet()
+      // ✅ window.crossWallet을 직접 확인
+      const crossWallet = (window as any).crossWallet
+      const ethereum = (window as any).ethereum
+      const hasCrossInProviders = ethereum?.providers?.some(
+        (p: any) => p.isCrossWallet || p.isCross || p.isCrossExtension
+      )
+
+      const installed = !!crossWallet || hasCrossInProviders
       setIsCrossExtensionInstalled(installed)
     } catch (error) {
       console.error('Extension 설치 상태 확인 중 오류:', error)
       setIsCrossExtensionInstalled(false)
     }
-  }, [isInstalledCrossExtensionWallet])
+  }, [])
 
   // Cross Extension Wallet 설치 상태 확인
   useEffect(() => {
@@ -1239,6 +1288,116 @@ Check console for full details.`
     }
   }
 
+  // Wagmi: Sign Typed Data V4 (EIP-712)
+  async function handleWagmiSignTypedData() {
+    if (!wagmiAccount.isConnected) {
+      showError('Error in Wagmi Sign Typed Data', 'Please connect wallet first.')
+      return
+    }
+
+    try {
+      // EIP-712 typed data 예제
+      const domain = {
+        name: 'Cross Wagmi Example',
+        version: '1',
+        chainId: wagmiAccount.chainId,
+        verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC' as `0x${string}`
+      }
+
+      const types = {
+        Person: [
+          { name: 'name', type: 'string' },
+          { name: 'wallet', type: 'address' }
+        ],
+        Mail: [
+          { name: 'from', type: 'Person' },
+          { name: 'to', type: 'Person' },
+          { name: 'contents', type: 'string' }
+        ]
+      }
+
+      const message = {
+        from: {
+          name: 'Alice',
+          wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826'
+        },
+        to: {
+          name: 'Bob',
+          wallet: wagmiAccount.address
+        },
+        contents: 'Hello from Wagmi!'
+      }
+
+      const signature = await signTypedDataAsync({
+        domain,
+        types,
+        primaryType: 'Mail',
+        message
+      })
+
+      showSuccess(
+        'Wagmi Sign Typed Data Successful!',
+        `Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n\nMessage: "${message.contents}"\nFrom: ${message.from.name}\nTo: ${message.to.name}`
+      )
+    } catch (error) {
+      console.error('Error signing typed data with Wagmi:', error)
+      showError('Error in Wagmi Sign Typed Data', `Error: ${(error as Error).message}`)
+    }
+  }
+
+  // Wagmi: Get ERC20 Balance
+  async function handleWagmiGetErc20Balance() {
+    if (!wagmiAccount.isConnected) {
+      showError('Error in Wagmi Get ERC20 Balance', 'Please connect wallet first.')
+      return
+    }
+
+    try {
+      await refetchErc20Balance()
+
+      if (wagmiErc20Balance !== undefined) {
+        const balance = Number(wagmiErc20Balance) / 10 ** 18
+        showSuccess(
+          'Wagmi Get ERC20 Balance Successful!',
+          `ERC20 Balance: ${balance.toFixed(4)} tokens\nContract: ${ERC20_ADDRESS}`
+        )
+      } else {
+        showError('Error in Wagmi Get ERC20 Balance', 'Failed to fetch balance')
+      }
+    } catch (error) {
+      console.error('Error getting ERC20 balance with Wagmi:', error)
+      showError('Error in Wagmi Get ERC20 Balance', `Error: ${(error as Error).message}`)
+    }
+  }
+
+  // Wagmi: Send ERC20 Token
+  async function handleWagmiSendErc20() {
+    if (!wagmiAccount.isConnected) {
+      showError('Error in Wagmi Send ERC20', 'Please connect wallet first.')
+      return
+    }
+
+    try {
+      const amount = parseUnits('1', 18) // 1 token
+      const toAddress = RECEIVER_ADDRESS
+
+      const hash = await writeContractAsync({
+        address: ERC20_ADDRESS,
+        abi: sampleErc20ABI,
+        functionName: 'transfer',
+        args: [toAddress, amount]
+      })
+
+      showSuccess(
+        'Wagmi Send ERC20 Successful!',
+        `Transaction Hash: ${hash}\nAmount: 1 token\nTo: ${toAddress}`
+      )
+    } catch (error) {
+      console.error('Error sending ERC20 with Wagmi:', error)
+      showError('Error in Wagmi Send ERC20', `Error: ${(error as Error).message}`)
+    }
+  }
+
   // Wagmi를 사용한 지갑 연결
   async function handleWagmiConnect(connectorId?: string) {
     // 중복 요청 방지
@@ -1421,7 +1580,7 @@ Check console for full details.`
     }
 
     accessUniversalProvider()
-  }, [appKit, account?.isConnected])
+  }, [account?.isConnected]) // ✅ appKit 제거 (사용하지 않음)
 
   return (
     <div>
@@ -1592,6 +1751,27 @@ Check console for full details.`
           disabled={!wagmiAccount.isConnected}
         >
           Wagmi: Switch to Ethereum
+        </button>
+        <button
+          onClick={handleWagmiSignTypedData}
+          style={{ backgroundColor: '#0056b3', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Sign Typed Data V4
+        </button>
+        <button
+          onClick={handleWagmiGetErc20Balance}
+          style={{ backgroundColor: '#0056b3', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Get ERC20 Balance
+        </button>
+        <button
+          onClick={handleWagmiSendErc20}
+          style={{ backgroundColor: '#0056b3', color: 'white' }}
+          disabled={!wagmiAccount.isConnected}
+        >
+          Wagmi: Send 1 ERC20 Token
         </button>
         <button
           onClick={handleWagmiDisconnect}

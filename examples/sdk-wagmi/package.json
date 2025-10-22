@@ -11,13 +11,16 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.56.2",
+    "@to-nexus/appkit": "workspace:*",
+    "@to-nexus/appkit-adapter-wagmi": "workspace:*",
     "@to-nexus/sdk": "workspace:*",
     "ethers": "^6.13.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "uuid": "^9.0.1",
-    "viem": "^2.21.45",
-    "wagmi": "^2.12.25"
+    "viem": "^2.37.0",
+    "wagmi": "2.14.11",
+    "@wagmi/core": "2.16.4"
   },
   "devDependencies": {
     "@types/react-dom": "^19.1.6",
