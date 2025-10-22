@@ -333,10 +333,50 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
   }
 
+  public async etherSignMessage(
+    params: AdapterBlueprint.EtherSignMessageParams
+  ): Promise<AdapterBlueprint.EtherSignMessageResult> {
+    const { provider, message, address } = params
+    if (!provider) {
+      throw new Error('WagmiAdapter:etherSignMessage - provider is undefined')
+    }
+
+    try {
+      const signature = await provider.request({
+        method: 'eth_sign',
+        params: [address, message]
+      })
+
+      return { signature }
+    } catch (error) {
+      throw new Error('WagmiAdapter:etherSignMessage - Sign message failed')
+    }
+  }
+
   public async signEIP712(
-    params: AdapterBlueprint.SignEIP712Params
+    _params: AdapterBlueprint.SignEIP712Params
   ): Promise<AdapterBlueprint.SignEIP712Result> {
     return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
+  }
+
+  public async signTypedDataV4(
+    params: AdapterBlueprint.SignTypedDataV4Params
+  ): Promise<AdapterBlueprint.SignTypedDataV4Result> {
+    const { provider, paramsData, customData } = params
+    if (!provider) {
+      throw new Error('WagmiAdapter:signTypedDataV4 - provider is undefined')
+    }
+
+    try {
+      const signature = await provider.request({
+        method: 'eth_signTypedData_v4',
+        params: [paramsData, customData]
+      })
+
+      return { signature }
+    } catch (error) {
+      throw new Error('WagmiAdapter:signTypedDataV4 - Sign typed data failed')
+    }
   }
 
   public async sendTransaction(
@@ -364,7 +404,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public async readContract(
-    params: AdapterBlueprint.ReadContractParams
+    _params: AdapterBlueprint.ReadContractParams
   ): Promise<AdapterBlueprint.ReadContractResult> {
     // Read contract
     return Promise.resolve({} as unknown as AdapterBlueprint.ReadContractResult)

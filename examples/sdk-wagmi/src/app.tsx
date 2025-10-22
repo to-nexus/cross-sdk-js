@@ -1,13 +1,14 @@
-import { useAppKitTheme } from '@to-nexus/sdk/react'
+import { useEffect, useState } from 'react'
 
-import { AccountInfo } from './components/account-info'
 import ActionButtonList from './components/action-button'
 import Footer from './components/footer'
-import InfoList from './components/info-list'
 
 export default function App() {
-  const { themeMode } = useAppKitTheme()
-  document.documentElement.className = themeMode
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>('dark')
+
+  useEffect(() => {
+    document.documentElement.className = themeMode
+  }, [themeMode])
 
   return (
     <div className="page-container">
@@ -20,11 +21,24 @@ export default function App() {
         <img src="./appkit-logo.png" alt="Cross Sdk" width="150" />
       </div>
 
-      <h1 className="page-title">Cross Wagmi Sdk Example</h1>
-      <appkit-network-button />
+      <h1 className="page-title">Cross Wagmi SDK Example</h1>
+
+      <button
+        onClick={() => setThemeMode(prev => (prev === 'dark' ? 'light' : 'dark'))}
+        style={{
+          padding: '8px 16px',
+          marginBottom: '20px',
+          backgroundColor: themeMode === 'dark' ? '#333' : '#fff',
+          color: themeMode === 'dark' ? '#fff' : '#333',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Toggle Theme: {themeMode === 'dark' ? '🌙 Dark' : '☀️ Light'}
+      </button>
+
       <ActionButtonList />
-      <AccountInfo />
-      <InfoList />
       <Footer />
     </div>
   )
