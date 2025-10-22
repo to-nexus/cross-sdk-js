@@ -76,7 +76,7 @@ export type CrossSdkParams = {
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
   const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters } = params
 
-  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, agi, adapters)
+  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters)
 }
 
 // Create modal
