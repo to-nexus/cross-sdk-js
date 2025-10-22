@@ -43,7 +43,8 @@ export type {
   SignTypedDataV4Args,
   TypedDataDomain,
   TypedDataTypes,
-  TypedDataField
+  TypedDataField,
+  ChainAdapter
 } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
@@ -91,7 +92,7 @@ const initCrossSdk = (
   projectId: string,
   redirectUrl?: string,
   metadata?: Metadata,
-  adapters?: any[],
+  adapters?: ChainAdapter[],
   themeMode?: ThemeMode,
   defaultNetwork?: SupportedNetworks
 ) => {

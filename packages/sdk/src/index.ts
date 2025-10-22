@@ -33,7 +33,8 @@ export type {
   SignTypedDataV4Args,
   TypedDataDomain,
   TypedDataTypes,
-  TypedDataField
+  TypedDataField,
+  ChainAdapter
 } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
@@ -82,7 +83,7 @@ const initCrossSdk = (
   redirectUrl?: string,
   metadata?: Metadata,
   themeMode?: ThemeMode,
-  adapters?: any[],
+  adapters?: ChainAdapter[],
   defaultNetwork?: SupportedNetworks
 ) => {
   const mergedMetadata = {
