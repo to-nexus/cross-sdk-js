@@ -91,6 +91,7 @@ const initCrossSdk = (
   projectId: string,
   redirectUrl?: string,
   metadata?: Metadata,
+  adapters?: any[],
   themeMode?: ThemeMode,
   defaultNetwork?: SupportedNetworks
 ) => {
@@ -103,7 +104,7 @@ const initCrossSdk = (
   }
 
   return createAppKit({
-    adapters: [ethersAdapter],
+    adapters: [ethersAdapter, ...(adapters || [])],
     networks: networkList,
     defaultNetwork,
     metadata: mergedMetadata,
