@@ -107,7 +107,7 @@ const initCrossSdk = (
   }
 
   return createAppKit({
-    adapters: [ethersAdapter, ...(adapters || [])],
+    adapters: (adapters && adapters.length > 0) ? adapters : [ethersAdapter],
     networks: networkList,
     defaultNetwork,
     metadata: mergedMetadata,
