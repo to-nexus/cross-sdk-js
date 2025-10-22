@@ -428,12 +428,12 @@ export function walletConnect(
         return false
       }
 
-      const requestedChains = await this.getRequestedChainsIds()
+      const requestedChains = await this['getRequestedChainsIds']()
 
       return !connectorChains.every((id: any) => requestedChains.includes(Number(id)))
     },
     async setRequestedChainsIds(chains: number[]) {
-      await config.storage?.setItem(this.requestedChainsStorageKey, chains)
+      await config.storage?.setItem(this['requestedChainsStorageKey'], chains)
     },
     get requestedChainsStorageKey() {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

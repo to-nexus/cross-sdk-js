@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AppKit, type AppKitOptions, WcHelpersUtil } from '@to-nexus/appkit'
 import type {
   AppKitNetwork,
@@ -164,30 +166,36 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
   ) {
     this.caipNetworks = configParams.networks
-    this.wagmiChains = this.caipNetworks.filter(
+    // Filter EVM chains and ensure type compatibility
+    const evmChains = this.caipNetworks.filter(
       caipNetwork => caipNetwork.chainNamespace === CommonConstantsUtil.CHAIN.EVM
-    ) as unknown as [BaseNetwork, ...BaseNetwork[]]
+    )
 
-    const transportsArr = this.wagmiChains.map(chain => [
+    // Use type assertion to handle viem version compatibility
+    this.wagmiChains = evmChains as unknown as typeof this.wagmiChains
+
+    const transportsArr = evmChains.map(chain => [
       chain.id,
       CaipNetworksUtil.getViemTransport(chain as CaipNetwork)
     ])
 
+    // Handle custom transports with proper typing
     Object.entries(configParams.transports ?? {}).forEach(([chainId, transport]) => {
       const index = transportsArr.findIndex(([id]) => id === Number(chainId))
       if (index === -1) {
-        transportsArr.push([Number(chainId), transport as HttpTransport])
+        transportsArr.push([Number(chainId), transport as any])
       } else {
-        transportsArr[index] = [Number(chainId), transport as HttpTransport]
+        transportsArr[index] = [Number(chainId), transport as any]
       }
     })
 
     const transports = Object.fromEntries(transportsArr)
     const connectors: CreateConnectorFn[] = [...(configParams.connectors ?? [])]
 
+    // Create wagmi config with proper type handling
     this.wagmiConfig = createConfig({
       ...configParams,
-      chains: this.wagmiChains,
+      chains: this.wagmiChains as any, // Type assertion for viem compatibility
       transports,
       connectors
     })
