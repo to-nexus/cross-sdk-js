@@ -6,7 +6,8 @@ import {
   ConnectionController,
   ConstantsUtil,
   SendController,
-  type ThemeMode
+  type ThemeMode,
+  type ChainAdapter
 } from '@to-nexus/appkit-core'
 import type { CustomWallet } from '@to-nexus/appkit-core'
 import {
@@ -43,7 +44,8 @@ export type {
   SignTypedDataV4Args,
   TypedDataDomain,
   TypedDataTypes,
-  TypedDataField
+  TypedDataField,
+  ChainAdapter
 } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
@@ -78,12 +80,13 @@ export type CrossSdkParams = {
   metadata?: Metadata
   themeMode?: ThemeMode
   defaultNetwork?: SupportedNetworks
+  adapters?: ChainAdapter[]
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork } = params
+  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters } = params
 
-  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork)
+  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters)
 }
 
 // Create modal
@@ -92,7 +95,8 @@ const initCrossSdk = (
   redirectUrl?: string,
   metadata?: Metadata,
   themeMode?: ThemeMode,
-  defaultNetwork?: SupportedNetworks
+  defaultNetwork?: SupportedNetworks,
+  adapters?: ChainAdapter[]
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -103,7 +107,7 @@ const initCrossSdk = (
   }
 
   return createAppKit({
-    adapters: [ethersAdapter],
+    adapters: (adapters && adapters.length > 0) ? adapters : [ethersAdapter],
     networks: networkList,
     defaultNetwork,
     metadata: mergedMetadata,
@@ -125,7 +129,7 @@ const initCrossSdk = (
     customWallets: [
       {
         id: 'cross_wallet',
-        name: 'CROSS Wallet',
+        name: 'CROSSx Wallet',
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
         mobile_link: 'crossx://',
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',

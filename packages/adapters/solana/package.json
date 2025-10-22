@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-adapter-solana",
-  "version": "1.17.5",
+  "version": "1.17.7-alpha.0",
   "type": "module",
   "main": "./dist/esm/src/index.js",
   "types": "./dist/types/src/index.d.ts",

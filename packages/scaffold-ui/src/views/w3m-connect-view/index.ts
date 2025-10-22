@@ -307,7 +307,7 @@ export class W3mConnectView extends LitElement {
 
     const hasOtherMethods = this.isAuthEnabled && (this.isEmailEnabled || this.isSocialEnabled)
 
-    // CROSS Wallet만 표시하도록 수정 - 축소 로직 비활성화
+    // CROSSx Wallet만 표시하도록 수정 - 축소 로직 비활성화
     // if (hasOtherMethods && shouldCollapseWallets) {
     //   return html`<wui-list-button
     //     data-testid="cross-w3m-collapse-wallets-button"

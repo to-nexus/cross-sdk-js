@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AppKit, type AppKitOptions, WcHelpersUtil } from '@to-nexus/appkit'
 import type {
   AppKitNetwork,
@@ -164,30 +166,36 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
   ) {
     this.caipNetworks = configParams.networks
-    this.wagmiChains = this.caipNetworks.filter(
+    // Filter EVM chains and ensure type compatibility
+    const evmChains = this.caipNetworks.filter(
       caipNetwork => caipNetwork.chainNamespace === CommonConstantsUtil.CHAIN.EVM
-    ) as unknown as [BaseNetwork, ...BaseNetwork[]]
+    )
 
-    const transportsArr = this.wagmiChains.map(chain => [
+    // Use type assertion to handle viem version compatibility
+    this.wagmiChains = evmChains as unknown as typeof this.wagmiChains
+
+    const transportsArr = evmChains.map(chain => [
       chain.id,
       CaipNetworksUtil.getViemTransport(chain as CaipNetwork)
     ])
 
+    // Handle custom transports with proper typing
     Object.entries(configParams.transports ?? {}).forEach(([chainId, transport]) => {
       const index = transportsArr.findIndex(([id]) => id === Number(chainId))
       if (index === -1) {
-        transportsArr.push([Number(chainId), transport as HttpTransport])
+        transportsArr.push([Number(chainId), transport as any])
       } else {
-        transportsArr[index] = [Number(chainId), transport as HttpTransport]
+        transportsArr[index] = [Number(chainId), transport as any]
       }
     })
 
     const transports = Object.fromEntries(transportsArr)
     const connectors: CreateConnectorFn[] = [...(configParams.connectors ?? [])]
 
+    // Create wagmi config with proper type handling
     this.wagmiConfig = createConfig({
       ...configParams,
-      chains: this.wagmiChains,
+      chains: this.wagmiChains as any, // Type assertion for viem compatibility
       transports,
       connectors
     })
@@ -362,15 +370,16 @@ export class WagmiAdapter extends AdapterBlueprint {
   public async signTypedDataV4(
     params: AdapterBlueprint.SignTypedDataV4Params
   ): Promise<AdapterBlueprint.SignTypedDataV4Result> {
-    const { provider, paramsData, customData } = params
-    if (!provider) {
-      throw new Error('WagmiAdapter:signTypedDataV4 - provider is undefined')
-    }
-
     try {
+      // signTypedDataV4는 wagmi에서 직접 지원하지 않으므로 provider를 통해 호출
+      const { provider } = params
+      if (!provider) {
+        throw new Error('WagmiAdapter:signTypedDataV4 - provider is undefined')
+      }
+
       const signature = await provider.request({
         method: 'eth_signTypedData_v4',
-        params: [paramsData, customData]
+        params: [(params.paramsData as any).account, JSON.stringify(params.paramsData)]
       })
 
       return { signature }
@@ -549,6 +558,13 @@ export class WagmiAdapter extends AdapterBlueprint {
     const connector = this.getWagmiConnector(id)
     const provider = (await connector?.getProvider()) as Provider
 
+    // Emit accountChanged event after syncing connection
+    if (connection?.accounts[0]) {
+      this.emit('accountChanged', {
+        address: connection.accounts[0]
+      })
+    }
+
     return {
       chainId: Number(connection?.chainId),
       address: connection?.accounts[0] as string,
@@ -597,6 +613,11 @@ export class WagmiAdapter extends AdapterBlueprint {
       chainId: chainId ? Number(chainId) : undefined
     })
 
+    // Emit accountChanged event after successful connection
+    this.emit('accountChanged', {
+      address: res.accounts[0]
+    })
+
     return {
       address: res.accounts[0],
       chainId: res.chainId,
@@ -618,6 +639,14 @@ export class WagmiAdapter extends AdapterBlueprint {
     await reconnect(this.wagmiConfig, {
       connectors: [connector]
     })
+
+    // Emit accountChanged event after successful reconnection
+    const account = getAccount(this.wagmiConfig)
+    if (account.address && account.status === 'connected') {
+      this.emit('accountChanged', {
+        address: account.address
+      })
+    }
   }
 
   public async getBalance(

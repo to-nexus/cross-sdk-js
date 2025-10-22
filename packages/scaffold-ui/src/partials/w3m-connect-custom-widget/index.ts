@@ -103,7 +103,7 @@ export class W3mConnectCustomWidget extends LitElement {
       allRDNSs
     })
 
-    // CROSS Wallet만 사용하므로 필터링 비활성화
+    // CROSSx Wallet만 사용하므로 필터링 비활성화
     const filtered = wallets // 필터링 없이 모든 customWallets 표시
 
     console.log(

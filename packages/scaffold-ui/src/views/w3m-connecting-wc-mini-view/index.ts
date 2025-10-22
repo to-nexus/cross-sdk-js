@@ -195,7 +195,7 @@ export class W3mConnectingWcMiniView extends LitElement {
     const isDesktopWc = desktop_link && !CoreHelperUtil.isMobile()
 
     const isCrossWallet =
-      this.wallet.name?.includes('CROSS Wallet') || rdns === 'nexus.to.crosswallet.desktop'
+      this.wallet.name?.includes('CROSSx Wallet') || rdns === 'nexus.to.crosswallet.desktop'
 
     if (isCrossWallet && rdns) {
       this.determinePlatformsForCross({ mobile_link, rdns, isBrowser: Boolean(isBrowser) })
