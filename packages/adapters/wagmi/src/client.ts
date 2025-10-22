@@ -210,7 +210,7 @@ export class WagmiAdapter extends AdapterBlueprint {
       pollingInterval: this.pendingTransactionsFilter.pollingInterval,
       /* Magic RPC does not support the pending transactions. We handle transaction for the AuthConnector cases in AppKit client to handle all clients at once. Adding the onError handler to avoid the error to throw. */
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onError: () => { },
+      onError: () => {},
       onTransactions: () => {
         this.emit('pendingTransactions')
         LimitterUtil.increase('pendingTransactions')
@@ -553,6 +553,13 @@ export class WagmiAdapter extends AdapterBlueprint {
     const connector = this.getWagmiConnector(id)
     const provider = (await connector?.getProvider()) as Provider
 
+    // Emit accountChanged event after syncing connection
+    if (connection?.accounts[0]) {
+      this.emit('accountChanged', {
+        address: connection.accounts[0]
+      })
+    }
+
     return {
       chainId: Number(connection?.chainId),
       address: connection?.accounts[0] as string,
@@ -601,6 +608,11 @@ export class WagmiAdapter extends AdapterBlueprint {
       chainId: chainId ? Number(chainId) : undefined
     })
 
+    // Emit accountChanged event after successful connection
+    this.emit('accountChanged', {
+      address: res.accounts[0]
+    })
+
     return {
       address: res.accounts[0],
       chainId: res.chainId,
@@ -622,6 +634,14 @@ export class WagmiAdapter extends AdapterBlueprint {
     await reconnect(this.wagmiConfig, {
       connectors: [connector]
     })
+
+    // Emit accountChanged event after successful reconnection
+    const account = getAccount(this.wagmiConfig)
+    if (account.address && account.status === 'connected') {
+      this.emit('accountChanged', {
+        address: account.address
+      })
+    }
   }
 
   public async getBalance(
