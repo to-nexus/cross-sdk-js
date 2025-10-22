@@ -1,0 +1,28 @@
+{
+  "name": "@to-nexus/sdk-example-wagmi",
+  "private": true,
+  "version": "1.13.6",
+  "scripts": {
+    "dev": "vite --port 3014",
+    "build": "vite build",
+    "run:dev": "vite --port 3014 --mode development",
+    "run:stage": "vite --port 3014 --mode stage",
+    "run:prod": "vite --port 3014 --mode production"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.56.2",
+    "@to-nexus/sdk": "workspace:*",
+    "ethers": "^6.13.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "uuid": "^9.0.1",
+    "viem": "^2.21.45",
+    "wagmi": "^2.12.25"
+  },
+  "devDependencies": {
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "4.2.1",
+    "vite": "5.4.12",
+    "vite-plugin-node-polyfills": "0.23.0"
+  }
+}
