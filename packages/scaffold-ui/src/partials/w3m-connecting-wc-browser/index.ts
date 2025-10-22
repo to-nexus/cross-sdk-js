@@ -206,7 +206,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
       // 최종 선택된 커넥터 - 우선순위 기반 선택
       let connector = null
 
-      // 1순위: ANNOUNCED 커넥터 (CROSS Wallet 전용)
+      // 1순위: ANNOUNCED 커넥터 (CROSSx Wallet 전용)
       if (this.wallet?.rdns) {
         connector = connectors.find(
           c => c.type === 'ANNOUNCED' && c.info?.rdns === this.wallet?.rdns

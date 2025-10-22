@@ -24,7 +24,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     EventsController.sendEvent({
       type: 'track',
       event: 'SELECT_WALLET',
-      properties: { name: this.wallet?.name ?? 'CROSS Wallet', platform: 'qrcode' }
+      properties: { name: this.wallet?.name ?? 'CROSSx Wallet', platform: 'qrcode' }
     })
   }
 
@@ -101,7 +101,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     }
 
     const size = this.getBoundingClientRect().width - 40
-    const alt = this.wallet ? this.wallet.name : 'CROSS Wallet'
+    const alt = this.wallet ? this.wallet.name : 'CROSSx Wallet'
     ConnectionController.setWcLinking(undefined)
     ConnectionController.setRecentWallet(this.wallet)
 
