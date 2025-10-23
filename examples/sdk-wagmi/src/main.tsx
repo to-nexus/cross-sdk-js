@@ -4,14 +4,22 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@to-nexus/appkit'
 import { WagmiAdapter } from '@to-nexus/appkit-adapter-wagmi'
+import {
+  bscMainnet,
+  bscTestnet,
+  crossMainnet,
+  crossTestnet,
+  etherMainnet,
+  etherTestnet,
+  kaiaMainnet,
+  kaiaTestnet
+} from '@to-nexus/appkit/networks'
 import { http } from 'viem'
-import { bsc, bscTestnet, mainnet, sepolia } from 'viem/chains'
 import { WagmiProvider } from 'wagmi'
 
 import App from './app.jsx'
 import './assets/main.css'
 import { crossExtensionConnector } from './utils/custom-injected'
-import { crossMainnet, crossTestnet, kaia, kaiaTestnet } from './wagmi-config'
 
 // WalletConnect project ID
 const projectId = import.meta.env['VITE_PROJECT_ID'] || 'YOUR_PROJECT_ID'
@@ -26,13 +34,13 @@ const metadata = {
 
 // Networks 설정
 const networks = [
-  mainnet,
-  sepolia,
-  bsc,
+  etherMainnet,
+  etherTestnet,
+  bscMainnet,
   bscTestnet,
   crossTestnet,
   crossMainnet,
-  kaia,
+  kaiaMainnet,
   kaiaTestnet
 ] as const
 
@@ -41,58 +49,46 @@ const wagmiAdapter = new WagmiAdapter({
   projectId,
   networks: [...networks],
   transports: {
-    [mainnet.id]: http(
-      'https://eth-mainnet.crosstoken.io/fad29a23391f6d6e8fb41fb8eecbcca82343b378',
-      {
-        retryCount: 3,
-        retryDelay: 1000,
-        timeout: 30_000
-      }
-    ),
-    [sepolia.id]: http('https://sepolia.crosstoken.io/8de52516c154dce8cc2ceaae39d657a1e1e74d2f', {
+    [etherMainnet.id]: http(etherMainnet.rpcUrls.default.http[0], {
       retryCount: 3,
       retryDelay: 1000,
       timeout: 30_000
     }),
-    [bsc.id]: http('https://bsc-mainnet.crosstoken.io/2272489872e4f1475ff25d57ce93b51989f933c7', {
+    [etherTestnet.id]: http(etherTestnet.rpcUrls.default.http[0], {
       retryCount: 3,
       retryDelay: 1000,
       timeout: 30_000
     }),
-    [bscTestnet.id]: http(
-      'https://bsc-testnet.crosstoken.io/110ea3628b77f244e5dbab16790d81bba874b962',
-      {
-        retryCount: 3,
-        retryDelay: 1000,
-        timeout: 30_000
-      }
-    ),
-    [crossTestnet.id]: http('https://testnet.crosstoken.io:22001', {
+    [bscMainnet.id]: http(bscMainnet.rpcUrls.default.http[0], {
       retryCount: 3,
       retryDelay: 1000,
       timeout: 30_000
     }),
-    [crossMainnet.id]: http('https://mainnet.crosstoken.io:22001', {
+    [bscTestnet.id]: http(bscTestnet.rpcUrls.default.http[0], {
       retryCount: 3,
       retryDelay: 1000,
       timeout: 30_000
     }),
-    [kaia.id]: http(
-      'https://kaia-mainnet-ext.crosstoken.io/815b8a6e389b34a4f82cfd1e501692dee2f4e8f5',
-      {
-        retryCount: 3,
-        retryDelay: 1000,
-        timeout: 30_000
-      }
-    ),
-    [kaiaTestnet.id]: http(
-      'https://kaia-testnet.crosstoken.io/fda0d5a47e2d0768e9329444295a3f0681fff365',
-      {
-        retryCount: 3,
-        retryDelay: 1000,
-        timeout: 30_000
-      }
-    )
+    [crossTestnet.id]: http(crossTestnet.rpcUrls.default.http[0], {
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30_000
+    }),
+    [crossMainnet.id]: http(crossMainnet.rpcUrls.default.http[0], {
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30_000
+    }),
+    [kaiaMainnet.id]: http(kaiaMainnet.rpcUrls.default.http[0], {
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30_000
+    }),
+    [kaiaTestnet.id]: http(kaiaTestnet.rpcUrls.default.http[0], {
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30_000
+    })
   },
   // ✅ Cross Extension Connector 추가
   connectors: [crossExtensionConnector()]

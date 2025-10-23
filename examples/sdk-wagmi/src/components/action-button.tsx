@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import {
+  bscMainnet,
+  bscTestnet,
+  crossMainnet,
+  crossTestnet,
+  etherMainnet,
+  etherTestnet,
+  kaiaMainnet,
+  kaiaTestnet
+} from '@to-nexus/appkit/networks'
 import { v4 as uuidv4 } from 'uuid'
 import { parseEther, parseUnits } from 'viem'
-import { bsc, bscTestnet, mainnet, sepolia } from 'viem/chains'
 import {
   useAccount,
   useBalance,
@@ -19,7 +28,6 @@ import {
 import { sampleErc20ABI } from '../contracts/sample-erc20'
 import { sampleErc721ABI } from '../contracts/sample-erc721'
 import { useResultModal } from '../hooks/use-result-modal'
-import { crossMainnet, crossTestnet, kaia, kaiaTestnet } from '../wagmi-config'
 import { NetworkSelectorModal } from './network-selector-modal'
 import { ResultModal } from './result-modal'
 
@@ -46,7 +54,7 @@ const contractData = {
     coin: 'BNB',
     erc20: '',
     erc721: '',
-    network: bsc
+    network: bscMainnet
   },
   1001: {
     coin: 'KAIA',
@@ -58,19 +66,19 @@ const contractData = {
     coin: 'KAIA',
     erc20: '',
     erc721: '',
-    network: kaia
+    network: kaiaMainnet
   },
   1: {
     coin: 'ETH',
     erc20: '',
     erc721: '',
-    network: mainnet
+    network: etherMainnet
   },
   11155111: {
     coin: 'ETH',
     erc20: '',
     erc721: '',
-    network: sepolia
+    network: etherTestnet
   }
 }
 
