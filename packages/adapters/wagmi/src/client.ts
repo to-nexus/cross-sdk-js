@@ -18,7 +18,7 @@ import {
   ConstantsUtil as CoreConstantsUtil,
   type Provider
 } from '@to-nexus/appkit-core'
-import { CaipNetworksUtil, PresetsUtil } from '@to-nexus/appkit-utils'
+import { CaipNetworksUtil, PresetsUtil, ConstantsUtil } from '@to-nexus/appkit-utils'
 import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
 import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
@@ -65,6 +65,18 @@ import { authConnector } from './connectors/AuthConnector.js'
 import { walletConnect } from './connectors/UniversalConnector.js'
 import { LimitterUtil } from './utils/LimitterUtil.js'
 import { parseWalletCapabilities } from './utils/helpers.js'
+
+interface EIP6963ProviderInfo {
+  uuid: string
+  name: string
+  icon: string
+  rdns: string
+}
+
+interface EIP6963ProviderDetail {
+  info: EIP6963ProviderInfo
+  provider: any
+}
 
 interface PendingTransactionsFilter {
   enable: boolean
@@ -156,7 +168,17 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   private getWagmiConnector(id: string) {
-    return this.wagmiConfig.connectors.find(c => c.id === id)
+    // 먼저 정확한 ID로 찾기
+    let connector = this.wagmiConfig.connectors.find(c => c.id === id)
+
+    if (!connector) {
+      // EIP6963 커넥터의 경우 injected 커넥터 사용
+      if (id.includes('.') || id.includes('crosswallet') || id.includes('nexus')) {
+        connector = this.wagmiConfig.connectors.find(c => c.id === 'injected')
+      }
+    }
+
+    return connector
   }
 
   private createConfig(
@@ -210,7 +232,7 @@ export class WagmiAdapter extends AdapterBlueprint {
       pollingInterval: this.pendingTransactionsFilter.pollingInterval,
       /* Magic RPC does not support the pending transactions. We handle transaction for the AuthConnector cases in AppKit client to handle all clients at once. Adding the onError handler to avoid the error to throw. */
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onError: () => {},
+      onError: () => { },
       onTransactions: () => {
         this.emit('pendingTransactions')
         LimitterUtil.increase('pendingTransactions')
@@ -533,9 +555,15 @@ export class WagmiAdapter extends AdapterBlueprint {
      * connectors are added later in the process the initial setup
      */
     watchConnectors(this.wagmiConfig, {
-      onChange: connectors =>
-        connectors.forEach(connector => this.addWagmiConnector(connector, options))
+      onChange: (connectors) => {
+        connectors.forEach(connector => {
+          this.addWagmiConnector(connector, options)
+        })
+      }
     })
+
+    // Listen for cross EIP6963 announce events
+    this.listenCrossEIP6963Events(options)
 
     // Add current wagmi connectors to chain adapter blueprint
     await Promise.all(
@@ -549,6 +577,60 @@ export class WagmiAdapter extends AdapterBlueprint {
     await this.addThirdPartyConnectors(options)
   }
 
+  private listenCrossEIP6963Events(options: AppKitOptions) {
+    if (typeof window !== 'undefined') {
+      const handler = (event: Event) => this.crossEIP6963EventHandler(options, event as CustomEvent<EIP6963ProviderDetail>)
+      window.addEventListener(ConstantsUtil.EIP6963_CROSS_ANNOUNCE_EVENT, handler)
+      window.dispatchEvent(new Event(ConstantsUtil.EIP6963_CROSS_REQUEST_EVENT))
+    }
+  }
+
+  private createAndRegisterEIP6963Connector(info: EIP6963ProviderInfo, provider: any) {
+    try {
+      // EIP6963 provider를 window.ethereum에 등록하여 기존 injected 커넥터가 인식하도록 함
+      if (typeof window !== 'undefined') {
+        // 기존 provider 백업
+        const originalProvider = (window as any).ethereum
+
+          // EIP6963 provider를 임시로 window.ethereum에 설정
+          ; (window as any).ethereum = provider
+
+        // 원래 provider 복원 (필요시)
+        setTimeout(() => {
+          if (originalProvider) {
+            ; (window as any).ethereum = originalProvider
+          }
+        }, 100)
+      }
+
+    } catch (error) {
+      console.error('EIP6963 provider 등록 실패:', error);
+    }
+  }
+
+  private crossEIP6963EventHandler(options: AppKitOptions, event: CustomEvent<EIP6963ProviderDetail>) {
+    const { detail } = event
+    if (!detail) return
+
+    const { info, provider } = detail
+    const type = PresetsUtil.ConnectorTypesMap[CommonConstantsUtil.CONNECTOR_ID.EIP6963]
+    const id = info?.rdns || info?.name || info?.uuid
+
+    if (!type || !this.namespace || !id) return
+
+    this.createAndRegisterEIP6963Connector(info, provider)
+    this.addConnector({
+      id,
+      type,
+      imageUrl: info?.icon,
+      name: info?.name || 'Unknown',
+      provider,
+      info,
+      chain: this.namespace as ChainNamespace,
+      chains: []
+    })
+  }
+
   public async syncConnection(
     params: AdapterBlueprint.SyncConnectionParams
   ): Promise<AdapterBlueprint.ConnectResult> {
@@ -557,6 +639,7 @@ export class WagmiAdapter extends AdapterBlueprint {
     const connection = connections.find(c => c.connector.id === id)
     const connector = this.getWagmiConnector(id)
     const provider = (await connector?.getProvider()) as Provider
+
 
     // Emit accountChanged event after syncing connection
     if (connection?.accounts[0]) {
@@ -575,15 +658,28 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public override async connectWalletConnect(chainId?: number | string) {
+
+    // Check if already connecting to prevent duplicate requests
+    const connections = getConnections(this.wagmiConfig)
+
+
+
     // Attempt one click auth first, if authenticated, still connect with wagmi to store the session
     const walletConnectConnector = this.getWalletConnectConnector()
-    await walletConnectConnector.authenticate()
+
+    try {
+      await walletConnectConnector.authenticate()
+    } catch (error) {
+      // Continue with regular connection even if auth fails
+    }
 
     const wagmiConnector = this.getWagmiConnector('walletConnect')
 
     if (!wagmiConnector) {
       throw new Error('UniversalAdapter:connectWalletConnect - connector not found')
     }
+
+
 
     await connect(this.wagmiConfig, {
       connector: wagmiConnector,
@@ -603,27 +699,41 @@ export class WagmiAdapter extends AdapterBlueprint {
       throw new Error('connectionControllerClient:connectExternal - connector is undefined')
     }
 
+    // EIP6963 provider가 제공된 경우 처리
+    let originalProvider: any = null
+    if (provider && type === 'ANNOUNCED' && typeof window !== 'undefined') {
+      originalProvider = (window as any).ethereum
+        ; (window as any).ethereum = provider
+    }
+
     if (provider && info && connector.id === CommonConstantsUtil.CONNECTOR_ID.EIP6963) {
       // @ts-expect-error Exists on EIP6963Connector
       connector.setEip6963Wallet?.({ provider, info })
     }
 
-    const res = await connect(this.wagmiConfig, {
-      connector,
-      chainId: chainId ? Number(chainId) : undefined
-    })
+    try {
+      const res = await connect(this.wagmiConfig, {
+        connector,
+        chainId: chainId ? Number(chainId) : undefined
+      })
 
-    // Emit accountChanged event after successful connection
-    this.emit('accountChanged', {
-      address: res.accounts[0]
-    })
+      // Emit accountChanged event after successful connection
+      this.emit('accountChanged', {
+        address: res.accounts[0]
+      })
 
-    return {
-      address: res.accounts[0],
-      chainId: res.chainId,
-      provider: provider as Provider,
-      type: type as ConnectorType,
-      id
+      return {
+        address: res.accounts[0],
+        chainId: res.chainId,
+        provider: provider as Provider,
+        type: type as ConnectorType,
+        id
+      }
+    } finally {
+      // 원래 provider 복원
+      if (originalProvider && typeof window !== 'undefined') {
+        ; (window as any).ethereum = originalProvider
+      }
     }
   }
 
