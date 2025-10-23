@@ -4,7 +4,7 @@ export const crossTestnet = {
   name: 'Cross Testnet',
   nativeCurrency: { name: 'CROSS', symbol: 'CROSS', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://rpc.testnet.crossvaluescan.com'] }
+    default: { http: ['https://testnet.crosstoken.io:22001'] }
   },
   blockExplorers: {
     default: { name: 'CrossValueScan', url: 'https://testnet.crossvaluescan.com' }
@@ -17,7 +17,7 @@ export const crossMainnet = {
   name: 'Cross Mainnet',
   nativeCurrency: { name: 'CROSS', symbol: 'CROSS', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://rpc.mainnet.crossvaluescan.com'] }
+    default: { http: ['https://mainnet.crosstoken.io:22001'] }
   },
   blockExplorers: {
     default: { name: 'CrossValueScan', url: 'https://mainnet.crossvaluescan.com' }

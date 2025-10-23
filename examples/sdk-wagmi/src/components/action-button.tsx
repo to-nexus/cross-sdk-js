@@ -82,8 +82,18 @@ export function ActionButtonList() {
 
   // Wagmi hooks
   const wagmiAccount = useAccount()
-  const { data: wagmiBalance } = useBalance({
-    address: wagmiAccount.address
+  const {
+    data: wagmiBalance,
+    refetch: refetchBalance,
+    isLoading: isBalanceLoading,
+    isError: isBalanceError,
+    error: balanceError
+  } = useBalance({
+    address: wagmiAccount.address,
+    chainId: wagmiAccount.chainId,
+    query: {
+      enabled: !!wagmiAccount.address && !!wagmiAccount.chainId
+    }
   })
   const { signMessageAsync } = useSignMessage()
   const { signTypedDataAsync } = useSignTypedData()
@@ -177,8 +187,25 @@ export function ActionButtonList() {
     }
 
     try {
-      const balanceInfo = wagmiBalance
-        ? `${wagmiBalance.formatted} ${wagmiBalance.symbol}`
+      console.log('🔍 Balance Query State:', {
+        wagmiBalance,
+        isBalanceLoading,
+        isBalanceError,
+        balanceError: balanceError?.message,
+        address: wagmiAccount.address,
+        chainId: wagmiAccount.chainId
+      })
+
+      // 최신 balance 데이터를 가져옴
+      const result = await refetchBalance()
+      console.log('📥 Refetch Result:', {
+        data: result.data,
+        isError: result.isError,
+        error: result.error?.message
+      })
+
+      const balanceInfo = result.data
+        ? `${result.data.formatted} ${result.data.symbol}`
         : 'No balance data'
 
       showSuccess(

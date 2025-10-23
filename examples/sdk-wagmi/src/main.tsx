@@ -41,14 +41,58 @@ const wagmiAdapter = new WagmiAdapter({
   projectId,
   networks: [...networks],
   transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [bsc.id]: http(),
-    [bscTestnet.id]: http(),
-    [crossTestnet.id]: http(),
-    [crossMainnet.id]: http(),
-    [kaia.id]: http(),
-    [kaiaTestnet.id]: http()
+    [mainnet.id]: http(
+      'https://eth-mainnet.crosstoken.io/fad29a23391f6d6e8fb41fb8eecbcca82343b378',
+      {
+        retryCount: 3,
+        retryDelay: 1000,
+        timeout: 30_000
+      }
+    ),
+    [sepolia.id]: http('https://sepolia.crosstoken.io/8de52516c154dce8cc2ceaae39d657a1e1e74d2f', {
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30_000
+    }),
+    [bsc.id]: http('https://bsc-mainnet.crosstoken.io/2272489872e4f1475ff25d57ce93b51989f933c7', {
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30_000
+    }),
+    [bscTestnet.id]: http(
+      'https://bsc-testnet.crosstoken.io/110ea3628b77f244e5dbab16790d81bba874b962',
+      {
+        retryCount: 3,
+        retryDelay: 1000,
+        timeout: 30_000
+      }
+    ),
+    [crossTestnet.id]: http('https://testnet.crosstoken.io:22001', {
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30_000
+    }),
+    [crossMainnet.id]: http('https://mainnet.crosstoken.io:22001', {
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30_000
+    }),
+    [kaia.id]: http(
+      'https://kaia-mainnet-ext.crosstoken.io/815b8a6e389b34a4f82cfd1e501692dee2f4e8f5',
+      {
+        retryCount: 3,
+        retryDelay: 1000,
+        timeout: 30_000
+      }
+    ),
+    [kaiaTestnet.id]: http(
+      'https://kaia-testnet.crosstoken.io/fda0d5a47e2d0768e9329444295a3f0681fff365',
+      {
+        retryCount: 3,
+        retryDelay: 1000,
+        timeout: 30_000
+      }
+    )
   },
   // ✅ Cross Extension Connector 추가
   connectors: [crossExtensionConnector()]
