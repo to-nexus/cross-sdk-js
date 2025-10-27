@@ -65,7 +65,7 @@ export class W3mAllWalletsWidget extends LitElement {
     const tagLabel = roundedCount < rawCount ? `${roundedCount}+` : `${roundedCount}`
 
     return html`
-      <wui-list-wallet
+      <cross-wui-list-wallet
         name="All Wallets"
         walletIcon="allWallets"
         showAllWallets
@@ -74,7 +74,7 @@ export class W3mAllWalletsWidget extends LitElement {
         tagVariant="shade"
         data-testid="all-wallets"
         tabIdx=${ifDefined(this.tabIdx)}
-      ></wui-list-wallet>
+      ></cross-wui-list-wallet>
     `
   }
 

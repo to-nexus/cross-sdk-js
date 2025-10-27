@@ -15,24 +15,24 @@ export class W3mConnectingSiwe extends LitElement {
   private readonly walletImageUrl = AccountController.state.connectedWalletInfo?.icon
 
   public override firstUpdated() {
-    const visuals = this.shadowRoot?.querySelectorAll('wui-visual-thumbnail')
+    const visuals = this.shadowRoot?.querySelectorAll('cross-wui-visual-thumbnail')
 
     if (visuals?.[0]) {
-      this.createAnimation(visuals[0], 'translate(18px)')
+      this.createAnimation(visuals[0] as HTMLElement, 'translate(18px)')
     }
     if (visuals?.[1]) {
-      this.createAnimation(visuals[1], 'translate(-18px)')
+      this.createAnimation(visuals[1] as HTMLElement, 'translate(-18px)')
     }
   }
 
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-visual-thumbnail
+      <cross-wui-visual-thumbnail
         ?borderRadiusFull=${true}
         .imageSrc=${this.dappImageUrl?.[0]}
-      ></wui-visual-thumbnail>
-      <wui-visual-thumbnail .imageSrc=${this.walletImageUrl}></wui-visual-thumbnail>
+      ></cross-wui-visual-thumbnail>
+      <cross-wui-visual-thumbnail .imageSrc=${this.walletImageUrl}></cross-wui-visual-thumbnail>
     `
   }
 

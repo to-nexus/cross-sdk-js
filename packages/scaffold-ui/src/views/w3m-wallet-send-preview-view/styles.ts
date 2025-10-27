@@ -1,8 +1,8 @@
 import { css } from 'lit'
 
 export default css`
-  wui-avatar,
-  wui-image {
+  cross-wui-avatar,
+  cross-wui-image {
     display: ruby;
     width: 32px;
     height: 32px;

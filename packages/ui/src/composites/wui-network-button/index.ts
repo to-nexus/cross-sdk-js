@@ -8,7 +8,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-network-button')
+@customElement('cross-wui-network-button')
 export class WuiNetworkButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -24,9 +24,9 @@ export class WuiNetworkButton extends LitElement {
     return html`
       <button data-testid="wui-network-button" ?disabled=${this.disabled}>
         ${this.visualTemplate()}
-        <wui-text variant="paragraph-600" color="inherit">
+        <cross-wui-text variant="paragraph-600" color="inherit">
           <slot></slot>
-        </wui-text>
+        </cross-wui-text>
       </button>
     `
   }
@@ -35,31 +35,31 @@ export class WuiNetworkButton extends LitElement {
   private visualTemplate() {
     if (this.isUnsupportedChain) {
       return html`
-        <wui-icon-box
+        <cross-wui-icon-box
           size="sm"
           iconColor="error-100"
           backgroundColor="error-100"
           icon="warningCircle"
-        ></wui-icon-box>
+        ></cross-wui-icon-box>
       `
     }
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc}></cross-wui-image>`
     }
 
     return html`
-      <wui-icon-box
+      <cross-wui-icon-box
         size="sm"
         iconColor="inverse-100"
         backgroundColor="fg-100"
         icon="networkPlaceholder"
-      ></wui-icon-box>
+      ></cross-wui-icon-box>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-network-button': WuiNetworkButton
+    'cross-wui-network-button': WuiNetworkButton
   }
 }

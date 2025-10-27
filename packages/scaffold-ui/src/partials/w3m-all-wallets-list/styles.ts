@@ -1,7 +1,7 @@
 import { css } from 'lit'
 
 export default css`
-  wui-grid {
+  cross-wui-grid {
     max-height: clamp(360px, 400px, 80vh);
     overflow: scroll;
     scrollbar-width: none;
@@ -10,7 +10,7 @@ export default css`
   }
 
   @media (max-width: 350px) {
-    wui-grid {
+    cross-wui-grid {
       grid-template-columns: repeat(2, 1fr);
     }
   }
@@ -23,7 +23,7 @@ export default css`
     display: none;
   }
 
-  wui-loading-spinner {
+  cross-wui-loading-spinner {
     padding-top: var(--wui-spacing-l);
     padding-bottom: var(--wui-spacing-l);
     justify-content: center;

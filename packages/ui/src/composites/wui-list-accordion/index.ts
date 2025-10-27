@@ -10,7 +10,7 @@ import styles from './styles.js'
 
 const MAX_HEIGHT = 100
 
-@customElement('wui-list-accordion')
+@customElement('cross-wui-list-accordion')
 export class WuiListAccordion extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -54,18 +54,18 @@ export class WuiListAccordion extends LitElement {
   public override render() {
     return html`
       <button @click=${() => this.onClick()}>
-        <wui-flex justifyContent="space-between" alignItems="center">
-          <wui-text variant="paragraph-500" color="fg-100">${this.textTitle}</wui-text>
+        <cross-wui-flex justifyContent="space-between" alignItems="center">
+          <cross-wui-text variant="paragraph-500" color="fg-100">${this.textTitle}</cross-wui-text>
           ${this.chevronTemplate()}
-        </wui-flex>
+        </cross-wui-flex>
         <div
           data-active=${this.enableAccordion ? Boolean(this.toggled) : true}
           class="overflowedContent"
         >
           <div class="heightContent">
-            <wui-text class="textContent" variant="paragraph-400" color="fg-200">
+            <cross-wui-text class="textContent" variant="paragraph-400" color="fg-200">
               <pre>${this.overflowedContent}</pre>
-            </wui-text>
+            </cross-wui-text>
           </div>
         </div>
       </button>
@@ -74,7 +74,7 @@ export class WuiListAccordion extends LitElement {
 
   // -- Private ------------------------------------------- //
   private onClick() {
-    const icon = this.shadowRoot?.querySelector('wui-icon')
+    const icon = this.shadowRoot?.querySelector('cross-wui-icon')
     if (this.enableAccordion) {
       this.toggled = !this.toggled
       this.requestUpdate()
@@ -110,7 +110,7 @@ export class WuiListAccordion extends LitElement {
 
   public chevronTemplate() {
     if (this.enableAccordion) {
-      return html` <wui-icon color="fg-100" size="sm" name="chevronBottom"></wui-icon>`
+      return html` <cross-wui-icon color="fg-100" size="sm" name="chevronBottom"></cross-wui-icon>`
     }
 
     return null
@@ -119,6 +119,6 @@ export class WuiListAccordion extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-list-accordion': WuiListAccordion
+    'cross-wui-list-accordion': WuiListAccordion
   }
 }

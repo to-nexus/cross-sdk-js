@@ -54,7 +54,7 @@ export class W3mAllWalletsList extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-grid
+      <cross-wui-grid
         data-scroll=${!this.loading}
         .padding=${['0', 's', 's', 's'] as const}
         columnGap="xxs"
@@ -63,14 +63,14 @@ export class W3mAllWalletsList extends LitElement {
       >
         ${this.loading ? this.shimmerTemplate(16) : this.walletsTemplate()}
         ${this.paginationLoaderTemplate()}
-      </wui-grid>
+      </cross-wui-grid>
     `
   }
 
   // Private Methods ------------------------------------- //
   private async initialFetch() {
     this.loading = true
-    const gridEl = this.shadowRoot?.querySelector('wui-grid')
+    const gridEl = this.shadowRoot?.querySelector('cross-wui-grid')
     if (gridEl) {
       await ApiController.fetchWallets({ page: 1 })
       await gridEl.animate([{ opacity: 1 }, { opacity: 0 }], {
@@ -90,7 +90,7 @@ export class W3mAllWalletsList extends LitElement {
   private shimmerTemplate(items: number, id?: string) {
     return [...Array(items)].map(
       () => html`
-        <wui-card-select-loader type="wallet" id=${ifDefined(id)}></wui-card-select-loader>
+        <cross-wui-card-select-loader type="wallet" id=${ifDefined(id)}></cross-wui-card-select-loader>
       `
     )
   }

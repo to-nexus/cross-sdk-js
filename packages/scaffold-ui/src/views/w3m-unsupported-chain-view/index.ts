@@ -44,8 +44,8 @@ export class W3mUnsupportedChainView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex class="container" flexDirection="column" gap="0">
-        <wui-flex
+      <cross-wui-flex class="container" flexDirection="column" gap="0">
+        <cross-wui-flex
           class="container"
           flexDirection="column"
           .padding=${['m', 'xl', 'xs', 'xl'] as const}
@@ -53,15 +53,15 @@ export class W3mUnsupportedChainView extends LitElement {
           gap="xl"
         >
           ${this.descriptionTemplate()}
-        </wui-flex>
+        </cross-wui-flex>
 
-        <wui-flex flexDirection="column" padding="s" gap="xs">
+        <cross-wui-flex flexDirection="column" padding="s" gap="xs">
           ${this.networksTemplate()}
-        </wui-flex>
+        </cross-wui-flex>
 
-        <wui-separator text="or"></wui-separator>
-        <wui-flex flexDirection="column" padding="s" gap="xs">
-          <wui-list-item
+        <cross-wui-separator text="or"></cross-wui-separator>
+        <cross-wui-flex flexDirection="column" padding="s" gap="xs">
+          <cross-wui-list-item
             variant="icon"
             iconVariant="overlay"
             icon="disconnect"
@@ -70,10 +70,10 @@ export class W3mUnsupportedChainView extends LitElement {
             @click=${this.onDisconnect.bind(this)}
             data-testid="disconnect-button"
           >
-            <wui-text variant="paragraph-500" color="fg-200">Disconnect</wui-text>
-          </wui-list-item>
-        </wui-flex>
-      </wui-flex>
+            <cross-wui-text variant="paragraph-500" color="fg-200">Disconnect</cross-wui-text>
+          </cross-wui-list-item>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -81,17 +81,17 @@ export class W3mUnsupportedChainView extends LitElement {
   private descriptionTemplate() {
     if (this.swapUnsupportedChain) {
       return html`
-        <wui-text variant="small-400" color="fg-200" align="center">
+        <cross-wui-text variant="small-400" color="fg-200" align="center">
           The swap feature doesn’t support your current network. Switch to an available option to
           continue.
-        </wui-text>
+        </cross-wui-text>
       `
     }
 
     return html`
-      <wui-text variant="small-400" color="fg-200" align="center">
+      <cross-wui-text variant="small-400" color="fg-200" align="center">
         This app doesn’t support your current network. Switch to an available option to continue.
-      </wui-text>
+      </cross-wui-text>
     `
   }
 
@@ -112,12 +112,12 @@ export class W3mUnsupportedChainView extends LitElement {
 
     return filteredNetworks.map(
       network => html`
-        <wui-list-network
+        <cross-wui-list-network
           imageSrc=${ifDefined(AssetUtil.getNetworkImage(network))}
           name=${network.name ?? 'Unknown'}
           @click=${() => this.onSwitchNetwork(network)}
         >
-        </wui-list-network>
+        </cross-wui-list-network>
       `
     )
   }

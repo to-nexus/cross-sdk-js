@@ -44,7 +44,7 @@ export class W3mConnectAnnouncedWidget extends LitElement {
     }
 
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <cross-wui-flex flexDirection="column" gap="xs">
         ${announcedConnectors.map(connector => {
           if (connector.info?.rdns && ApiController.state.excludedRDNS) {
             if (ApiController.state.excludedRDNS.includes(connector?.info?.rdns)) {
@@ -53,7 +53,7 @@ export class W3mConnectAnnouncedWidget extends LitElement {
           }
 
           return html`
-            <wui-list-wallet
+            <cross-wui-list-wallet
               imageSrc=${ifDefined(AssetUtil.getConnectorImage(connector))}
               name=${connector.name ?? 'Unknown'}
               @click=${() => this.onConnector(connector)}
@@ -63,10 +63,10 @@ export class W3mConnectAnnouncedWidget extends LitElement {
               .installed=${true}
               tabIdx=${ifDefined(this.tabIdx)}
             >
-            </wui-list-wallet>
+            </cross-wui-list-wallet>
           `
         })}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

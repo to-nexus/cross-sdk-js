@@ -8,27 +8,27 @@ export class W3mWhatIsABuyView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         .padding=${['xxl', '3xl', 'xl', '3xl'] as const}
         alignItems="center"
         gap="xl"
       >
-        <wui-visual name="onrampCard"></wui-visual>
-        <wui-flex flexDirection="column" gap="xs" alignItems="center">
-          <wui-text align="center" variant="paragraph-500" color="fg-100">
+        <cross-wui-visual name="onrampCard"></cross-wui-visual>
+        <cross-wui-flex flexDirection="column" gap="xs" alignItems="center">
+          <cross-wui-text align="center" variant="paragraph-500" color="fg-100">
             Quickly and easily buy digital assets!
-          </wui-text>
-          <wui-text align="center" variant="small-400" color="fg-200">
+          </cross-wui-text>
+          <cross-wui-text align="center" variant="small-400" color="fg-200">
             Simply select your preferred onramp provider and add digital assets to your account
             using your credit card or bank transfer
-          </wui-text>
-        </wui-flex>
-        <wui-button @click=${RouterController.goBack}>
-          <wui-icon size="sm" color="inherit" name="add" slot="iconLeft"></wui-icon>
+          </cross-wui-text>
+        </cross-wui-flex>
+        <cross-wui-button @click=${RouterController.goBack}>
+          <cross-wui-icon size="sm" color="inherit" name="add" slot="iconLeft"></cross-wui-icon>
           Buy
-        </wui-button>
-      </wui-flex>
+        </cross-wui-button>
+      </cross-wui-flex>
     `
   }
 }

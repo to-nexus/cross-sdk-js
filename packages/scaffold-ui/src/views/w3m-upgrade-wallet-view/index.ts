@@ -8,20 +8,20 @@ export class W3mUpgradeWalletView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" alignItems="center" gap="xl" padding="xl">
-        <wui-text variant="paragraph-400" color="fg-100">Follow the instructions on</wui-text>
-        <wui-chip
+      <cross-wui-flex flexDirection="column" alignItems="center" gap="xl" padding="xl">
+        <cross-wui-text variant="paragraph-400" color="fg-100">Follow the instructions on</cross-wui-text>
+        <cross-wui-chip
           icon="externalLink"
           variant="fill"
           href=${ConstantsUtil.SECURE_SITE_DASHBOARD}
           imageSrc=${ConstantsUtil.SECURE_SITE_FAVICON}
           data-testid="cross-w3m-secure-website-button"
         >
-        </wui-chip>
-        <wui-text variant="small-400" color="fg-200">
+        </cross-wui-chip>
+        <cross-wui-text variant="small-400" color="fg-200">
           You will have to reconnect for security reasons
-        </wui-text>
-      </wui-flex>
+        </cross-wui-text>
+      </cross-wui-flex>
     `
   }
 }

@@ -10,11 +10,11 @@ export default css`
     padding: var(--wui-spacing-m) var(--wui-spacing-s);
   }
 
-  wui-text {
+  cross-wui-text {
     width: 100%;
   }
 
-  wui-flex {
+  cross-wui-flex {
     width: auto;
   }
 

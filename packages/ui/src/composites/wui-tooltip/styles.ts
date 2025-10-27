@@ -15,7 +15,7 @@ export default css`
     border: 1px solid var(--wui-color-gray-glass-005);
   }
 
-  :host([data-variant='shade']) > wui-text {
+  :host([data-variant='shade']) > cross-wui-text {
     color: var(--wui-color-fg-150);
   }
 
@@ -24,7 +24,7 @@ export default css`
     border: none;
   }
 
-  wui-icon {
+  cross-wui-icon {
     position: absolute;
     width: 12px !important;
     height: 4px !important;

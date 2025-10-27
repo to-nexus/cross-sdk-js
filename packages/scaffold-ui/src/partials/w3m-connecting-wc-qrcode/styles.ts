@@ -10,13 +10,13 @@ export default css`
     }
   }
 
-  wui-shimmer {
+  cross-wui-shimmer {
     width: 100%;
     aspect-ratio: 1 / 1;
     border-radius: clamp(0px, var(--wui-border-radius-l), 40px) !important;
   }
 
-  wui-qr-code {
+  cross-wui-qr-code {
     opacity: 0;
     animation-duration: 200ms;
     animation-timing-function: ease;

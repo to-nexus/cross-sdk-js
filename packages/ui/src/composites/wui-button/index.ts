@@ -31,7 +31,7 @@ const SPINNER_SIZE_BY_SIZE = {
 }
 
 // -- Component ------------------------------------------ //
-@customElement('wui-button')
+@customElement('cross-wui-button')
 export class WuiButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -76,9 +76,9 @@ export class WuiButton extends LitElement {
       >
         ${this.loadingTemplate()}
         <slot name="iconLeft" @slotchange=${() => this.handleSlotLeftChange()}></slot>
-        <wui-text variant=${textVariant} color="inherit">
+        <cross-wui-text variant=${textVariant} color="inherit">
           <slot></slot>
-        </wui-text>
+        </cross-wui-text>
         <slot name="iconRight" @slotchange=${() => this.handleSlotRightChange()}></slot>
       </button>
     `
@@ -99,7 +99,7 @@ export class WuiButton extends LitElement {
         ? SPINNER_COLOR_BY_VARIANT['disabled']
         : SPINNER_COLOR_BY_VARIANT[this.variant]
 
-      return html`<wui-loading-spinner color=${color} size=${size}></wui-loading-spinner>`
+      return html`<cross-wui-loading-spinner color=${color} size=${size}></cross-wui-loading-spinner>`
     }
 
     return html``
@@ -108,6 +108,6 @@ export class WuiButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-button': WuiButton
+    'cross-wui-button': WuiButton
   }
 }

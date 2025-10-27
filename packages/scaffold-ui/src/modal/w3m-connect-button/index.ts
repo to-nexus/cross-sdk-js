@@ -41,14 +41,14 @@ class W3mConnectButtonBase extends LitElement {
     const isLoading = this.loading || this.open
 
     return html`
-      <wui-connect-button
+      <cross-wui-connect-button
         size=${ifDefined(this.size)}
         .loading=${isLoading}
         @click=${this.onClick.bind(this)}
         data-testid="connect-button"
       >
         ${isLoading ? this.loadingLabel : this.label}
-      </wui-connect-button>
+      </cross-wui-connect-button>
     `
   }
 

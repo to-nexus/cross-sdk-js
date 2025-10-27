@@ -6,7 +6,7 @@ export default css`
     width: 100%;
   }
 
-  wui-flex {
+  cross-wui-flex {
     width: 100%;
   }
 `

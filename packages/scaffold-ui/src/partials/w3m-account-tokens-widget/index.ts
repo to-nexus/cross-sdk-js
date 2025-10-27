@@ -40,13 +40,13 @@ export class W3mAccountTokensWidget extends LitElement {
   // -- Private ------------------------------------------- //
   private tokenTemplate() {
     if (this.tokenBalance && this.tokenBalance?.length > 0) {
-      return html`<wui-flex class="contentContainer" flexDirection="column" gap="xs">
+      return html`<cross-wui-flex class="contentContainer" flexDirection="column" gap="xs">
         ${this.tokenItemTemplate()}
-      </wui-flex>`
+      </cross-wui-flex>`
     }
 
-    return html` <wui-flex flexDirection="column" gap="xs"
-      ><wui-list-description
+    return html` <cross-wui-flex flexDirection="column" gap="xs"
+      ><cross-wui-list-description
         @click=${this.onBuyClick.bind(this)}
         text="Buy Crypto"
         description="Easy with card or bank account"
@@ -56,7 +56,7 @@ export class W3mAccountTokensWidget extends LitElement {
         tag="popular"
         data-testid="buy-crypto"
       ></wui-list-description
-      ><wui-list-description
+      ><cross-wui-list-description
         @click=${this.onReceiveClick.bind(this)}
         text="Receive funds"
         description="Transfer tokens on your wallet"
@@ -65,19 +65,19 @@ export class W3mAccountTokensWidget extends LitElement {
         iconBackgroundColor="fg-200"
         data-testid="receive-funds"
       ></wui-list-description
-    ></wui-flex>`
+    ></cross-wui-flex>`
   }
 
   private tokenItemTemplate() {
     return this.tokenBalance?.map(
       token =>
-        html`<wui-list-token
+        html`<cross-wui-list-token
           tokenName=${token.name}
           tokenImageUrl=${token.iconUrl}
           tokenAmount=${token.quantity.numeric}
           tokenValue=${token.value}
           tokenCurrency=${token.symbol}
-        ></wui-list-token>`
+        ></cross-wui-list-token>`
     )
   }
 

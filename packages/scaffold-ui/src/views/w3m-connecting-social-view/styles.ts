@@ -1,7 +1,7 @@
 import { css } from 'lit'
 
 export default css`
-  wui-logo {
+  cross-wui-logo {
     width: 80px;
     height: 80px;
     border-radius: var(--wui-border-radius-m);
@@ -26,10 +26,10 @@ export default css`
   wui-flex:first-child:not(:only-child) {
     position: relative;
   }
-  wui-loading-thumbnail {
+  cross-wui-loading-thumbnail {
     position: absolute;
   }
-  wui-icon-box {
+  cross-wui-icon-box {
     position: absolute;
     right: calc(var(--wui-spacing-3xs) * -1);
     bottom: calc(var(--wui-spacing-3xs) * -1);
@@ -41,7 +41,7 @@ export default css`
     width: 100%;
     padding: 0px var(--wui-spacing-l);
   }
-  [data-error='true'] wui-icon-box {
+  [data-error='true'] cross-wui-icon-box {
     opacity: 1;
     transform: scale(1);
   }

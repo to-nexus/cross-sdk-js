@@ -19,7 +19,7 @@ export default css`
     cursor: pointer;
   }
 
-  wui-switch {
+  cross-wui-switch {
     pointer-events: none;
   }
 `

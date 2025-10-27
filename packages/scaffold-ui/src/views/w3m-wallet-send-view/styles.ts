@@ -5,11 +5,11 @@ export default css`
     display: block;
   }
 
-  wui-flex {
+  cross-wui-flex {
     position: relative;
   }
 
-  wui-icon-box {
+  cross-wui-icon-box {
     width: 40px;
     height: 40px;
     border-radius: var(--wui-border-radius-xs) !important;
@@ -22,7 +22,7 @@ export default css`
     z-index: 3;
   }
 
-  wui-button {
+  cross-wui-button {
     --local-border-radius: var(--wui-border-radius-xs) !important;
   }
 

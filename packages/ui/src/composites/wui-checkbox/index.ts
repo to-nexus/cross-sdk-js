@@ -7,7 +7,7 @@ import { resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-checkbox')
+@customElement('cross-wui-checkbox')
 export class WuiCheckBox extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -28,7 +28,7 @@ export class WuiCheckBox extends LitElement {
           @change=${this.dispatchChangeEvent}
         />
         <span>
-          <wui-icon name="checkmarkBold" color="inverse-100" size="xxs"></wui-icon>
+          <cross-wui-icon name="checkmarkBold" color="inverse-100" size="xxs"></cross-wui-icon>
         </span>
         <slot></slot>
       </label>
@@ -50,6 +50,6 @@ export class WuiCheckBox extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-checkbox': WuiCheckBox
+    'cross-wui-checkbox': WuiCheckBox
   }
 }

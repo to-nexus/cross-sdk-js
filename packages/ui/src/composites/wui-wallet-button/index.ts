@@ -10,7 +10,7 @@ import type { IconType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-wallet-button')
+@customElement('cross-wui-wallet-button')
 export class WuiWalletButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -45,39 +45,39 @@ export class WuiWalletButton extends LitElement {
   // -- Private ------------------------------------------- //
   private leftViewTemplate() {
     if (this.error) {
-      return html`<wui-icon-box
+      return html`<cross-wui-icon-box
         icon="warningCircle"
         iconColor="error-100"
         backgroundColor="error-100"
         size="sm"
         iconSize="xs"
-      ></wui-icon-box>`
+      ></cross-wui-icon-box>`
     }
 
     if (this.loading) {
-      return html`<wui-loading-spinner size="md" color="fg-100"></wui-loading-spinner>`
+      return html`<cross-wui-loading-spinner size="md" color="fg-100"></cross-wui-loading-spinner>`
     }
 
     if (this.icon) {
-      return html`<wui-icon size="xl" color="inherit" name=${this.icon}></wui-icon>`
+      return html`<cross-wui-icon size="xl" color="inherit" name=${this.icon}></cross-wui-icon>`
     }
 
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc} alt=${this.name}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt=${this.name}></cross-wui-image>`
     }
 
-    return html`<wui-icon size="xl" color="fg-100" name="walletPlaceholder"></wui-icon>`
+    return html`<cross-wui-icon size="xl" color="fg-100" name="walletPlaceholder"></cross-wui-icon>`
   }
 
   private rightViewTemplate() {
     return html`
-      <wui-text variant="paragraph-500" color="fg-100">${this.name || 'Unknown'} </wui-text>
+      <cross-wui-text variant="paragraph-500" color="fg-100">${this.name || 'Unknown'} </cross-wui-text>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-wallet-button': WuiWalletButton
+    'cross-wui-wallet-button': WuiWalletButton
   }
 }

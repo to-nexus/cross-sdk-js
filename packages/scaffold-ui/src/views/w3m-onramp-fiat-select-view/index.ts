@@ -58,14 +58,14 @@ export class W3mOnrampFiatSelectView extends LitElement {
       <cross-w3m-legal-checkbox
         @checkboxChange=${this.onCheckboxChange.bind(this)}
       ></cross-w3m-legal-checkbox>
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         .padding=${['0', 's', 's', 's']}
         gap="xs"
         class=${ifDefined(disabled ? 'disabled' : undefined)}
       >
         ${this.currenciesTemplate(disabled)}
-      </wui-flex>
+      </cross-wui-flex>
       <cross-w3m-legal-footer></cross-w3m-legal-footer>
     `
   }
@@ -74,14 +74,14 @@ export class W3mOnrampFiatSelectView extends LitElement {
   private currenciesTemplate(disabled = false) {
     return this.currencies.map(
       currency => html`
-        <wui-list-item
+        <cross-wui-list-item
           imageSrc=${ifDefined(this.currencyImages?.[currency.id])}
           @click=${() => this.selectCurrency(currency)}
           variant="image"
           tabIdx=${ifDefined(disabled ? -1 : undefined)}
         >
-          <wui-text variant="paragraph-500" color="fg-100">${currency.id}</wui-text>
-        </wui-list-item>
+          <cross-wui-text variant="paragraph-500" color="fg-100">${currency.id}</cross-wui-text>
+        </cross-wui-list-item>
       `
     )
   }

@@ -8,7 +8,7 @@ import { UiHelperUtil } from '../../utils/UiHelperUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-avatar')
+@customElement('cross-wui-avatar')
 export class WuiAvatar extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -36,7 +36,7 @@ export class WuiAvatar extends LitElement {
     if (this.imageSrc) {
       this.dataset['variant'] = 'image'
 
-      return html`<wui-image src=${this.imageSrc} alt=${this.alt ?? 'avatar'}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt=${this.alt ?? 'avatar'}></cross-wui-image>`
     } else if (this.address) {
       this.dataset['variant'] = 'generated'
       const cssColors = UiHelperUtil.generateAvatarColors(this.address)
@@ -52,6 +52,6 @@ export class WuiAvatar extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-avatar': WuiAvatar
+    'cross-wui-avatar': WuiAvatar
   }
 }

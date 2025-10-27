@@ -87,42 +87,42 @@ export class W3mAccountSettingsView extends LitElement {
     const networkImage = this.networkImages[this.network?.assets?.imageId ?? '']
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         gap="l"
         .padding=${['0', 'xl', 'm', 'xl'] as const}
       >
-        <wui-avatar
+        <cross-wui-avatar
           alt=${this.address}
           address=${this.address}
           imageSrc=${ifDefined(this.profileImage)}
           size="2lg"
-        ></wui-avatar>
-        <wui-flex flexDirection="column" alignItems="center">
-          <wui-flex gap="3xs" alignItems="center" justifyContent="center">
-            <wui-text variant="title-6-600" color="fg-100" data-testid="account-settings-address">
+        ></cross-wui-avatar>
+        <cross-wui-flex flexDirection="column" alignItems="center">
+          <cross-wui-flex gap="3xs" alignItems="center" justifyContent="center">
+            <cross-wui-text variant="title-6-600" color="fg-100" data-testid="account-settings-address">
               ${UiHelperUtil.getTruncateString({
                 string: this.address,
                 charsStart: 4,
                 charsEnd: 6,
                 truncate: 'middle'
               })}
-            </wui-text>
-            <wui-icon-link
+            </cross-wui-text>
+            <cross-wui-icon-link
               size="md"
               icon="copy"
               iconColor="fg-200"
               @click=${this.onCopyAddress}
-            ></wui-icon-link>
-          </wui-flex>
-        </wui-flex>
-      </wui-flex>
-      <wui-flex flexDirection="column" gap="m">
-        <wui-flex flexDirection="column" gap="xs" .padding=${['0', 'l', 'm', 'l'] as const}>
+            ></cross-wui-icon-link>
+          </cross-wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
+      <cross-wui-flex flexDirection="column" gap="m">
+        <cross-wui-flex flexDirection="column" gap="xs" .padding=${['0', 'l', 'm', 'l'] as const}>
           ${this.authCardTemplate()}
           <cross-w3m-account-auth-button></cross-w3m-account-auth-button>
-          <wui-list-item
+          <cross-wui-list-item
             .variant=${networkImage ? 'image' : 'icon'}
             iconVariant="overlay"
             icon="networkPlaceholder"
@@ -131,12 +131,12 @@ export class W3mAccountSettingsView extends LitElement {
             @click=${this.onNetworks.bind(this)}
             data-testid="account-switch-network-button"
           >
-            <wui-text variant="paragraph-500" color="fg-100">
+            <cross-wui-text variant="paragraph-500" color="fg-100">
               ${this.network?.name ?? 'Unknown'}
-            </wui-text>
-          </wui-list-item>
+            </cross-wui-text>
+          </cross-wui-list-item>
           ${this.togglePreferredAccountBtnTemplate()} ${this.chooseNameButtonTemplate()}
-          <wui-list-item
+          <cross-wui-list-item
             variant="icon"
             iconVariant="overlay"
             icon="disconnect"
@@ -145,10 +145,10 @@ export class W3mAccountSettingsView extends LitElement {
             @click=${this.onDisconnect.bind(this)}
             data-testid="disconnect-button"
           >
-            <wui-text variant="paragraph-500" color="fg-200">Disconnect</wui-text>
-          </wui-list-item>
-        </wui-flex>
-      </wui-flex>
+            <cross-wui-text variant="paragraph-500" color="fg-200">Disconnect</cross-wui-text>
+          </cross-wui-list-item>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -168,7 +168,7 @@ export class W3mAccountSettingsView extends LitElement {
     }
 
     return html`
-      <wui-list-item
+      <cross-wui-list-item
         variant="icon"
         iconVariant="overlay"
         icon="id"
@@ -177,8 +177,8 @@ export class W3mAccountSettingsView extends LitElement {
         @click=${this.onChooseName.bind(this)}
         data-testid="account-choose-name-button"
       >
-        <wui-text variant="paragraph-500" color="fg-100">Choose account name </wui-text>
-      </wui-list-item>
+        <cross-wui-text variant="paragraph-500" color="fg-100">Choose account name </cross-wui-text>
+      </cross-wui-list-item>
     `
   }
 
@@ -196,13 +196,13 @@ export class W3mAccountSettingsView extends LitElement {
     }
 
     return html`
-      <wui-notice-card
+      <cross-wui-notice-card
         @click=${this.onGoToUpgradeView.bind(this)}
         label="Upgrade your wallet"
         description="Transition to a self-custodial wallet"
         icon="wallet"
         data-testid="cross-w3m-wallet-upgrade-card"
-      ></wui-notice-card>
+      ></cross-wui-notice-card>
     `
   }
 
@@ -248,7 +248,7 @@ export class W3mAccountSettingsView extends LitElement {
     }
 
     return html`
-      <wui-list-item
+      <cross-wui-list-item
         variant="icon"
         iconVariant="overlay"
         icon="swapHorizontalBold"
@@ -258,8 +258,8 @@ export class W3mAccountSettingsView extends LitElement {
         @click=${this.changePreferredAccountType.bind(this)}
         data-testid="account-toggle-preferred-account-type"
       >
-        <wui-text variant="paragraph-500" color="fg-100">${this.text}</wui-text>
-      </wui-list-item>
+        <cross-wui-text variant="paragraph-500" color="fg-100">${this.text}</cross-wui-text>
+      </cross-wui-list-item>
     `
   }
 

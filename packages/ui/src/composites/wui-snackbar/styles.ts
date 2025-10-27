@@ -17,7 +17,7 @@ export default css`
     max-width: 300px;
   }
 
-  :host wui-loading-spinner {
+  :host cross-wui-loading-spinner {
     margin-left: var(--wui-spacing-3xs);
   }
 `

@@ -11,13 +11,13 @@ export default css`
     color: var(--wui-color-fg-250);
   }
 
-  wui-image {
+  cross-wui-image {
     width: var(--wui-icon-size-lg);
     height: var(--wui-icon-size-lg);
     border-radius: var(--wui-border-radius-3xl);
   }
 
-  wui-icon {
+  cross-wui-icon {
     width: var(--wui-icon-size-lg);
     height: var(--wui-icon-size-lg);
   }

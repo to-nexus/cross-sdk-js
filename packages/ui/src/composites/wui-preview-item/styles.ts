@@ -12,9 +12,9 @@ export default css`
     align-items: center;
   }
 
-  wui-avatar,
-  wui-icon,
-  wui-image {
+  cross-wui-avatar,
+  cross-wui-icon,
+  cross-wui-image {
     width: 32px;
     height: 32px;
     border: 1px solid var(--wui-color-gray-glass-002);

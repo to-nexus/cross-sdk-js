@@ -30,24 +30,24 @@ export class W3mOnRampProviderItem extends LitElement {
   public override render() {
     return html`
       <button ?disabled=${this.disabled}>
-        <wui-visual name=${ifDefined(this.name)} class="provider-image"></wui-visual>
-        <wui-flex flexDirection="column" gap="4xs">
-          <wui-text variant="paragraph-500" color="fg-100">${this.label}</wui-text>
-          <wui-flex alignItems="center" justifyContent="flex-start" gap="l">
-            <wui-text variant="tiny-500" color="fg-100">
-              <wui-text variant="tiny-400" color="fg-200">Fees</wui-text>
+        <cross-wui-visual name=${ifDefined(this.name)} class="provider-image"></cross-wui-visual>
+        <cross-wui-flex flexDirection="column" gap="4xs">
+          <cross-wui-text variant="paragraph-500" color="fg-100">${this.label}</cross-wui-text>
+          <cross-wui-flex alignItems="center" justifyContent="flex-start" gap="l">
+            <cross-wui-text variant="tiny-500" color="fg-100">
+              <cross-wui-text variant="tiny-400" color="fg-200">Fees</cross-wui-text>
               ${this.feeRange}
-            </wui-text>
-            <wui-flex gap="xxs">
-              <wui-icon name="bank" size="xs" color="fg-150"></wui-icon>
-              <wui-icon name="card" size="xs" color="fg-150"></wui-icon>
-            </wui-flex>
+            </cross-wui-text>
+            <cross-wui-flex gap="xxs">
+              <cross-wui-icon name="bank" size="xs" color="fg-150"></cross-wui-icon>
+              <cross-wui-icon name="card" size="xs" color="fg-150"></cross-wui-icon>
+            </cross-wui-flex>
             ${this.networksTemplate()}
-          </wui-flex>
-        </wui-flex>
+          </cross-wui-flex>
+        </cross-wui-flex>
         ${this.loading
-          ? html`<wui-loading-spinner color="fg-200" size="md"></wui-loading-spinner>`
-          : html`<wui-icon name="chevronRight" color="fg-200" size="sm"></wui-icon>`}
+          ? html`<cross-wui-loading-spinner color="fg-200" size="md"></cross-wui-loading-spinner>`
+          : html`<cross-wui-icon name="chevronRight" color="fg-200" size="sm"></cross-wui-icon>`}
       </button>
     `
   }
@@ -60,15 +60,15 @@ export class W3mOnRampProviderItem extends LitElement {
       ?.slice(0, 5)
 
     return html`
-      <wui-flex class="networks">
+      <cross-wui-flex class="networks">
         ${slicedNetworks?.map(
           network => html`
-            <wui-flex class="network-icon">
-              <wui-image src=${ifDefined(AssetUtil.getNetworkImage(network))}></wui-image>
-            </wui-flex>
+            <cross-wui-flex class="network-icon">
+              <cross-wui-image src=${ifDefined(AssetUtil.getNetworkImage(network))}></cross-wui-image>
+            </cross-wui-flex>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 }

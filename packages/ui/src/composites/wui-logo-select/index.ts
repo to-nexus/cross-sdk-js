@@ -8,7 +8,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-logo/index.js'
 import styles from './styles.js'
 
-@customElement('wui-logo-select')
+@customElement('cross-wui-logo-select')
 export class WuiLogoSelect extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -23,7 +23,7 @@ export class WuiLogoSelect extends LitElement {
   public override render() {
     return html`
       <button ?disabled=${this.disabled} tabindex=${ifDefined(this.tabIdx)}>
-        <wui-logo logo=${this.logo}></wui-logo>
+        <cross-wui-logo logo=${this.logo}></cross-wui-logo>
       </button>
     `
   }
@@ -31,6 +31,6 @@ export class WuiLogoSelect extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-logo-select': WuiLogoSelect
+    'cross-wui-logo-select': WuiLogoSelect
   }
 }

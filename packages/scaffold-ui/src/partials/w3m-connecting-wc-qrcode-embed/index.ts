@@ -64,7 +64,7 @@ export class W3mConnectingWcQrcodeEmbed extends W3mConnectingWidget {
     ConnectionController.setWcLinking(undefined)
     ConnectionController.setRecentWallet(this.wallet)
 
-    return html` <wui-qr-code
+    return html` <cross-wui-qr-code
       size=${size}
       theme=${ThemeController.state.themeMode}
       uri=${this.uri}
@@ -72,7 +72,7 @@ export class W3mConnectingWcQrcodeEmbed extends W3mConnectingWidget {
       color=${ifDefined(ThemeController.state.themeVariables['--w3m-qr-color'])}
       alt=${ifDefined(alt)}
       data-testid="wui-qr-code"
-    ></wui-qr-code>`
+    ></cross-wui-qr-code>`
   }
 }
 

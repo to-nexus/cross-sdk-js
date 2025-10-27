@@ -132,16 +132,16 @@ export class W3mConnectingWcLandscapeView extends LitElement {
     if (this.selected === 'mobile') {
       return mobileSupported && wallet
         ? html`<cross-w3m-connecting-wc-mobile isMobile></cross-w3m-connecting-wc-mobile>`
-        : html`<wui-flex
+        : html`<cross-wui-flex
             flexDirection="column"
             alignItems="center"
             justifyContent="center"
             gap="s"
             style="width:210px;height:210px"
           >
-            <wui-icon-box size="md" icon="externalLink" background="opaque"></wui-icon-box>
-            <wui-text variant="small-500" color="fg-200">모바일 딥링크 미지원</wui-text>
-          </wui-flex>`
+            <cross-wui-icon-box size="md" icon="externalLink" background="opaque"></cross-wui-icon-box>
+            <cross-wui-text variant="small-500" color="fg-200">모바일 딥링크 미지원</cross-wui-text>
+          </cross-wui-flex>`
     }
 
     return html`<div class="qr-section">
@@ -165,17 +165,17 @@ export class W3mConnectingWcLandscapeView extends LitElement {
         ? 'Deep link to your selected wallet app to complete the connection.'
         : 'Scan the code with your phone camera or wallet app QR scanner.'
 
-    return html`<wui-flex flexDirection="column" gap="xs" style="margin: var(--wui-spacing-m)">
-      <wui-text variant="paragraph-500" color="fg-100">${title}</wui-text>
-      <wui-text variant="small-500" color="fg-200">${desc}</wui-text>
-    </wui-flex>`
+    return html`<cross-wui-flex flexDirection="column" gap="xs" style="margin: var(--wui-spacing-m)">
+      <cross-wui-text variant="paragraph-500" color="fg-100">${title}</cross-wui-text>
+      <cross-wui-text variant="small-500" color="fg-200">${desc}</cross-wui-text>
+    </cross-wui-flex>`
   }
 
   private storeLinksTemplate() {
     return html`<div class="store-links">
-      <wui-text variant="small-400" color="fg-200" align="center">
+      <cross-wui-text variant="small-400" color="fg-200" align="center">
         <cross-w3m-mobile-download-links .wallet=${this.wallet}></cross-w3m-mobile-download-links>
-      </wui-text>
+      </cross-wui-text>
     </div>`
   }
 

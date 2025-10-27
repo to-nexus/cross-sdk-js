@@ -12,7 +12,7 @@ import styles from './styles.js'
 // -- Constants ---------------------------------------------- //
 const DEFAULT_ICON_COLOR = '#3396ff'
 
-@customElement('wui-qr-code')
+@customElement('cross-wui-qr-code')
 export class WuiQrCode extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -63,24 +63,24 @@ export class WuiQrCode extends LitElement {
 
   private templateVisual() {
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc} alt=${this.alt ?? 'logo'}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt=${this.alt ?? 'logo'}></cross-wui-image>`
     }
 
     if (this.farcaster) {
-      return html`<wui-icon
+      return html`<cross-wui-icon
         class="farcaster"
         size="inherit"
         color="inherit"
         name="farcaster"
-      ></wui-icon>`
+      ></cross-wui-icon>`
     }
 
-    return html`<wui-icon size="inherit" color="inherit" name="walletConnect"></wui-icon>`
+    return html`<cross-wui-icon size="inherit" color="inherit" name="walletConnect"></cross-wui-icon>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-qr-code': WuiQrCode
+    'cross-wui-qr-code': WuiQrCode
   }
 }

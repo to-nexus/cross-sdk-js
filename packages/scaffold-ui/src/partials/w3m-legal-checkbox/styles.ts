@@ -6,7 +6,7 @@ export default css`
     align-items: center;
     justify-content: center;
   }
-  wui-checkbox {
+  cross-wui-checkbox {
     padding: var(--wui-spacing-s);
   }
   a {

@@ -9,7 +9,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-snackbar')
+@customElement('cross-wui-snackbar')
 export class WuiSnackbar extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -30,7 +30,7 @@ export class WuiSnackbar extends LitElement {
   public override render() {
     return html`
       ${this.templateIcon()}
-      <wui-text variant="paragraph-500" color="fg-100" data-testid="wui-snackbar-message"
+      <cross-wui-text variant="paragraph-500" color="fg-100" data-testid="wui-snackbar-message"
         >${this.message}</wui-text
       >
     `
@@ -39,26 +39,26 @@ export class WuiSnackbar extends LitElement {
   // -- Private ------------------------------------------- //
   private templateIcon() {
     if (this.loading) {
-      return html`<wui-loading-spinner size="md" color="accent-100"></wui-loading-spinner>`
+      return html`<cross-wui-loading-spinner size="md" color="accent-100"></cross-wui-loading-spinner>`
     }
 
     if (this.iconType === 'default') {
-      return html`<wui-icon size="xl" color=${this.iconColor} name=${this.icon}></wui-icon>`
+      return html`<cross-wui-icon size="xl" color=${this.iconColor} name=${this.icon}></cross-wui-icon>`
     }
 
-    return html`<wui-icon-box
+    return html`<cross-wui-icon-box
       size="sm"
       iconSize="xs"
       iconColor=${this.iconColor}
       backgroundColor=${this.backgroundColor}
       icon=${this.icon}
       background="opaque"
-    ></wui-icon-box>`
+    ></cross-wui-icon-box>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-snackbar': WuiSnackbar
+    'cross-wui-snackbar': WuiSnackbar
   }
 }

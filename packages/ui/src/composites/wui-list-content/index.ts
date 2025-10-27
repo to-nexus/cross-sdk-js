@@ -9,7 +9,7 @@ import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-list-content')
+@customElement('cross-wui-list-content')
 export class WuiListContent extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -23,29 +23,29 @@ export class WuiListContent extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex justifyContent="space-between" alignItems="center">
-        <wui-text variant="paragraph-500" color=${this.textValue ? 'fg-200' : 'fg-100'}>
+      <cross-wui-flex justifyContent="space-between" alignItems="center">
+        <cross-wui-text variant="paragraph-500" color=${this.textValue ? 'fg-200' : 'fg-100'}>
           ${this.textTitle}
-        </wui-text>
+        </cross-wui-text>
         ${this.templateContent()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
   // -- Private ------------------------------------------- //
   private templateContent() {
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc} alt=${this.textTitle}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt=${this.textTitle}></cross-wui-image>`
     } else if (this.textValue) {
-      return html` <wui-text variant="paragraph-400" color="fg-100"> ${this.textValue} </wui-text>`
+      return html` <cross-wui-text variant="paragraph-400" color="fg-100"> ${this.textValue} </cross-wui-text>`
     }
 
-    return html`<wui-icon size="inherit" color="fg-200" name="networkPlaceholder"></wui-icon>`
+    return html`<cross-wui-icon size="inherit" color="fg-200" name="networkPlaceholder"></cross-wui-icon>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-list-content': WuiListContent
+    'cross-wui-list-content': WuiListContent
   }
 }

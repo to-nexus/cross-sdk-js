@@ -23,7 +23,7 @@ export default css`
     border-radius: 12px;
   }
 
-  wui-loading-hexagon {
+  cross-wui-loading-hexagon {
     position: absolute;
   }
 
@@ -78,7 +78,7 @@ export default css`
     cursor: not-allowed;
   }
 
-  .action-button > wui-loading-spinner {
+  .action-button > cross-wui-loading-spinner {
     display: inline-block;
   }
 
@@ -95,11 +95,11 @@ export default css`
     flex: 4;
   }
 
-  .action-buttons-container > button.action-button > wui-text {
+  .action-buttons-container > button.action-button > cross-wui-text {
     color: white;
   }
 
-  .details-container > wui-flex {
+  .details-container > cross-wui-flex {
     background: var(--wui-color-gray-glass-002);
     border-radius: var(--wui-border-radius-xxs);
     width: 100%;
@@ -124,7 +124,7 @@ export default css`
     justify-content: center;
   }
 
-  .details-content-container > wui-flex {
+  .details-content-container > cross-wui-flex {
     width: 100%;
   }
 

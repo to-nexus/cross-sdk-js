@@ -10,7 +10,7 @@ import type { IconType, InputType, SizeType, SpacingType } from '../../utils/Typ
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-input-text')
+@customElement('cross-wui-input-text')
 export class WuiInputText extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -64,12 +64,12 @@ export class WuiInputText extends LitElement {
   // -- Private ------------------------------------------- //
   private templateIcon() {
     if (this.icon) {
-      return html`<wui-icon
+      return html`<cross-wui-icon
         data-input=${this.size}
         size=${this.size}
         color="inherit"
         name=${this.icon}
-      ></wui-icon>`
+      ></cross-wui-icon>`
     }
 
     return null
@@ -88,6 +88,6 @@ export class WuiInputText extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-input-text': WuiInputText
+    'cross-wui-input-text': WuiInputText
   }
 }

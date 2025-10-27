@@ -6,7 +6,7 @@ import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-certified-switch')
+@customElement('cross-wui-certified-switch')
 export class WuiCertifiedSwitch extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -17,8 +17,8 @@ export class WuiCertifiedSwitch extends LitElement {
   public override render() {
     return html`
       <button>
-        <wui-icon size="xl" name="walletConnectBrown"></wui-icon>
-        <wui-switch ?checked=${ifDefined(this.checked)}></wui-switch>
+        <cross-wui-icon size="xl" name="walletConnectBrown"></cross-wui-icon>
+        <cross-wui-switch ?checked=${ifDefined(this.checked)}></cross-wui-switch>
       </button>
     `
   }
@@ -26,6 +26,6 @@ export class WuiCertifiedSwitch extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-certified-switch': WuiCertifiedSwitch
+    'cross-wui-certified-switch': WuiCertifiedSwitch
   }
 }

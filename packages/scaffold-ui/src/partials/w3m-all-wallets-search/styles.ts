@@ -1,13 +1,13 @@
 import { css } from 'lit'
 
 export default css`
-  wui-grid,
-  wui-loading-spinner,
-  wui-flex {
+  cross-wui-grid,
+  cross-wui-loading-spinner,
+  cross-wui-flex {
     height: 360px;
   }
 
-  wui-grid {
+  cross-wui-grid {
     overflow: scroll;
     scrollbar-width: none;
     grid-auto-rows: min-content;
@@ -22,13 +22,13 @@ export default css`
     display: none;
   }
 
-  wui-loading-spinner {
+  cross-wui-loading-spinner {
     justify-content: center;
     align-items: center;
   }
 
   @media (max-width: 350px) {
-    wui-grid {
+    cross-wui-grid {
       grid-template-columns: repeat(2, 1fr);
     }
   }

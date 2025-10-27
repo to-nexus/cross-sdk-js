@@ -11,7 +11,7 @@ import styles from './styles.js'
 
 const TOTAL_IMAGES = 4
 
-@customElement('wui-all-wallets-image')
+@customElement('cross-wui-all-wallets-image')
 export class WuiAllWalletsImage extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -26,33 +26,33 @@ export class WuiAllWalletsImage extends LitElement {
         .slice(0, TOTAL_IMAGES)
         .map(
           ({ src, walletName }) => html`
-            <wui-wallet-image
+            <cross-wui-wallet-image
               size="inherit"
               imageSrc=${src}
               name=${ifDefined(walletName)}
-            ></wui-wallet-image>
+            ></cross-wui-wallet-image>
           `
         )}
       ${isPlaceholders
         ? [...Array(TOTAL_IMAGES - this.walletImages.length)].map(
-            () => html` <wui-wallet-image size="inherit" name=""></wui-wallet-image>`
+            () => html` <cross-wui-wallet-image size="inherit" name=""></cross-wui-wallet-image>`
           )
         : null}
-      <wui-flex>
-        <wui-icon-box
+      <cross-wui-flex>
+        <cross-wui-icon-box
           size="xxs"
           iconSize="xxs"
           iconcolor="success-100"
           backgroundcolor="success-100"
           icon="checkmark"
           background="opaque"
-        ></wui-icon-box>
-      </wui-flex>`
+        ></cross-wui-icon-box>
+      </cross-wui-flex>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-all-wallets-image': WuiAllWalletsImage
+    'cross-wui-all-wallets-image': WuiAllWalletsImage
   }
 }

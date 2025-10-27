@@ -124,7 +124,7 @@ export class W3mConnectingWidget extends LitElement {
     }
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         data-error=${ifDefined(this.error)}
         data-retry=${this.showRetry}
         flexDirection="column"
@@ -132,12 +132,12 @@ export class W3mConnectingWidget extends LitElement {
         .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" alignItems="center">
-          <wui-wallet-image size="lg" imageSrc=${ifDefined(this.imageSrc)}></wui-wallet-image>
+        <cross-wui-flex justifyContent="center" alignItems="center">
+          <cross-wui-wallet-image size="lg" imageSrc=${ifDefined(this.imageSrc)}></cross-wui-wallet-image>
 
           ${this.error ? null : this.loaderTemplate()}
 
-          <wui-icon-box
+          <cross-wui-icon-box
             backgroundColor="error-100"
             background="opaque"
             iconColor="error-100"
@@ -145,40 +145,40 @@ export class W3mConnectingWidget extends LitElement {
             size="sm"
             border
             borderColor="wui-color-bg-125"
-          ></wui-icon-box>
-        </wui-flex>
+          ></cross-wui-icon-box>
+        </cross-wui-flex>
 
-        <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <wui-text variant="paragraph-500" color=${this.error ? 'error-100' : 'fg-100'}>
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+          <cross-wui-text variant="paragraph-500" color=${this.error ? 'error-100' : 'fg-100'}>
             ${label}
-          </wui-text>
-          <wui-text align="center" variant="small-500" color="fg-200">${subLabel}</wui-text>
-        </wui-flex>
+          </cross-wui-text>
+          <cross-wui-text align="center" variant="small-500" color="fg-200">${subLabel}</cross-wui-text>
+        </cross-wui-flex>
 
         ${this.secondaryBtnLabel
           ? html`
-              <wui-button
+              <cross-wui-button
                 variant="accent"
                 size="md"
                 ?disabled=${this.isRetrying || (!this.error && this.buffering)}
                 @click=${this.onTryAgain.bind(this)}
                 data-testid="cross-w3m-connecting-widget-secondary-button"
               >
-                <wui-icon color="inherit" slot="iconLeft" name=${this.secondaryBtnIcon}></wui-icon>
+                <cross-wui-icon color="inherit" slot="iconLeft" name=${this.secondaryBtnIcon}></cross-wui-icon>
                 ${this.secondaryBtnLabel}
-              </wui-button>
+              </cross-wui-button>
             `
           : null}
-      </wui-flex>
+      </cross-wui-flex>
 
       ${this.isWalletConnect && !CoreHelperUtil.isMobileLandscape()
         ? html`
-            <wui-flex .padding=${['0', 'xl', 'xl', 'xl'] as const} justifyContent="center">
-              <wui-link @click=${this.onCopyUri} color="fg-200" data-testid="wui-link-copy">
-                <wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></wui-icon>
+            <cross-wui-flex .padding=${['0', 'xl', 'xl', 'xl'] as const} justifyContent="center">
+              <cross-wui-link @click=${this.onCopyUri} color="fg-200" data-testid="wui-link-copy">
+                <cross-wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></cross-wui-icon>
                 Copy link
-              </wui-link>
-            </wui-flex>
+              </cross-wui-link>
+            </cross-wui-flex>
           `
         : null}
       ${CoreHelperUtil.isMobileLandscape()
@@ -193,7 +193,7 @@ export class W3mConnectingWidget extends LitElement {
   private onShowRetry() {
     if (this.error && !this.showRetry) {
       this.showRetry = true
-      const retryButton = this.shadowRoot?.querySelector('wui-button') as HTMLElement
+      const retryButton = this.shadowRoot?.querySelector('cross-wui-button') as HTMLElement
       retryButton?.animate([{ opacity: 0 }, { opacity: 1 }], {
         fill: 'forwards',
         easing: 'ease'
@@ -218,7 +218,7 @@ export class W3mConnectingWidget extends LitElement {
     const borderRadiusMaster = ThemeController.state.themeVariables['--w3m-border-radius-master']
     const radius = borderRadiusMaster ? parseInt(borderRadiusMaster.replace('px', ''), 10) : 4
 
-    return html`<wui-loading-thumbnail radius=${radius * 9}></wui-loading-thumbnail>`
+    return html`<cross-wui-loading-thumbnail radius=${radius * 9}></cross-wui-loading-thumbnail>`
   }
 
   // -- Protected ----------------------------------------- //

@@ -97,25 +97,25 @@ export class W3mAccountDefaultWidget extends LitElement {
       ChainController.state.activeChain !== ConstantsUtil.CHAIN.SOLANA &&
       this.allAccounts.length > 1
 
-    return html`<wui-flex
+    return html`<cross-wui-flex
         flexDirection="column"
         .padding=${['0', 'xl', 'm', 'xl'] as const}
         alignItems="center"
         gap="l"
       >
         ${shouldShowMultiAccount ? this.multiAccountTemplate() : this.singleAccountTemplate()}
-        <wui-flex flexDirection="column" alignItems="center">
-          <wui-text variant="paragraph-500" color="fg-200">
+        <cross-wui-flex flexDirection="column" alignItems="center">
+          <cross-wui-text variant="paragraph-500" color="fg-200">
             ${CoreHelperUtil.formatBalance(this.balance, this.balanceSymbol)}
-          </wui-text>
-        </wui-flex>
+          </cross-wui-text>
+        </cross-wui-flex>
         ${this.explorerBtnTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
 
-      <wui-flex flexDirection="column" gap="xs" .padding=${['0', 's', 's', 's'] as const}>
+      <cross-wui-flex flexDirection="column" gap="xs" .padding=${['0', 's', 's', 's'] as const}>
         ${this.authCardTemplate()} <cross-w3m-account-auth-button></cross-w3m-account-auth-button>
         ${this.orderedFeaturesTemplate()} ${this.activityTemplate()}
-        <wui-list-item
+        <cross-wui-list-item
           variant="icon"
           iconVariant="overlay"
           icon="disconnect"
@@ -124,9 +124,9 @@ export class W3mAccountDefaultWidget extends LitElement {
           @click=${this.onDisconnect.bind(this)}
           data-testid="disconnect-button"
         >
-          <wui-text variant="paragraph-500" color="fg-200">Disconnect</wui-text>
-        </wui-list-item>
-      </wui-flex>`
+          <cross-wui-text variant="paragraph-500" color="fg-200">Disconnect</cross-wui-text>
+        </cross-wui-list-item>
+      </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //
@@ -145,15 +145,15 @@ export class W3mAccountDefaultWidget extends LitElement {
     }
 
     return html`
-      <wui-list-item
+      <cross-wui-list-item
         data-testid="cross-w3m-account-default-onramp-button"
         iconVariant="blue"
         icon="card"
         ?chevron=${true}
         @click=${this.handleClickPay.bind(this)}
       >
-        <wui-text variant="paragraph-500" color="fg-100">Buy crypto</wui-text>
-      </wui-list-item>
+        <cross-wui-text variant="paragraph-500" color="fg-100">Buy crypto</cross-wui-text>
+      </cross-wui-list-item>
     `
   }
 
@@ -190,7 +190,7 @@ export class W3mAccountDefaultWidget extends LitElement {
       CoreConstantsUtil.ACTIVITY_ENABLED_CHAIN_NAMESPACES.includes(this.namespace)
 
     return isEnabled
-      ? html` <wui-list-item
+      ? html` <cross-wui-list-item
           iconVariant="blue"
           icon="clock"
           iconSize="sm"
@@ -198,11 +198,11 @@ export class W3mAccountDefaultWidget extends LitElement {
           ?disabled=${isSolana}
           @click=${this.onTransactions.bind(this)}
         >
-          <wui-text variant="paragraph-500" color="fg-100" ?disabled=${isSolana}>
+          <cross-wui-text variant="paragraph-500" color="fg-100" ?disabled=${isSolana}>
             Activity
-          </wui-text>
-          ${isSolana ? html`<wui-tag variant="main">Coming soon</wui-tag>` : ''}
-        </wui-list-item>`
+          </cross-wui-text>
+          ${isSolana ? html`<cross-wui-tag variant="main">Coming soon</cross-wui-tag>` : ''}
+        </cross-wui-list-item>`
       : null
   }
 
@@ -215,14 +215,14 @@ export class W3mAccountDefaultWidget extends LitElement {
     }
 
     return html`
-      <wui-list-item
+      <cross-wui-list-item
         iconVariant="blue"
         icon="recycleHorizontal"
         ?chevron=${true}
         @click=${this.handleClickSwap.bind(this)}
       >
-        <wui-text variant="paragraph-500" color="fg-100">Swap</wui-text>
-      </wui-list-item>
+        <cross-wui-text variant="paragraph-500" color="fg-100">Swap</cross-wui-text>
+      </cross-wui-list-item>
     `
   }
 
@@ -235,14 +235,14 @@ export class W3mAccountDefaultWidget extends LitElement {
     }
 
     return html`
-      <wui-list-item
+      <cross-wui-list-item
         iconVariant="blue"
         icon="send"
         ?chevron=${true}
         @click=${this.handleClickSend.bind(this)}
       >
-        <wui-text variant="paragraph-500" color="fg-100">Send</wui-text>
-      </wui-list-item>
+        <cross-wui-text variant="paragraph-500" color="fg-100">Send</cross-wui-text>
+      </cross-wui-list-item>
     `
   }
 
@@ -260,13 +260,13 @@ export class W3mAccountDefaultWidget extends LitElement {
     }
 
     return html`
-      <wui-notice-card
+      <cross-wui-notice-card
         @click=${this.onGoToUpgradeView.bind(this)}
         label="Upgrade your wallet"
         description="Transition to a self-custodial wallet"
         icon="wallet"
         data-testid="cross-w3m-wallet-upgrade-card"
-      ></wui-notice-card>
+      ></cross-wui-notice-card>
     `
   }
 
@@ -294,25 +294,25 @@ export class W3mAccountDefaultWidget extends LitElement {
     }
 
     return html`
-      <wui-button size="md" variant="neutral" @click=${this.onExplorer.bind(this)}>
-        <wui-icon size="sm" color="inherit" slot="iconLeft" name="compass"></wui-icon>
+      <cross-wui-button size="md" variant="neutral" @click=${this.onExplorer.bind(this)}>
+        <cross-wui-icon size="sm" color="inherit" slot="iconLeft" name="compass"></cross-wui-icon>
         Block Explorer
-        <wui-icon size="sm" color="inherit" slot="iconRight" name="externalLink"></wui-icon>
-      </wui-button>
+        <cross-wui-icon size="sm" color="inherit" slot="iconRight" name="externalLink"></cross-wui-icon>
+      </cross-wui-button>
     `
   }
 
   private singleAccountTemplate() {
     return html`
-      <wui-avatar
+      <cross-wui-avatar
         alt=${ifDefined(this.caipAddress)}
         address=${ifDefined(CoreHelperUtil.getPlainAddress(this.caipAddress))}
         imageSrc=${ifDefined(this.profileImage === null ? undefined : this.profileImage)}
         data-testid="single-account-avatar"
-      ></wui-avatar>
-      <wui-flex flexDirection="column" alignItems="center">
-        <wui-flex gap="3xs" alignItems="center" justifyContent="center">
-          <wui-text variant="large-600" color="fg-100">
+      ></cross-wui-avatar>
+      <cross-wui-flex flexDirection="column" alignItems="center">
+        <cross-wui-flex gap="3xs" alignItems="center" justifyContent="center">
+          <cross-wui-text variant="large-600" color="fg-100">
             ${this.profileName
               ? UiHelperUtil.getTruncateString({
                   string: this.profileName,
@@ -326,14 +326,14 @@ export class W3mAccountDefaultWidget extends LitElement {
                   charsEnd: 4,
                   truncate: 'middle'
                 })}
-          </wui-text>
-          <wui-icon-link
+          </cross-wui-text>
+          <cross-wui-icon-link
             size="md"
             icon="copy"
             iconColor="fg-200"
             @click=${this.onCopyAddress}
-          ></wui-icon-link> </wui-flex
-      ></wui-flex>
+          ></cross-wui-icon-link> </wui-flex
+      ></cross-wui-flex>
     `
   }
 
@@ -349,7 +349,7 @@ export class W3mAccountDefaultWidget extends LitElement {
     }
 
     return html`
-      <wui-profile-button-v2
+      <cross-wui-profile-button-v2
         .onProfileClick=${this.handleSwitchAccountsView.bind(this)}
         address=${ifDefined(this.address)}
         icon="${account?.type === W3mFrameRpcConstants.ACCOUNT_TYPES.SMART_ACCOUNT &&
@@ -364,37 +364,37 @@ export class W3mAccountDefaultWidget extends LitElement {
   }
 
   private btcAccountsTemplate() {
-    return html`<wui-flex gap="m" alignItems="center" flexDirection="column">
-      <wui-avatar
+    return html`<cross-wui-flex gap="m" alignItems="center" flexDirection="column">
+      <cross-wui-avatar
         .imageSrc=${ifDefined(this.profileImage ? this.profileImage : undefined)}
         alt=${this.address}
         address=${this.address}
-      ></wui-avatar>
-      <wui-tabs
+      ></cross-wui-avatar>
+      <cross-wui-tabs
         .tabs=${[{ label: 'Payment' }, { label: 'Ordinals' }]}
         .onTabChange=${(index: number) =>
           AccountController.setCaipAddress(
             `bip122:${this.chainId}:${this.allAccounts[index]?.address || ''}`,
             this.namespace
           )}
-      ></wui-tabs>
-      <wui-flex gap="xs" alignItems="center" justifyContent="center">
-        <wui-text variant="large-600" color="fg-100">
+      ></cross-wui-tabs>
+      <cross-wui-flex gap="xs" alignItems="center" justifyContent="center">
+        <cross-wui-text variant="large-600" color="fg-100">
           ${UiHelperUtil.getTruncateString({
             string: this.profileName || this.address || '',
             charsStart: this.profileName ? 18 : 4,
             charsEnd: this.profileName ? 0 : 4,
             truncate: this.profileName ? 'end' : 'middle'
           })}
-        </wui-text>
-        <wui-icon-link
+        </cross-wui-text>
+        <cross-wui-icon-link
           size="md"
           icon="copy"
           iconColor="fg-200"
           @click=${this.onCopyAddress}
-        ></wui-icon-link>
-      </wui-flex>
-    </wui-flex>`
+        ></cross-wui-icon-link>
+      </cross-wui-flex>
+    </cross-wui-flex>`
   }
 
   private onCopyAddress() {

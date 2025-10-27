@@ -8,7 +8,7 @@ import { colorStyles, elementStyles, resetStyles } from '../../utils/ThemeUtil.j
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-select')
+@customElement('cross-wui-select')
 export class WuiSelect extends LitElement {
   public static override styles = [resetStyles, elementStyles, colorStyles, styles]
 
@@ -19,28 +19,28 @@ export class WuiSelect extends LitElement {
   public override render() {
     return html`<button>
       ${this.imageTemplate()}
-      <wui-icon size="xs" color="fg-200" name="chevronBottom"></wui-icon>
+      <cross-wui-icon size="xs" color="fg-200" name="chevronBottom"></cross-wui-icon>
     </button>`
   }
 
   // -- Private ------------------------------------------- //
   private imageTemplate() {
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc} alt="select visual"></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt="select visual"></cross-wui-image>`
     }
 
-    return html`<wui-icon-box
+    return html`<cross-wui-icon-box
       size="xxs"
       iconColor="fg-200"
       backgroundColor="fg-100"
       background="opaque"
       icon="networkPlaceholder"
-    ></wui-icon-box>`
+    ></cross-wui-icon-box>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-select': WuiSelect
+    'cross-wui-select': WuiSelect
   }
 }

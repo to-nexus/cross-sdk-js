@@ -796,17 +796,17 @@ export const elementStyles = css`
     text-decoration: none;
   }
 
-  wui-flex {
+  cross-wui-flex {
     transition: border-radius var(--wui-duration-lg) var(--wui-ease-out-power-1);
     will-change: border-radius;
   }
 
-  button:disabled > wui-wallet-image,
-  button:disabled > wui-all-wallets-image,
-  button:disabled > wui-network-image,
-  button:disabled > wui-image,
-  button:disabled > wui-transaction-visual,
-  button:disabled > wui-logo {
+  button:disabled > cross-wui-wallet-image,
+  button:disabled > cross-wui-all-wallets-image,
+  button:disabled > cross-wui-network-image,
+  button:disabled > cross-wui-image,
+  button:disabled > cross-wui-transaction-visual,
+  button:disabled > cross-wui-logo {
     filter: grayscale(1);
   }
 
@@ -820,7 +820,7 @@ export const elementStyles = css`
     }
   }
 
-  button:disabled > wui-icon-box {
+  button:disabled > cross-wui-icon-box {
     opacity: 0.5;
   }
 
@@ -832,7 +832,7 @@ export const elementStyles = css`
 `
 
 export const colorStyles = css`
-  .wui-color-inherit {
+  .cross-wui-color-inherit {
     color: var(--wui-color-inherit);
   }
 
@@ -892,7 +892,7 @@ export const colorStyles = css`
     color: var(--wui-color-fg-350);
   }
 
-  .wui-bg-color-inherit {
+  .cross-wui-bg-color-inherit {
     background-color: var(--wui-color-inherit);
   }
 

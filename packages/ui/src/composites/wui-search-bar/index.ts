@@ -8,7 +8,7 @@ import '../wui-input-text/index.js'
 import type { WuiInputText } from '../wui-input-text/index.js'
 import styles from './styles.js'
 
-@customElement('wui-search-bar')
+@customElement('cross-wui-search-bar')
 export class WuiSearchBar extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -18,7 +18,7 @@ export class WuiSearchBar extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-input-text
+      <cross-wui-input-text
         ${ref(this.inputComponentRef)}
         placeholder="Search wallet"
         icon="search"
@@ -26,8 +26,8 @@ export class WuiSearchBar extends LitElement {
         enterKeyHint="search"
         size="sm"
       >
-        <wui-input-element @click=${this.clearValue} icon="close"></wui-input-element>
-      </wui-input-text>
+        <cross-wui-input-element @click=${this.clearValue} icon="close"></cross-wui-input-element>
+      </cross-wui-input-text>
     `
   }
 
@@ -45,6 +45,6 @@ export class WuiSearchBar extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-search-bar': WuiSearchBar
+    'cross-wui-search-bar': WuiSearchBar
   }
 }

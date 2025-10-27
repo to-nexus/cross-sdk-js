@@ -19,7 +19,7 @@ export default css`
     display: none;
   }
 
-  wui-loading-hexagon {
+  cross-wui-loading-hexagon {
     position: absolute;
   }
 
@@ -88,7 +88,7 @@ export default css`
     background-color: var(--wui-color-gray-glass-002);
   }
 
-  .select-network-button > wui-image {
+  .select-network-button > cross-wui-image {
     width: 26px;
     height: 26px;
     border-radius: var(--wui-border-radius-xs);

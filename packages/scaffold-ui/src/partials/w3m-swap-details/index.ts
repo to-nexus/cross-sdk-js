@@ -79,83 +79,83 @@ export class WuiSwapDetails extends LitElement {
         : 0
 
     return html`
-      <wui-flex flexDirection="column" alignItems="center" gap="1xs" class="details-container">
-        <wui-flex flexDirection="column">
+      <cross-wui-flex flexDirection="column" alignItems="center" gap="1xs" class="details-container">
+        <cross-wui-flex flexDirection="column">
           <button @click=${this.toggleDetails.bind(this)}>
-            <wui-flex justifyContent="space-between" .padding=${['0', 'xs', '0', 'xs']}>
-              <wui-flex justifyContent="flex-start" flexGrow="1" gap="xs">
-                <wui-text variant="small-400" color="fg-100">
+            <cross-wui-flex justifyContent="space-between" .padding=${['0', 'xs', '0', 'xs']}>
+              <cross-wui-flex justifyContent="flex-start" flexGrow="1" gap="xs">
+                <cross-wui-text variant="small-400" color="fg-100">
                   1 ${this.sourceToken.symbol} =
                   ${UiHelperUtil.formatNumberToLocalString(toTokenSwappedAmount, 3)}
                   ${this.toToken.symbol}
-                </wui-text>
-                <wui-text variant="small-400" color="fg-200">
+                </cross-wui-text>
+                <cross-wui-text variant="small-400" color="fg-200">
                   $${UiHelperUtil.formatNumberToLocalString(this.sourceTokenPriceInUSD)}
-                </wui-text>
-              </wui-flex>
-              <wui-icon name="chevronBottom"></wui-icon>
-            </wui-flex>
+                </cross-wui-text>
+              </cross-wui-flex>
+              <cross-wui-icon name="chevronBottom"></cross-wui-icon>
+            </cross-wui-flex>
           </button>
           ${this.detailsOpen
             ? html`
-                <wui-flex flexDirection="column" gap="xs" class="details-content-container">
-                  <wui-flex flexDirection="column" gap="xs">
-                    <wui-flex
+                <cross-wui-flex flexDirection="column" gap="xs" class="details-content-container">
+                  <cross-wui-flex flexDirection="column" gap="xs">
+                    <cross-wui-flex
                       justifyContent="space-between"
                       alignItems="center"
                       class="details-row"
                     >
-                      <wui-flex alignItems="center" gap="xs">
-                        <wui-text class="details-row-title" variant="small-400" color="fg-150">
+                      <cross-wui-flex alignItems="center" gap="xs">
+                        <cross-wui-text class="details-row-title" variant="small-400" color="fg-150">
                           Network cost
-                        </wui-text>
+                        </cross-wui-text>
                         <cross-w3m-tooltip-trigger
                           text=${`Network cost is paid in ${this.networkTokenSymbol} on the ${this.networkName} network in order to execute transaction.`}
                         >
-                          <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
+                          <cross-wui-icon size="xs" color="fg-250" name="infoCircle"></cross-wui-icon>
                         </cross-w3m-tooltip-trigger>
-                      </wui-flex>
-                      <wui-text variant="small-400" color="fg-100">
+                      </cross-wui-flex>
+                      <cross-wui-text variant="small-400" color="fg-100">
                         $${UiHelperUtil.formatNumberToLocalString(this.gasPriceInUSD, 3)}
-                      </wui-text>
-                    </wui-flex>
-                  </wui-flex>
+                      </cross-wui-text>
+                    </cross-wui-flex>
+                  </cross-wui-flex>
                   ${this.priceImpact
-                    ? html` <wui-flex flexDirection="column" gap="xs">
-                        <wui-flex
+                    ? html` <cross-wui-flex flexDirection="column" gap="xs">
+                        <cross-wui-flex
                           justifyContent="space-between"
                           alignItems="center"
                           class="details-row"
                         >
-                          <wui-flex alignItems="center" gap="xs">
-                            <wui-text class="details-row-title" variant="small-400" color="fg-150">
+                          <cross-wui-flex alignItems="center" gap="xs">
+                            <cross-wui-text class="details-row-title" variant="small-400" color="fg-150">
                               Price impact
-                            </wui-text>
+                            </cross-wui-text>
                             <cross-w3m-tooltip-trigger
                               text="Price impact reflects the change in market price due to your trade"
                             >
-                              <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
+                              <cross-wui-icon size="xs" color="fg-250" name="infoCircle"></cross-wui-icon>
                             </cross-w3m-tooltip-trigger>
-                          </wui-flex>
-                          <wui-flex>
-                            <wui-text variant="small-400" color="fg-200">
+                          </cross-wui-flex>
+                          <cross-wui-flex>
+                            <cross-wui-text variant="small-400" color="fg-200">
                               ${UiHelperUtil.formatNumberToLocalString(this.priceImpact, 3)}%
-                            </wui-text>
-                          </wui-flex>
-                        </wui-flex>
-                      </wui-flex>`
+                            </cross-wui-text>
+                          </cross-wui-flex>
+                        </cross-wui-flex>
+                      </cross-wui-flex>`
                     : null}
                   ${this.maxSlippage && this.sourceToken.symbol
-                    ? html`<wui-flex flexDirection="column" gap="xs">
-                        <wui-flex
+                    ? html`<cross-wui-flex flexDirection="column" gap="xs">
+                        <cross-wui-flex
                           justifyContent="space-between"
                           alignItems="center"
                           class="details-row"
                         >
-                          <wui-flex alignItems="center" gap="xs">
-                            <wui-text class="details-row-title" variant="small-400" color="fg-150">
+                          <cross-wui-flex alignItems="center" gap="xs">
+                            <cross-wui-text class="details-row-title" variant="small-400" color="fg-150">
                               Max. slippage
-                            </wui-text>
+                            </cross-wui-text>
                             <cross-w3m-tooltip-trigger
                               text=${`Max slippage sets the minimum amount you must receive for the transaction to proceed. ${
                                 minReceivedAmount
@@ -166,39 +166,39 @@ export class WuiSwapDetails extends LitElement {
                                   : ''
                               }`}
                             >
-                              <wui-icon size="xs" color="fg-250" name="infoCircle"></wui-icon>
+                              <cross-wui-icon size="xs" color="fg-250" name="infoCircle"></cross-wui-icon>
                             </cross-w3m-tooltip-trigger>
-                          </wui-flex>
-                          <wui-flex>
-                            <wui-text variant="small-400" color="fg-200">
+                          </cross-wui-flex>
+                          <cross-wui-flex>
+                            <cross-wui-text variant="small-400" color="fg-200">
                               ${UiHelperUtil.formatNumberToLocalString(this.maxSlippage, 6)}
                               ${this.toToken.symbol} ${slippageRate}%
-                            </wui-text>
-                          </wui-flex>
-                        </wui-flex>
-                      </wui-flex>`
+                            </cross-wui-text>
+                          </cross-wui-flex>
+                        </cross-wui-flex>
+                      </cross-wui-flex>`
                     : null}
-                  <wui-flex flexDirection="column" gap="xs">
-                    <wui-flex
+                  <cross-wui-flex flexDirection="column" gap="xs">
+                    <cross-wui-flex
                       justifyContent="space-between"
                       alignItems="center"
                       class="details-row provider-free-row"
                     >
-                      <wui-flex alignItems="center" gap="xs">
-                        <wui-text class="details-row-title" variant="small-400" color="fg-150">
+                      <cross-wui-flex alignItems="center" gap="xs">
+                        <cross-wui-text class="details-row-title" variant="small-400" color="fg-150">
                           Provider fee
-                        </wui-text>
-                      </wui-flex>
-                      <wui-flex>
-                        <wui-text variant="small-400" color="fg-200">0.85%</wui-text>
-                      </wui-flex>
-                    </wui-flex>
-                  </wui-flex>
-                </wui-flex>
+                        </cross-wui-text>
+                      </cross-wui-flex>
+                      <cross-wui-flex>
+                        <cross-wui-text variant="small-400" color="fg-200">0.85%</cross-wui-text>
+                      </cross-wui-flex>
+                    </cross-wui-flex>
+                  </cross-wui-flex>
+                </cross-wui-flex>
               `
             : null}
-        </wui-flex>
-      </wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 

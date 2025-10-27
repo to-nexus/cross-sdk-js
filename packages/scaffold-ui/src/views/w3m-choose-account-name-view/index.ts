@@ -23,69 +23,69 @@ export class W3mChooseAccountNameView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         gap="xxl"
         .padding=${['0', '0', 'l', '0'] as const}
       >
         ${this.onboardingTemplate()} ${this.buttonsTemplate()}
-        <wui-link
+        <cross-wui-link
           @click=${() => {
             CoreHelperUtil.openHref(NavigationUtil.URLS.FAQ, '_blank')
           }}
         >
           Learn more about names
-          <wui-icon color="inherit" slot="iconRight" name="externalLink"></wui-icon>
-        </wui-link>
-      </wui-flex>
+          <cross-wui-icon color="inherit" slot="iconRight" name="externalLink"></cross-wui-icon>
+        </cross-wui-link>
+      </cross-wui-flex>
     `
   }
 
   // -- Private ------------------------------------------- //
   private onboardingTemplate() {
-    return html` <wui-flex
+    return html` <cross-wui-flex
       flexDirection="column"
       gap="xxl"
       alignItems="center"
       .padding=${['0', 'xxl', '0', 'xxl'] as const}
     >
-      <wui-flex gap="s" alignItems="center" justifyContent="center">
-        <wui-icon-box
+      <cross-wui-flex gap="s" alignItems="center" justifyContent="center">
+        <cross-wui-icon-box
           icon="id"
           size="xl"
           iconSize="xxl"
           iconColor="fg-200"
           backgroundColor="fg-200"
-        ></wui-icon-box>
-      </wui-flex>
-      <wui-flex flexDirection="column" alignItems="center" gap="s">
-        <wui-text align="center" variant="medium-600" color="fg-100">
+        ></cross-wui-icon-box>
+      </cross-wui-flex>
+      <cross-wui-flex flexDirection="column" alignItems="center" gap="s">
+        <cross-wui-text align="center" variant="medium-600" color="fg-100">
           Choose your account name
-        </wui-text>
-        <wui-text align="center" variant="paragraph-400" color="fg-100">
+        </cross-wui-text>
+        <cross-wui-text align="center" variant="paragraph-400" color="fg-100">
           Finally say goodbye to 0x addresses, name your account to make it easier to exchange
           assets
-        </wui-text>
-      </wui-flex>
-    </wui-flex>`
+        </cross-wui-text>
+      </cross-wui-flex>
+    </cross-wui-flex>`
   }
 
   private buttonsTemplate() {
-    return html`<wui-flex
+    return html`<cross-wui-flex
       .padding=${['0', '2l', '0', '2l'] as const}
       gap="s"
       class="continue-button-container"
     >
-      <wui-button
+      <cross-wui-button
         fullWidth
         .loading=${this.loading}
         size="lg"
         borderRadius="xs"
         @click=${this.handleContinue.bind(this)}
         >Choose name
-      </wui-button>
-    </wui-flex>`
+      </cross-wui-button>
+    </cross-wui-flex>`
   }
 
   private handleContinue() {

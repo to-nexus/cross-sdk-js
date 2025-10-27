@@ -1,12 +1,12 @@
 import { css } from 'lit'
 
 export default css`
-  wui-loading-spinner {
+  cross-wui-loading-spinner {
     margin: 9px auto;
   }
 
   .email-display,
-  .email-display wui-text {
+  .email-display cross-wui-text {
     max-width: 100%;
   }
 `

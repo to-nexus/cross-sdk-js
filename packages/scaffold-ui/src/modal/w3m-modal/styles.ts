@@ -30,7 +30,7 @@ export default css`
     opacity: 1;
   }
 
-  wui-card {
+  cross-wui-card {
     max-width: var(--w3m-modal-width);
     width: 100%;
     position: relative;
@@ -45,7 +45,7 @@ export default css`
 
   /* 미니 윈도우 모드 - 최우선 적용 */
   @media (pointer: coarse) and (max-height: 300px) {
-    wui-card {
+    cross-wui-card {
       max-width: 300px !important;
       width: 300px !important;
       height: 300px !important;
@@ -56,7 +56,7 @@ export default css`
 
   /* 실제 모바일 디바이스의 랜드스케이프 모드에서만 모달 확장 */
   @media (orientation: landscape) and (pointer: coarse) and (max-width: 1200px) and (min-width: 650px) and (min-height: 300px) {
-    wui-card {
+    cross-wui-card {
       max-width: 700px;
       width: 700px;
       height: 360px;
@@ -65,7 +65,7 @@ export default css`
     }
   }
 
-  :host(.embedded) wui-card {
+  :host(.embedded) cross-wui-card {
     max-width: 400px;
   }
 
@@ -75,7 +75,7 @@ export default css`
       w3m-shake 0.5s var(--wui-ease-out-power-2);
   }
 
-  wui-flex {
+  cross-wui-flex {
     overflow-x: hidden;
     overflow-y: auto;
     display: flex;
@@ -86,21 +86,21 @@ export default css`
   }
 
   @media (max-height: 700px) and (min-width: 431px) {
-    wui-flex {
+    cross-wui-flex {
       align-items: flex-start;
     }
 
-    wui-card {
+    cross-wui-card {
       margin: var(--wui-spacing-xxl) 0px;
     }
   }
 
   @media (max-width: 430px) {
-    wui-flex {
+    cross-wui-flex {
       align-items: flex-end;
     }
 
-    wui-card {
+    cross-wui-card {
       max-width: 100%;
       border-bottom-left-radius: var(--local-border-bottom-mobile-radius);
       border-bottom-right-radius: var(--local-border-bottom-mobile-radius);

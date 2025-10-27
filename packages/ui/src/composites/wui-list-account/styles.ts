@@ -15,13 +15,13 @@ export default css`
     background-color: transparent;
   }
 
-  wui-image {
+  cross-wui-image {
     width: var(--wui-spacing-3xl);
     height: var(--wui-spacing-3xl);
     border-radius: var(--wui-border-radius-3xl);
   }
 
-  wui-avatar {
+  cross-wui-avatar {
     width: var(--wui-spacing-3xl);
     height: var(--wui-spacing-3xl);
     box-shadow: 0 0 0 0;
@@ -34,7 +34,7 @@ export default css`
     color: var(--wui-color-fg-base-200);
   }
 
-  wui-icon-box {
+  cross-wui-icon-box {
     position: relative;
     right: 15px;
     top: 15px;

@@ -1,11 +1,11 @@
 import { css } from 'lit'
 
 export default css`
-  wui-flex {
+  cross-wui-flex {
     width: 100%;
   }
 
-  wui-tabs {
+  cross-wui-tabs {
     width: 100%;
   }
 

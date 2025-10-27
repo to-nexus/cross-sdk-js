@@ -1,24 +1,24 @@
 import { css } from 'lit'
 
 export default css`
-  wui-flex {
+  cross-wui-flex {
     width: 100%;
   }
 
-  wui-promo {
+  cross-wui-promo {
     position: absolute;
     top: -32px;
   }
 
-  wui-profile-button {
+  cross-wui-profile-button {
     margin-top: calc(-1 * var(--wui-spacing-2l));
   }
 
-  wui-promo + wui-profile-button {
+  wui-promo + cross-wui-profile-button {
     margin-top: var(--wui-spacing-2l);
   }
 
-  wui-tabs {
+  cross-wui-tabs {
     width: 100%;
   }
 
@@ -26,7 +26,7 @@ export default css`
     height: 280px;
   }
 
-  .contentContainer > wui-icon-box {
+  .contentContainer > cross-wui-icon-box {
     width: 40px;
     height: 40px;
     border-radius: var(--wui-border-radius-xxs);

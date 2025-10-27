@@ -7,7 +7,7 @@ import { UiHelperUtil } from '../../utils/UiHelperUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-grid')
+@customElement('cross-wui-grid')
 export class WuiGrid extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -62,6 +62,6 @@ export class WuiGrid extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-grid': WuiGrid
+    'cross-wui-grid': WuiGrid
   }
 }

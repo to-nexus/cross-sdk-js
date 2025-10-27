@@ -18,7 +18,7 @@ import { UiHelperUtil } from '../../utils/UiHelperUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-list-account')
+@customElement('cross-wui-list-account')
 export class WuiListAccount extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -74,15 +74,15 @@ export class WuiListAccount extends LitElement {
     this.shouldShowIcon = connectorId === ConstantsUtil.CONNECTOR_ID.AUTH
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="row"
         justifyContent="space-between"
         .padding=${['0', '0', 's', '1xs'] as const}
       >
-        <wui-flex gap="md" alignItems="center">
-          <wui-avatar address=${this.accountAddress}></wui-avatar>
+        <cross-wui-flex gap="md" alignItems="center">
+          <cross-wui-avatar address=${this.accountAddress}></cross-wui-avatar>
           ${this.shouldShowIcon
-            ? html`<wui-icon-box
+            ? html`<cross-wui-icon-box
                 size="sm"
                 iconcolor="fg-200"
                 backgroundcolor="fg-300"
@@ -90,10 +90,10 @@ export class WuiListAccount extends LitElement {
                   ? (this.socialProvider ?? 'mail')
                   : 'lightbulb'}
                 background="fg-300"
-              ></wui-icon-box>`
-            : html`<wui-flex .padding="${['0', '0', '0', 's'] as const}"></wui-flex>`}
-          <wui-flex flexDirection="column">
-            <wui-text class="address" variant="paragraph-500" color="fg-100"
+              ></cross-wui-icon-box>`
+            : html`<cross-wui-flex .padding="${['0', '0', '0', 's'] as const}"></cross-wui-flex>`}
+          <cross-wui-flex flexDirection="column">
+            <cross-wui-text class="address" variant="paragraph-500" color="fg-100"
               >${UiHelperUtil.getTruncateString({
                 string: this.accountAddress,
                 charsStart: 4,
@@ -101,16 +101,16 @@ export class WuiListAccount extends LitElement {
                 truncate: 'middle'
               })}</wui-text
             >
-            <wui-text class="address-description" variant="small-400">${label}</wui-text></wui-flex
+            <cross-wui-text class="address-description" variant="small-400">${label}</cross-wui-text></wui-flex
           >
-        </wui-flex>
-        <wui-flex gap="s" alignItems="center">
+        </cross-wui-flex>
+        <cross-wui-flex gap="s" alignItems="center">
           <slot name="action"></slot>
           ${this.fetchingBalance
-            ? html`<wui-loading-spinner size="sm" color="accent-100"></wui-loading-spinner>`
-            : html` <wui-text variant="small-400">$${this.balance.toFixed(2)}</wui-text>`}
-        </wui-flex>
-      </wui-flex>
+            ? html`<cross-wui-loading-spinner size="sm" color="accent-100"></cross-wui-loading-spinner>`
+            : html` <cross-wui-text variant="small-400">$${this.balance.toFixed(2)}</cross-wui-text>`}
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -133,6 +133,6 @@ export class WuiListAccount extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-list-account': WuiListAccount
+    'cross-wui-list-account': WuiListAccount
   }
 }

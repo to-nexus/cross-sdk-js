@@ -47,9 +47,9 @@ export class W3mConnectorList extends LitElement {
     })
 
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <cross-wui-flex flexDirection="column" gap="xs">
         ${this.renderConnectorWidget(hasAnnounced, hasCustom)}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

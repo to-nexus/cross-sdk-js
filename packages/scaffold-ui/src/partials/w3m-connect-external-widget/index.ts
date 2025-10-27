@@ -42,10 +42,10 @@ export class W3mConnectExternalWidget extends LitElement {
     }
 
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <cross-wui-flex flexDirection="column" gap="xs">
         ${filteredOutCoinbaseConnectors.map(
           connector => html`
-            <wui-list-wallet
+            <cross-wui-list-wallet
               imageSrc=${ifDefined(AssetUtil.getConnectorImage(connector))}
               .installed=${true}
               name=${connector.name ?? 'Unknown'}
@@ -53,10 +53,10 @@ export class W3mConnectExternalWidget extends LitElement {
               @click=${() => this.onConnector(connector)}
               tabIdx=${ifDefined(this.tabIdx)}
             >
-            </wui-list-wallet>
+            </cross-wui-list-wallet>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

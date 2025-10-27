@@ -11,7 +11,7 @@ export default css`
     color: var(--wui-color-fg-100);
   }
 
-  wui-text {
+  cross-wui-text {
     text-transform: capitalize;
   }
 
