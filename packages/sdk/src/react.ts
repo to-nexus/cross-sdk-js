@@ -3,11 +3,11 @@ import type { AppKitNetwork } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ApiController,
+  type ChainAdapter,
   ConnectionController,
   ConstantsUtil,
   SendController,
-  type ThemeMode,
-  type ChainAdapter
+  type ThemeMode
 } from '@to-nexus/appkit-core'
 import type { CustomWallet } from '@to-nexus/appkit-core'
 import {
@@ -107,7 +107,7 @@ const initCrossSdk = (
   }
 
   return createAppKit({
-    adapters: (adapters && adapters.length > 0) ? adapters : [ethersAdapter],
+    adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
     networks: networkList,
     defaultNetwork,
     metadata: mergedMetadata,

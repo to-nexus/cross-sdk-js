@@ -26,7 +26,6 @@ import {
 import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
 
-// @ts-ignore - @reown/appkit-wallet-button/react 타입 정의 없음
 import { useAppKitWallet as useMetaMaskAppKitWallet } from '@reown/appkit-wallet-button/react'
 
 import { sampleEIP712 } from '../contracts/sample-eip712'
@@ -138,17 +137,7 @@ const metadata = {
 // })
 // initCrossSdk(projectId, redirectUrl, metadata, 'dark', undefined, [wagmiAdapter])
 
-// Cross SDK 초기화 (instanceId를 명시적으로 설정하여 Reown과 충돌 방지)
-initCrossSdk(
-  projectId,
-  redirectUrl,
-  metadata,
-  'dark',
-  undefined,
-  undefined,
-  10000,
-  'cross-sdk-nexus'
-)
+initCrossSdk(projectId, redirectUrl, metadata, 'dark')
 
 // TypeScript용 전역 Caver 타입 선언
 declare global {
