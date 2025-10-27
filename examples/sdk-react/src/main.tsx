@@ -17,7 +17,7 @@ import './assets/main.css'
 }
 
 // MetaMask용 Reown 프로젝트 ID (cross-stake-fe와 동일)
-const metamaskProjectId = '3b8f6d52185daf9686536e26c6df7cbb'
+const metamaskProjectId = 'a48aa6e93d89fbc0f047637579e65356'
 
 // Wagmi Adapter 생성 (MetaMask용)
 const wagmiAdapter = new WagmiAdapter({
