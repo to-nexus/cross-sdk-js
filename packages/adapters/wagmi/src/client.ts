@@ -272,6 +272,27 @@ export class WagmiAdapter extends AdapterBlueprint {
             })
           }
         }
+        // Cross Extension Wallet 재연결 시 연결 시도
+        if (prevAccountData.status === 'reconnecting' && prevAccountData?.connector?.id === 'nexus.to.crosswallet.desktop') {
+          console.log('[wagmiAdapter] reconnecting', prevAccountData)
+
+          // 재연결 시도
+          const connector = this.getWagmiConnector('nexus.to.crosswallet.desktop')
+          if (connector) {
+            console.log('[wagmiAdapter] trying to reconnect with connector', connector.id)
+            connect(this.wagmiConfig, { connector })
+              .then((result) => {
+                console.log('[wagmiAdapter] reconnect success', result)
+                // 연결 성공 후 이벤트 발생
+                this.emit('accountChanged', {
+                  address: result.accounts[0]
+                })
+              })
+              .catch(error => {
+                console.error('[wagmiAdapter] reconnect failed', error)
+              })
+          }
+        }
       }
     })
     watchConnections(this.wagmiConfig, {
@@ -723,7 +744,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   public override async reconnect(params: AdapterBlueprint.ConnectParams): Promise<void> {
     const { id } = params
-
+    console.log('[wagmiAdapter] reconnect', id)
     try {
       // 먼저 모든 연결을 해제하여 상태를 초기화
       await this.disconnect()

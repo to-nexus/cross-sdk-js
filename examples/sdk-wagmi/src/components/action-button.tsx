@@ -10,6 +10,7 @@ import {
   kaiaMainnet,
   kaiaTestnet
 } from '@to-nexus/appkit/networks'
+import { useAppKitWallet } from '@to-nexus/appkit/react'
 import { v4 as uuidv4 } from 'uuid'
 import { parseEther, parseUnits } from 'viem'
 import {
@@ -85,8 +86,9 @@ const contractData = {
 export function ActionButtonList() {
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
-  const [isWagmiLoading, setIsWagmiLoading] = useState(false)
   const [isNetworkModalOpen, setIsNetworkModalOpen] = useState(false)
+  const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
+    useAppKitWallet()
 
   // Wagmi hooks
   const wagmiAccount = useAccount()
@@ -109,7 +111,6 @@ export function ActionButtonList() {
   const { writeContractAsync } = useWriteContract()
   const { disconnectAsync: wagmiDisconnect } = useWagmiDisconnect()
   const { switchChainAsync } = useSwitchChain()
-  const { connectors, connectAsync } = useConnect()
 
   // Cross Extension Wallet 설치 상태 확인
   const checkWagmiCrossExtension = useCallback(() => {
@@ -480,142 +481,6 @@ export function ActionButtonList() {
     }
   }
 
-  // Wagmi를 사용한 지갑 연결
-  async function handleWagmiConnect(connectorId?: string) {
-    // 중복 요청 방지
-    if (isWagmiLoading) {
-      console.log('⚠️ Connection already in progress, ignoring duplicate request')
-      return
-    }
-
-    try {
-      setIsWagmiLoading(true)
-
-      // Cross Extension은 별도 함수로 처리 (Wagmi connector 사용)
-      if (connectorId === 'cross-extension') {
-        await handleWagmiConnectCrossExtension()
-        return
-      }
-
-      const connector = connectorId ? connectors.find(c => c.id === connectorId) : connectors[0]
-
-      if (!connector) {
-        showError('Error in Wagmi Connect', 'No connector available')
-        return
-      }
-
-      console.log(`🔌 Connecting with ${connector.name}...`)
-      const result = await connectAsync({ connector })
-
-      showSuccess(
-        'Wagmi Connect Successful!',
-        `Connected to: ${result.accounts[0]}\nChain ID: ${result.chainId}`
-      )
-    } catch (error) {
-      console.error('Error connecting with Wagmi:', error)
-      const errorMessage = (error as Error).message
-
-      // 사용자가 취소한 경우
-      if (
-        errorMessage.includes('User rejected') ||
-        errorMessage.includes('User denied') ||
-        errorMessage.includes('rejected')
-      ) {
-        showError('연결 취소됨', '사용자가 지갑 연결을 취소했습니다.')
-      } else if (errorMessage.includes('already pending')) {
-        showError(
-          '이미 연결 요청 진행 중',
-          '이전 연결 요청을 완료하거나 취소한 후 다시 시도해주세요.'
-        )
-      } else {
-        showError('Error in Wagmi Connect', `Error: ${errorMessage}`)
-      }
-    } finally {
-      // Cross Extension이 아닌 경우에만 로딩 해제 (Cross Extension은 자체적으로 관리)
-      if (connectorId !== 'cross-extension') {
-        setIsWagmiLoading(false)
-      }
-    }
-  }
-
-  // Wagmi용 Cross Extension 연결 (Wagmi connector 사용)
-  async function handleWagmiConnectCrossExtension() {
-    try {
-      setIsWagmiLoading(true)
-
-      console.log('🚀 Wagmi: Cross Extension Wallet 연결 시도 시작')
-      console.log(
-        'Available connectors:',
-        connectors.map(c => ({ id: c.id, name: c.name }))
-      )
-
-      // Cross Extension connector 찾기
-      const crossConnector = connectors.find(c => c.id === 'cross-extension')
-
-      if (!crossConnector) {
-        console.error('❌ Cross Extension connector not found in connectors list')
-        throw new Error(
-          'Cross Extension connector not found. Please install Cross Extension Wallet.'
-        )
-      }
-
-      console.log('✅ Found Cross Extension connector:', crossConnector)
-
-      // Wagmi connector로 연결
-      console.log('🔌 Connecting with Wagmi connector...')
-      const result = await connectAsync({ connector: crossConnector })
-
-      console.log('🎉 Wagmi: Cross Extension 연결 완료:', result)
-      console.log('Wagmi Account State:', {
-        isConnected: wagmiAccount.isConnected,
-        address: wagmiAccount.address,
-        chainId: wagmiAccount.chainId
-      })
-
-      // 연결 성공 후 상태 업데이트
-      checkWagmiCrossExtension()
-
-      showSuccess(
-        'Wagmi: Cross Extension Wallet 연결 성공!',
-        `Connected to: ${result.accounts[0]}\nChain ID: ${result.chainId}`
-      )
-      console.log('✅ Wagmi: Cross Extension Wallet 연결 성공')
-    } catch (error) {
-      console.error('❌ Wagmi: Cross Extension Wallet 연결 실패:', error)
-
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      const isUserRejection =
-        errorMessage.includes('User rejected') ||
-        errorMessage.includes('User denied') ||
-        errorMessage.includes('rejected') ||
-        errorMessage.includes('cancelled')
-
-      if (isUserRejection) {
-        showError('Wagmi: 연결 취소됨', '사용자가 지갑 연결을 취소했습니다.')
-      } else if (
-        errorMessage.includes('not found') ||
-        errorMessage.includes('not installed') ||
-        errorMessage.includes('not detected')
-      ) {
-        showError(
-          'Wagmi: Cross Extension 미설치 또는 미감지',
-          'Cross Extension Wallet이 설치되지 않았거나 감지되지 않았습니다.\n\n1. Cross Extension Wallet을 설치했는지 확인\n2. 브라우저를 새로고침 (Cmd+Shift+R)\n3. 콘솔 로그를 확인하여 감지 상태 확인'
-        )
-      } else if (errorMessage.includes('already pending')) {
-        showError(
-          '이미 연결 요청 진행 중',
-          '이전 연결 요청을 완료하거나 취소한 후 다시 시도해주세요.'
-        )
-      } else {
-        showError('Wagmi: 연결 실패', `지갑 연결 중 오류가 발생했습니다:\n${errorMessage}`)
-      }
-
-      checkWagmiCrossExtension()
-    } finally {
-      setIsWagmiLoading(false)
-    }
-  }
-
   return (
     <div>
       <div
@@ -631,40 +496,18 @@ export function ActionButtonList() {
           <>
             {/* Cross Extension 전용 버튼 */}
             <button
-              onClick={() => handleWagmiConnect('cross-extension')}
-              disabled={!isCrossExtensionInstalled || isWagmiLoading}
+              onClick={() => connectCrossExtensionWallet()}
+              disabled={!isCrossExtensionInstalled}
               style={{
                 backgroundColor: isCrossExtensionInstalled ? '#28a745' : '#6c757d',
                 color: 'white',
-                cursor: isCrossExtensionInstalled && !isWagmiLoading ? 'pointer' : 'not-allowed',
-                opacity: isCrossExtensionInstalled && !isWagmiLoading ? 1 : 0.6
+                cursor: isCrossExtensionInstalled ? 'pointer' : 'not-allowed'
               }}
             >
-              {isWagmiLoading
-                ? 'Connecting...'
-                : `Wagmi: Connect Cross Extension ${isCrossExtensionInstalled ? '✅' : '❌'}`}
+              `Wagmi: Connect Cross Extension ${isCrossExtensionInstalled ? '✅' : '❌'}`
             </button>
 
-            {/* 기타 Connectors */}
-            {connectors
-              .filter(connector => connector.id !== 'cross-extension')
-              .map(connector => {
-                const isReady = connector['ready'] !== false
-                return (
-                  <button
-                    key={connector.id}
-                    onClick={() => handleWagmiConnect(connector.id)}
-                    style={{
-                      backgroundColor: '#28a745',
-                      color: 'white',
-                      opacity: isReady && !isWagmiLoading ? 1 : 0.5
-                    }}
-                    disabled={!isReady || isWagmiLoading}
-                  >
-                    {isWagmiLoading ? 'Connecting...' : `Wagmi: Connect ${connector.name}`}
-                  </button>
-                )
-              })}
+            <button onClick={() => connect('cross_wallet')}>`Wagmi: Connect CROSSx Wallet`</button>
           </>
         )}
         {/* 네트워크 변경 */}
