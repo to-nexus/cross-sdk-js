@@ -1,14 +1,14 @@
 lockfileVersion: '9.0'
 
 settings:
-  autoInstallPeers: true
+  autoInstallPeers: false
   excludeLinksFromLockfile: false
 
 overrides:
   '@solana/web3.js': 1.95.8
+  viem: ^2.38.0
   '@wagmi/core': 2.16.4
   wagmi: 2.14.11
-  viem: ^2.38.0
 
 importers:
 
@@ -267,9 +267,6 @@ importers:
 
   packages/adapters/ethers:
     dependencies:
-      '@ethersproject/sha2':
-        specifier: 5.7.0
-        version: 5.7.0
       '@reown/appkit-polyfills':
         specifier: workspace:*
         version: link:../../polyfills
@@ -300,9 +297,6 @@ importers:
       '@walletconnect/utils':
         specifier: 2.18.0
         version: 2.18.0
-      ethers:
-        specifier: '>=6'
-        version: 6.13.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       valtio:
         specifier: 1.13.2
         version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
@@ -621,9 +615,6 @@ importers:
       '@to-nexus/sdk':
         specifier: workspace:*
         version: link:../sdk
-      typescript:
-        specifier: 5.7.3
-        version: 5.7.3
       vite:
         specifier: 5.4.12
         version: 5.4.12(@types/node@22.13.4)(terser@5.44.0)
@@ -844,15 +835,9 @@ importers:
       qrcode:
         specifier: ^1.5.3
         version: 1.5.3
-      react:
-        specifier: ^18.0.0
-        version: 18.2.0
-      react-dom:
-        specifier: ^18.0.0
-        version: 18.2.0(react@18.2.0)
       valtio:
         specifier: ^1.10.5
-        version: 1.13.2(@types/react@18.3.26)(react@18.2.0)
+        version: 1.13.2(@types/react@18.3.26)(react@19.0.0)
       viem:
         specifier: ^2.38.0
         version: 2.38.3(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
@@ -16948,9 +16933,9 @@ snapshots:
 
   deprecation@2.3.1: {}
 
-  derive-valtio@0.1.0(valtio@1.13.2(@types/react@18.3.26)(react@18.2.0)):
+  derive-valtio@0.1.0(valtio@1.13.2(@types/react@18.3.26)(react@19.0.0)):
     dependencies:
-      valtio: 1.13.2(@types/react@18.3.26)(react@18.2.0)
+      valtio: 1.13.2(@types/react@18.3.26)(react@19.0.0)
 
   derive-valtio@0.1.0(valtio@1.13.2(@types/react@19.0.0)(react@19.0.0)):
     dependencies:
@@ -21601,14 +21586,14 @@ snapshots:
       '@types/react': 19.0.0
       react: 19.0.0
 
-  valtio@1.13.2(@types/react@18.3.26)(react@18.2.0):
+  valtio@1.13.2(@types/react@18.3.26)(react@19.0.0):
     dependencies:
-      derive-valtio: 0.1.0(valtio@1.13.2(@types/react@18.3.26)(react@18.2.0))
+      derive-valtio: 0.1.0(valtio@1.13.2(@types/react@18.3.26)(react@19.0.0))
       proxy-compare: 2.6.0
-      use-sync-external-store: 1.2.0(react@18.2.0)
+      use-sync-external-store: 1.2.0(react@19.0.0)
     optionalDependencies:
       '@types/react': 18.3.26
-      react: 18.2.0
+      react: 19.0.0
 
   valtio@1.13.2(@types/react@19.0.0)(react@19.0.0):
     dependencies:
