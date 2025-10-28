@@ -255,8 +255,8 @@ importers:
         specifier: workspace:*
         version: link:../../appkit-utils
       '@to-nexus/universal-provider':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
       '@wallet-standard/app':
         specifier: 1.1.0
         version: 1.1.0
@@ -316,8 +316,8 @@ importers:
         specifier: workspace:*
         version: link:../../wallet
       '@to-nexus/universal-provider':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
       '@walletconnect/utils':
         specifier: 2.18.0
         version: 2.18.0
@@ -400,8 +400,8 @@ importers:
         specifier: workspace:*
         version: link:../../wallet
       '@to-nexus/universal-provider':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)
       '@wallet-standard/app':
         specifier: 1.1.0
         version: 1.1.0
@@ -483,8 +483,8 @@ importers:
         specifier: workspace:*
         version: link:../../wallet
       '@to-nexus/universal-provider':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
       '@walletconnect/utils':
         specifier: 2.18.0
         version: 2.18.0
@@ -548,8 +548,8 @@ importers:
         specifier: workspace:*
         version: link:../wallet-button
       '@to-nexus/universal-provider':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
       '@walletconnect/types':
         specifier: 2.18.0
         version: 2.18.0
@@ -609,8 +609,8 @@ importers:
         specifier: workspace:*
         version: link:../wallet
       '@to-nexus/universal-provider':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
       '@walletconnect/logger':
         specifier: 2.1.2
         version: 2.1.2
@@ -724,8 +724,8 @@ importers:
         specifier: workspace:*
         version: link:../wallet
       '@to-nexus/universal-provider':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
       valtio:
         specifier: 1.13.2
         version: 1.13.2(@types/react@19.0.0)(react@19.0.0)
@@ -845,8 +845,8 @@ importers:
         specifier: workspace:*
         version: link:../wallet-button
       '@to-nexus/universal-provider':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
       '@walletconnect/logger':
         specifier: ^2.0.1
         version: 2.1.2
@@ -900,8 +900,8 @@ importers:
   packages/sign-client:
     dependencies:
       '@to-nexus/core':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
       '@walletconnect/events':
         specifier: 1.0.1
         version: 1.0.1
@@ -1109,8 +1109,8 @@ importers:
   providers/universal-provider:
     dependencies:
       '@to-nexus/sign-client':
-        specifier: 2.19.14
-        version: 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
+        specifier: 2.19.14-alpha.2
+        version: 2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
       '@walletconnect/events':
         specifier: 1.0.1
         version: 1.0.1
@@ -3631,15 +3631,15 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
-  '@to-nexus/core@2.19.14':
-    resolution: {integrity: sha512-hFijvjSJKRR5PB6V30HtjzHKSodxSkBs9vVsTwRZSoXW+zvgofyGlY1RUv7A3QcND2Or2V3ok76QoSVkJCJGIQ==}
+  '@to-nexus/core@2.19.14-alpha.2':
+    resolution: {integrity: sha512-OOSajS195kbcmi7FgRbMaTx5WlER7ke3FANfwxE+ULDyBhZo2zS1mz7KTVRMBy3OBMz24JtcOgWZrnh6TH+AIQ==}
     engines: {node: '>=18'}
 
-  '@to-nexus/sign-client@2.19.14':
-    resolution: {integrity: sha512-OLSnjPgLlcjqrlD9Tv3ckeqNBs7ML1Rc1WIo/hnukHXLQMHzs/E4/ED+Cu4q2CphqOIYMVXNk3Ba/7z6uOK8ug==}
+  '@to-nexus/sign-client@2.19.14-alpha.2':
+    resolution: {integrity: sha512-0D1bWeDMNW/znHlDBEHXIhnF8w6WH30iu4oL3Lpi5mfbzxZKvrgXigmrvZJaGKcfGaa8GZWdsa5QdmFUjqFMig==}
 
-  '@to-nexus/universal-provider@2.19.14':
-    resolution: {integrity: sha512-3UnaZZFbgJRB4je2WgvVobSjURU53rYtTztCUSOiK5YuqwqJl2HpCMdK6nAzHPhVKlb7l7BXB3OtO7M3yAyVcg==}
+  '@to-nexus/universal-provider@2.19.14-alpha.2':
+    resolution: {integrity: sha512-ck6Phr1Y24w+fb0HAswh0WZBA1zyaBXXyNrTGrF/vl4z4euxIx5827KXjyc6fPEZU8HU+BJYduS7hWgmY1HYng==}
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -4111,6 +4111,7 @@ packages:
 
   '@walletconnect/ethereum-provider@2.21.1':
     resolution: {integrity: sha512-SSlIG6QEVxClgl1s0LMk4xr2wg4eT3Zn/Hb81IocyqNSGfXpjtawWxKxiC5/9Z95f1INyBD6MctJbL/R1oBwIw==}
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/events@1.0.1':
     resolution: {integrity: sha512-NPTqaoi0oPBVNuLv7qPaJazmGHs5JGyO8eEAk5VGKmJzDR7AHzD4k6ilox5kxk1iwiOnFopBOOMLs86Oa76HpQ==}
@@ -4178,9 +4179,11 @@ packages:
 
   '@walletconnect/sign-client@2.21.0':
     resolution: {integrity: sha512-z7h+PeLa5Au2R591d/8ZlziE0stJvdzP9jNFzFolf2RG/OiXulgFKum8PrIyXy+Rg2q95U9nRVUF9fWcn78yBA==}
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/sign-client@2.21.1':
     resolution: {integrity: sha512-QaXzmPsMnKGV6tc4UcdnQVNOz4zyXgarvdIQibJ4L3EmLat73r5ZVl4c0cCOcoaV7rgM9Wbphgu5E/7jNcd3Zg==}
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/sign-client@2.22.4':
     resolution: {integrity: sha512-la+sol0KL33Fyx5DRlupHREIv8wA6W33bRfuLAfLm8pINRTT06j9rz0IHIqJihiALebFxVZNYzJnF65PhV0q3g==}
@@ -4208,12 +4211,15 @@ packages:
 
   '@walletconnect/universal-provider@2.17.0':
     resolution: {integrity: sha512-d3V5Be7AqLrvzcdMZSBS8DmGDRdqnyLk1DWmRKAGgR6ieUWykhhUKlvfeoZtvJrIXrY7rUGYpH1X41UtFkW5Pw==}
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/universal-provider@2.21.0':
     resolution: {integrity: sha512-mtUQvewt+X0VBQay/xOJBvxsB3Xsm1lTwFjZ6WUwSOTR1X+FNb71hSApnV5kbsdDIpYPXeQUbGt2se1n5E5UBg==}
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/universal-provider@2.21.1':
     resolution: {integrity: sha512-Wjx9G8gUHVMnYfxtasC9poGm8QMiPCpXpbbLFT+iPoQskDDly8BwueWnqKs4Mx2SdIAWAwuXeZ5ojk5qQOxJJg==}
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/universal-provider@2.22.4':
     resolution: {integrity: sha512-TF2RNX13qxa0rrBAhVDs5+C2G8CHX7L0PH5hF2uyQHdGyxZ3pFbXf8rxmeW1yKlB76FSbW80XXNrUes6eK/xHg==}
@@ -14419,7 +14425,7 @@ snapshots:
       '@tanstack/query-core': 5.90.5
       react: 19.0.0
 
-  '@to-nexus/core@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)':
+  '@to-nexus/core@2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -14463,7 +14469,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/core@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
+  '@to-nexus/core@2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -14507,7 +14513,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/core@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)':
+  '@to-nexus/core@2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -14551,9 +14557,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/sign-client@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)':
+  '@to-nexus/sign-client@2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@to-nexus/core': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
+      '@to-nexus/core': 2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
       '@walletconnect/events': 1.0.1
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-utils': 1.0.8
@@ -14587,9 +14593,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/sign-client@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
+  '@to-nexus/sign-client@2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
-      '@to-nexus/core': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+      '@to-nexus/core': 2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
       '@walletconnect/events': 1.0.1
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-utils': 1.0.8
@@ -14623,9 +14629,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/sign-client@2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)':
+  '@to-nexus/sign-client@2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)':
     dependencies:
-      '@to-nexus/core': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
+      '@to-nexus/core': 2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
       '@walletconnect/events': 1.0.1
       '@walletconnect/heartbeat': 1.2.2
       '@walletconnect/jsonrpc-utils': 1.0.8
@@ -14659,9 +14665,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/universal-provider@2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)':
+  '@to-nexus/universal-provider@2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@to-nexus/sign-client': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
+      '@to-nexus/sign-client': 2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)
       '@walletconnect/events': 1.0.1
       '@walletconnect/jsonrpc-http-connection': 1.0.8(encoding@0.1.13)
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -14699,9 +14705,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/universal-provider@2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
+  '@to-nexus/universal-provider@2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)':
     dependencies:
-      '@to-nexus/sign-client': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+      '@to-nexus/sign-client': 2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.22.4)
       '@walletconnect/events': 1.0.1
       '@walletconnect/jsonrpc-http-connection': 1.0.8(encoding@0.1.13)
       '@walletconnect/jsonrpc-provider': 1.0.14
@@ -14739,9 +14745,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@to-nexus/universal-provider@2.19.14(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)':
+  '@to-nexus/universal-provider@2.19.14-alpha.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)':
     dependencies:
-      '@to-nexus/sign-client': 2.19.14(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
+      '@to-nexus/sign-client': 2.19.14-alpha.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
       '@walletconnect/events': 1.0.1
       '@walletconnect/jsonrpc-http-connection': 1.0.8(encoding@0.1.13)
       '@walletconnect/jsonrpc-provider': 1.0.14
