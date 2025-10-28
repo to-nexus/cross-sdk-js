@@ -19,16 +19,16 @@ export default css`
     background: var(--wui-color-gray-glass-015);
   }
 
-  button:disabled > wui-text {
+  button:disabled > cross-wui-text {
     color: var(--wui-color-gray-glass-015);
   }
 
-  button:disabled > wui-flex > wui-text {
+  button:disabled > wui-flex > cross-wui-text {
     color: var(--wui-color-gray-glass-015);
   }
 
-  button:disabled > wui-image,
-  button:disabled > wui-flex > wui-avatar {
+  button:disabled > cross-wui-image,
+  button:disabled > wui-flex > cross-wui-avatar {
     filter: grayscale(1);
   }
 
@@ -37,23 +37,23 @@ export default css`
       var(--wui-spacing-xs);
   }
 
-  wui-text {
+  cross-wui-text {
     color: var(--wui-color-fg-100);
   }
 
-  wui-flex > wui-text {
+  wui-flex > cross-wui-text {
     color: var(--wui-color-fg-200);
   }
 
-  wui-image,
-  wui-icon-box {
+  cross-wui-image,
+  cross-wui-icon-box {
     border-radius: var(--wui-border-radius-3xl);
     width: 24px;
     height: 24px;
     box-shadow: 0 0 0 2px var(--wui-color-gray-glass-005);
   }
 
-  wui-flex {
+  cross-wui-flex {
     border-radius: var(--wui-border-radius-3xl);
     border: 1px solid var(--wui-color-gray-glass-005);
     background: var(--wui-color-gray-glass-005);
@@ -66,7 +66,7 @@ export default css`
     background: transparent;
   }
 
-  wui-avatar {
+  cross-wui-avatar {
     width: 20px;
     height: 20px;
     box-shadow: 0 0 0 2px var(--wui-color-accent-glass-010);
@@ -78,9 +78,9 @@ export default css`
       padding: var(--wui-spacing-3xs) var(--wui-spacing-xs) !important;
       height: 32px;
     }
-    wui-image,
-    wui-icon-box,
-    button > wui-text {
+    cross-wui-image,
+    cross-wui-icon-box,
+    button > cross-wui-text {
       visibility: hidden;
       width: 0px;
       height: 0px;
@@ -94,11 +94,11 @@ export default css`
   }
 
   @media (hover: hover) and (pointer: fine) {
-    button:hover:enabled > wui-flex > wui-text {
+    button:hover:enabled > wui-flex > cross-wui-text {
       color: var(--wui-color-fg-175);
     }
 
-    button:active:enabled > wui-flex > wui-text {
+    button:active:enabled > wui-flex > cross-wui-text {
       color: var(--wui-color-fg-175);
     }
   }

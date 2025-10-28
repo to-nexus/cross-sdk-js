@@ -16,7 +16,7 @@ import { UiHelperUtil } from '../../utils/UiHelperUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-flex')
+@customElement('cross-wui-flex')
 export class WuiFlex extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -74,6 +74,6 @@ export class WuiFlex extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-flex': WuiFlex
+    'cross-wui-flex': WuiFlex
   }
 }

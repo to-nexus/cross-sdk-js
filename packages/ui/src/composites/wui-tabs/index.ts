@@ -7,7 +7,7 @@ import type { IconType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-tabs')
+@customElement('cross-wui-tabs')
 export class WuiTabs extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -48,7 +48,7 @@ export class WuiTabs extends LitElement {
           data-testid="tab-${tab.label?.toLowerCase()}"
         >
           ${this.iconTemplate(tab)}
-          <wui-text variant="small-600" color="inherit"> ${tab.label} </wui-text>
+          <cross-wui-text variant="small-600" color="inherit"> ${tab.label} </cross-wui-text>
         </button>
       `
     })
@@ -66,7 +66,7 @@ export class WuiTabs extends LitElement {
   // -- Private ------------------------------------------- //
   private iconTemplate(tab: { icon?: IconType; label: string }) {
     if (tab.icon) {
-      return html`<wui-icon size="xs" color="inherit" name=${tab.icon}></wui-icon>`
+      return html`<cross-wui-icon size="xs" color="inherit" name=${tab.icon}></cross-wui-icon>`
     }
 
     return null
@@ -83,8 +83,8 @@ export class WuiTabs extends LitElement {
     const passiveBtn = this.buttons[this.activeTab]
     const activeBtn = this.buttons[index]
 
-    const passiveBtnText = passiveBtn?.querySelector('wui-text')
-    const activeBtnText = activeBtn?.querySelector('wui-text')
+    const passiveBtnText = passiveBtn?.querySelector('cross-wui-text')
+    const activeBtnText = activeBtn?.querySelector('cross-wui-text')
 
     const activeBtnBounds = activeBtn?.getBoundingClientRect()
     const activeBtnTextBounds = activeBtnText?.getBoundingClientRect()
@@ -128,6 +128,6 @@ export class WuiTabs extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-tabs': WuiTabs
+    'cross-wui-tabs': WuiTabs
   }
 }

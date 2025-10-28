@@ -5,7 +5,7 @@ export default css`
     width: 100%;
   }
 
-  :host > wui-flex {
+  :host > cross-wui-flex {
     display: flex;
     flex-direction: row;
     justify-content: space-between;

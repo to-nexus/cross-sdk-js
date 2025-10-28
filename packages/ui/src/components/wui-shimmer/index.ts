@@ -8,7 +8,7 @@ import styles from './styles.js'
 // -- Type ---------------------------------------------- //
 type Variant = 'default' | 'light'
 
-@customElement('wui-shimmer')
+@customElement('cross-wui-shimmer')
 export class WuiShimmer extends LitElement {
   public static override styles = [styles]
 
@@ -35,6 +35,6 @@ export class WuiShimmer extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-shimmer': WuiShimmer
+    'cross-wui-shimmer': WuiShimmer
   }
 }

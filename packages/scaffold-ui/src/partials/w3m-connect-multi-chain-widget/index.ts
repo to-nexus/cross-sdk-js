@@ -40,10 +40,10 @@ export class W3mConnectMultiChainWidget extends LitElement {
     }
 
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <cross-wui-flex flexDirection="column" gap="xs">
         ${multiChainConnectors.map(
           connector => html`
-            <wui-list-wallet
+            <cross-wui-list-wallet
               imageSrc=${ifDefined(AssetUtil.getConnectorImage(connector))}
               .installed=${true}
               name=${connector.name ?? 'Unknown'}
@@ -53,10 +53,10 @@ export class W3mConnectMultiChainWidget extends LitElement {
               @click=${() => this.onConnector(connector)}
               tabIdx=${ifDefined(this.tabIdx)}
             >
-            </wui-list-wallet>
+            </cross-wui-list-wallet>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

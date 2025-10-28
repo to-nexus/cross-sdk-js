@@ -38,17 +38,17 @@ export class W3mWalletCompatibleNetworksView extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    return html` <wui-flex
+    return html` <cross-wui-flex
       flexDirection="column"
       .padding=${['xs', 's', 'm', 's'] as const}
       gap="xs"
     >
-      <wui-banner
+      <cross-wui-banner
         icon="warningCircle"
         text="You can only receive assets on these networks"
-      ></wui-banner>
+      ></cross-wui-banner>
       ${this.networkTemplate()}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //
@@ -76,12 +76,12 @@ export class W3mWalletCompatibleNetworksView extends LitElement {
 
     return sortedNetworks.map(
       network => html`
-        <wui-list-network
+        <cross-wui-list-network
           imageSrc=${ifDefined(AssetUtil.getNetworkImage(network))}
           name=${network.name ?? 'Unknown'}
           ?transparent=${true}
         >
-        </wui-list-network>
+        </cross-wui-list-network>
       `
     )
   }

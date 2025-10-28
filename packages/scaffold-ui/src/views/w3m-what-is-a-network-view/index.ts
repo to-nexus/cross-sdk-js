@@ -21,14 +21,14 @@ export class W3mWhatIsANetworkView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         .padding=${['xxl', 'xl', 'xl', 'xl'] as const}
         alignItems="center"
         gap="xl"
       >
         <cross-w3m-help-widget .data=${data}></cross-w3m-help-widget>
-        <wui-button
+        <cross-wui-button
           variant="main"
           size="md"
           @click=${() => {
@@ -36,9 +36,9 @@ export class W3mWhatIsANetworkView extends LitElement {
           }}
         >
           Learn more
-          <wui-icon color="inherit" slot="iconRight" name="externalLink"></wui-icon>
-        </wui-button>
-      </wui-flex>
+          <cross-wui-icon color="inherit" slot="iconRight" name="externalLink"></cross-wui-icon>
+        </cross-wui-button>
+      </cross-wui-flex>
     `
   }
 }

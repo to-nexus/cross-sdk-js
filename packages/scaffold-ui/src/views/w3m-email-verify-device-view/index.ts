@@ -38,42 +38,42 @@ export class W3mEmailVerifyDeviceView extends LitElement {
     }
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['xxl', 's', 'xxl', 's'] as const}
         gap="l"
       >
-        <wui-icon-box
+        <cross-wui-icon-box
           size="xl"
           iconcolor="accent-100"
           backgroundcolor="accent-100"
           icon="verify"
           background="opaque"
-        ></wui-icon-box>
+        ></cross-wui-icon-box>
 
-        <wui-flex flexDirection="column" alignItems="center" gap="s">
-          <wui-flex flexDirection="column" alignItems="center">
-            <wui-text variant="paragraph-400" color="fg-100">
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="s">
+          <cross-wui-flex flexDirection="column" alignItems="center">
+            <cross-wui-text variant="paragraph-400" color="fg-100">
               Approve the login link we sent to
-            </wui-text>
-            <wui-text variant="paragraph-400" color="fg-100"><b>${this.email}</b></wui-text>
-          </wui-flex>
+            </cross-wui-text>
+            <cross-wui-text variant="paragraph-400" color="fg-100"><b>${this.email}</b></cross-wui-text>
+          </cross-wui-flex>
 
-          <wui-text variant="small-400" color="fg-200" align="center">
+          <cross-wui-text variant="small-400" color="fg-200" align="center">
             The code expires in 20 minutes
-          </wui-text>
+          </cross-wui-text>
 
-          <wui-flex alignItems="center" id="w3m-resend-section" gap="xs">
-            <wui-text variant="small-400" color="fg-100" align="center">
+          <cross-wui-flex alignItems="center" id="w3m-resend-section" gap="xs">
+            <cross-wui-text variant="small-400" color="fg-100" align="center">
               Didn't receive it?
-            </wui-text>
-            <wui-link @click=${this.onResendCode.bind(this)} .disabled=${this.loading}>
+            </cross-wui-text>
+            <cross-wui-link @click=${this.onResendCode.bind(this)} .disabled=${this.loading}>
               Resend email
-            </wui-link>
-          </wui-flex>
-        </wui-flex>
-      </wui-flex>
+            </cross-wui-link>
+          </cross-wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 

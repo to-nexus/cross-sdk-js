@@ -9,7 +9,7 @@ import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-compatible-network')
+@customElement('cross-wui-compatible-network')
 export class WuiCompatibleNetwork extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -22,11 +22,11 @@ export class WuiCompatibleNetwork extends LitElement {
   public override render() {
     return html`
       <button>
-        <wui-text variant="small-400" color="fg-200">${this.text}</wui-text>
-        <wui-flex gap="3xs" alignItems="center">
+        <cross-wui-text variant="small-400" color="fg-200">${this.text}</cross-wui-text>
+        <cross-wui-flex gap="3xs" alignItems="center">
           ${this.networksTemplate()}
-          <wui-icon name="chevronRight" size="sm" color="fg-200"></wui-icon>
-        </wui-flex>
+          <cross-wui-icon name="chevronRight" size="sm" color="fg-200"></cross-wui-icon>
+        </cross-wui-flex>
       </button>
     `
   }
@@ -35,17 +35,17 @@ export class WuiCompatibleNetwork extends LitElement {
   private networksTemplate() {
     const slicedNetworks = this.networkImages.slice(0, 5)
 
-    return html` <wui-flex class="networks">
+    return html` <cross-wui-flex class="networks">
       ${slicedNetworks?.map(
         network =>
-          html` <wui-flex class="network-icon"> <wui-image src=${network}></wui-image> </wui-flex>`
+          html` <cross-wui-flex class="network-icon"> <cross-wui-image src=${network}></cross-wui-image> </cross-wui-flex>`
       )}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-compatible-network': WuiCompatibleNetwork
+    'cross-wui-compatible-network': WuiCompatibleNetwork
   }
 }

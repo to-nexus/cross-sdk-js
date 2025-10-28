@@ -12,7 +12,7 @@ import '../wui-avatar/index.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-account-button')
+@customElement('cross-wui-account-button')
 export class WuiAccountButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -45,13 +45,13 @@ export class WuiAccountButton extends LitElement {
         class=${ifDefined(this.balance ? undefined : 'local-no-balance')}
       >
         ${this.balanceTemplate()}
-        <wui-flex gap="xxs" alignItems="center">
-          <wui-avatar
+        <cross-wui-flex gap="xxs" alignItems="center">
+          <cross-wui-avatar
             .imageSrc=${this.avatarSrc}
             alt=${this.address}
             address=${this.address}
-          ></wui-avatar>
-          <wui-text variant="paragraph-600" color="inherit">
+          ></cross-wui-avatar>
+          <cross-wui-text variant="paragraph-600" color="inherit">
             ${this.address
               ? UiHelperUtil.getTruncateString({
                   string: this.profileName || this.address,
@@ -60,8 +60,8 @@ export class WuiAccountButton extends LitElement {
                   truncate: this.profileName ? 'end' : 'middle'
                 })
               : null}
-          </wui-text>
-        </wui-flex>
+          </cross-wui-text>
+        </cross-wui-flex>
       </button>
     `
   }
@@ -69,29 +69,29 @@ export class WuiAccountButton extends LitElement {
   // -- Private ------------------------------------------- //
   private balanceTemplate() {
     if (this.isUnsupportedChain) {
-      return html` <wui-icon-box
+      return html` <cross-wui-icon-box
           size="sm"
           iconColor="error-100"
           backgroundColor="error-100"
           icon="warningCircle"
-        ></wui-icon-box>
-        <wui-text variant="paragraph-600" color="inherit"> Switch Network</wui-text>`
+        ></cross-wui-icon-box>
+        <cross-wui-text variant="paragraph-600" color="inherit"> Switch Network</cross-wui-text>`
     }
     if (this.balance) {
       const networkElement = this.networkSrc
-        ? html`<wui-image src=${this.networkSrc}></wui-image>`
+        ? html`<cross-wui-image src=${this.networkSrc}></cross-wui-image>`
         : html`
-            <wui-icon-box
+            <cross-wui-icon-box
               size="sm"
               iconColor="fg-200"
               backgroundColor="fg-300"
               icon="networkPlaceholder"
-            ></wui-icon-box>
+            ></cross-wui-icon-box>
           `
 
       const balanceTemplate = this.loading
-        ? html`<wui-loading-spinner size="md" color="fg-200"></wui-loading-spinner>`
-        : html`<wui-text variant="paragraph-600" color="inherit"> ${this.balance}</wui-text>`
+        ? html`<cross-wui-loading-spinner size="md" color="fg-200"></cross-wui-loading-spinner>`
+        : html`<cross-wui-text variant="paragraph-600" color="inherit"> ${this.balance}</cross-wui-text>`
 
       return html`${networkElement} ${balanceTemplate}`
     }
@@ -102,6 +102,6 @@ export class WuiAccountButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-account-button': WuiAccountButton
+    'cross-wui-account-button': WuiAccountButton
   }
 }

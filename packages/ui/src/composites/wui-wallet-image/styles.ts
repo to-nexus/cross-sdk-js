@@ -13,7 +13,7 @@ export default css`
     border-radius: var(--local-border-radius);
   }
 
-  :host > wui-flex {
+  :host > cross-wui-flex {
     overflow: hidden;
     border-radius: inherit;
     border-radius: var(--local-border-radius);
@@ -69,7 +69,7 @@ export default css`
     height: 100%;
   }
 
-  :host > wui-icon-box {
+  :host > cross-wui-icon-box {
     position: absolute;
     overflow: hidden;
     right: -1px;

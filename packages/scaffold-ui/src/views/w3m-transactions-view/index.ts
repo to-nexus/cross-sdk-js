@@ -11,9 +11,9 @@ export class W3mTransactionsView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" .padding=${['0', 'm', 'm', 'm']} gap="s">
+      <cross-wui-flex flexDirection="column" .padding=${['0', 'm', 'm', 'm']} gap="s">
         <cross-w3m-activity-list page="activity"></cross-w3m-activity-list>
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 }

@@ -50,13 +50,13 @@ export class W3mEmailLoginWidget extends LitElement {
   public override render() {
     return html`
       <form ${ref(this.formRef)} @submit=${this.onSubmitEmail.bind(this)}>
-        <wui-email-input
+        <cross-wui-email-input
           @focus=${this.onFocusEvent.bind(this)}
           .disabled=${this.loading}
           @inputChange=${this.onEmailInputChange.bind(this)}
           tabIdx=${ifDefined(this.tabIdx)}
         >
-        </wui-email-input>
+        </cross-wui-email-input>
 
         ${this.submitButtonTemplate()}${this.loadingTemplate()}
         <input type="submit" hidden />
@@ -71,26 +71,26 @@ export class W3mEmailLoginWidget extends LitElement {
 
     return showSubmit
       ? html`
-          <wui-icon-link
+          <cross-wui-icon-link
             size="sm"
             icon="chevronRight"
             iconcolor="accent-100"
             @click=${this.onSubmitEmail.bind(this)}
           >
-          </wui-icon-link>
+          </cross-wui-icon-link>
         `
       : null
   }
 
   private loadingTemplate() {
     return this.loading
-      ? html`<wui-loading-spinner size="md" color="accent-100"></wui-loading-spinner>`
+      ? html`<cross-wui-loading-spinner size="md" color="accent-100"></cross-wui-loading-spinner>`
       : null
   }
 
   private templateError() {
     if (this.error) {
-      return html`<wui-text variant="tiny-500" color="error-100">${this.error}</wui-text>`
+      return html`<cross-wui-text variant="tiny-500" color="error-100">${this.error}</cross-wui-text>`
     }
 
     return null

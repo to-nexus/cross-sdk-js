@@ -12,12 +12,12 @@ export class W3mWalletLoginList extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <cross-wui-flex flexDirection="column" gap="xs">
         <cross-w3m-connector-list tabIdx=${ifDefined(this.tabIdx)}></cross-w3m-connector-list>
         <cross-w3m-all-wallets-widget
           tabIdx=${ifDefined(this.tabIdx)}
         ></cross-w3m-all-wallets-widget>
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 }

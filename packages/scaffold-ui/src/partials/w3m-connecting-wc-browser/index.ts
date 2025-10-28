@@ -144,41 +144,41 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
     const chromeStoreUrl = this.wallet?.chrome_store
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" alignItems="center">
-          <wui-wallet-image size="lg" imageSrc=${this.wallet?.image_url || ''}></wui-wallet-image>
-        </wui-flex>
+        <cross-wui-flex justifyContent="center" alignItems="center">
+          <cross-wui-wallet-image size="lg" imageSrc=${this.wallet?.image_url || ''}></cross-wui-wallet-image>
+        </cross-wui-flex>
 
-        <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <wui-text variant="paragraph-500" color="fg-100"> Cross Wallet not installed </wui-text>
-          <wui-text align="center" variant="small-500" color="fg-200">
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+          <cross-wui-text variant="paragraph-500" color="fg-100"> Cross Wallet not installed </cross-wui-text>
+          <cross-wui-text align="center" variant="small-500" color="fg-200">
             Install Cross Wallet to continue with browser connection
-          </wui-text>
-        </wui-flex>
+          </cross-wui-text>
+        </cross-wui-flex>
 
         ${isChrome && chromeStoreUrl
           ? html`
-              <wui-button
+              <cross-wui-button
                 variant="accent"
                 size="md"
                 @click=${() => this.openChromeStore()}
                 data-testid="cross-w3m-install-wallet-button"
               >
-                <wui-icon color="inherit" slot="iconLeft" name="externalLink"></wui-icon>
+                <cross-wui-icon color="inherit" slot="iconLeft" name="externalLink"></cross-wui-icon>
                 Install from Chrome Store
-              </wui-button>
+              </cross-wui-button>
             `
           : html`
-              <wui-text align="center" variant="small-500" color="fg-200">
+              <cross-wui-text align="center" variant="small-500" color="fg-200">
                 Please install Cross Wallet extension for your browser
-              </wui-text>
+              </cross-wui-text>
             `}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

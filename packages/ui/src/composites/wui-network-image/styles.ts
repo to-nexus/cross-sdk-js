@@ -31,7 +31,7 @@ export default css`
     stroke: var(--local-stroke);
   }
 
-  wui-image {
+  cross-wui-image {
     width: 100%;
     height: 100%;
     -webkit-clip-path: var(--local-path);
@@ -39,7 +39,7 @@ export default css`
     background: var(--wui-color-gray-glass-002);
   }
 
-  wui-icon {
+  cross-wui-icon {
     transform: translateY(-5%);
     width: var(--local-icon-size);
     height: var(--local-icon-size);

@@ -58,9 +58,9 @@ export class W3mOnRampActivityView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" .padding=${['0', 's', 's', 's']} gap="xs">
+      <cross-wui-flex flexDirection="column" .padding=${['0', 's', 's', 's']} gap="xs">
         ${this.loading ? this.templateLoading() : this.templateTransactionsByYear()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -113,18 +113,18 @@ export class W3mOnRampActivityView extends LitElement {
         }
 
         return html`
-          <wui-flex flexDirection="column">
-            <wui-flex
+          <cross-wui-flex flexDirection="column">
+            <cross-wui-flex
               alignItems="center"
               flexDirection="row"
               .padding=${['xs', 's', 's', 's'] as const}
             >
-              <wui-text variant="paragraph-500" color="fg-200">${groupTitle}</wui-text>
-            </wui-flex>
-            <wui-flex flexDirection="column" gap="xs">
+              <cross-wui-text variant="paragraph-500" color="fg-200">${groupTitle}</cross-wui-text>
+            </cross-wui-flex>
+            <cross-wui-flex flexDirection="column" gap="xs">
               ${this.templateTransactions(transactions)}
-            </wui-flex>
-          </wui-flex>
+            </cross-wui-flex>
+          </cross-wui-flex>
         `
       })
     })
@@ -182,7 +182,7 @@ export class W3mOnRampActivityView extends LitElement {
 
   private templateLoading() {
     return Array(LOADING_ITEM_COUNT)
-      .fill(html` <wui-transaction-list-item-loader></wui-transaction-list-item-loader> `)
+      .fill(html` <cross-wui-transaction-list-item-loader></cross-wui-transaction-list-item-loader> `)
       .map(item => item)
   }
 }

@@ -45,13 +45,13 @@ export default css`
     background-color: var(--wui-color-blue-base-90);
   }
 
-  label > span > wui-icon {
+  label > span > cross-wui-icon {
     opacity: 0;
     transition: opacity var(--wui-ease-out-power-1) var(--wui-duration-lg);
     will-change: opacity;
   }
 
-  label > input[type='checkbox']:checked + span wui-icon {
+  label > input[type='checkbox']:checked + span cross-wui-icon {
     opacity: 1;
   }
 `

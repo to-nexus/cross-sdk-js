@@ -256,10 +256,10 @@ export class W3mConnectingWcMiniView extends LitElement {
 
     return html`
       <div class="platform-indicator">
-        <wui-text variant="small-400" color="fg-200">
+        <cross-wui-text variant="small-400" color="fg-200">
           ${platformLabels[this.platform!] || 'Unknown'}
           (${currentIndex + 1}/${this.platforms.length})
-        </wui-text>
+        </cross-wui-text>
       </div>
     `
   }

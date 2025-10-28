@@ -30,7 +30,7 @@ export default css`
   }
 
   input:disabled::placeholder,
-  input:disabled + wui-icon {
+  input:disabled + cross-wui-icon {
     color: var(--wui-color-fg-300);
   }
 
@@ -55,18 +55,18 @@ export default css`
     background-color: var(--wui-color-gray-glass-005);
   }
 
-  wui-icon {
+  cross-wui-icon {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
   }
 
-  .wui-size-sm {
+  .cross-wui-size-sm {
     padding: 9px var(--wui-spacing-m) 10px var(--wui-spacing-s);
   }
 
-  wui-icon + .wui-size-sm {
+  wui-icon + .cross-wui-size-sm {
     padding: 9px var(--wui-spacing-m) 10px 36px;
   }
 
@@ -74,12 +74,12 @@ export default css`
     left: var(--wui-spacing-s);
   }
 
-  .wui-size-md {
+  .cross-wui-size-md {
     padding: 15px var(--wui-spacing-m) var(--wui-spacing-l) var(--wui-spacing-m);
   }
 
-  wui-icon + .wui-size-md,
-  wui-loading-spinner + .wui-size-md {
+  wui-icon + .cross-wui-size-md,
+  wui-loading-spinner + .cross-wui-size-md {
     padding: 10.5px var(--wui-spacing-3xl) 10.5px var(--wui-spacing-3xl);
   }
 
@@ -87,7 +87,7 @@ export default css`
     left: var(--wui-spacing-l);
   }
 
-  .wui-size-lg {
+  .cross-wui-size-lg {
     padding: var(--wui-spacing-s) var(--wui-spacing-s) var(--wui-spacing-s) var(--wui-spacing-l);
     letter-spacing: var(--wui-letter-spacing-medium-title);
     font-size: var(--wui-font-size-medium-title);
@@ -97,23 +97,23 @@ export default css`
     height: 64px;
   }
 
-  .wui-padding-right-xs {
+  .cross-wui-padding-right-xs {
     padding-right: var(--wui-spacing-xs);
   }
 
-  .wui-padding-right-s {
+  .cross-wui-padding-right-s {
     padding-right: var(--wui-spacing-s);
   }
 
-  .wui-padding-right-m {
+  .cross-wui-padding-right-m {
     padding-right: var(--wui-spacing-m);
   }
 
-  .wui-padding-right-l {
+  .cross-wui-padding-right-l {
     padding-right: var(--wui-spacing-l);
   }
 
-  .wui-padding-right-xl {
+  .cross-wui-padding-right-xl {
     padding-right: var(--wui-spacing-xl);
   }
 
@@ -133,8 +133,8 @@ export default css`
     padding-right: var(--wui-spacing-5xl);
   }
 
-  wui-icon + .wui-size-lg,
-  wui-loading-spinner + .wui-size-lg {
+  wui-icon + .cross-wui-size-lg,
+  wui-loading-spinner + .cross-wui-size-lg {
     padding-left: 50px;
   }
 
@@ -142,11 +142,11 @@ export default css`
     left: var(--wui-spacing-l);
   }
 
-  .wui-size-mdl {
+  .cross-wui-size-mdl {
     padding: 17.25px var(--wui-spacing-m) 17.25px var(--wui-spacing-m);
   }
-  wui-icon + .wui-size-mdl,
-  wui-loading-spinner + .wui-size-mdl {
+  wui-icon + .cross-wui-size-mdl,
+  wui-loading-spinner + .cross-wui-size-mdl {
     padding: 17.25px var(--wui-spacing-3xl) 17.25px 40px;
   }
   wui-icon[data-input='mdl'] {

@@ -137,28 +137,32 @@ export enum EnvMode {
 function getEnv(): string {
   // ✅ Vite 환경 (import.meta.env.MODE 사용)
   if (import.meta?.env?.['VITE_ENV_MODE']) {
-    // console.log('getEnv(), import.meta.env', import.meta.env)
-    // console.log('getEnv(), import.meta.env.VITE_ENV_MODE', import.meta.env['VITE_ENV_MODE'])
+    /*
+     * Console.log('getEnv(), import.meta.env', import.meta.env)
+     * console.log('getEnv(), import.meta.env.VITE_ENV_MODE', import.meta.env['VITE_ENV_MODE'])
+     */
 
     return import.meta.env['VITE_ENV_MODE']
   }
 
   // ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
   if (process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
-    // console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env['NEXT_PUBLIC_ENV_MODE'])
+    // Console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env['NEXT_PUBLIC_ENV_MODE'])
 
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
   // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
   if (process?.env?.['NODE_ENV']) {
-    // console.log('getEnv(), process.env.NODE_ENV', process.env['NODE_ENV'])
+    // Console.log('getEnv(), process.env.NODE_ENV', process.env['NODE_ENV'])
 
     return process.env['NODE_ENV']
   }
 
-  // ✅ 브라우저에서 직접 주입된 환경 변수 (globalThis 사용)
-  // console.log('getEnv(), development')
+  /*
+   * ✅ 브라우저에서 직접 주입된 환경 변수 (globalThis 사용)
+   * console.log('getEnv(), development')
+   */
 
   return 'production'
 }
@@ -1846,7 +1850,7 @@ export class AppKit {
         this.setStatus('disconnected', chainNamespace)
       } else if (sessionNamespaces.length === 0) {
         this.setStatus('disconnected', chainNamespace)
-        // console.log('Got ya! 😏 namespaces empty')
+        // Console.log('Got ya! 😏 namespaces empty')
       } else {
         console.log(
           `Got ya! 😏 namespaces not empty: ${JSON.stringify(sessionNamespaces)} and chainNamespace: ${chainNamespace}`

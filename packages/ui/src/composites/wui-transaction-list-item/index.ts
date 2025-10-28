@@ -15,7 +15,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-transaction-visual/index.js'
 import styles from './styles.js'
 
-@customElement('wui-transaction-list-item')
+@customElement('cross-wui-transaction-list-item')
 export class WuiTransactionListItem extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -43,24 +43,24 @@ export class WuiTransactionListItem extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex>
-        <wui-transaction-visual
+      <cross-wui-flex>
+        <cross-wui-transaction-visual
           .status=${this.status}
           direction=${ifDefined(this.direction)}
           type=${this.type}
           onlyDirectionIcon=${ifDefined(this.onlyDirectionIcon)}
           .images=${this.images}
-        ></wui-transaction-visual>
-        <wui-flex flexDirection="column" gap="3xs">
-          <wui-text variant="paragraph-600" color="fg-100">
+        ></cross-wui-transaction-visual>
+        <cross-wui-flex flexDirection="column" gap="3xs">
+          <cross-wui-text variant="paragraph-600" color="fg-100">
             ${TransactionTypePastTense[this.type] || this.type}
-          </wui-text>
-          <wui-flex class="description-container">
+          </cross-wui-text>
+          <cross-wui-flex class="description-container">
             ${this.templateDescription()} ${this.templateSecondDescription()}
-          </wui-flex>
-        </wui-flex>
-        <wui-text variant="micro-700" color="fg-300"><span>${this.date}</span></wui-text>
-      </wui-flex>
+          </cross-wui-flex>
+        </cross-wui-flex>
+        <cross-wui-text variant="micro-700" color="fg-300"><span>${this.date}</span></cross-wui-text>
+      </cross-wui-flex>
     `
   }
 
@@ -70,9 +70,9 @@ export class WuiTransactionListItem extends LitElement {
 
     return description
       ? html`
-          <wui-text variant="small-500" color="fg-200">
+          <cross-wui-text variant="small-500" color="fg-200">
             <span>${description}</span>
-          </wui-text>
+          </cross-wui-text>
         `
       : null
   }
@@ -82,10 +82,10 @@ export class WuiTransactionListItem extends LitElement {
 
     return description
       ? html`
-          <wui-icon class="description-separator-icon" size="xxs" name="arrowRight"></wui-icon>
-          <wui-text variant="small-400" color="fg-200">
+          <cross-wui-icon class="description-separator-icon" size="xxs" name="arrowRight"></cross-wui-icon>
+          <cross-wui-text variant="small-400" color="fg-200">
             <span>${description}</span>
-          </wui-text>
+          </cross-wui-text>
         `
       : null
   }
@@ -93,6 +93,6 @@ export class WuiTransactionListItem extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-transaction-list-item': WuiTransactionListItem
+    'cross-wui-transaction-list-item': WuiTransactionListItem
   }
 }

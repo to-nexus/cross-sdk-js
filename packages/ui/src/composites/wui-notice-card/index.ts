@@ -10,7 +10,7 @@ import type { IconType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-notice-card')
+@customElement('cross-wui-notice-card')
 export class WuiNoticeCard extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -25,22 +25,22 @@ export class WuiNoticeCard extends LitElement {
   public override render() {
     return html`
       <button>
-        <wui-flex gap="m" alignItems="center" justifyContent="space-between">
-          <wui-icon-box
+        <cross-wui-flex gap="m" alignItems="center" justifyContent="space-between">
+          <cross-wui-icon-box
             size="lg"
             iconcolor="accent-100"
             backgroundcolor="accent-100"
             icon=${this.icon}
             background="transparent"
-          ></wui-icon-box>
+          ></cross-wui-icon-box>
 
-          <wui-flex flexDirection="column" gap="3xs">
-            <wui-text variant="paragraph-500" color="fg-100">${this.label}</wui-text>
-            <wui-text variant="small-400" color="fg-200">${this.description}</wui-text>
-          </wui-flex>
+          <cross-wui-flex flexDirection="column" gap="3xs">
+            <cross-wui-text variant="paragraph-500" color="fg-100">${this.label}</cross-wui-text>
+            <cross-wui-text variant="small-400" color="fg-200">${this.description}</cross-wui-text>
+          </cross-wui-flex>
 
-          <wui-icon size="md" color="fg-200" name="chevronRight"></wui-icon>
-        </wui-flex>
+          <cross-wui-icon size="md" color="fg-200" name="chevronRight"></cross-wui-icon>
+        </cross-wui-flex>
       </button>
     `
   }
@@ -48,6 +48,6 @@ export class WuiNoticeCard extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-notice-card': WuiNoticeCard
+    'cross-wui-notice-card': WuiNoticeCard
   }
 }

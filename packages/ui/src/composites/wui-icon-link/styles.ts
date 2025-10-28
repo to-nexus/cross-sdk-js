@@ -13,11 +13,11 @@ export default css`
     }
   }
 
-  button > wui-icon {
+  button > cross-wui-icon {
     pointer-events: none;
   }
 
-  button:disabled > wui-icon {
+  button:disabled > cross-wui-icon {
     color: var(--wui-color-bg-300) !important;
   }
 

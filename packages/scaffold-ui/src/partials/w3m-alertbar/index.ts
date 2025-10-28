@@ -61,12 +61,12 @@ export class W3mAlertBar extends LitElement {
     const preset = presets[variant as keyof typeof presets]
 
     return html`
-      <wui-alertbar
+      <cross-wui-alertbar
         message=${message}
         backgroundColor=${preset?.backgroundColor}
         iconColor=${preset?.iconColor}
         icon=${preset?.icon}
-      ></wui-alertbar>
+      ></cross-wui-alertbar>
     `
   }
 

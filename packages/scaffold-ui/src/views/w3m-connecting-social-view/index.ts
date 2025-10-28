@@ -75,17 +75,17 @@ export class W3mConnectingSocialView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         data-error=${ifDefined(this.error)}
         flexDirection="column"
         alignItems="center"
         .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" alignItems="center">
-          <wui-logo logo=${ifDefined(this.socialProvider)}></wui-logo>
+        <cross-wui-flex justifyContent="center" alignItems="center">
+          <cross-wui-logo logo=${ifDefined(this.socialProvider)}></cross-wui-logo>
           ${this.error ? null : this.loaderTemplate()}
-          <wui-icon-box
+          <cross-wui-icon-box
             backgroundColor="error-100"
             background="opaque"
             iconColor="error-100"
@@ -93,18 +93,18 @@ export class W3mConnectingSocialView extends LitElement {
             size="sm"
             border
             borderColor="wui-color-bg-125"
-          ></wui-icon-box>
-        </wui-flex>
-        <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <wui-text align="center" variant="paragraph-500" color="fg-100"
+          ></cross-wui-icon-box>
+        </cross-wui-flex>
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+          <cross-wui-text align="center" variant="paragraph-500" color="fg-100"
             >Log in with
             <span class="capitalize">${this.socialProvider ?? 'Social'}</span></wui-text
           >
-          <wui-text align="center" variant="small-400" color=${this.error ? 'error-100' : 'fg-200'}
+          <cross-wui-text align="center" variant="small-400" color=${this.error ? 'error-100' : 'fg-200'}
             >${this.message}</wui-text
           ></wui-flex
         >
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -113,7 +113,7 @@ export class W3mConnectingSocialView extends LitElement {
     const borderRadiusMaster = ThemeController.state.themeVariables['--w3m-border-radius-master']
     const radius = borderRadiusMaster ? parseInt(borderRadiusMaster.replace('px', ''), 10) : 4
 
-    return html`<wui-loading-thumbnail radius=${radius * 9}></wui-loading-thumbnail>`
+    return html`<cross-wui-loading-thumbnail radius=${radius * 9}></cross-wui-loading-thumbnail>`
   }
 
   private handleSocialConnection = async (event: MessageEvent) => {

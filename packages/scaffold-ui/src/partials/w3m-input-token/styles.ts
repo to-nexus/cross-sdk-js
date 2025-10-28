@@ -15,18 +15,18 @@ export default css`
     background-color: var(--wui-color-gray-glass-005);
   }
 
-  wui-flex {
+  cross-wui-flex {
     width: 100%;
     height: fit-content;
   }
 
-  wui-button {
+  cross-wui-button {
     width: 100%;
     display: flex;
     justify-content: flex-end;
   }
 
-  wui-input-amount {
+  cross-wui-input-amount {
     mask-image: linear-gradient(
       270deg,
       transparent 0px,

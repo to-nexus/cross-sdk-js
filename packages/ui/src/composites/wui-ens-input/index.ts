@@ -11,7 +11,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-input-text/index.js'
 import styles from './styles.js'
 
-@customElement('wui-ens-input')
+@customElement('cross-wui-ens-input')
 export class WuiEnsInput extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -27,7 +27,7 @@ export class WuiEnsInput extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-input-text
+      <cross-wui-input-text
         value=${ifDefined(this.value)}
         ?disabled=${this.disabled}
         .value=${this.value || ''}
@@ -35,26 +35,26 @@ export class WuiEnsInput extends LitElement {
         inputRightPadding="5xl"
       >
         ${this.baseNameTemplate()} ${this.errorTemplate()}${this.loadingTemplate()}
-      </wui-input-text>
+      </cross-wui-input-text>
     `
   }
 
   // -- Private ------------------------------------------- //
   private baseNameTemplate() {
-    return html`<wui-text variant="paragraph-400" color="fg-200" class="base-name">
+    return html`<cross-wui-text variant="paragraph-400" color="fg-200" class="base-name">
       ${ConstantsUtil.WC_NAME_SUFFIX}
-    </wui-text>`
+    </cross-wui-text>`
   }
 
   private loadingTemplate() {
     return this.loading
-      ? html`<wui-loading-spinner size="md" color="accent-100"></wui-loading-spinner>`
+      ? html`<cross-wui-loading-spinner size="md" color="accent-100"></cross-wui-loading-spinner>`
       : null
   }
 
   private errorTemplate() {
     if (this.errorMessage) {
-      return html`<wui-text variant="tiny-500" color="error-100" class="error"
+      return html`<cross-wui-text variant="tiny-500" color="error-100" class="error"
         >${this.errorMessage}</wui-text
       >`
     }
@@ -65,6 +65,6 @@ export class WuiEnsInput extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-ens-input': WuiEnsInput
+    'cross-wui-ens-input': WuiEnsInput
   }
 }

@@ -23,11 +23,11 @@ export default css`
     position: relative;
   }
 
-  wui-loading-thumbnail {
+  cross-wui-loading-thumbnail {
     position: absolute;
   }
 
-  wui-icon-box {
+  cross-wui-icon-box {
     position: absolute;
     right: calc(var(--wui-spacing-3xs) * -1);
     bottom: calc(var(--wui-spacing-3xs) * -1);
@@ -44,7 +44,7 @@ export default css`
     padding: 0px var(--wui-spacing-l);
   }
 
-  [data-error='true'] wui-icon-box {
+  [data-error='true'] cross-wui-icon-box {
     opacity: 1;
     transform: scale(1);
   }
@@ -53,11 +53,11 @@ export default css`
     animation: shake 250ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   }
 
-  [data-retry='false'] wui-link {
+  [data-retry='false'] cross-wui-link {
     display: none;
   }
 
-  [data-retry='true'] wui-link {
+  [data-retry='true'] cross-wui-link {
     display: block;
     opacity: 1;
   }

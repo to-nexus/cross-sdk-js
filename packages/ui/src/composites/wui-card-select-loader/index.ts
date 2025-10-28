@@ -8,7 +8,7 @@ import type { CardSelectType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-card-select-loader')
+@customElement('cross-wui-card-select-loader')
 export class WuiCardSelectLoader extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -19,27 +19,27 @@ export class WuiCardSelectLoader extends LitElement {
   public override render() {
     return html`
       ${this.shimmerTemplate()}
-      <wui-shimmer width="56px" height="20px" borderRadius="xs"></wui-shimmer>
+      <cross-wui-shimmer width="56px" height="20px" borderRadius="xs"></cross-wui-shimmer>
     `
   }
 
   private shimmerTemplate() {
     if (this.type === 'network') {
-      return html` <wui-shimmer
+      return html` <cross-wui-shimmer
           data-type=${this.type}
           width="48px"
           height="54px"
           borderRadius="xs"
-        ></wui-shimmer>
+        ></cross-wui-shimmer>
         ${networkSvgMd}`
     }
 
-    return html`<wui-shimmer width="56px" height="56px" borderRadius="xs"></wui-shimmer>`
+    return html`<cross-wui-shimmer width="56px" height="56px" borderRadius="xs"></cross-wui-shimmer>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-card-select-loader': WuiCardSelectLoader
+    'cross-wui-card-select-loader': WuiCardSelectLoader
   }
 }

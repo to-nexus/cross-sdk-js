@@ -102,9 +102,12 @@ export class W3mModal extends LitElement {
 
     return this.open
       ? html`
-          <wui-flex @click=${this.onOverlayClick.bind(this)} data-testid="cross-w3m-modal-overlay">
+          <cross-wui-flex
+            @click=${this.onOverlayClick.bind(this)}
+            data-testid="cross-w3m-modal-overlay"
+          >
             ${this.contentTemplate()}
-          </wui-flex>
+          </cross-wui-flex>
           <cross-w3m-tooltip></cross-w3m-tooltip>
         `
       : null
@@ -114,7 +117,7 @@ export class W3mModal extends LitElement {
   private contentTemplate() {
     const isMiniWindow = CoreHelperUtil.isMiniWindow()
 
-    return html` <wui-card
+    return html` <cross-wui-card
       shake="${this.shake}"
       data-embedded="${ifDefined(this.enableEmbedded)}"
       role="alertdialog"
@@ -126,7 +129,7 @@ export class W3mModal extends LitElement {
       <cross-w3m-router></cross-w3m-router>
       <cross-w3m-snackbar></cross-w3m-snackbar>
       <cross-w3m-alertbar></cross-w3m-alertbar>
-    </wui-card>`
+    </cross-wui-card>`
   }
 
   private async onOverlayClick(event: PointerEvent) {
@@ -191,7 +194,7 @@ export class W3mModal extends LitElement {
 
   private onAddKeyboardListener() {
     this.abortController = new AbortController()
-    const card = this.shadowRoot?.querySelector('wui-card')
+    const card = this.shadowRoot?.querySelector('cross-wui-card') as HTMLElement | undefined
     card?.focus()
     window.addEventListener(
       'keydown',
@@ -200,7 +203,7 @@ export class W3mModal extends LitElement {
           this.handleClose()
         } else if (event.key === 'Tab') {
           const { tagName } = event.target as HTMLElement
-          if (tagName && !tagName.includes('W3M-') && !tagName.includes('WUI-')) {
+          if (tagName && !tagName.includes('W3M-') && !tagName.includes('CROSS-WUI-')) {
             card?.focus()
           }
         }

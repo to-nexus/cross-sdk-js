@@ -12,7 +12,7 @@ export default css`
     overflow: hidden;
   }
 
-  wui-icon {
+  cross-wui-icon {
     width: 100%;
     height: 100%;
   }

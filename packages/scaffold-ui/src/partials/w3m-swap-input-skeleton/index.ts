@@ -16,8 +16,8 @@ export class W3mSwapInputSkeleton extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex class justifyContent="space-between">
-        <wui-flex
+      <cross-wui-flex class justifyContent="space-between">
+        <cross-wui-flex
           flex="1"
           flexDirection="column"
           alignItems="flex-start"
@@ -25,25 +25,25 @@ export class W3mSwapInputSkeleton extends LitElement {
           class="swap-input"
           gap="xxs"
         >
-          <wui-shimmer width="80px" height="40px" borderRadius="xxs" variant="light"></wui-shimmer>
-        </wui-flex>
+          <cross-wui-shimmer width="80px" height="40px" borderRadius="xxs" variant="light"></cross-wui-shimmer>
+        </cross-wui-flex>
         ${this.templateTokenSelectButton()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
   // -- Private ------------------------------------------- //
   private templateTokenSelectButton() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         class="swap-token-button"
         flexDirection="column"
         alignItems="flex-end"
         justifyContent="center"
         gap="xxs"
       >
-        <wui-shimmer width="80px" height="40px" borderRadius="3xl" variant="light"></wui-shimmer>
-      </wui-flex>
+        <cross-wui-shimmer width="80px" height="40px" borderRadius="3xl" variant="light"></cross-wui-shimmer>
+      </cross-wui-flex>
     `
   }
 }

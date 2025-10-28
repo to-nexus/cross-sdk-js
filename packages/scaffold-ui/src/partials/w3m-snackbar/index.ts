@@ -57,13 +57,13 @@ export class W3mSnackBar extends LitElement {
     const { icon, iconColor } = svg ?? preset ?? {}
 
     return html`
-      <wui-snackbar
+      <cross-wui-snackbar
         message=${message}
         backgroundColor=${preset?.backgroundColor}
         iconColor=${iconColor}
         icon=${icon}
         .loading=${variant === 'loading'}
-      ></wui-snackbar>
+      ></cross-wui-snackbar>
     `
   }
 

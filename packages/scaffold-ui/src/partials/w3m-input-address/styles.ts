@@ -16,12 +16,12 @@ export default css`
     background-color: var(--wui-color-gray-glass-005);
   }
 
-  wui-flex {
+  cross-wui-flex {
     width: 100%;
     height: fit-content;
   }
 
-  wui-button {
+  cross-wui-button {
     display: ruby;
     color: var(--wui-color-fg-100);
     margin: 0 var(--wui-spacing-xs);

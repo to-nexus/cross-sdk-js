@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { WagmiAdapter } from '@to-nexus/appkit-adapter-wagmi'
 import {
   AccountController,
   ConnectionController,
@@ -26,6 +25,8 @@ import {
 } from '@to-nexus/sdk/react'
 import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
+
+import { useAppKitWallet as useMetaMaskAppKitWallet } from '@reown/appkit-wallet-button/react'
 
 import { sampleEIP712 } from '../contracts/sample-eip712'
 import { sampleErc20ABI } from '../contracts/sample-erc20'
@@ -155,6 +156,7 @@ export function ActionButtonList() {
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
   const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
     useAppKitWallet()
+  const { connect: connectMetaMask } = useMetaMaskAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
@@ -399,6 +401,56 @@ export function ActionButtonList() {
   // used for connecting CROSS wallet directly
   function handleConnectWallet() {
     connect('cross_wallet')
+  }
+
+  // MetaMask QR Code 모달 직접 열기 (WalletConnect via Reown)
+  function handleConnectMetaMaskQRCode() {
+    connectMetaMask('metamask')
+  }
+
+  // MetaMask Extension 직접 연결
+  async function handleConnectMetaMaskExtension() {
+    try {
+      setIsLoading(true)
+
+      // MetaMask가 설치되어 있는지 확인
+      if (typeof window.ethereum === 'undefined') {
+        showError(
+          'MetaMask 미설치',
+          'MetaMask가 설치되어 있지 않습니다. MetaMask를 먼저 설치해주세요.'
+        )
+        return
+      }
+
+      // MetaMask 연결 요청 (타입 안전하게 처리)
+      const ethereum = window.ethereum as any
+      const accounts = await ethereum['request']({
+        method: 'eth_requestAccounts'
+      })
+
+      if (accounts && accounts.length > 0) {
+        showSuccess(
+          'MetaMask 연결 성공!',
+          `Connected to: ${accounts[0]}\n\nMetaMask가 성공적으로 연결되었습니다.`
+        )
+      }
+    } catch (error) {
+      console.error('MetaMask 연결 실패:', error)
+
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const isUserRejection =
+        errorMessage.includes('User rejected') ||
+        errorMessage.includes('User denied') ||
+        errorMessage.includes('rejected')
+
+      if (isUserRejection) {
+        showError('연결 취소됨', '사용자가 MetaMask 연결을 취소했습니다.')
+      } else {
+        showError('MetaMask 연결 실패', `오류: ${errorMessage}`)
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Cross Extension Wallet 직접 연결
@@ -1124,8 +1176,30 @@ Check console for full details.`
         {/* 연결되지 않은 경우에만 연결 버튼들 표시 */}
         {!account?.isConnected && (
           <>
-            <button onClick={handleConnect}>Connect</button>
-            <button onClick={handleConnectWallet}>Connect CROSSx</button>
+            <button
+              onClick={handleConnectMetaMaskQRCode}
+              style={{
+                backgroundColor: '#F6851B',
+                color: 'white',
+                cursor: 'pointer'
+              }}
+            >
+              Connect MetaMask (QR Code)
+            </button>
+            <button
+              onClick={handleConnectMetaMaskExtension}
+              disabled={isLoading}
+              style={{
+                backgroundColor: '#F6851B',
+                color: 'white',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                opacity: isLoading ? 0.6 : 1
+              }}
+            >
+              {isLoading ? 'Connecting...' : 'Connect MetaMask Extension'}
+            </button>
+            <button onClick={handleConnect}>Connect CROSSx</button>
+            <button onClick={handleConnectWallet}>Connect CROSSx (QR Code)</button>
             <button
               onClick={handleConnectCrossExtension}
               disabled={!isCrossExtensionInstalled || isLoading}

@@ -13,7 +13,7 @@ import '../wui-tag/index.js'
 import '../wui-wallet-image/index.js'
 import styles from './styles.js'
 
-@customElement('wui-list-wallet')
+@customElement('cross-wui-list-wallet')
 export class WuiListWallet extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -47,7 +47,7 @@ export class WuiListWallet extends LitElement {
     return html`
       <button ?disabled=${this.disabled} tabindex=${ifDefined(this.tabIdx)}>
         ${this.templateAllWallets()} ${this.templateWalletImage()}
-        <wui-text variant="paragraph-500" color="inherit">${this.name}</wui-text>
+        <cross-wui-text variant="paragraph-500" color="inherit">${this.name}</cross-wui-text>
         ${this.templateStatus()}
       </button>
     `
@@ -56,9 +56,9 @@ export class WuiListWallet extends LitElement {
   // -- Private ------------------------------------------- //
   private templateAllWallets() {
     if (this.showAllWallets && this.imageSrc) {
-      return html` <wui-all-wallets-image .imageeSrc=${this.imageSrc}> </wui-all-wallets-image> `
+      return html` <cross-wui-all-wallets-image .imageeSrc=${this.imageSrc}> </cross-wui-all-wallets-image> `
     } else if (this.showAllWallets && this.walletIcon) {
-      return html` <wui-wallet-image .walletIcon=${this.walletIcon} size="sm"> </wui-wallet-image> `
+      return html` <cross-wui-wallet-image .walletIcon=${this.walletIcon} size="sm"> </cross-wui-wallet-image> `
     }
 
     return null
@@ -66,14 +66,14 @@ export class WuiListWallet extends LitElement {
 
   private templateWalletImage() {
     if (!this.showAllWallets && this.imageSrc) {
-      return html`<wui-wallet-image
+      return html`<cross-wui-wallet-image
         size="sm"
         imageSrc=${this.imageSrc}
         name=${this.name}
         .installed=${this.installed}
-      ></wui-wallet-image>`
+      ></cross-wui-wallet-image>`
     } else if (!this.showAllWallets && !this.imageSrc) {
-      return html`<wui-wallet-image size="sm" name=${this.name}></wui-wallet-image>`
+      return html`<cross-wui-wallet-image size="sm" name=${this.name}></cross-wui-wallet-image>`
     }
 
     return null
@@ -81,11 +81,11 @@ export class WuiListWallet extends LitElement {
 
   private templateStatus() {
     if (this.loading) {
-      return html`<wui-loading-spinner size="lg" color="accent-100"></wui-loading-spinner>`
+      return html`<cross-wui-loading-spinner size="lg" color="accent-100"></cross-wui-loading-spinner>`
     } else if (this.tagLabel && this.tagVariant) {
-      return html`<wui-tag variant=${this.tagVariant}>${this.tagLabel}</wui-tag>`
+      return html`<cross-wui-tag variant=${this.tagVariant}>${this.tagLabel}</cross-wui-tag>`
     } else if (this.icon) {
-      return html`<wui-icon color="inherit" size="sm" name=${this.icon}></wui-icon>`
+      return html`<cross-wui-icon color="inherit" size="sm" name=${this.icon}></cross-wui-icon>`
     }
 
     return null
@@ -94,6 +94,6 @@ export class WuiListWallet extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-list-wallet': WuiListWallet
+    'cross-wui-list-wallet': WuiListWallet
   }
 }

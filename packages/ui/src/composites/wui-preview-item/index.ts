@@ -10,7 +10,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-avatar/index.js'
 import styles from './styles.js'
 
-@customElement('wui-preview-item')
+@customElement('cross-wui-preview-item')
 export class WuiPreviewItem extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -25,24 +25,24 @@ export class WuiPreviewItem extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    return html`<wui-text variant="large-500" color="fg-100">${this.text}</wui-text>
+    return html`<cross-wui-text variant="large-500" color="fg-100">${this.text}</cross-wui-text>
       ${this.imageTemplate()}`
   }
 
   // -- Private ------------------------------------------- //
   private imageTemplate() {
     if (this.isAddress) {
-      return html`<wui-avatar address=${this.address} .imageSrc=${this.imageSrc}></wui-avatar>`
+      return html`<cross-wui-avatar address=${this.address} .imageSrc=${this.imageSrc}></cross-wui-avatar>`
     } else if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc}></cross-wui-image>`
     }
 
-    return html`<wui-icon size="inherit" color="fg-200" name="networkPlaceholder"></wui-icon>`
+    return html`<cross-wui-icon size="inherit" color="fg-200" name="networkPlaceholder"></cross-wui-icon>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-preview-item': WuiPreviewItem
+    'cross-wui-preview-item': WuiPreviewItem
   }
 }

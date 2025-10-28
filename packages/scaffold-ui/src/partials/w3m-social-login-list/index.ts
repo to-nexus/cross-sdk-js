@@ -67,19 +67,19 @@ export class W3mSocialLoginList extends LitElement {
       socials = ConstantsUtil.DEFAULT_FEATURES.socials
     }
 
-    return html` <wui-flex flexDirection="column" gap="xs">
+    return html` <cross-wui-flex flexDirection="column" gap="xs">
       ${socials.map(
         social =>
-          html`<wui-list-social
+          html`<cross-wui-list-social
             @click=${() => {
               this.onSocialClick(social)
             }}
             name=${social}
             logo=${social}
             tabIdx=${ifDefined(this.tabIdx)}
-          ></wui-list-social>`
+          ></cross-wui-list-social>`
       )}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //

@@ -9,7 +9,7 @@ import type { ColorType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-link')
+@customElement('cross-wui-link')
 export class WuiLink extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -25,9 +25,9 @@ export class WuiLink extends LitElement {
     return html`
       <button ?disabled=${this.disabled} tabindex=${ifDefined(this.tabIdx)}>
         <slot name="iconLeft"></slot>
-        <wui-text variant="small-600" color=${this.color}>
+        <cross-wui-text variant="small-600" color=${this.color}>
           <slot></slot>
-        </wui-text>
+        </cross-wui-text>
         <slot name="iconRight"></slot>
       </button>
     `
@@ -36,6 +36,6 @@ export class WuiLink extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-link': WuiLink
+    'cross-wui-link': WuiLink
   }
 }

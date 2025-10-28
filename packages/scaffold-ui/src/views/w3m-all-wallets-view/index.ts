@@ -22,15 +22,15 @@ export class W3mAllWalletsView extends LitElement {
     const isSearch = this.search.length >= 2
 
     return html`
-      <wui-flex .padding=${['0', 's', 's', 's']} gap="xs">
-        <wui-search-bar @inputChange=${this.onInputChange.bind(this)}></wui-search-bar>
-        <wui-certified-switch
+      <cross-wui-flex .padding=${['0', 's', 's', 's']} gap="xs">
+        <cross-wui-search-bar @inputChange=${this.onInputChange.bind(this)}></cross-wui-search-bar>
+        <cross-wui-certified-switch
           ?checked=${this.badge}
           @click=${this.onClick.bind(this)}
           data-testid="wui-certified-switch"
-        ></wui-certified-switch>
+        ></cross-wui-certified-switch>
         ${this.qrButtonTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
       ${isSearch || this.badge
         ? html`<w3m-all-wallets-search
             query=${this.search}
@@ -68,7 +68,7 @@ export class W3mAllWalletsView extends LitElement {
   private qrButtonTemplate() {
     if (CoreHelperUtil.isMobile()) {
       return html`
-        <wui-icon-box
+        <cross-wui-icon-box
           size="lg"
           iconSize="xl"
           iconColor="accent-100"
@@ -78,7 +78,7 @@ export class W3mAllWalletsView extends LitElement {
           border
           borderColor="wui-accent-glass-010"
           @click=${this.onWalletConnectQr.bind(this)}
-        ></wui-icon-box>
+        ></cross-wui-icon-box>
       `
     }
 

@@ -19,7 +19,7 @@ export class W3mWalletGuide extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return this.walletGuide === 'explore'
-      ? html`<wui-flex
+      ? html`<cross-wui-flex
           class="wallet-guide"
           flexDirection="column"
           alignItems="center"
@@ -27,30 +27,30 @@ export class W3mWalletGuide extends LitElement {
           rowGap="xs"
           data-testid="cross-w3m-wallet-guide-explore"
         >
-          <wui-text variant="small-400" color="fg-200" align="center">
+          <cross-wui-text variant="small-400" color="fg-200" align="center">
             Looking for a self-custody wallet?
-          </wui-text>
+          </cross-wui-text>
 
-          <wui-flex class="chip-box">
-            <wui-chip
+          <cross-wui-flex class="chip-box">
+            <cross-wui-chip
               imageIcon="walletConnectLightBrown"
               icon="externalLink"
               variant="transparent"
               href="https://walletguide.walletconnect.network"
               title="Find one on WalletGuide"
-            ></wui-chip>
-          </wui-flex>
-        </wui-flex>`
-      : html`<wui-flex
+            ></cross-wui-chip>
+          </cross-wui-flex>
+        </cross-wui-flex>`
+      : html`<cross-wui-flex
           columnGap="4xs"
           flexDirection="row"
           alignItems="center"
           justifyContent="center"
         >
-          <wui-text variant="small-400" class="title" color="fg-200"
+          <cross-wui-text variant="small-400" class="title" color="fg-200"
             >Haven't got a wallet?</wui-text
           >
-          <wui-link
+          <cross-wui-link
             data-testid="cross-w3m-wallet-guide-get-started"
             color="blue-100"
             class="get-started-link"
@@ -58,8 +58,8 @@ export class W3mWalletGuide extends LitElement {
             tabIdx=${ifDefined(this.tabIdx)}
           >
             Get started
-          </wui-link>
-        </wui-flex>`
+          </cross-wui-link>
+        </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //

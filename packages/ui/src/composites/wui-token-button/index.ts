@@ -8,7 +8,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-token-button')
+@customElement('cross-wui-token-button')
 export class WuiTokenButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -22,7 +22,7 @@ export class WuiTokenButton extends LitElement {
     return html`
       <button>
         ${this.tokenTemplate()}
-        <wui-text variant="paragraph-600" color="fg-100">${this.text}</wui-text>
+        <cross-wui-text variant="paragraph-600" color="fg-100">${this.text}</cross-wui-text>
       </button>
     `
   }
@@ -30,22 +30,22 @@ export class WuiTokenButton extends LitElement {
   // -- Private ------------------------------------------- //
   private tokenTemplate() {
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc}></cross-wui-image>`
     }
 
     return html`
-      <wui-icon-box
+      <cross-wui-icon-box
         size="sm"
         iconColor="fg-200"
         backgroundColor="fg-300"
         icon="networkPlaceholder"
-      ></wui-icon-box>
+      ></cross-wui-icon-box>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-token-button': WuiTokenButton
+    'cross-wui-token-button': WuiTokenButton
   }
 }

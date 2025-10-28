@@ -18,23 +18,23 @@ export class W3mHelpWidget extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" alignItems="center" gap="l">
+      <cross-wui-flex flexDirection="column" alignItems="center" gap="l">
         ${this.data.map(
           item => html`
-            <wui-flex flexDirection="column" alignItems="center" gap="xl">
-              <wui-flex flexDirection="row" justifyContent="center" gap="1xs">
-                ${item.images.map(image => html`<wui-visual name=${image}></wui-visual>`)}
-              </wui-flex>
-            </wui-flex>
-            <wui-flex flexDirection="column" alignItems="center" gap="xxs">
-              <wui-text variant="paragraph-500" color="fg-100" align="center">
+            <cross-wui-flex flexDirection="column" alignItems="center" gap="xl">
+              <cross-wui-flex flexDirection="row" justifyContent="center" gap="1xs">
+                ${item.images.map(image => html`<cross-wui-visual name=${image}></cross-wui-visual>`)}
+              </cross-wui-flex>
+            </cross-wui-flex>
+            <cross-wui-flex flexDirection="column" alignItems="center" gap="xxs">
+              <cross-wui-text variant="paragraph-500" color="fg-100" align="center">
                 ${item.title}
-              </wui-text>
-              <wui-text variant="small-500" color="fg-200" align="center">${item.text}</wui-text>
-            </wui-flex>
+              </cross-wui-text>
+              <cross-wui-text variant="small-500" color="fg-200" align="center">${item.text}</cross-wui-text>
+            </cross-wui-flex>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 }

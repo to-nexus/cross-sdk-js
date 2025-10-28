@@ -13,7 +13,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-list-item')
+@customElement('cross-wui-list-item')
 export class WuiListItem extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -48,9 +48,9 @@ export class WuiListItem extends LitElement {
         tabindex=${ifDefined(this.tabIdx)}
       >
         ${this.loadingTemplate()} ${this.visualTemplate()}
-        <wui-flex gap="3xs">
+        <cross-wui-flex gap="3xs">
           <slot></slot>
-        </wui-flex>
+        </cross-wui-flex>
         ${this.chevronTemplate()}
       </button>
     `
@@ -59,10 +59,10 @@ export class WuiListItem extends LitElement {
   // -- Private ------------------------------------------- //
   public visualTemplate() {
     if (this.variant === 'image' && this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc} alt=${this.alt ?? 'list item'}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt=${this.alt ?? 'list item'}></cross-wui-image>`
     }
     if (this.iconVariant === 'square' && this.icon && this.variant === 'icon') {
-      return html`<wui-icon name=${this.icon}></wui-icon>`
+      return html`<cross-wui-icon name=${this.icon}></cross-wui-icon>`
     }
     if (this.variant === 'icon' && this.icon && this.iconVariant) {
       const color = ['blue', 'square-blue'].includes(this.iconVariant) ? 'accent-100' : 'fg-200'
@@ -70,7 +70,7 @@ export class WuiListItem extends LitElement {
       const iconSize = this.iconSize ? this.iconSize : size
 
       return html`
-        <wui-icon-box
+        <cross-wui-icon-box
           data-variant=${this.iconVariant}
           icon=${this.icon}
           iconSize=${iconSize}
@@ -78,7 +78,7 @@ export class WuiListItem extends LitElement {
           iconColor=${color}
           backgroundColor=${color}
           size=${size}
-        ></wui-icon-box>
+        ></cross-wui-icon-box>
       `
     }
 
@@ -87,7 +87,7 @@ export class WuiListItem extends LitElement {
 
   public loadingTemplate() {
     if (this.loading) {
-      return html`<wui-loading-spinner color="fg-300"></wui-loading-spinner>`
+      return html`<cross-wui-loading-spinner color="fg-300"></cross-wui-loading-spinner>`
     }
 
     return html``
@@ -95,7 +95,7 @@ export class WuiListItem extends LitElement {
 
   public chevronTemplate() {
     if (this.chevron) {
-      return html`<wui-icon size="inherit" color="fg-200" name="chevronRight"></wui-icon>`
+      return html`<cross-wui-icon size="inherit" color="fg-200" name="chevronRight"></cross-wui-icon>`
     }
 
     return null
@@ -104,6 +104,6 @@ export class WuiListItem extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-list-item': WuiListItem
+    'cross-wui-list-item': WuiListItem
   }
 }

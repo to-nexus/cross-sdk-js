@@ -56,15 +56,15 @@ export class W3mAllWalletsListItem extends LitElement {
     return html`
       <button>
         ${this.imageTemplate()}
-        <wui-flex flexDirection="row" alignItems="center" justifyContent="center" gap="3xs">
-          <wui-text
+        <cross-wui-flex flexDirection="row" alignItems="center" justifyContent="center" gap="3xs">
+          <cross-wui-text
             variant="tiny-500"
             color="inherit"
             class=${ifDefined(certified ? 'certified' : undefined)}
             >${this.wallet?.name}</wui-text
           >
-          ${certified ? html`<wui-icon size="sm" name="walletConnectBrown"></wui-icon>` : null}
-        </wui-flex>
+          ${certified ? html`<cross-wui-icon size="sm" name="walletConnectBrown"></cross-wui-icon>` : null}
+        </cross-wui-flex>
       </button>
     `
   }
@@ -75,19 +75,19 @@ export class W3mAllWalletsListItem extends LitElement {
     }
 
     return html`
-      <wui-wallet-image
+      <cross-wui-wallet-image
         size="md"
         imageSrc=${ifDefined(this.imageSrc)}
         name=${this.wallet?.name}
         .installed=${this.wallet?.installed}
         badgeSize="sm"
       >
-      </wui-wallet-image>
+      </cross-wui-wallet-image>
     `
   }
 
   private shimmerTemplate() {
-    return html`<wui-shimmer width="56px" height="56px" borderRadius="xs"></wui-shimmer>`
+    return html`<cross-wui-shimmer width="56px" height="56px" borderRadius="xs"></cross-wui-shimmer>`
   }
 
   private async fetchImageSrc() {

@@ -51,22 +51,22 @@ export class W3mNetworkSwitchView extends LitElement {
     const subLabel = this.getSubLabel()
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         data-error=${this.error}
         flexDirection="column"
         alignItems="center"
         .padding=${['3xl', 'xl', '3xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" alignItems="center">
-          <wui-network-image
+        <cross-wui-flex justifyContent="center" alignItems="center">
+          <cross-wui-network-image
             size="lg"
             imageSrc=${ifDefined(AssetUtil.getNetworkImage(this.network))}
-          ></wui-network-image>
+          ></cross-wui-network-image>
 
-          ${this.error ? null : html`<wui-loading-hexagon></wui-loading-hexagon>`}
+          ${this.error ? null : html`<cross-wui-loading-hexagon></cross-wui-loading-hexagon>`}
 
-          <wui-icon-box
+          <cross-wui-icon-box
             backgroundColor="error-100"
             background="opaque"
             iconColor="error-100"
@@ -74,25 +74,25 @@ export class W3mNetworkSwitchView extends LitElement {
             size="sm"
             ?border=${true}
             borderColor="wui-color-bg-125"
-          ></wui-icon-box>
-        </wui-flex>
+          ></cross-wui-icon-box>
+        </cross-wui-flex>
 
-        <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <wui-text align="center" variant="paragraph-500" color="fg-100">${label}</wui-text>
-          <wui-text align="center" variant="small-500" color="fg-200">${subLabel}</wui-text>
-        </wui-flex>
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+          <cross-wui-text align="center" variant="paragraph-500" color="fg-100">${label}</cross-wui-text>
+          <cross-wui-text align="center" variant="small-500" color="fg-200">${subLabel}</cross-wui-text>
+        </cross-wui-flex>
 
-        <wui-button
+        <cross-wui-button
           data-retry=${this.showRetry}
           variant="accent"
           size="md"
           .disabled=${!this.error}
           @click=${this.onSwitchNetwork.bind(this)}
         >
-          <wui-icon color="inherit" slot="iconLeft" name="refresh"></wui-icon>
+          <cross-wui-icon color="inherit" slot="iconLeft" name="refresh"></cross-wui-icon>
           Try again
-        </wui-button>
-      </wui-flex>
+        </cross-wui-button>
+      </cross-wui-flex>
     `
   }
 
@@ -124,7 +124,7 @@ export class W3mNetworkSwitchView extends LitElement {
   private onShowRetry() {
     if (this.error && !this.showRetry) {
       this.showRetry = true
-      const retryButton = this.shadowRoot?.querySelector('wui-button') as HTMLElement
+      const retryButton = this.shadowRoot?.querySelector('cross-wui-button') as HTMLElement
       retryButton?.animate([{ opacity: 0 }, { opacity: 1 }], {
         fill: 'forwards',
         easing: 'ease'

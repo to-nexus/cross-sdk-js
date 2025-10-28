@@ -21,7 +21,7 @@ export default css`
     border: none;
   }
 
-  button > wui-flex > wui-text {
+  button > wui-flex > cross-wui-text {
     color: var(--wui-color-fg-100);
     max-width: 86px;
     white-space: nowrap;
@@ -38,7 +38,7 @@ export default css`
     background-color: var(--wui-color-gray-glass-005);
   }
 
-  button:disabled > wui-flex > wui-text {
+  button:disabled > wui-flex > cross-wui-text {
     color: var(--wui-color-gray-glass-015);
   }
 

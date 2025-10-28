@@ -62,8 +62,8 @@ export class W3mOnrampWidget extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" justifyContent="center" alignItems="center">
-        <wui-flex flexDirection="column" alignItems="center" gap="xs">
+      <cross-wui-flex flexDirection="column" justifyContent="center" alignItems="center">
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
           <cross-w3m-onramp-input
             type="Fiat"
             @inputChange=${this.onPaymentAmountChange.bind(this)}
@@ -74,10 +74,10 @@ export class W3mOnrampWidget extends LitElement {
             .value=${this.purchaseAmount || 0}
             .loading=${this.quoteLoading}
           ></cross-w3m-onramp-input>
-          <wui-flex justifyContent="space-evenly" class="amounts-container" gap="xs">
+          <cross-wui-flex justifyContent="space-evenly" class="amounts-container" gap="xs">
             ${BUY_PRESET_AMOUNTS.map(
               amount =>
-                html`<wui-button
+                html`<cross-wui-button
                   variant=${this.paymentAmount === amount ? 'accent' : 'neutral'}
                   size="md"
                   textVariant="paragraph-600"
@@ -88,16 +88,16 @@ export class W3mOnrampWidget extends LitElement {
                   } ${amount}`}</wui-button
                 >`
             )}
-          </wui-flex>
+          </cross-wui-flex>
           ${this.templateButton()}
-        </wui-flex>
-      </wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 
   private templateButton() {
     return this.caipAddress
-      ? html`<wui-button
+      ? html`<cross-wui-button
           @click=${this.getQuotes.bind(this)}
           variant="main"
           fullWidth
@@ -105,8 +105,8 @@ export class W3mOnrampWidget extends LitElement {
           borderRadius="xs"
         >
           Get quotes
-        </wui-button>`
-      : html`<wui-button
+        </cross-wui-button>`
+      : html`<cross-wui-button
           @click=${this.openModal.bind(this)}
           variant="accent"
           fullWidth
@@ -114,7 +114,7 @@ export class W3mOnrampWidget extends LitElement {
           borderRadius="xs"
         >
           Connect wallet
-        </wui-button>`
+        </cross-wui-button>`
   }
 
   // -- Private ------------------------------------------- //

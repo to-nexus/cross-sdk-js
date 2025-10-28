@@ -47,9 +47,9 @@ export class W3mSendSelectTokenView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column">
-        ${this.templateSearchInput()} <wui-separator></wui-separator> ${this.templateTokens()}
-      </wui-flex>
+      <cross-wui-flex flexDirection="column">
+        ${this.templateSearchInput()} <cross-wui-separator></cross-wui-separator> ${this.templateTokens()}
+      </cross-wui-flex>
     `
   }
 
@@ -57,15 +57,15 @@ export class W3mSendSelectTokenView extends LitElement {
 
   private templateSearchInput() {
     return html`
-      <wui-flex gap="xs" padding="s">
-        <wui-input-text
+      <cross-wui-flex gap="xs" padding="s">
+        <cross-wui-input-text
           @inputChange=${this.onInputChange.bind(this)}
           class="network-search-input"
           size="sm"
           placeholder="Search token"
           icon="search"
-        ></wui-input-text>
-      </wui-flex>
+        ></cross-wui-input-text>
+      </cross-wui-flex>
     `
   }
 
@@ -82,19 +82,19 @@ export class W3mSendSelectTokenView extends LitElement {
     }
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         class="contentContainer"
         flexDirection="column"
         .padding=${['0', 's', '0', 's'] as const}
       >
-        <wui-flex justifyContent="flex-start" .padding=${['m', 's', 's', 's'] as const}>
-          <wui-text variant="paragraph-500" color="fg-200">Your tokens</wui-text>
-        </wui-flex>
-        <wui-flex flexDirection="column" gap="xs">
+        <cross-wui-flex justifyContent="flex-start" .padding=${['m', 's', 's', 's'] as const}>
+          <cross-wui-text variant="paragraph-500" color="fg-200">Your tokens</cross-wui-text>
+        </cross-wui-flex>
+        <cross-wui-flex flexDirection="column" gap="xs">
           ${this.filteredTokens && this.filteredTokens.length > 0
             ? this.filteredTokens.map(
                 token =>
-                  html`<wui-list-token
+                  html`<cross-wui-list-token
                     @click=${this.handleTokenClick.bind(this, token)}
                     ?clickable=${true}
                     tokenName=${token.name}
@@ -102,39 +102,39 @@ export class W3mSendSelectTokenView extends LitElement {
                     tokenAmount=${token.quantity.numeric}
                     tokenValue=${token.value}
                     tokenCurrency=${token.symbol}
-                  ></wui-list-token>`
+                  ></cross-wui-list-token>`
               )
-            : html`<wui-flex
+            : html`<cross-wui-flex
                 .padding=${['4xl', '0', '0', '0'] as const}
                 alignItems="center"
                 flexDirection="column"
                 gap="l"
               >
-                <wui-icon-box
+                <cross-wui-icon-box
                   icon="coinPlaceholder"
                   size="inherit"
                   iconColor="fg-200"
                   backgroundColor="fg-200"
                   iconSize="lg"
-                ></wui-icon-box>
-                <wui-flex
+                ></cross-wui-icon-box>
+                <cross-wui-flex
                   class="textContent"
                   gap="xs"
                   flexDirection="column"
                   justifyContent="center"
                   flexDirection="column"
                 >
-                  <wui-text variant="paragraph-500" align="center" color="fg-100"
+                  <cross-wui-text variant="paragraph-500" align="center" color="fg-100"
                     >No tokens found</wui-text
                   >
-                  <wui-text variant="small-400" align="center" color="fg-200"
+                  <cross-wui-text variant="small-400" align="center" color="fg-200"
                     >Your tokens will appear here</wui-text
                   >
-                </wui-flex>
-                <wui-link @click=${this.onBuyClick.bind(this)}>Buy</wui-link>
-              </wui-flex>`}
-        </wui-flex>
-      </wui-flex>
+                </cross-wui-flex>
+                <cross-wui-link @click=${this.onBuyClick.bind(this)}>Buy</cross-wui-link>
+              </cross-wui-flex>`}
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 

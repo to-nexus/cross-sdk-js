@@ -90,33 +90,33 @@ export class W3mConnectingFarcasterView extends LitElement {
   }
 
   private qrTemplate() {
-    return html` <wui-flex
+    return html` <cross-wui-flex
       flexDirection="column"
       alignItems="center"
       .padding=${['0', 'xl', 'xl', 'xl']}
       gap="xl"
     >
-      <wui-shimmer borderRadius="l" width="100%"> ${this.qrCodeTemplate()} </wui-shimmer>
+      <cross-wui-shimmer borderRadius="l" width="100%"> ${this.qrCodeTemplate()} </cross-wui-shimmer>
 
-      <wui-text variant="paragraph-500" color="fg-100">
+      <cross-wui-text variant="paragraph-500" color="fg-100">
         Scan this QR Code with your phone
-      </wui-text>
+      </cross-wui-text>
       ${this.copyTemplate()}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   private loadingTemplate() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['xl', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" alignItems="center">
-          <wui-logo logo="farcaster"></wui-logo>
+        <cross-wui-flex justifyContent="center" alignItems="center">
+          <cross-wui-logo logo="farcaster"></cross-wui-logo>
           ${this.loaderTemplate()}
-          <wui-icon-box
+          <cross-wui-icon-box
             backgroundColor="error-100"
             background="opaque"
             iconColor="error-100"
@@ -124,31 +124,31 @@ export class W3mConnectingFarcasterView extends LitElement {
             size="sm"
             border
             borderColor="wui-color-bg-125"
-          ></wui-icon-box>
-        </wui-flex>
-        <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <wui-text align="center" variant="paragraph-500" color="fg-100">
+          ></cross-wui-icon-box>
+        </cross-wui-flex>
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+          <cross-wui-text align="center" variant="paragraph-500" color="fg-100">
             Loading user data
-          </wui-text>
-          <wui-text align="center" variant="small-400" color="fg-200">
+          </cross-wui-text>
+          <cross-wui-text align="center" variant="small-400" color="fg-200">
             Please wait a moment while we load your data.
-          </wui-text>
-        </wui-flex>
-      </wui-flex>
+          </cross-wui-text>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 
   private mobileTemplate() {
-    return html` <wui-flex
+    return html` <cross-wui-flex
       flexDirection="column"
       alignItems="center"
       .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
       gap="xl"
     >
-      <wui-flex justifyContent="center" alignItems="center">
-        <wui-logo logo="farcaster"></wui-logo>
+      <cross-wui-flex justifyContent="center" alignItems="center">
+        <cross-wui-logo logo="farcaster"></cross-wui-logo>
         ${this.loaderTemplate()}
-        <wui-icon-box
+        <cross-wui-icon-box
           backgroundColor="error-100"
           background="opaque"
           iconColor="error-100"
@@ -156,25 +156,25 @@ export class W3mConnectingFarcasterView extends LitElement {
           size="sm"
           border
           borderColor="wui-color-bg-125"
-        ></wui-icon-box>
-      </wui-flex>
-      <wui-flex flexDirection="column" alignItems="center" gap="xs">
-        <wui-text align="center" variant="paragraph-500" color="fg-100"
+        ></cross-wui-icon-box>
+      </cross-wui-flex>
+      <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+        <cross-wui-text align="center" variant="paragraph-500" color="fg-100"
           >Continue in Farcaster</span></wui-text
         >
-        <wui-text align="center" variant="small-400" color="fg-200"
+        <cross-wui-text align="center" variant="small-400" color="fg-200"
           >Accept connection request in the app</wui-text
         ></wui-flex
       >
       ${this.mobileLinkTemplate()}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   private loaderTemplate() {
     const borderRadiusMaster = ThemeController.state.themeVariables['--w3m-border-radius-master']
     const radius = borderRadiusMaster ? parseInt(borderRadiusMaster.replace('px', ''), 10) : 4
 
-    return html`<wui-loading-thumbnail radius=${radius * 9}></wui-loading-thumbnail>`
+    return html`<cross-wui-loading-thumbnail radius=${radius * 9}></cross-wui-loading-thumbnail>`
   }
 
   private async connectFarcaster() {
@@ -217,7 +217,7 @@ export class W3mConnectingFarcasterView extends LitElement {
   }
 
   private mobileLinkTemplate() {
-    return html`<wui-button
+    return html`<cross-wui-button
       size="md"
       ?loading=${this.loading}
       ?disabled=${!this.uri || this.loading}
@@ -247,28 +247,28 @@ export class W3mConnectingFarcasterView extends LitElement {
 
     const size = this.getBoundingClientRect().width - 40
 
-    return html` <wui-qr-code
+    return html` <cross-wui-qr-code
       size=${size}
       theme=${ThemeController.state.themeMode}
       uri=${this.uri}
       ?farcaster=${true}
       data-testid="wui-qr-code"
       color=${ifDefined(ThemeController.state.themeVariables['--w3m-qr-color'])}
-    ></wui-qr-code>`
+    ></cross-wui-qr-code>`
   }
 
   private copyTemplate() {
     const inactive = !this.uri || !this.ready
 
-    return html`<wui-link
+    return html`<cross-wui-link
       .disabled=${inactive}
       @click=${this.onCopyUri}
       color="fg-200"
       data-testid="copy-wc2-uri"
     >
-      <wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></wui-icon>
+      <cross-wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></cross-wui-icon>
       Copy link
-    </wui-link>`
+    </cross-wui-link>`
   }
 
   private forceUpdate = () => {

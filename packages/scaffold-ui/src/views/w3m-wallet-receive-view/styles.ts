@@ -1,7 +1,7 @@
 import { css } from 'lit'
 
 export default css`
-  wui-compatible-network {
+  cross-wui-compatible-network {
     margin-top: var(--wui-spacing-l);
   }
 `

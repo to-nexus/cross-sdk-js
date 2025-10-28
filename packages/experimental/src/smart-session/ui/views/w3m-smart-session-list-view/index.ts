@@ -42,22 +42,22 @@ export class W3mSmartSessionListView extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    return html`<wui-flex
+    return html`<cross-wui-flex
       flexDirection="column"
       .padding=${['0', 'xl', 'm', 'xl'] as const}
       alignItems="center"
       gap="m"
     >
-      <wui-tabs
+      <cross-wui-tabs
         .onTabChange=${this.onTabChange.bind(this)}
         .activeTab=${this.currentTab}
         localTabWidth=${CoreHelperUtil.isMobile() && window.innerWidth < MODAL_MOBILE_VIEW_PX
           ? `${(window.innerWidth - TABS_PADDING) / TABS}px`
           : '104px'}
         .tabs=${SMART_SESSION_TABS}
-      ></wui-tabs>
+      ></cross-wui-tabs>
       ${this.listContentTemplate()}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //
@@ -132,22 +132,22 @@ export class W3mSmartSessionListView extends LitElement {
         }
 
         return html`
-          <wui-flex
+          <cross-wui-flex
             flexDirection="column"
             class="group-container"
             last-group="${isLastGroup ? 'true' : 'false'}"
           >
-            <wui-flex
+            <cross-wui-flex
               alignItems="center"
               flexDirection="row"
               .padding=${['xs', 's', 's', 's'] as const}
             >
-              <wui-text variant="paragraph-500" color="fg-200">${groupTitle}</wui-text>
-            </wui-flex>
-            <wui-flex flexDirection="column" gap="m">
+              <cross-wui-text variant="paragraph-500" color="fg-200">${groupTitle}</cross-wui-text>
+            </cross-wui-flex>
+            <cross-wui-flex flexDirection="column" gap="m">
               ${this.templateSessions(monthSessions)}
-            </wui-flex>
-          </wui-flex>
+            </cross-wui-flex>
+          </cross-wui-flex>
         `
       })
     })
@@ -156,28 +156,28 @@ export class W3mSmartSessionListView extends LitElement {
   private templateNoSessions() {
     const type = SMART_SESSION_TABS[this.currentTab]?.label || ''
 
-    return html`<wui-flex
+    return html`<cross-wui-flex
       alignItems="center"
       justifyContent="center"
       .padding=${['l', 'l', 'l', 'l'] as const}
     >
-      <wui-text variant="title-400" color="fg-200">No ${type.toLowerCase()} sessions</wui-text>
-    </wui-flex>`
+      <cross-wui-text variant="title-400" color="fg-200">No ${type.toLowerCase()} sessions</cross-wui-text>
+    </cross-wui-flex>`
   }
 
   private templateSessions(sessions: SmartSession[]) {
     return sessions.map(session => {
       const { project } = session
 
-      return html` <wui-flex
+      return html` <cross-wui-flex
         class="session-container"
         gap="s"
         flexDirection="column"
         .padding=${['s', 's', 's', 's'] as const}
         @click=${this.onSessionClick.bind(this, session)}
       >
-        <wui-flex gap="s" alignItems="center" justifyContent="space-between">
-          <wui-flex gap="xs">
+        <cross-wui-flex gap="s" alignItems="center" justifyContent="space-between">
+          <cross-wui-flex gap="xs">
             ${project.iconUrl
               ? html`<img
                   class="session-project-image"
@@ -185,26 +185,26 @@ export class W3mSmartSessionListView extends LitElement {
                   width="40px"
                   height="40px"
                 />`
-              : html`<wui-icon-box
+              : html`<cross-wui-icon-box
                   size="lg"
                   icon="helpCircle"
                   background="opaque"
                   iconColor="fg-100"
                   backgroundColor="inverse-100"
-                ></wui-icon-box>`}
-            <wui-flex flexDirection="column">
-              <wui-text variant="small-400" color="fg-100"
+                ></cross-wui-icon-box>`}
+            <cross-wui-flex flexDirection="column">
+              <cross-wui-text variant="small-400" color="fg-100"
                 >${project?.name || 'Unknown Dapp'}</wui-text
               >
-              ${project.url ? html`<wui-link>${project?.url}</wui-link>` : null}
-            </wui-flex>
-          </wui-flex>
-          <wui-tag variant=${this.getVariant(session)}
+              ${project.url ? html`<cross-wui-link>${project?.url}</cross-wui-link>` : null}
+            </cross-wui-flex>
+          </cross-wui-flex>
+          <cross-wui-tag variant=${this.getVariant(session)}
             >${SMART_SESSION_TABS[this.currentTab]?.label}</wui-tag
           >
-        </wui-flex>
+        </cross-wui-flex>
         ${this.openSession === session.pci
-          ? html`<wui-flex>
+          ? html`<cross-wui-flex>
               ${session.permissions.map(permission => {
                 // Skip other perms for now. TODO: map to corresponding ui pieces
                 if (permission.type !== 'contract-call') {
@@ -212,26 +212,26 @@ export class W3mSmartSessionListView extends LitElement {
                 }
                 const { data } = permission
 
-                return html` <wui-flex flexDirection="column" gap="s">
-                  <wui-permission-contract-call
+                return html` <cross-wui-flex flexDirection="column" gap="s">
+                  <cross-wui-permission-contract-call
                     .contractAddress=${data.address}
                     .expiry=${session.expiry / 1000}
                     .functions=${data.functions}
-                  ></wui-permission-contract-call>
+                  ></cross-wui-permission-contract-call>
                   ${this.currentTab === 0
-                    ? html`<wui-button
+                    ? html`<cross-wui-button
                         @click=${this.revokePermission.bind(this, session)}
                         fullWidth
                         variant="accent"
                       >
                         Revoke
-                      </wui-button>`
+                      </cross-wui-button>`
                     : null}
-                </wui-flex>`
+                </cross-wui-flex>`
               })}
-            </wui-flex>`
+            </cross-wui-flex>`
           : null}
-      </wui-flex>`
+      </cross-wui-flex>`
     })
   }
 

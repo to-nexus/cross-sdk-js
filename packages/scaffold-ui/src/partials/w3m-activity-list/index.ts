@@ -134,25 +134,25 @@ export class W3mActivityList extends LitElement {
         }
 
         return html`
-          <wui-flex
+          <cross-wui-flex
             flexDirection="column"
             class="group-container"
             last-group="${isLastGroup ? 'true' : 'false'}"
             data-testid="month-indexes"
           >
-            <wui-flex
+            <cross-wui-flex
               alignItems="center"
               flexDirection="row"
               .padding=${['xs', 's', 's', 's'] as const}
             >
-              <wui-text variant="paragraph-500" color="fg-200" data-testid="group-title"
+              <cross-wui-text variant="paragraph-500" color="fg-200" data-testid="group-title"
                 >${groupTitle}</wui-text
               >
-            </wui-flex>
-            <wui-flex flexDirection="column" gap="xs">
+            </cross-wui-flex>
+            <cross-wui-flex flexDirection="column" gap="xs">
               ${this.templateTransactions(transactions, isLastGroup)}
-            </wui-flex>
-          </wui-flex>
+            </cross-wui-flex>
+          </cross-wui-flex>
         `
       })
     })
@@ -166,7 +166,7 @@ export class W3mActivityList extends LitElement {
 
     if (haveTwoTransfers && !isAllNFT) {
       return html`
-        <wui-transaction-list-item
+        <cross-wui-transaction-list-item
           date=${date}
           .direction=${direction}
           id=${isLastTransaction && this.next ? PAGINATOR_ID : ''}
@@ -174,7 +174,7 @@ export class W3mActivityList extends LitElement {
           type=${type}
           .images=${images}
           .descriptions=${descriptions}
-        ></wui-transaction-list-item>
+        ></cross-wui-transaction-list-item>
       `
     }
 
@@ -183,7 +183,7 @@ export class W3mActivityList extends LitElement {
         const description = TransactionUtil.getTransferDescription(transfer)
         const isLastTransfer = isLastTransaction && index === transfers.length - 1
 
-        return html` <wui-transaction-list-item
+        return html` <cross-wui-transaction-list-item
           date=${date}
           direction=${transfer.direction}
           id=${isLastTransfer && this.next ? PAGINATOR_ID : ''}
@@ -192,12 +192,12 @@ export class W3mActivityList extends LitElement {
           .onlyDirectionIcon=${true}
           .images=${[images[index]] as TransactionImage[]}
           .descriptions=${[description]}
-        ></wui-transaction-list-item>`
+        ></cross-wui-transaction-list-item>`
       })
     }
 
     return html`
-      <wui-transaction-list-item
+      <cross-wui-transaction-list-item
         date=${date}
         .direction=${direction}
         id=${isLastTransaction && this.next ? PAGINATOR_ID : ''}
@@ -205,7 +205,7 @@ export class W3mActivityList extends LitElement {
         type=${type}
         .images=${images}
         .descriptions=${descriptions}
-      ></wui-transaction-list-item>
+      ></cross-wui-transaction-list-item>
     `
   }
 
@@ -218,7 +218,7 @@ export class W3mActivityList extends LitElement {
   }
 
   private emptyStateActivity() {
-    return html`<wui-flex
+    return html`<cross-wui-flex
       class="emptyContainer"
       flexGrow="1"
       flexDirection="column"
@@ -228,7 +228,7 @@ export class W3mActivityList extends LitElement {
       gap="xl"
       data-testid="empty-activity-state"
     >
-      <wui-icon-box
+      <cross-wui-icon-box
         backgroundColor="gray-glass-005"
         background="gray"
         iconColor="fg-200"
@@ -236,21 +236,21 @@ export class W3mActivityList extends LitElement {
         size="lg"
         ?border=${true}
         borderColor="wui-color-bg-125"
-      ></wui-icon-box>
-      <wui-flex flexDirection="column" alignItems="center" gap="xs">
-        <wui-text align="center" variant="paragraph-500" color="fg-100"
+      ></cross-wui-icon-box>
+      <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+        <cross-wui-text align="center" variant="paragraph-500" color="fg-100"
           >No Transactions yet</wui-text
         >
-        <wui-text align="center" variant="small-500" color="fg-200"
+        <cross-wui-text align="center" variant="small-500" color="fg-200"
           >Start trading on dApps <br />
           to grow your wallet!</wui-text
         >
-      </wui-flex>
-    </wui-flex>`
+      </cross-wui-flex>
+    </cross-wui-flex>`
   }
 
   private emptyStateAccount() {
-    return html`<wui-flex
+    return html`<cross-wui-flex
       class="contentContainer"
       alignItems="center"
       justifyContent="center"
@@ -258,27 +258,27 @@ export class W3mActivityList extends LitElement {
       gap="l"
       data-testid="empty-account-state"
     >
-      <wui-icon-box
+      <cross-wui-icon-box
         icon="swapHorizontal"
         size="inherit"
         iconColor="fg-200"
         backgroundColor="fg-200"
         iconSize="lg"
-      ></wui-icon-box>
-      <wui-flex
+      ></cross-wui-icon-box>
+      <cross-wui-flex
         class="textContent"
         gap="xs"
         flexDirection="column"
         justifyContent="center"
         flexDirection="column"
       >
-        <wui-text variant="paragraph-500" align="center" color="fg-100">No activity yet</wui-text>
-        <wui-text variant="small-400" align="center" color="fg-200"
+        <cross-wui-text variant="paragraph-500" align="center" color="fg-100">No activity yet</cross-wui-text>
+        <cross-wui-text variant="small-400" align="center" color="fg-200"
           >Your next transactions will appear here</wui-text
         >
-      </wui-flex>
-      <wui-link @click=${this.onReceiveClick.bind(this)}>Trade</wui-link>
-    </wui-flex>`
+      </cross-wui-flex>
+      <cross-wui-link @click=${this.onReceiveClick.bind(this)}>Trade</cross-wui-link>
+    </cross-wui-flex>`
   }
 
   private templateEmpty() {
@@ -292,7 +292,7 @@ export class W3mActivityList extends LitElement {
   private templateLoading() {
     if (this.page === 'activity') {
       return Array(LOADING_ITEM_COUNT)
-        .fill(html` <wui-transaction-list-item-loader></wui-transaction-list-item-loader> `)
+        .fill(html` <cross-wui-transaction-list-item-loader></cross-wui-transaction-list-item-loader> `)
         .map(item => item)
     }
 

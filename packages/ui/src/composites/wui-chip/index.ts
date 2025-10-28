@@ -10,7 +10,7 @@ import { UiHelperUtil } from '../../utils/UiHelperUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-chip')
+@customElement('cross-wui-chip')
 export class WuiChip extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -46,10 +46,10 @@ export class WuiChip extends LitElement {
         data-variant=${this.variant}
       >
         ${this.imageTemplate()}
-        <wui-text variant=${textVariant} color="inherit">
+        <cross-wui-text variant=${textVariant} color="inherit">
           ${this.title ? this.title : UiHelperUtil.getHostName(this.href)}
-        </wui-text>
-        <wui-icon name=${this.icon} color="inherit" size="inherit"></wui-icon>
+        </cross-wui-text>
+        <cross-wui-icon name=${this.icon} color="inherit" size="inherit"></cross-wui-icon>
       </a>
     `
   }
@@ -57,16 +57,16 @@ export class WuiChip extends LitElement {
   // -- Private ------------------------------------------- //
   private imageTemplate() {
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc}></cross-wui-image>`
     }
 
     if (this.imageIcon) {
-      return html`<wui-icon
+      return html`<cross-wui-icon
         name=${this.imageIcon}
         color="inherit"
         size=${this.imageIconSize}
         class="image-icon"
-      ></wui-icon>`
+      ></cross-wui-icon>`
     }
 
     return null
@@ -75,6 +75,6 @@ export class WuiChip extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-chip': WuiChip
+    'cross-wui-chip': WuiChip
   }
 }

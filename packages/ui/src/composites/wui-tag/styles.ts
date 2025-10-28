@@ -14,7 +14,7 @@ export default css`
     will-change: border-radius, background-color;
   }
 
-  :host > wui-text {
+  :host > cross-wui-text {
     transform: translateY(5%);
   }
 
@@ -42,7 +42,7 @@ export default css`
     padding: 11px 5px !important;
   }
 
-  :host([data-size='lg']) > wui-text {
+  :host([data-size='lg']) > cross-wui-text {
     transform: translateY(2%);
   }
 `

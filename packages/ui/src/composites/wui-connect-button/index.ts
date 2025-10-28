@@ -9,7 +9,7 @@ import type { SizeType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-connect-button')
+@customElement('cross-wui-connect-button')
 export class WuiConnectButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -25,9 +25,9 @@ export class WuiConnectButton extends LitElement {
     return html`
       <button data-size=${this.size} ?disabled=${this.loading}>
         ${this.loadingTemplate()}
-        <wui-text variant=${textVariant} color=${this.loading ? 'accent-100' : 'inherit'}>
+        <cross-wui-text variant=${textVariant} color=${this.loading ? 'accent-100' : 'inherit'}>
           <slot></slot>
-        </wui-text>
+        </cross-wui-text>
       </button>
     `
   }
@@ -37,12 +37,12 @@ export class WuiConnectButton extends LitElement {
       return null
     }
 
-    return html`<wui-loading-spinner size=${this.size} color="accent-100"></wui-loading-spinner>`
+    return html`<cross-wui-loading-spinner size=${this.size} color="accent-100"></cross-wui-loading-spinner>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-connect-button': WuiConnectButton
+    'cross-wui-connect-button': WuiConnectButton
   }
 }
