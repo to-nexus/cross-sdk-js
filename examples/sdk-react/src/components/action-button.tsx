@@ -1198,6 +1198,7 @@ Check console for full details.`
             >
               {isLoading ? 'Connecting...' : 'Connect MetaMask Extension'}
             </button>
+            <button onClick={handleConnect}>Connect CROSSx</button>
             <button onClick={handleConnectWallet}>Connect CROSSx (QR Code)</button>
             <button
               onClick={handleConnectCrossExtension}
