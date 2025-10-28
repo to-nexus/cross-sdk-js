@@ -248,7 +248,8 @@ export class WagmiAdapter extends AdapterBlueprint {
     console.log('[wagmiAdapter] setupWatchers')
     watchAccount(this.wagmiConfig, {
       onChange: (accountData, prevAccountData) => {
-        console.log('[wagmiAdapter] onChange', accountData, prevAccountData)
+        console.log('[wagmiAdapter] onChange accountData', accountData)
+        console.log('[wagmiAdapter] onChange prevAccountData', prevAccountData)
         if (accountData.status === 'disconnected' && prevAccountData.address) {
           this.emit('disconnect')
         }
@@ -272,8 +273,10 @@ export class WagmiAdapter extends AdapterBlueprint {
             })
           }
         }
+        const isConnectingExtensionWallet = accountData.status === 'connecting' && accountData?.connector?.id === 'nexus.to.crosswallet.desktop'
+        const isReconnectingExtensionWallet = prevAccountData.status === 'reconnecting' && prevAccountData?.connector?.id === 'nexus.to.crosswallet.desktop'
         // Cross Extension Wallet 재연결 시 연결 시도
-        if (prevAccountData.status === 'reconnecting' && prevAccountData?.connector?.id === 'nexus.to.crosswallet.desktop') {
+        if (isConnectingExtensionWallet || isReconnectingExtensionWallet) {
           console.log('[wagmiAdapter] reconnecting', prevAccountData)
 
           // 재연결 시도
