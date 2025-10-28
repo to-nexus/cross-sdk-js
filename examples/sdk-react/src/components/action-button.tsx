@@ -651,51 +651,86 @@ export function ActionButtonList() {
       return
     }
 
+    // Get current chain ID for the fallback data
+    const currentChainId =
+      typeof network?.chainId === 'string' ? parseInt(network.chainId, 10) : network?.chainId || 1
+
+    // Fallback typed data for when API fails
+    const fallbackTypedData = {
+      domain: {
+        name: 'Example',
+        version: '1',
+        chainId: currentChainId,
+        verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
+      },
+      message: {
+        contents: 'hello'
+      },
+      primaryType: 'Ping',
+      types: {
+        Ping: [{ name: 'contents', type: 'string' }]
+      }
+    } as unknown as SignTypedDataV4Args
+
     try {
-      // Example: Get typed data from API (can be any source)
-      const response = await fetch(
-        'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
-        {
-          method: 'POST',
-          headers: {
-            accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            account: FROM_ADDRESS, // Use actual connected wallet address
-            amount: '1',
-            direction: true,
-            pair_id: 1,
-            project_id: 'nexus-ramp-v1'
-          })
+      let paramsData: SignTypedDataV4Args
+      let apiData: SignTypedDataApiResponse | null = null
+      let usingFallback = false
+
+      try {
+        // Example: Get typed data from API (can be any source)
+        const response = await fetch(
+          'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
+          {
+            method: 'POST',
+            headers: {
+              accept: 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              account: FROM_ADDRESS, // Use actual connected wallet address
+              amount: '1',
+              direction: true,
+              pair_id: 1,
+              project_id: 'nexus-ramp-v1'
+            })
+          }
+        )
+
+        if (!response.ok) {
+          throw new Error(`API response: ${response.status} ${response.statusText}`)
         }
-      )
 
-      if (!response.ok) {
-        throw new Error(`API response: ${response.status} ${response.statusText}`)
+        apiData = await response.json()
+
+        if (!apiData?.data?.params) {
+          throw new Error('Invalid API response: missing params data')
+        }
+
+        // Extract only the typedData (second element) from API response params
+        const tupleParams = apiData.data!.params as [string, SignTypedDataV4Args]
+        paramsData = tupleParams[1]
+      } catch (apiError) {
+        console.warn('API request failed, using fallback data:', apiError)
+        paramsData = fallbackTypedData
+        usingFallback = true
       }
-
-      const apiData: SignTypedDataApiResponse = await response.json()
-
-      if (!apiData.data?.params) {
-        throw new Error('Invalid API response: missing params data')
-      }
-
-      // Extract only the typedData (second element) from API response params
-      const tupleParams = apiData.data.params as [string, SignTypedDataV4Args]
-      const paramsData = tupleParams[1]
 
       // Use the new universal signTypedDataV4 method
       const signature = await ConnectionController.signTypedDataV4(paramsData, {
         metadata: {
-          apiResponse: {
-            hash: apiData.data.hash,
-            uuid: apiData.data.uuid,
-            recover: apiData.data.recover,
-            code: apiData.code,
-            message: apiData.message
-          },
-          description: 'Universal EIP-712 typed data signature',
+          apiResponse: apiData
+            ? {
+                hash: apiData.data.hash,
+                uuid: apiData.data.uuid,
+                recover: apiData.data.recover,
+                code: apiData.code,
+                message: apiData.message
+              }
+            : undefined,
+          description: usingFallback
+            ? 'Universal EIP-712 typed data signature (using fallback data)'
+            : 'Universal EIP-712 typed data signature',
           timestamp: new Date().toISOString()
         }
       })
@@ -706,17 +741,24 @@ export function ActionButtonList() {
       }
 
       // Show detailed results
-      showSuccess(
-        'Signature Successful!',
-        `🔑 Signature: ${signature}
-📝 Hash: ${apiData.data.hash}
-🆔 UUID: ${apiData.data.uuid}
+      const resultMessage = usingFallback
+        ? `🔑 Signature: ${signature}
+⚠️ Using Fallback Data (API unavailable)
 🔗 Primary Type: ${paramsData.primaryType}
 ⛓️ Chain ID: ${paramsData.domain.chainId}
 📋 Contract: ${paramsData.domain.verifyingContract}
 
 Check console for full details.`
-      )
+        : `🔑 Signature: ${signature}
+📝 Hash: ${apiData!.data.hash}
+🆔 UUID: ${apiData!.data.uuid}
+🔗 Primary Type: ${paramsData.primaryType}
+⛓️ Chain ID: ${paramsData.domain.chainId}
+📋 Contract: ${paramsData.domain.verifyingContract}
+
+Check console for full details.`
+
+      showSuccess('Signature Successful!', resultMessage)
     } catch (error) {
       console.error('Error in handleSignTypedDataV4:', error)
       showError('Error in handleSignTypedDataV4', `❌ Error: ${(error as Error).message}`)
