@@ -1,5 +1,6 @@
 import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
 import type { AppKitNetwork } from '@to-nexus/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ApiController,
@@ -81,12 +82,22 @@ export type CrossSdkParams = {
   themeMode?: ThemeMode
   defaultNetwork?: SupportedNetworks
   adapters?: ChainAdapter[]
+  mobileLink?: string
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters } = params
+  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters, mobileLink } =
+    params
 
-  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters)
+  return initCrossSdk(
+    projectId,
+    redirectUrl,
+    metadata,
+    themeMode,
+    defaultNetwork,
+    adapters,
+    mobileLink
+  )
 }
 
 // Create modal
@@ -96,7 +107,8 @@ const initCrossSdk = (
   metadata?: Metadata,
   themeMode?: ThemeMode,
   defaultNetwork?: SupportedNetworks,
-  adapters?: ChainAdapter[]
+  adapters?: ChainAdapter[],
+  mobileLink?: string
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -105,6 +117,8 @@ const initCrossSdk = (
       universal: redirectUrl
     }
   }
+
+  console.log('mobileLink : ', (CommonConstantsUtil as any).getCrossWalletWebappLink?.())
 
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
@@ -131,7 +145,10 @@ const initCrossSdk = (
         id: 'cross_wallet',
         name: 'CROSSx Wallet',
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
-        mobile_link: 'crossx://',
+        mobile_link:
+          mobileLink ||
+          (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
+          'https://cross-wallet.crosstoken.io',
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
         play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
         chrome_store:
