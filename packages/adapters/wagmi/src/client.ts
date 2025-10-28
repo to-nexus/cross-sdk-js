@@ -121,7 +121,6 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     this.namespace = CommonConstantsUtil.CHAIN.EVM
 
-    console.log('[wagmiAdapter] configParams', configParams)
 
     this.createConfig({
       ...configParams,
@@ -159,7 +158,7 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
 
     const { addresses, address } = getAccount(this.wagmiConfig)
-    console.log('[wagmiAdapter] getAccount', addresses, address)
+    // console.log('[wagmiAdapter] getAccount', addresses, address)
     return Promise.resolve({
       accounts: (addresses || [address])?.map(val =>
         CoreHelperUtil.createAccount('eip155', val || '', 'eoa')
@@ -209,7 +208,7 @@ export class WagmiAdapter extends AdapterBlueprint {
     const transports = Object.fromEntries(transportsArr)
     const connectors: CreateConnectorFn[] = [...(configParams.connectors ?? [])]
 
-    console.log('[wagmiAdapter] connectors', connectors)
+    // console.log('[wagmiAdapter] connectors', connectors)
 
     // Create wagmi config with proper type handling
     this.wagmiConfig = createConfig({
@@ -245,17 +244,17 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   private setupWatchers() {
-    console.log('[wagmiAdapter] setupWatchers')
+    // console.log('[wagmiAdapter] setupWatchers')
     watchAccount(this.wagmiConfig, {
       onChange: (accountData, prevAccountData) => {
-        console.log('[wagmiAdapter] onChange accountData', accountData)
-        console.log('[wagmiAdapter] onChange prevAccountData', prevAccountData)
+        // console.log('[wagmiAdapter] onChange accountData', accountData)
+        // console.log('[wagmiAdapter] onChange prevAccountData', prevAccountData)
         if (accountData.status === 'disconnected' && prevAccountData.address) {
           this.emit('disconnect')
         }
 
         if (accountData.status === 'connected') {
-          console.log('[wagmiAdapter] connected', accountData, prevAccountData)
+          // console.log('[wagmiAdapter] connected', accountData, prevAccountData)
           if (
             accountData.address !== prevAccountData?.address ||
             prevAccountData.status !== 'connected'
@@ -277,15 +276,15 @@ export class WagmiAdapter extends AdapterBlueprint {
         const isReconnectingExtensionWallet = prevAccountData.status === 'reconnecting' && prevAccountData?.connector?.id === 'nexus.to.crosswallet.desktop'
         // Cross Extension Wallet 재연결 시 연결 시도
         if (isConnectingExtensionWallet || isReconnectingExtensionWallet) {
-          console.log('[wagmiAdapter] reconnecting', prevAccountData)
+          // console.log('[wagmiAdapter] reconnecting', prevAccountData)
 
           // 재연결 시도
           const connector = this.getWagmiConnector('nexus.to.crosswallet.desktop')
           if (connector) {
-            console.log('[wagmiAdapter] trying to reconnect with connector', connector.id)
+            // console.log('[wagmiAdapter] trying to reconnect with connector', connector.id)
             connect(this.wagmiConfig, { connector })
               .then((result) => {
-                console.log('[wagmiAdapter] reconnect success', result)
+                // console.log('[wagmiAdapter] reconnect success', result)
                 // 연결 성공 후 이벤트 발생
                 this.emit('accountChanged', {
                   address: result.accounts[0]
@@ -544,7 +543,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   private async addWagmiConnector(connector: Connector, options: AppKitOptions) {
-    console.log('[wagmiAdapter] addWagmiConnector', connector)
+    // console.log('[wagmiAdapter] addWagmiConnector', connector)
     /*
      * We don't need to set auth connector or walletConnect connector
      * from wagmi since we already set it in chain adapter blueprint
@@ -584,7 +583,7 @@ export class WagmiAdapter extends AdapterBlueprint {
     watchConnectors(this.wagmiConfig, {
       onChange: (connectors) => {
         connectors.forEach(connector => {
-          console.log('[syncConnectors] connector', connector)
+          // console.log('[syncConnectors] connector', connector)
           this.addWagmiConnector(connector, options)
         })
       }
@@ -646,18 +645,18 @@ export class WagmiAdapter extends AdapterBlueprint {
     params: AdapterBlueprint.SyncConnectionParams
   ): Promise<AdapterBlueprint.ConnectResult> {
     const { id } = params
-    console.log('syncConnection', id)
-    console.log('this.wagmiConfig', this.wagmiConfig)
+    // console.log('syncConnection', id)
+    // console.log('this.wagmiConfig', this.wagmiConfig)
     const connections = getConnections(this.wagmiConfig)
-    console.log('connections', connections)
+    // console.log('connections', connections)
     const connection = connections.find(c => c.connector.id === id)
-    console.log('connection', connection)
+    // console.log('connection', connection)
     const connector = this.getWagmiConnector(id)
-    console.log('connector', connector)
+    // console.log('connector', connector)
     let provider: Provider | undefined = undefined
     try {
       provider = (await connector?.getProvider()) as Provider
-      console.log('provider', provider)
+      // console.log('provider', provider)
     } catch (error) {
       console.log('error', error)
       throw new Error('WagmiAdapter:syncConnection - error getting provider')
@@ -747,7 +746,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   public override async reconnect(params: AdapterBlueprint.ConnectParams): Promise<void> {
     const { id } = params
-    console.log('[wagmiAdapter] reconnect', id)
+    // console.log('[wagmiAdapter] reconnect', id)
     try {
       // 먼저 모든 연결을 해제하여 상태를 초기화
       await this.disconnect()
