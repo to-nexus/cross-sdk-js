@@ -282,48 +282,32 @@ export function ActionButtonList() {
     }
 
     try {
-      // EIP-712 typed data 예제
+      // EIP-712 typed data 예제 - Simple Ping structure
       const domain = {
-        name: 'Cross Wagmi Example',
+        name: 'Example',
         version: '1',
         chainId: wagmiAccount.chainId,
         verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC' as `0x${string}`
       }
 
       const types = {
-        Person: [
-          { name: 'name', type: 'string' },
-          { name: 'wallet', type: 'address' }
-        ],
-        Mail: [
-          { name: 'from', type: 'Person' },
-          { name: 'to', type: 'Person' },
-          { name: 'contents', type: 'string' }
-        ]
+        Ping: [{ name: 'contents', type: 'string' }]
       }
 
       const message = {
-        from: {
-          name: 'Alice',
-          wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826'
-        },
-        to: {
-          name: 'Bob',
-          wallet: wagmiAccount.address
-        },
-        contents: 'Hello from Wagmi!'
+        contents: 'hello from Wagmi'
       }
 
       const signature = await signTypedDataAsync({
         domain,
         types,
-        primaryType: 'Mail',
+        primaryType: 'Ping',
         message
       })
 
       showSuccess(
         'Wagmi Sign Typed Data Successful!',
-        `Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n\nMessage: "${message.contents}"\nFrom: ${message.from.name}\nTo: ${message.to.name}`
+        `Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n\nMessage: "${message.contents}"`
       )
     } catch (error) {
       console.error('Error signing typed data with Wagmi:', error)

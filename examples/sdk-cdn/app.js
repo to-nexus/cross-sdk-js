@@ -428,55 +428,93 @@ async function initializeApp() {
         return
       }
 
+      // Get current chain ID for the fallback data
+      const currentChainId =
+        typeof networkState.chainId === 'string'
+          ? parseInt(networkState.chainId, 10)
+          : networkState.chainId || 1
+
+      // Fallback typed data for when API fails
+      const fallbackTypedData = {
+        domain: {
+          name: 'Example',
+          version: '1',
+          chainId: currentChainId,
+          verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
+        },
+        message: {
+          contents: 'hello'
+        },
+        primaryType: 'Ping',
+        types: {
+          Ping: [{ name: 'contents', type: 'string' }]
+        }
+      }
+
       try {
-        console.log('Requesting typed data from API...')
-        const FROM_ADDRESS = getFROM_ADDRESS()
+        let paramsData
+        let apiData = null
+        let usingFallback = false
 
-        // Get typed data from API
-        const response = await fetch(
-          'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
-          {
-            method: 'POST',
-            headers: {
-              accept: 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              account: FROM_ADDRESS,
-              amount: '1',
-              direction: true,
-              pair_id: 1,
-              project_id: 'nexus-ramp-v1'
-            })
+        try {
+          console.log('Requesting typed data from API...')
+          const FROM_ADDRESS = getFROM_ADDRESS()
+
+          // Get typed data from API
+          const response = await fetch(
+            'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
+            {
+              method: 'POST',
+              headers: {
+                accept: 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                account: FROM_ADDRESS,
+                amount: '1',
+                direction: true,
+                pair_id: 1,
+                project_id: 'nexus-ramp-v1'
+              })
+            }
+          )
+
+          if (!response.ok) {
+            throw new Error(`API response: ${response.status} ${response.statusText}`)
           }
-        )
 
-        if (!response.ok) {
-          throw new Error(`API response: ${response.status} ${response.statusText}`)
+          apiData = await response.json()
+          console.log('API response:', JSON.stringify(apiData, null, 2))
+
+          if (!apiData.data?.params) {
+            throw new Error('Invalid API response: missing params data')
+          }
+
+          // Extract only the typedData (second element) from API response params
+          paramsData = apiData.data.params[1]
+          console.log('Extracted typedData for signing:', JSON.stringify(paramsData, null, 2))
+        } catch (apiError) {
+          console.warn('API request failed, using fallback data:', apiError)
+          paramsData = fallbackTypedData
+          usingFallback = true
         }
-
-        const apiData = await response.json()
-        console.log('API response:', JSON.stringify(apiData, null, 2))
-
-        if (!apiData.data?.params) {
-          throw new Error('Invalid API response: missing params data')
-        }
-
-        // Extract only the typedData (second element) from API response params
-        const paramsData = apiData.data.params[1]
-        console.log('Extracted typedData for signing:', JSON.stringify(paramsData, null, 2))
 
         // Use the universal signTypedDataV4 method
         const signature = await ConnectionController.signTypedDataV4(paramsData, {
-          metadata: {
-            apiResponse: {
-              hash: apiData.data.hash,
-              uuid: apiData.data.uuid,
-              recover: apiData.data.recover
-            },
-            description: 'Universal EIP-712 typed data signature',
-            timestamp: new Date().toISOString()
-          }
+          metadata: apiData
+            ? {
+                apiResponse: {
+                  hash: apiData.data.hash,
+                  uuid: apiData.data.uuid,
+                  recover: apiData.data.recover
+                },
+                description: 'Universal EIP-712 typed data signature',
+                timestamp: new Date().toISOString()
+              }
+            : {
+                description: 'Universal EIP-712 typed data signature (using fallback data)',
+                timestamp: new Date().toISOString()
+              }
         })
 
         if (!signature) {
@@ -487,7 +525,18 @@ async function initializeApp() {
         console.log('Signature result:', signature)
 
         // Show detailed results
-        alert(`✅ Signature successful!
+        if (usingFallback) {
+          alert(`✅ Signature successful!
+
+🔑 Signature: ${signature}
+⚠️ Using Fallback Data (API unavailable)
+🔗 Primary Type: ${paramsData.primaryType}
+⛓️ Chain ID: ${paramsData.domain.chainId}
+📋 Contract: ${paramsData.domain.verifyingContract}
+
+Check console for full details.`)
+        } else {
+          alert(`✅ Signature successful!
 
 🔑 Signature: ${signature}
 📝 Hash: ${apiData.data.hash}
@@ -497,6 +546,7 @@ async function initializeApp() {
 📋 Contract: ${paramsData.domain.verifyingContract}
 
 Check console for full details.`)
+        }
       } catch (error) {
         console.error('Error in handleSignTypedDataV4:', error)
         alert(`❌ Error: ${error.message}`)
