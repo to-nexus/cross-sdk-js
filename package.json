@@ -1,5 +1,5 @@
 {
-  "version": "1.17.7-alpha.4",
+  "version": "1.18.0-beta.0",
   "name": "cross-sdk-js-monorepo",
   "private": true,
   "type": "module",
