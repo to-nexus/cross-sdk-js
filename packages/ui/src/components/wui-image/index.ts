@@ -6,7 +6,7 @@ import type { SizeType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-image')
+@customElement('cross-wui-image')
 export class WuiImage extends LitElement {
   public static override styles = [resetStyles, colorStyles, styles]
 
@@ -34,6 +34,6 @@ export class WuiImage extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-image': WuiImage
+    'cross-wui-image': WuiImage
   }
 }

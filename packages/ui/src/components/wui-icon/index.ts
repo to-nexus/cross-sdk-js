@@ -164,7 +164,7 @@ const svgOptions: Record<IconType, TemplateResult<2>> = {
   exclamationTriangle: exclamationTriangleSvg
 }
 
-@customElement('wui-icon')
+@customElement('cross-wui-icon')
 export class WuiIcon extends LitElement {
   public static override styles = [resetStyles, colorStyles, styles]
 
@@ -188,6 +188,6 @@ export class WuiIcon extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-icon': WuiIcon
+    'cross-wui-icon': WuiIcon
   }
 }

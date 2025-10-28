@@ -58,14 +58,14 @@ export class W3mOnrampTokensView extends LitElement {
       <cross-w3m-legal-checkbox
         @checkboxChange=${this.onCheckboxChange.bind(this)}
       ></cross-w3m-legal-checkbox>
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         .padding=${['0', 's', 's', 's']}
         gap="xs"
         class=${ifDefined(disabled ? 'disabled' : undefined)}
       >
         ${this.currenciesTemplate(disabled)}
-      </wui-flex>
+      </cross-wui-flex>
       <cross-w3m-legal-footer></cross-w3m-legal-footer>
     `
   }
@@ -74,17 +74,17 @@ export class W3mOnrampTokensView extends LitElement {
   private currenciesTemplate(disabled = false) {
     return this.tokens.map(
       token => html`
-        <wui-list-item
+        <cross-wui-list-item
           imageSrc=${ifDefined(this.tokenImages?.[token.symbol])}
           @click=${() => this.selectToken(token)}
           variant="image"
           tabIdx=${ifDefined(disabled ? -1 : undefined)}
         >
-          <wui-flex gap="3xs" alignItems="center">
-            <wui-text variant="paragraph-500" color="fg-100">${token.name}</wui-text>
-            <wui-text variant="small-400" color="fg-200">${token.symbol}</wui-text>
-          </wui-flex>
-        </wui-list-item>
+          <cross-wui-flex gap="3xs" alignItems="center">
+            <cross-wui-text variant="paragraph-500" color="fg-100">${token.name}</cross-wui-text>
+            <cross-wui-text variant="small-400" color="fg-200">${token.symbol}</cross-wui-text>
+          </cross-wui-flex>
+        </cross-wui-list-item>
       `
     )
   }

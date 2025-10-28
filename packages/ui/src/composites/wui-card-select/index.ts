@@ -10,7 +10,7 @@ import '../wui-network-image/index.js'
 import '../wui-wallet-image/index.js'
 import styles from './styles.js'
 
-@customElement('wui-card-select')
+@customElement('cross-wui-card-select')
 export class WuiCardSelect extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -33,9 +33,9 @@ export class WuiCardSelect extends LitElement {
     return html`
       <button data-selected=${ifDefined(this.selected)} ?disabled=${this.disabled}>
         ${this.imageTemplate()}
-        <wui-text variant="tiny-500" color=${this.selected ? 'accent-100' : 'inherit'}>
+        <cross-wui-text variant="tiny-500" color=${this.selected ? 'accent-100' : 'inherit'}>
           ${this.name}
-        </wui-text>
+        </cross-wui-text>
       </button>
     `
   }
@@ -43,30 +43,30 @@ export class WuiCardSelect extends LitElement {
   private imageTemplate() {
     if (this.type === 'network') {
       return html`
-        <wui-network-image
+        <cross-wui-network-image
           .selected=${this.selected}
           imageSrc=${ifDefined(this.imageSrc)}
           name=${this.name}
         >
-        </wui-network-image>
+        </cross-wui-network-image>
       `
     }
 
     return html`
-      <wui-wallet-image
+      <cross-wui-wallet-image
         size="md"
         imageSrc=${ifDefined(this.imageSrc)}
         name=${this.name}
         .installed=${this.installed}
         badgeSize="sm"
       >
-      </wui-wallet-image>
+      </cross-wui-wallet-image>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-card-select': WuiCardSelect
+    'cross-wui-card-select': WuiCardSelect
   }
 }

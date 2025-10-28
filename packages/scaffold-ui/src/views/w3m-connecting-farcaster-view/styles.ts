@@ -10,13 +10,13 @@ export default css`
     }
   }
 
-  wui-shimmer {
+  cross-wui-shimmer {
     width: 100%;
     aspect-ratio: 1 / 1;
     border-radius: clamp(0px, var(--wui-border-radius-l), 40px) !important;
   }
 
-  wui-qr-code {
+  cross-wui-qr-code {
     opacity: 0;
     animation-duration: 200ms;
     animation-timing-function: ease;
@@ -24,7 +24,7 @@ export default css`
     animation-fill-mode: forwards;
   }
 
-  wui-logo {
+  cross-wui-logo {
     width: 80px;
     height: 80px;
     border-radius: var(--wui-border-radius-m);
@@ -33,10 +33,10 @@ export default css`
   wui-flex:first-child:not(:only-child) {
     position: relative;
   }
-  wui-loading-thumbnail {
+  cross-wui-loading-thumbnail {
     position: absolute;
   }
-  wui-icon-box {
+  cross-wui-icon-box {
     position: absolute;
     right: calc(var(--wui-spacing-3xs) * -1);
     bottom: calc(var(--wui-spacing-3xs) * -1);

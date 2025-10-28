@@ -24,19 +24,19 @@ export class W3mConnectingWcUnsupported extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-wallet-image
+        <cross-wui-wallet-image
           size="lg"
           imageSrc=${ifDefined(AssetUtil.getWalletImage(this.wallet))}
-        ></wui-wallet-image>
+        ></cross-wui-wallet-image>
 
-        <wui-text variant="paragraph-500" color="fg-100">Not Detected</wui-text>
-      </wui-flex>
+        <cross-wui-text variant="paragraph-500" color="fg-100">Not Detected</cross-wui-text>
+      </cross-wui-flex>
 
       <cross-w3m-mobile-download-links .wallet=${this.wallet}></cross-w3m-mobile-download-links>
     `

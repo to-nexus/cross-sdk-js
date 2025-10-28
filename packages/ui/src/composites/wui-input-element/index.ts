@@ -7,7 +7,7 @@ import type { IconType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-input-element')
+@customElement('cross-wui-input-element')
 export class WuiInputElement extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -18,7 +18,7 @@ export class WuiInputElement extends LitElement {
   public override render() {
     return html`
       <button>
-        <wui-icon color="inherit" size="xxs" name=${this.icon}></wui-icon>
+        <cross-wui-icon color="inherit" size="xxs" name=${this.icon}></cross-wui-icon>
       </button>
     `
   }
@@ -26,6 +26,6 @@ export class WuiInputElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-input-element': WuiInputElement
+    'cross-wui-input-element': WuiInputElement
   }
 }

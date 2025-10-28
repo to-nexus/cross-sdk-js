@@ -70,24 +70,24 @@ export class W3mRegisterAccountNameView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         gap="m"
         .padding=${['0', 's', 'm', 's'] as const}
       >
         <form ${ref(this.formRef)} @submit=${this.onSubmitName.bind(this)}>
-          <wui-ens-input
+          <cross-wui-ens-input
             @inputChange=${this.onNameInputChange.bind(this)}
             .errorMessage=${this.error}
             .value=${this.name}
           >
-          </wui-ens-input>
+          </cross-wui-ens-input>
           ${this.submitButtonTemplate()}
           <input type="submit" hidden />
         </form>
         ${this.templateSuggestions()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -97,13 +97,13 @@ export class W3mRegisterAccountNameView extends LitElement {
 
     return showSubmit
       ? html`
-          <wui-icon-link
+          <cross-wui-icon-link
             size="sm"
             icon="chevronRight"
             iconcolor="accent-100"
             @click=${this.onSubmitName.bind(this)}
           >
-          </wui-icon-link>
+          </cross-wui-icon-link>
         `
       : null
   }
@@ -137,12 +137,12 @@ export class W3mRegisterAccountNameView extends LitElement {
 
   private nameSuggestionTagTemplate() {
     if (this.loading) {
-      return html`<wui-loading-spinner size="lg" color="fg-100"></wui-loading-spinner>`
+      return html`<cross-wui-loading-spinner size="lg" color="fg-100"></cross-wui-loading-spinner>`
     }
 
     return this.registered
-      ? html`<wui-tag variant="shade" size="lg">Registered</wui-tag>`
-      : html`<wui-tag variant="success" size="lg">Available</wui-tag>`
+      ? html`<cross-wui-tag variant="shade" size="lg">Registered</cross-wui-tag>`
+      : html`<cross-wui-tag variant="success" size="lg">Available</cross-wui-tag>`
   }
 
   private templateSuggestions() {
@@ -152,35 +152,35 @@ export class W3mRegisterAccountNameView extends LitElement {
 
     const suggestions = this.registered ? this.suggestions.filter(s => s.name !== this.name) : []
 
-    return html`<wui-flex flexDirection="column" gap="xxs" alignItems="center">
-      <wui-flex
+    return html`<cross-wui-flex flexDirection="column" gap="xxs" alignItems="center">
+      <cross-wui-flex
         data-testid="account-name-suggestion"
         .padding=${['m', 'm', 'm', 'm'] as const}
         justifyContent="space-between"
         class="suggestion"
         @click=${this.onSubmitName.bind(this)}
       >
-        <wui-text color="fg-100" variant="paragraph-400" class="suggested-name">
+        <cross-wui-text color="fg-100" variant="paragraph-400" class="suggested-name">
           ${this.name}</wui-text
         >${this.nameSuggestionTagTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
       ${suggestions.map(suggestion => this.availableNameTemplate(suggestion.name))}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   private availableNameTemplate(suggestion: string) {
-    return html` <wui-flex
+    return html` <cross-wui-flex
       data-testid="account-name-suggestion"
       .padding=${['m', 'm', 'm', 'm'] as const}
       justifyContent="space-between"
       class="suggestion"
       @click=${this.onSelectSuggestion(suggestion)}
     >
-      <wui-text color="fg-100" variant="paragraph-400" class="suggested-name">
+      <cross-wui-text color="fg-100" variant="paragraph-400" class="suggested-name">
         ${suggestion}
-      </wui-text>
-      <wui-tag variant="success" size="lg">Available</wui-tag>
-    </wui-flex>`
+      </cross-wui-text>
+      <cross-wui-tag variant="success" size="lg">Available</cross-wui-tag>
+    </cross-wui-flex>`
   }
 
   private isAllowedToSubmit() {

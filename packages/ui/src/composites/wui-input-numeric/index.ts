@@ -5,7 +5,7 @@ import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-input-numeric')
+@customElement('cross-wui-input-numeric')
 export class WuiInputNumeric extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -28,6 +28,6 @@ export class WuiInputNumeric extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-input-numeric': WuiInputNumeric
+    'cross-wui-input-numeric': WuiInputNumeric
   }
 }

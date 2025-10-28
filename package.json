@@ -107,11 +107,11 @@
   },
   "resolutions": {
     "@solana/web3.js": "1.95.8",
-    "viem": "~2.23.0"
+    "viem": "^2.38.4"
   },
   "overrides": {
     "@solana/web3.js": "1.95.8",
-    "viem": "~2.23.0"
+    "viem": "^2.38.4"
   },
   "@parcel/resolver-default": {
     "packageExports": true

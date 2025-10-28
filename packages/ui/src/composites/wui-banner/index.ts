@@ -8,7 +8,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-banner')
+@customElement('cross-wui-banner')
 export class WuiBanner extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -21,22 +21,22 @@ export class WuiBanner extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex gap="1xs" alignItems="center">
-        <wui-icon-box
+      <cross-wui-flex gap="1xs" alignItems="center">
+        <cross-wui-icon-box
           size="sm"
           iconcolor="fg-200"
           backgroundcolor="fg-200"
           icon=${this.icon}
           background="transparent"
-        ></wui-icon-box>
-        <wui-text variant="small-400" color="fg-200">${this.text}</wui-text>
-      </wui-flex>
+        ></cross-wui-icon-box>
+        <cross-wui-text variant="small-400" color="fg-200">${this.text}</cross-wui-text>
+      </cross-wui-flex>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-banner': WuiBanner
+    'cross-wui-banner': WuiBanner
   }
 }

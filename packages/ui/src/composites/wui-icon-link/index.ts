@@ -7,7 +7,7 @@ import type { ColorType, IconType, SizeType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-icon-link')
+@customElement('cross-wui-icon-link')
 export class WuiIconLink extends LitElement {
   public static override styles = [resetStyles, elementStyles, colorStyles, styles]
 
@@ -32,7 +32,7 @@ export class WuiIconLink extends LitElement {
 
     return html`
       <button ?disabled=${this.disabled}>
-        <wui-icon color=${this.iconColor} size=${this.size} name=${this.icon}></wui-icon>
+        <cross-wui-icon color=${this.iconColor} size=${this.size} name=${this.icon}></cross-wui-icon>
       </button>
     `
   }
@@ -40,6 +40,6 @@ export class WuiIconLink extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-icon-link': WuiIconLink
+    'cross-wui-icon-link': WuiIconLink
   }
 }

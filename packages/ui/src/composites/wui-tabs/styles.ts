@@ -22,7 +22,7 @@ export default css`
     width: var(--local-tab-width);
     height: 28px;
     border-radius: var(--wui-border-radius-3xl);
-    background-color: var(--wui-tabs-active-bg, var(--wui-color-gray-glass-002));
+    background-color: var(--cross-wui-tabs-active-bg, var(--wui-color-gray-glass-002));
     box-shadow: inset 0 0 0 1px var(--wui-color-gray-glass-002);
     transform: translateX(calc(var(--local-tab) * var(--local-tab-width)));
     transition: transform var(--wui-ease-out-power-1) var(--wui-duration-md);
@@ -40,56 +40,56 @@ export default css`
     gap: 4px;
   }
 
-  :host([data-type='flex']) > button > wui-text {
+  :host([data-type='flex']) > button > cross-wui-text {
     position: absolute;
     left: 18px;
     opacity: 0;
   }
 
-  button[data-active='true'] > wui-icon,
-  button[data-active='true']:hover:enabled > wui-icon,
-  button[data-active='true']:active:enabled > wui-icon {
-    color: var(--wui-tabs-active-icon-color, var(--wui-color-fg-100));
+  button[data-active='true'] > cross-wui-icon,
+  button[data-active='true']:hover:enabled > cross-wui-icon,
+  button[data-active='true']:active:enabled > cross-wui-icon {
+    color: var(--cross-wui-tabs-active-icon-color, var(--wui-color-fg-100));
   }
 
-  button[data-active='true'] > wui-text,
-  button[data-active='true']:hover:enabled > wui-text,
-  button[data-active='true']:active:enabled > wui-text {
-    color: var(--wui-tabs-active-text-color, var(--wui-color-fg-100));
+  button[data-active='true'] > cross-wui-text,
+  button[data-active='true']:hover:enabled > cross-wui-text,
+  button[data-active='true']:active:enabled > cross-wui-text {
+    color: var(--cross-wui-tabs-active-text-color, var(--wui-color-fg-100));
   }
 
-  button[data-active='false'] > wui-icon,
-  button[data-active='false'] > wui-text {
+  button[data-active='false'] > cross-wui-icon,
+  button[data-active='false'] > cross-wui-text {
     color: var(--wui-color-fg-200);
   }
 
   button[data-active='true']:disabled,
   button[data-active='false']:disabled {
     background-color: transparent;
-    opacity: var(--wui-tabs-disabled-opacity, 0.5);
+    opacity: var(--cross-wui-tabs-disabled-opacity, 0.5);
     cursor: not-allowed;
   }
 
-  button[data-active='true']:disabled > wui-text {
+  button[data-active='true']:disabled > cross-wui-text {
     color: var(
-      --wui-tabs-active-disabled-text-color,
-      var(--wui-tabs-active-text-color, var(--wui-color-fg-200))
+      --cross-wui-tabs-active-disabled-text-color,
+      var(--cross-wui-tabs-active-text-color, var(--wui-color-fg-200))
     );
   }
 
-  button[data-active='true']:disabled > wui-icon {
+  button[data-active='true']:disabled > cross-wui-icon {
     color: var(
-      --wui-tabs-active-disabled-icon-color,
-      var(--wui-tabs-active-icon-color, var(--wui-color-fg-200))
+      --cross-wui-tabs-active-disabled-icon-color,
+      var(--cross-wui-tabs-active-icon-color, var(--wui-color-fg-200))
     );
   }
 
-  button[data-active='false']:disabled > wui-text {
+  button[data-active='false']:disabled > cross-wui-text {
     color: var(--wui-color-fg-300);
   }
 
-  button > wui-icon,
-  button > wui-text {
+  button > cross-wui-icon,
+  button > cross-wui-text {
     pointer-events: none;
     transition: color var(--wui-e ase-out-power-1) var(--wui-duration-md);
     will-change: color;
@@ -113,14 +113,14 @@ export default css`
     background-color: transparent !important;
   }
 
-  button:hover:enabled > wui-icon,
-  button:active:enabled > wui-icon {
+  button:hover:enabled > cross-wui-icon,
+  button:active:enabled > cross-wui-icon {
     transition: all var(--wui-ease-out-power-1) var(--wui-duration-lg);
     color: var(--wui-color-fg-125);
   }
 
-  button:hover:enabled > wui-text,
-  button:active:enabled > wui-text {
+  button:hover:enabled > cross-wui-text,
+  button:active:enabled > cross-wui-text {
     transition: all var(--wui-ease-out-power-1) var(--wui-duration-lg);
     color: var(--wui-color-fg-125);
   }

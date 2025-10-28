@@ -63,10 +63,10 @@ export class W3mConnectCustomWidget extends LitElement {
 
     console.log('✅ CustomWallets 표시:', wallets)
 
-    return html`<wui-flex flexDirection="column" gap="xs">
+    return html`<cross-wui-flex flexDirection="column" gap="xs">
       ${wallets.map(
         wallet => html`
-          <wui-list-wallet
+          <cross-wui-list-wallet
             imageSrc=${ifDefined(AssetUtil.getWalletImage(wallet))}
             name=${wallet.name ?? 'Unknown'}
             @click=${() => this.onConnectWallet(wallet)}
@@ -74,10 +74,10 @@ export class W3mConnectCustomWidget extends LitElement {
             tabIdx=${ifDefined(this.tabIdx)}
             ?loading=${this.loading}
           >
-          </wui-list-wallet>
+          </cross-wui-list-wallet>
         `
       )}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   // -- Private Methods ----------------------------------- //

@@ -36,23 +36,23 @@ export class W3mUpdateEmailWalletView extends LitElement {
     const showSubmit = !this.loading && this.email.length > 3 && this.email !== this.initialEmail
 
     return html`
-      <wui-flex flexDirection="column" padding="m" gap="m">
+      <cross-wui-flex flexDirection="column" padding="m" gap="m">
         <form ${ref(this.formRef)} @submit=${this.onSubmitEmail.bind(this)}>
-          <wui-email-input
+          <cross-wui-email-input
             value=${this.initialEmail}
             .disabled=${this.loading}
             @inputChange=${this.onEmailInputChange.bind(this)}
           >
-          </wui-email-input>
+          </cross-wui-email-input>
           <input type="submit" hidden />
         </form>
 
-        <wui-flex gap="s">
-          <wui-button size="md" variant="neutral" fullWidth @click=${RouterController.goBack}>
+        <cross-wui-flex gap="s">
+          <cross-wui-button size="md" variant="neutral" fullWidth @click=${RouterController.goBack}>
             Cancel
-          </wui-button>
+          </cross-wui-button>
 
-          <wui-button
+          <cross-wui-button
             size="md"
             variant="main"
             fullWidth
@@ -61,9 +61,9 @@ export class W3mUpdateEmailWalletView extends LitElement {
             .loading=${this.loading}
           >
             Save
-          </wui-button>
-        </wui-flex>
-      </wui-flex>
+          </cross-wui-button>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 

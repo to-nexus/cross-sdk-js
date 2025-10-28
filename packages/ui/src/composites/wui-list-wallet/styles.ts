@@ -20,12 +20,12 @@ export default css`
     color: var(--wui-color-gray-glass-015);
   }
 
-  button:disabled > wui-tag {
+  button:disabled > cross-wui-tag {
     background-color: var(--wui-color-gray-glass-010);
     color: var(--wui-color-fg-300);
   }
 
-  wui-icon {
+  cross-wui-icon {
     color: var(--wui-color-fg-200) !important;
   }
 `

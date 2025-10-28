@@ -19,18 +19,18 @@ export default css`
     padding: 6px 18px 6px 9px;
   }
 
-  button > wui-flex {
+  button > cross-wui-flex {
     flex: 1;
   }
 
-  button > wui-image {
+  button > cross-wui-image {
     width: 32px;
     height: 32px;
     box-shadow: 0 0 0 2px var(--wui-color-gray-glass-005);
     border-radius: var(--wui-border-radius-3xl);
   }
 
-  button > wui-icon {
+  button > cross-wui-icon {
     width: 36px;
     height: 36px;
     transition: opacity var(--wui-ease-out-power-1) var(--wui-duration-md);
@@ -74,11 +74,11 @@ export default css`
     color: var(--wui-color-gray-glass-020);
   }
 
-  button[data-loading='true'] > wui-icon {
+  button[data-loading='true'] > cross-wui-icon {
     opacity: 0;
   }
 
-  wui-loading-spinner {
+  cross-wui-loading-spinner {
     position: absolute;
     right: 18px;
     top: 50%;

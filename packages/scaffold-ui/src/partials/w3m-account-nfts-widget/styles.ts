@@ -5,7 +5,7 @@ export default css`
     height: 280px;
   }
 
-  .contentContainer > wui-icon-box {
+  .contentContainer > cross-wui-icon-box {
     width: 40px;
     height: 40px;
     border-radius: var(--wui-border-radius-xxs);

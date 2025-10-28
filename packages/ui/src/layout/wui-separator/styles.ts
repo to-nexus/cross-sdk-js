@@ -11,7 +11,7 @@ export default css`
     align-items: center;
   }
 
-  :host > wui-text {
+  :host > cross-wui-text {
     position: absolute;
     padding: 0px 10px;
     background-color: var(--wui-color-modal-bg);

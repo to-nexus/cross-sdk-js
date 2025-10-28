@@ -24,7 +24,7 @@ export default css`
     border: 1px solid var(--wui-color-gray-glass-010);
   }
 
-  button:disabled > wui-text {
+  button:disabled > cross-wui-text {
     color: var(--wui-color-gray-glass-015);
   }
 
@@ -56,7 +56,7 @@ export default css`
     opacity: var(--local-opacity-100);
   }
 
-  button > wui-text {
+  button > cross-wui-text {
     transition: opacity var(--wui-ease-out-power-1) var(--wui-duration-md);
     will-change: opacity;
     opacity: var(--local-opacity-100);
@@ -67,7 +67,7 @@ export default css`
     padding: 9px var(--wui-spacing-l) 9px var(--wui-spacing-l);
   }
 
-  button[data-size='md'] + wui-text {
+  button[data-size='md'] + cross-wui-text {
     padding-left: var(--wui-spacing-3xs);
   }
 
@@ -82,7 +82,7 @@ export default css`
     }
   }
 
-  wui-loading-spinner {
+  cross-wui-loading-spinner {
     width: 14px;
     height: 14px;
   }
@@ -92,7 +92,7 @@ export default css`
     height: 10px !important;
   }
 
-  button[data-size='sm'] > wui-loading-spinner {
+  button[data-size='sm'] > cross-wui-loading-spinner {
     width: 12px;
     height: 12px;
   }

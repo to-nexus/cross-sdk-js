@@ -7,7 +7,7 @@ import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-list-button')
+@customElement('cross-wui-list-button')
 export class WuiListButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -22,7 +22,7 @@ export class WuiListButton extends LitElement {
   public override render() {
     return html`
       <button ?disabled=${this.disabled} tabindex=${ifDefined(this.tabIdx)}>
-        <wui-text align="center" variant="paragraph-500" color="inherit">${this.text}</wui-text>
+        <cross-wui-text align="center" variant="paragraph-500" color="inherit">${this.text}</cross-wui-text>
       </button>
     `
   }
@@ -30,6 +30,6 @@ export class WuiListButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-list-button': WuiListButton
+    'cross-wui-list-button': WuiListButton
   }
 }

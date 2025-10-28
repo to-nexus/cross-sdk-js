@@ -78,20 +78,20 @@ export class W3mInputCurrency extends LitElement {
     const symbol = this.selectedCurrency?.symbol || ''
     const image = this.currencyImages[symbol] || this.tokenImages[symbol]
 
-    return html`<wui-input-text type="number" size="lg" value=${this.value}>
+    return html`<cross-wui-input-text type="number" size="lg" value=${this.value}>
       ${this.selectedCurrency
-        ? html` <wui-flex
+        ? html` <cross-wui-flex
             class="currency-container"
             justifyContent="space-between"
             alignItems="center"
             gap="xxs"
             @click=${() => ModalController.open({ view: `OnRamp${this.type}Select` })}
           >
-            <wui-image src=${ifDefined(image)}></wui-image>
-            <wui-text color="fg-100">${this.selectedCurrency.symbol}</wui-text>
-          </wui-flex>`
-        : html`<wui-loading-spinner></wui-loading-spinner>`}
-    </wui-input-text>`
+            <cross-wui-image src=${ifDefined(image)}></cross-wui-image>
+            <cross-wui-text color="fg-100">${this.selectedCurrency.symbol}</cross-wui-text>
+          </cross-wui-flex>`
+        : html`<cross-wui-loading-spinner></cross-wui-loading-spinner>`}
+    </cross-wui-input-text>`
   }
 
   private formatPaymentCurrency(currency: PaymentCurrency) {

@@ -88,7 +88,7 @@ class W3mAccountButtonBase extends LitElement {
     const shouldShowLoading = typeof this.balanceVal !== 'string'
 
     return html`
-      <wui-account-button
+      <cross-wui-account-button
         .disabled=${Boolean(this.disabled)}
         .isUnsupportedChain=${OptionsController.state.allowUnsupportedChain
           ? false
@@ -106,7 +106,7 @@ class W3mAccountButtonBase extends LitElement {
         .charsEnd=${this.charsEnd}
         ?loading=${shouldShowLoading}
       >
-      </wui-account-button>
+      </cross-wui-account-button>
     `
   }
 

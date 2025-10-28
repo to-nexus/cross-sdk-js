@@ -6,7 +6,7 @@ import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-details-group-item')
+@customElement('cross-wui-details-group-item')
 export class WuiDetailsGroupItem extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -16,18 +16,18 @@ export class WuiDetailsGroupItem extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex justifyContent="space-between" alignItems="center">
-        <wui-text variant="paragraph-500" color="fg-200">${this.name}</wui-text>
-        <wui-flex gap="xs" alignItems="center">
+      <cross-wui-flex justifyContent="space-between" alignItems="center">
+        <cross-wui-text variant="paragraph-500" color="fg-200">${this.name}</cross-wui-text>
+        <cross-wui-flex gap="xs" alignItems="center">
           <slot></slot>
-        </wui-flex>
-      </wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-details-group-item': WuiDetailsGroupItem
+    'cross-wui-details-group-item': WuiDetailsGroupItem
   }
 }

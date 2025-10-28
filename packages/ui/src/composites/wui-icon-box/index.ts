@@ -14,7 +14,7 @@ import type {
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-icon-box')
+@customElement('cross-wui-icon-box')
 export class WuiIconBox extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -69,12 +69,12 @@ export class WuiIconBox extends LitElement {
        }
    `
 
-    return html` <wui-icon color=${this.iconColor} size=${iconSize} name=${this.icon}></wui-icon> `
+    return html` <cross-wui-icon color=${this.iconColor} size=${iconSize} name=${this.icon}></cross-wui-icon> `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-icon-box': WuiIconBox
+    'cross-wui-icon-box': WuiIconBox
   }
 }

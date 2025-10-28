@@ -9,7 +9,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-logo/index.js'
 import styles from './styles.js'
 
-@customElement('wui-list-social')
+@customElement('cross-wui-list-social')
 export class WuiListSocial extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -28,8 +28,8 @@ export class WuiListSocial extends LitElement {
   public override render() {
     return html`
       <button ?disabled=${this.disabled} tabindex=${ifDefined(this.tabIdx)}>
-        <wui-logo logo=${this.logo}></wui-logo>
-        <wui-text
+        <cross-wui-logo logo=${this.logo}></cross-wui-logo>
+        <cross-wui-text
           data-align=${this.align}
           variant="paragraph-500"
           color="inherit"
@@ -44,7 +44,7 @@ export class WuiListSocial extends LitElement {
   // -- Private ------------------------------------------- //
   private templatePlacement() {
     if (this.align === 'center') {
-      return html` <wui-logo class="invisible" logo=${this.logo}></wui-logo>`
+      return html` <cross-wui-logo class="invisible" logo=${this.logo}></cross-wui-logo>`
     }
 
     return null
@@ -53,6 +53,6 @@ export class WuiListSocial extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-list-social': WuiListSocial
+    'cross-wui-list-social': WuiListSocial
   }
 }

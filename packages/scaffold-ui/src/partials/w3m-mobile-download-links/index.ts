@@ -35,41 +35,41 @@ export class W3mMobileDownloadLinks extends LitElement {
 
     if (isMultiple && !isMobile) {
       return html`
-        <wui-cta-button
+        <cross-wui-cta-button
           label=${`Don't have ${shortName}?`}
           buttonLabel="Get"
           @click=${() => RouterController.push('Downloads', { wallet: this.wallet })}
-        ></wui-cta-button>
+        ></cross-wui-cta-button>
       `
     }
 
     if (!isMultiple && homepage) {
       return html`
-        <wui-cta-button
+        <cross-wui-cta-button
           label=${`Don't have ${shortName}?`}
           buttonLabel="Get"
           @click=${this.onHomePage.bind(this)}
-        ></wui-cta-button>
+        ></cross-wui-cta-button>
       `
     }
 
     if (app_store && isIos) {
       return html`
-        <wui-cta-button
+        <cross-wui-cta-button
           label=${`Don't have ${shortName}?`}
           buttonLabel="Get"
           @click=${this.onAppStore.bind(this)}
-        ></wui-cta-button>
+        ></cross-wui-cta-button>
       `
     }
 
     if (play_store && isAndroid) {
       return html`
-        <wui-cta-button
+        <cross-wui-cta-button
           label=${`Don't have ${shortName}?`}
           buttonLabel="Get"
           @click=${this.onPlayStore.bind(this)}
-        ></wui-cta-button>
+        ></cross-wui-cta-button>
       `
     }
 

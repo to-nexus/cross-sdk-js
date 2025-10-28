@@ -5,7 +5,7 @@ export default css`
     height: 64px;
   }
 
-  wui-text {
+  cross-wui-text {
     text-transform: capitalize;
   }
 

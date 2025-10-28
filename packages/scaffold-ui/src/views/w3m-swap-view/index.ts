@@ -111,9 +111,9 @@ export class W3mSwapView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" .padding=${['0', 'l', 'l', 'l']} gap="s">
+      <cross-wui-flex flexDirection="column" .padding=${['0', 'l', 'l', 'l']} gap="s">
         ${this.initialized ? this.templateSwap() : this.templateLoading()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -128,13 +128,13 @@ export class W3mSwapView extends LitElement {
 
   private templateSwap() {
     return html`
-      <wui-flex flexDirection="column" gap="s">
-        <wui-flex flexDirection="column" alignItems="center" gap="xs" class="swap-inputs-container">
+      <cross-wui-flex flexDirection="column" gap="s">
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs" class="swap-inputs-container">
           ${this.templateTokenInput('sourceToken', this.sourceToken)}
           ${this.templateTokenInput('toToken', this.toToken)} ${this.templateReplaceTokensButton()}
-        </wui-flex>
+        </cross-wui-flex>
         ${this.templateDetails()} ${this.templateActionButton()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -160,24 +160,24 @@ export class W3mSwapView extends LitElement {
 
   private templateReplaceTokensButton() {
     return html`
-      <wui-flex class="replace-tokens-button-container">
+      <cross-wui-flex class="replace-tokens-button-container">
         <button @click=${this.onSwitchTokens.bind(this)}>
-          <wui-icon name="recycleHorizontal" color="fg-250" size="lg"></wui-icon>
+          <cross-wui-icon name="recycleHorizontal" color="fg-250" size="lg"></cross-wui-icon>
         </button>
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
   private templateLoading() {
     return html`
-      <wui-flex flexDirection="column" gap="l">
-        <wui-flex flexDirection="column" alignItems="center" gap="xs" class="swap-inputs-container">
+      <cross-wui-flex flexDirection="column" gap="l">
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs" class="swap-inputs-container">
           <cross-w3m-swap-input-skeleton target="sourceToken"></cross-w3m-swap-input-skeleton>
           <cross-w3m-swap-input-skeleton target="toToken"></cross-w3m-swap-input-skeleton>
           ${this.templateReplaceTokensButton()}
-        </wui-flex>
+        </cross-wui-flex>
         ${this.templateActionButton()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -255,8 +255,8 @@ export class W3mSwapView extends LitElement {
     const loading = this.loadingQuote || this.loadingPrices || this.loadingTransaction
     const disabled = loading || haveNoTokenSelected || haveNoAmount || this.inputError
 
-    return html` <wui-flex gap="xs">
-      <wui-button
+    return html` <cross-wui-flex gap="xs">
+      <cross-wui-button
         data-testid="swap-action-button"
         class="action-button"
         fullWidth
@@ -268,8 +268,8 @@ export class W3mSwapView extends LitElement {
         @click=${this.onSwapPreview.bind(this)}
       >
         ${this.actionButtonLabel()}
-      </wui-button>
-    </wui-flex>`
+      </cross-wui-button>
+    </cross-wui-flex>`
   }
 
   private onDebouncedGetSwapCalldata = CoreHelperUtil.debounce(async () => {

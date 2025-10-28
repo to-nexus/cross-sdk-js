@@ -39,32 +39,32 @@ export class W3mConnectingMultiChainView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['m', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" alignItems="center">
-          <wui-wallet-image
+        <cross-wui-flex justifyContent="center" alignItems="center">
+          <cross-wui-wallet-image
             size="lg"
             imageSrc=${ifDefined(AssetUtil.getConnectorImage(this.activeConnector))}
-          ></wui-wallet-image>
-        </wui-flex>
-        <wui-flex
+          ></cross-wui-wallet-image>
+        </cross-wui-flex>
+        <cross-wui-flex
           flexDirection="column"
           alignItems="center"
           gap="xs"
           .padding=${['0', 's', '0', 's'] as const}
         >
-          <wui-text variant="paragraph-500" color="fg-100">
+          <cross-wui-text variant="paragraph-500" color="fg-100">
             Select Chain for ${this.activeConnector?.name}
-          </wui-text>
-          <wui-text align="center" variant="small-500" color="fg-200"
+          </cross-wui-text>
+          <cross-wui-text align="center" variant="small-500" color="fg-200"
             >Select which chain to connect to your multi chain wallet</wui-text
           >
-        </wui-flex>
-        <wui-flex
+        </cross-wui-flex>
+        <cross-wui-flex
           flexGrow="1"
           flexDirection="column"
           alignItems="center"
@@ -72,8 +72,8 @@ export class W3mConnectingMultiChainView extends LitElement {
           .padding=${['xs', '0', 'xs', '0'] as const}
         >
           ${this.networksTemplate()}
-        </wui-flex>
-      </wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -82,12 +82,12 @@ export class W3mConnectingMultiChainView extends LitElement {
     return this.activeConnector?.connectors?.map(connector =>
       connector.name
         ? html`
-            <wui-list-wallet
+            <cross-wui-list-wallet
               imageSrc=${ifDefined(AssetUtil.getChainImage(connector.chain))}
               name=${ConstantsUtil.CHAIN_NAME_MAP[connector.chain]}
               @click=${() => this.onConnector(connector)}
               data-testid="wui-list-chain-${connector.chain}"
-            ></wui-list-wallet>
+            ></cross-wui-list-wallet>
           `
         : null
     )

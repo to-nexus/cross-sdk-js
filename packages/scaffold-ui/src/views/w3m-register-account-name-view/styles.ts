@@ -1,7 +1,7 @@
 import { css } from 'lit'
 
 export default css`
-  wui-flex {
+  cross-wui-flex {
     width: 100%;
   }
 
@@ -26,7 +26,7 @@ export default css`
     width: 100%;
   }
 
-  wui-icon-link {
+  cross-wui-icon-link {
     position: absolute;
     right: 20px;
     transform: translateY(11px);

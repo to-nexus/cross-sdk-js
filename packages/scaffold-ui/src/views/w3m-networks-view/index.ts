@@ -54,41 +54,41 @@ export class W3mNetworksView extends LitElement {
   public override render() {
     return html`
       ${this.templateSearchInput()}
-      <wui-flex
+      <cross-wui-flex
         class="container"
         .padding=${['0', 's', 's', 's'] as const}
         flexDirection="column"
         gap="xs"
       >
         ${this.networksTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
 
-      <wui-separator></wui-separator>
+      <cross-wui-separator></cross-wui-separator>
 
-      <wui-flex padding="s" flexDirection="column" gap="m" alignItems="center">
-        <wui-text variant="small-400" color="fg-300" align="center">
+      <cross-wui-flex padding="s" flexDirection="column" gap="m" alignItems="center">
+        <cross-wui-text variant="small-400" color="fg-300" align="center">
           Your connected wallet may not support some of the networks available for this dApp
-        </wui-text>
-        <wui-link @click=${this.onNetworkHelp.bind(this)}>
-          <wui-icon size="xs" color="accent-100" slot="iconLeft" name="helpCircle"></wui-icon>
+        </cross-wui-text>
+        <cross-wui-link @click=${this.onNetworkHelp.bind(this)}>
+          <cross-wui-icon size="xs" color="accent-100" slot="iconLeft" name="helpCircle"></cross-wui-icon>
           What is a network
-        </wui-link>
-      </wui-flex>
+        </cross-wui-link>
+      </cross-wui-flex>
     `
   }
 
   // Private Methods ------------------------------------- //
   private templateSearchInput() {
     return html`
-      <wui-flex gap="xs" .padding=${['0', 's', 's', 's'] as const}>
-        <wui-input-text
+      <cross-wui-flex gap="xs" .padding=${['0', 's', 's', 's'] as const}>
+        <cross-wui-input-text
           @inputChange=${this.onInputChange.bind(this)}
           class="network-search-input"
           size="md"
           placeholder="Search network"
           icon="search"
-        ></wui-input-text>
-      </wui-flex>
+        ></cross-wui-input-text>
+      </cross-wui-flex>
     `
   }
 
@@ -124,7 +124,7 @@ export class W3mNetworksView extends LitElement {
 
     return this.filteredNetworks?.map(
       network => html`
-        <wui-list-network
+        <cross-wui-list-network
           .selected=${this.network?.id === network.id}
           imageSrc=${ifDefined(AssetUtil.getNetworkImage(network))}
           type="network"
@@ -132,7 +132,7 @@ export class W3mNetworksView extends LitElement {
           @click=${() => this.onSwitchNetwork(network)}
           .disabled=${this.getNetworkDisabled(network)}
           data-testid=${`w3m-network-switch-${network.name ?? network.id}`}
-        ></wui-list-network>
+        ></cross-wui-list-network>
       `
     )
   }

@@ -49,7 +49,7 @@ export class W3mAccountAuthButton extends LitElement {
     const email = authConnector.provider.getEmail() ?? ''
 
     return html`
-      <wui-list-item
+      <cross-wui-list-item
         variant="icon"
         iconVariant="overlay"
         icon=${this.socialProvider ?? 'mail'}
@@ -60,8 +60,8 @@ export class W3mAccountAuthButton extends LitElement {
           this.onGoToUpdateEmail(email, this.socialProvider)
         }}
       >
-        <wui-text variant="paragraph-500" color="fg-100">${this.getAuthName(email)}</wui-text>
-      </wui-list-item>
+        <cross-wui-text variant="paragraph-500" color="fg-100">${this.getAuthName(email)}</cross-wui-text>
+      </cross-wui-list-item>
     `
   }
 

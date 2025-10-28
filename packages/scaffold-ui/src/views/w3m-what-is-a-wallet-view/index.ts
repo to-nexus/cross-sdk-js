@@ -26,18 +26,18 @@ export class W3mWhatIsAWalletView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         .padding=${['xxl', 'xl', 'xl', 'xl'] as const}
         alignItems="center"
         gap="xl"
       >
         <cross-w3m-help-widget .data=${data}></cross-w3m-help-widget>
-        <wui-button variant="main" size="md" @click=${this.onGetWallet.bind(this)}>
-          <wui-icon color="inherit" slot="iconLeft" name="wallet"></wui-icon>
+        <cross-wui-button variant="main" size="md" @click=${this.onGetWallet.bind(this)}>
+          <cross-wui-icon color="inherit" slot="iconLeft" name="wallet"></cross-wui-icon>
           Get a wallet
-        </wui-button>
-      </wui-flex>
+        </cross-wui-button>
+      </cross-wui-flex>
     `
   }
 

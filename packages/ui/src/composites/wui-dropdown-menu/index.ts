@@ -17,7 +17,7 @@ type Action = {
   onClick: (e: Event) => void
 }
 
-@customElement('wui-dropdown-menu')
+@customElement('cross-wui-dropdown-menu')
 export class WuiDropdownMenu extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -33,20 +33,20 @@ export class WuiDropdownMenu extends LitElement {
     }
 
     return html`
-      <wui-flex flexDirection="column" gap="4xs">
+      <cross-wui-flex flexDirection="column" gap="4xs">
         ${this.actions.map(
           action => html`
-            <wui-list-item
+            <cross-wui-list-item
               icon=${action.icon}
               iconSize="sm"
               variant="icon"
               @click=${action.onClick}
             >
-              <wui-text variant="small-400" color="fg-100">${action.label}</wui-text>
-            </wui-list-item>
+              <cross-wui-text variant="small-400" color="fg-100">${action.label}</cross-wui-text>
+            </cross-wui-list-item>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -55,6 +55,6 @@ export class WuiDropdownMenu extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-dropdown-menu': WuiDropdownMenu
+    'cross-wui-dropdown-menu': WuiDropdownMenu
   }
 }

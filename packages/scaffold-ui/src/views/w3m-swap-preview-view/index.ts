@@ -107,9 +107,9 @@ export class W3mSwapPreviewView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" .padding=${['0', 'l', 'l', 'l']} gap="s">
+      <cross-wui-flex flexDirection="column" .padding=${['0', 'l', 'l', 'l']} gap="s">
         ${this.templateSwap()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -143,60 +143,60 @@ export class W3mSwapPreviewView extends LitElement {
       this.loadingApprovalTransaction
 
     return html`
-      <wui-flex flexDirection="column" alignItems="center" gap="l">
-        <wui-flex class="preview-container" flexDirection="column" alignItems="flex-start" gap="l">
-          <wui-flex
+      <cross-wui-flex flexDirection="column" alignItems="center" gap="l">
+        <cross-wui-flex class="preview-container" flexDirection="column" alignItems="flex-start" gap="l">
+          <cross-wui-flex
             class="preview-token-details-container"
             alignItems="center"
             justifyContent="space-between"
             gap="l"
           >
-            <wui-flex flexDirection="column" alignItems="flex-start" gap="4xs">
-              <wui-text variant="small-400" color="fg-150">Send</wui-text>
-              <wui-text variant="paragraph-400" color="fg-100">$${sentPrice}</wui-text>
-            </wui-flex>
-            <wui-token-button
+            <cross-wui-flex flexDirection="column" alignItems="flex-start" gap="4xs">
+              <cross-wui-text variant="small-400" color="fg-150">Send</cross-wui-text>
+              <cross-wui-text variant="paragraph-400" color="fg-100">$${sentPrice}</cross-wui-text>
+            </cross-wui-flex>
+            <cross-wui-token-button
               flexDirection="row-reverse"
               text=${sourceTokenText}
               imageSrc=${this.sourceToken?.logoUri}
             >
-            </wui-token-button>
-          </wui-flex>
-          <wui-icon name="recycleHorizontal" color="fg-200" size="md"></wui-icon>
-          <wui-flex
+            </cross-wui-token-button>
+          </cross-wui-flex>
+          <cross-wui-icon name="recycleHorizontal" color="fg-200" size="md"></cross-wui-icon>
+          <cross-wui-flex
             class="preview-token-details-container"
             alignItems="center"
             justifyContent="space-between"
             gap="l"
           >
-            <wui-flex flexDirection="column" alignItems="flex-start" gap="4xs">
-              <wui-text variant="small-400" color="fg-150">Receive</wui-text>
-              <wui-text variant="paragraph-400" color="fg-100">$${receivePrice}</wui-text>
-            </wui-flex>
-            <wui-token-button
+            <cross-wui-flex flexDirection="column" alignItems="flex-start" gap="4xs">
+              <cross-wui-text variant="small-400" color="fg-150">Receive</cross-wui-text>
+              <cross-wui-text variant="paragraph-400" color="fg-100">$${receivePrice}</cross-wui-text>
+            </cross-wui-flex>
+            <cross-wui-token-button
               flexDirection="row-reverse"
               text=${toTokenText}
               imageSrc=${this.toToken?.logoUri}
             >
-            </wui-token-button>
-          </wui-flex>
-        </wui-flex>
+            </cross-wui-token-button>
+          </cross-wui-flex>
+        </cross-wui-flex>
 
         ${this.templateDetails()}
 
-        <wui-flex flexDirection="row" alignItems="center" justifyContent="center" gap="xs">
-          <wui-icon size="sm" color="fg-200" name="infoCircle"></wui-icon>
-          <wui-text variant="small-400" color="fg-200">Review transaction carefully</wui-text>
-        </wui-flex>
+        <cross-wui-flex flexDirection="row" alignItems="center" justifyContent="center" gap="xs">
+          <cross-wui-icon size="sm" color="fg-200" name="infoCircle"></cross-wui-icon>
+          <cross-wui-text variant="small-400" color="fg-200">Review transaction carefully</cross-wui-text>
+        </cross-wui-flex>
 
-        <wui-flex
+        <cross-wui-flex
           class="action-buttons-container"
           flexDirection="row"
           alignItems="center"
           justifyContent="space-between"
           gap="xs"
         >
-          <wui-button
+          <cross-wui-button
             class="cancel-button"
             fullWidth
             size="lg"
@@ -204,9 +204,9 @@ export class W3mSwapPreviewView extends LitElement {
             variant="neutral"
             @click=${this.onCancelTransaction.bind(this)}
           >
-            <wui-text variant="paragraph-600" color="fg-200">Cancel</wui-text>
-          </wui-button>
-          <wui-button
+            <cross-wui-text variant="paragraph-600" color="fg-200">Cancel</cross-wui-text>
+          </cross-wui-button>
+          <cross-wui-button
             class="action-button"
             fullWidth
             size="lg"
@@ -216,12 +216,12 @@ export class W3mSwapPreviewView extends LitElement {
             ?disabled=${loading}
             @click=${this.onSendTransaction.bind(this)}
           >
-            <wui-text variant="paragraph-600" color="inverse-100">
+            <cross-wui-text variant="paragraph-600" color="inverse-100">
               ${this.actionButtonLabel()}
-            </wui-text>
-          </wui-button>
-        </wui-flex>
-      </wui-flex>
+            </cross-wui-text>
+          </cross-wui-button>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 

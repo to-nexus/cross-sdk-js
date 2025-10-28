@@ -10,7 +10,7 @@ export default css`
     border-radius: clamp(0px, var(--wui-border-radius-xs), 20px);
   }
 
-  button > wui-text {
+  button > cross-wui-text {
     color: var(--wui-color-fg-100);
     max-width: var(--wui-icon-box-size-xl);
     white-space: nowrap;
@@ -19,7 +19,7 @@ export default css`
     justify-content: center;
   }
 
-  button:disabled > wui-text {
+  button:disabled > cross-wui-text {
     color: var(--wui-color-gray-glass-015);
   }
 

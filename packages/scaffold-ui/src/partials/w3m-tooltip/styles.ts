@@ -5,7 +5,7 @@ export default css`
     pointer-events: none;
   }
 
-  :host > wui-flex {
+  :host > cross-wui-flex {
     display: var(--w3m-tooltip-display);
     opacity: var(--w3m-tooltip-opacity);
     padding: 9px var(--wui-spacing-s) 10px var(--wui-spacing-s);
@@ -20,21 +20,21 @@ export default css`
     will-change: opacity;
   }
 
-  :host([data-variant='shade']) > wui-flex {
+  :host([data-variant='shade']) > cross-wui-flex {
     background-color: var(--wui-color-bg-150);
     border: 1px solid var(--wui-color-gray-glass-005);
   }
 
-  :host([data-variant='shade']) > wui-flex > wui-text {
+  :host([data-variant='shade']) > wui-flex > cross-wui-text {
     color: var(--wui-color-fg-150);
   }
 
-  :host([data-variant='fill']) > wui-flex {
+  :host([data-variant='fill']) > cross-wui-flex {
     background-color: var(--wui-color-fg-100);
     border: none;
   }
 
-  wui-icon {
+  cross-wui-icon {
     position: absolute;
     width: 12px !important;
     height: 4px !important;

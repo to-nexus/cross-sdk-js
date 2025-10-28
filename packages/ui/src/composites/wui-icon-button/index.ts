@@ -8,7 +8,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-tooltip/index.js'
 import styles from './styles.js'
 
-@customElement('wui-icon-button')
+@customElement('cross-wui-icon-button')
 export class WuiIconButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -20,13 +20,13 @@ export class WuiIconButton extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`<button>
-      <wui-icon color="accent-100" name=${this.icon} size="lg"></wui-icon>
+      <cross-wui-icon color="accent-100" name=${this.icon} size="lg"></cross-wui-icon>
     </button>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-icon-button': WuiIconButton
+    'cross-wui-icon-button': WuiIconButton
   }
 }

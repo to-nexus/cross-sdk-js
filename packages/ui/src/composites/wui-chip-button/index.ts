@@ -9,7 +9,7 @@ import type { ChipButtonVariant, IconType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-chip-button')
+@customElement('cross-wui-chip-button')
 export class WuiChipButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -36,9 +36,9 @@ export class WuiChipButton extends LitElement {
         data-variant=${this.variant}
         data-size=${this.size}
       >
-        ${this.imageSrc ? html`<wui-image src=${this.imageSrc}></wui-image>` : null}
-        <wui-text variant=${textVariant} color="inherit"> ${this.text} </wui-text>
-        <wui-icon name=${this.icon} color="inherit" size="inherit"></wui-icon>
+        ${this.imageSrc ? html`<cross-wui-image src=${this.imageSrc}></cross-wui-image>` : null}
+        <cross-wui-text variant=${textVariant} color="inherit"> ${this.text} </cross-wui-text>
+        <cross-wui-icon name=${this.icon} color="inherit" size="inherit"></cross-wui-icon>
       </button>
     `
   }
@@ -46,6 +46,6 @@ export class WuiChipButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-chip-button': WuiChipButton
+    'cross-wui-chip-button': WuiChipButton
   }
 }

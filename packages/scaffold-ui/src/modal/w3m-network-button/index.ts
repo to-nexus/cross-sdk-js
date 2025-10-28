@@ -75,7 +75,7 @@ class W3mNetworkButtonBase extends LitElement {
       : true
 
     return html`
-      <wui-network-button
+      <cross-wui-network-button
         .disabled=${Boolean(this.disabled || this.loading)}
         .isUnsupportedChain=${OptionsController.state.allowUnsupportedChain ? false : !isSupported}
         imageSrc=${ifDefined(this.networkImage)}
@@ -84,7 +84,7 @@ class W3mNetworkButtonBase extends LitElement {
       >
         ${this.getLabel()}
         <slot></slot>
-      </wui-network-button>
+      </cross-wui-network-button>
     `
   }
 

@@ -32,8 +32,8 @@ export default css`
     }
   }
 
-  wui-image,
-  wui-icon-box {
+  cross-wui-image,
+  cross-wui-icon-box {
     border-radius: var(--wui-border-radius-3xl);
     width: 24px;
     height: 24px;

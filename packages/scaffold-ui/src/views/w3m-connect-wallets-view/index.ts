@@ -30,14 +30,14 @@ export class W3mConnectWalletsView extends LitElement {
       <cross-w3m-legal-checkbox
         @checkboxChange=${this.onCheckboxChange.bind(this)}
       ></cross-w3m-legal-checkbox>
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         .padding=${showLegalCheckbox ? ['0', 's', 's', 's'] : 's'}
         gap="xs"
         class=${ifDefined(disabled ? 'disabled' : undefined)}
       >
         <cross-w3m-wallet-login-list tabIdx=${ifDefined(tabIndex)}></cross-w3m-wallet-login-list>
-      </wui-flex>
+      </cross-wui-flex>
       <cross-w3m-legal-footer></cross-w3m-legal-footer>
     `
   }

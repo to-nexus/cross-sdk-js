@@ -49,35 +49,35 @@ export class W3mSwitchActiveChainView extends LitElement {
     const nextChainName = this.switchToChain === 'eip155' ? 'Ethereum' : this.switchToChain
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" flexDirection="column" alignItems="center" gap="xl">
-          <wui-visual
+        <cross-wui-flex justifyContent="center" flexDirection="column" alignItems="center" gap="xl">
+          <cross-wui-visual
             name=${this.switchToChain === 'eip155' ? 'eth' : this.switchToChain}
-          ></wui-visual>
-          <wui-text
+          ></cross-wui-visual>
+          <cross-wui-text
             data-testid=${`w3m-switch-active-chain-to-${nextChainName}`}
             variant="paragraph-500"
             color="fg-100"
             align="center"
             >Switch to <span class="capitalize">${nextChainName}</span></wui-text
           >
-          <wui-text variant="small-400" color="fg-200" align="center">
+          <cross-wui-text variant="small-400" color="fg-200" align="center">
             Connected wallet doesn't support connecting to ${switchedChainNameString} chain. You
             need to connect with a different wallet.
-          </wui-text>
-          <wui-button
+          </cross-wui-text>
+          <cross-wui-button
             data-testid="cross-w3m-switch-active-chain-button"
             size="md"
             @click=${this.switchActiveChain.bind(this)}
             >Switch</wui-button
           >
-        </wui-flex>
-      </wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 

@@ -148,9 +148,9 @@ export class W3mHeader extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex .padding=${this.getPadding()} justifyContent="space-between" alignItems="center">
+      <cross-wui-flex .padding=${this.getPadding()} justifyContent="space-between" alignItems="center">
         ${this.leftHeaderTemplate()} ${this.titleTemplate()} ${this.rightHeaderTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -179,24 +179,24 @@ export class W3mHeader extends LitElement {
       return this.closeButtonTemplate()
     }
 
-    return html`<wui-flex>
-      <wui-icon-link
+    return html`<cross-wui-flex>
+      <cross-wui-icon-link
         icon="clock"
         @click=${() => RouterController.push('SmartSessionList')}
         data-testid="cross-w3m-header-smart-sessions"
-      ></wui-icon-link>
+      ></cross-wui-icon-link>
       ${this.closeButtonTemplate()}
-    </wui-flex> `
+    </cross-wui-flex> `
   }
 
   private closeButtonTemplate() {
     return html`
-      <wui-icon-link
+      <cross-wui-icon-link
         ?disabled=${this.buffering}
         icon="close"
         @click=${this.onClose.bind(this)}
         data-testid="cross-w3m-header-close"
-      ></wui-icon-link>
+      ></cross-wui-icon-link>
     `
   }
 
@@ -204,17 +204,17 @@ export class W3mHeader extends LitElement {
     const isBeta = BETA_SCREENS.includes(this.view)
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         view-direction="${this.viewDirection}"
         class="w3m-header-title"
         alignItems="center"
         gap="xs"
       >
-        <wui-text variant="paragraph-700" color="fg-100" data-testid="cross-w3m-header-text"
+        <cross-wui-text variant="paragraph-700" color="fg-100" data-testid="cross-w3m-header-text"
           >${this.headerText}</wui-text
         >
-        ${isBeta ? html`<wui-tag variant="main">Beta</wui-tag>` : null}
-      </wui-flex>
+        ${isBeta ? html`<cross-wui-tag variant="main">Beta</cross-wui-tag>` : null}
+      </cross-wui-flex>
     `
   }
 
@@ -231,31 +231,31 @@ export class W3mHeader extends LitElement {
       isApproveTransaction || isConnectingSIWEView || (isConnectHelp && isEmbeddedEnable)
 
     if (isAccountView) {
-      return html`<wui-select
+      return html`<cross-wui-select
         id="dynamic"
         data-testid="cross-w3m-account-select-network"
         active-network=${ifDefined(this.network?.name)}
         @click=${this.onNetworks.bind(this)}
         imageSrc=${ifDefined(this.networkImage)}
-      ></wui-select>`
+      ></cross-wui-select>`
     }
 
     if (this.showBack && !shouldHideBack) {
-      return html`<wui-icon-link
+      return html`<cross-wui-icon-link
         data-testid="header-back"
         id="dynamic"
         icon="chevronLeft"
         ?disabled=${this.buffering}
         @click=${this.onGoBack.bind(this)}
-      ></wui-icon-link>`
+      ></cross-wui-icon-link>`
     }
 
-    return html`<wui-icon-link
+    return html`<cross-wui-icon-link
       data-hidden=${!isConnectHelp}
       id="dynamic"
       icon="helpCircle"
       @click=${this.onWalletHelp.bind(this)}
-    ></wui-icon-link>`
+    ></cross-wui-icon-link>`
   }
 
   private onNetworks() {

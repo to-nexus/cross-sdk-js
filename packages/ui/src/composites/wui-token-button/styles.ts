@@ -16,7 +16,7 @@ export default css`
     box-shadow: inset 0 0 0 1px var(--wui-color-gray-glass-002);
   }
 
-  :host > button wui-image {
+  :host > button cross-wui-image {
     width: 24px;
     height: 24px;
     border-radius: var(--wui-border-radius-s);

@@ -1,7 +1,7 @@
 import { css } from 'lit'
 
 export default css`
-  wui-email-input {
+  cross-wui-email-input {
     width: 100%;
   }
 

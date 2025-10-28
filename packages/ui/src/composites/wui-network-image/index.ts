@@ -11,7 +11,7 @@ import type { SizeType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-network-image')
+@customElement('cross-wui-network-image')
 export class WuiNetworkImage extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -65,15 +65,15 @@ export class WuiNetworkImage extends LitElement {
   }
   private templateVisual() {
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc} alt=${this.name}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt=${this.name}></cross-wui-image>`
     }
 
-    return html`<wui-icon size="inherit" color="fg-200" name="networkPlaceholder"></wui-icon>`
+    return html`<cross-wui-icon size="inherit" color="fg-200" name="networkPlaceholder"></cross-wui-icon>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-network-image': WuiNetworkImage
+    'cross-wui-network-image': WuiNetworkImage
   }
 }

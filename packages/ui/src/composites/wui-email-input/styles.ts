@@ -6,7 +6,7 @@ export default css`
     display: inline-block;
   }
 
-  wui-text {
+  cross-wui-text {
     margin: var(--wui-spacing-xxs) var(--wui-spacing-m) var(--wui-spacing-0) var(--wui-spacing-m);
   }
 `

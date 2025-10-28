@@ -55,10 +55,10 @@ export class W3mConnectRecentWidget extends LitElement {
     }
 
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <cross-wui-flex flexDirection="column" gap="xs">
         ${filteredRecentWallets.map(
           wallet => html`
-            <wui-list-wallet
+            <cross-wui-list-wallet
               imageSrc=${ifDefined(AssetUtil.getWalletImage(wallet))}
               name=${wallet.name ?? 'Unknown'}
               @click=${() => this.onConnectWallet(wallet)}
@@ -67,10 +67,10 @@ export class W3mConnectRecentWidget extends LitElement {
               tabIdx=${ifDefined(this.tabIdx)}
               ?loading=${this.loading}
             >
-            </wui-list-wallet>
+            </cross-wui-list-wallet>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

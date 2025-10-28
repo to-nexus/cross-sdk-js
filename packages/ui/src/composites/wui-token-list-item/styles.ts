@@ -6,7 +6,7 @@ export default css`
     min-height: 60px;
   }
 
-  :host > wui-flex {
+  :host > cross-wui-flex {
     cursor: pointer;
     height: 100%;
     display: flex;
@@ -33,7 +33,7 @@ export default css`
     }
   }
 
-  :host([disabled]) > wui-flex {
+  :host([disabled]) > cross-wui-flex {
     opacity: 0.6;
   }
 
@@ -41,11 +41,11 @@ export default css`
     background-color: transparent;
   }
 
-  :host > wui-flex > wui-flex {
+  :host > wui-flex > cross-wui-flex {
     flex: 1;
   }
 
-  :host > wui-flex > wui-image,
+  :host > wui-flex > cross-wui-image,
   :host > wui-flex > .token-item-image-placeholder {
     width: 40px;
     max-width: 40px;

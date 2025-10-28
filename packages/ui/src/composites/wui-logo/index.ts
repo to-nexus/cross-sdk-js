@@ -7,7 +7,7 @@ import type { LogoType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-logo')
+@customElement('cross-wui-logo')
 export class WuiLogo extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -16,12 +16,12 @@ export class WuiLogo extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    return html`<wui-icon color="inherit" size="inherit" name=${this.logo}></wui-icon> `
+    return html`<cross-wui-icon color="inherit" size="inherit" name=${this.logo}></cross-wui-icon> `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-logo': WuiLogo
+    'cross-wui-logo': WuiLogo
   }
 }

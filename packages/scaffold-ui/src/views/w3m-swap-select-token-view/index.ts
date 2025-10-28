@@ -71,9 +71,9 @@ export class W3mSwapSelectTokenView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex flexDirection="column" gap="s">
+      <cross-wui-flex flexDirection="column" gap="s">
         ${this.templateSearchInput()} ${this.templateSuggestedTokens()} ${this.templateTokens()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -92,8 +92,8 @@ export class W3mSwapSelectTokenView extends LitElement {
 
   private templateSearchInput() {
     return html`
-      <wui-flex .padding=${['3xs', 's', '0', 's']} gap="xs">
-        <wui-input-text
+      <cross-wui-flex .padding=${['3xs', 's', '0', 's']} gap="xs">
+        <cross-wui-input-text
           data-testid="swap-select-token-search-input"
           class="network-search-input"
           size="sm"
@@ -101,8 +101,8 @@ export class W3mSwapSelectTokenView extends LitElement {
           icon="search"
           .value=${this.searchValue}
           @inputChange=${this.onSearchInputChange.bind(this)}
-        ></wui-input-text>
-      </wui-flex>
+        ></cross-wui-input-text>
+      </cross-wui-flex>
     `
   }
 
@@ -119,20 +119,20 @@ export class W3mSwapSelectTokenView extends LitElement {
     )
 
     return html`
-      <wui-flex class="tokens-container">
-        <wui-flex class="tokens" .padding=${['0', 's', 's', 's']} flexDirection="column">
+      <cross-wui-flex class="tokens-container">
+        <cross-wui-flex class="tokens" .padding=${['0', 's', 's', 's']} flexDirection="column">
           ${filteredYourTokens?.length > 0
             ? html`
-                <wui-flex justifyContent="flex-start" padding="s">
-                  <wui-text variant="paragraph-500" color="fg-200">Your tokens</wui-text>
-                </wui-flex>
+                <cross-wui-flex justifyContent="flex-start" padding="s">
+                  <cross-wui-text variant="paragraph-500" color="fg-200">Your tokens</cross-wui-text>
+                </cross-wui-flex>
                 ${filteredYourTokens.map(token => {
                   const selected =
                     token.symbol === this.sourceToken?.symbol ||
                     token.symbol === this.toToken?.symbol
 
                   return html`
-                    <wui-token-list-item
+                    <cross-wui-token-list-item
                       data-testid="swap-select-token-item-${token.symbol}"
                       name=${token.name}
                       ?disabled=${selected}
@@ -146,31 +146,31 @@ export class W3mSwapSelectTokenView extends LitElement {
                         }
                       }}
                     >
-                    </wui-token-list-item>
+                    </cross-wui-token-list-item>
                   `
                 })}
               `
             : null}
 
-          <wui-flex justifyContent="flex-start" padding="s">
-            <wui-text variant="paragraph-500" color="fg-200">Tokens</wui-text>
-          </wui-flex>
+          <cross-wui-flex justifyContent="flex-start" padding="s">
+            <cross-wui-text variant="paragraph-500" color="fg-200">Tokens</cross-wui-text>
+          </cross-wui-flex>
           ${filteredTokens?.length > 0
             ? filteredTokens.map(
                 token => html`
-                  <wui-token-list-item
+                  <cross-wui-token-list-item
                     data-testid="swap-select-token-item-${token.symbol}"
                     name=${token.name}
                     symbol=${token.symbol}
                     imageSrc=${token.logoUri}
                     @click=${() => this.onSelectToken(token)}
                   >
-                  </wui-token-list-item>
+                  </cross-wui-token-list-item>
                 `
               )
             : null}
-        </wui-flex>
-      </wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -184,18 +184,18 @@ export class W3mSwapSelectTokenView extends LitElement {
     }
 
     return html`
-      <wui-flex class="suggested-tokens-container" .padding=${['0', 's', '0', 's']} gap="xs">
+      <cross-wui-flex class="suggested-tokens-container" .padding=${['0', 's', '0', 's']} gap="xs">
         ${tokens.map(
           token => html`
-            <wui-token-button
+            <cross-wui-token-button
               text=${token.symbol}
               imageSrc=${token.logoUri}
               @click=${() => this.onSelectToken(token)}
             >
-            </wui-token-button>
+            </cross-wui-token-button>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

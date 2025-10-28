@@ -5,7 +5,7 @@ export default css`
     width: 100%;
   }
 
-  :host > wui-flex {
+  :host > cross-wui-flex {
     width: 100%;
     padding: var(--wui-spacing-s);
     border-radius: var(--wui-border-radius-xs);
@@ -29,7 +29,7 @@ export default css`
     height: var(--wui-icon-box-size-lg);
   }
 
-  .purchase-image-container wui-image {
+  .purchase-image-container cross-wui-image {
     width: 100%;
     height: 100%;
     position: relative;
@@ -47,7 +47,7 @@ export default css`
     box-shadow: inset 0 0 0 1px var(--wui-color-gray-glass-005);
   }
 
-  .purchase-image-container wui-icon-box {
+  .purchase-image-container cross-wui-icon-box {
     position: absolute;
     right: 0;
     bottom: 0;

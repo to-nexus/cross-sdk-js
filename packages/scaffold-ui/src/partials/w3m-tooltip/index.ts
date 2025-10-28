@@ -56,10 +56,10 @@ export class W3mTooltip extends LitElement {
     --w3m-tooltip-opacity: ${this.open ? 1 : 0};
     `
 
-    return html`<wui-flex>
-      <wui-icon data-placement="top" color="fg-100" size="inherit" name="cursor"></wui-icon>
-      <wui-text color="inherit" variant="small-500">${this.message}</wui-text>
-    </wui-flex>`
+    return html`<cross-wui-flex>
+      <cross-wui-icon data-placement="top" color="fg-100" size="inherit" name="cursor"></cross-wui-icon>
+      <cross-wui-text color="inherit" variant="small-500">${this.message}</cross-wui-text>
+    </cross-wui-flex>`
   }
 }
 

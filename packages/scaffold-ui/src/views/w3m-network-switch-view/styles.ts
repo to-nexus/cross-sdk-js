@@ -23,11 +23,11 @@ export default css`
     position: relative;
   }
 
-  wui-loading-hexagon {
+  cross-wui-loading-hexagon {
     position: absolute;
   }
 
-  wui-icon-box {
+  cross-wui-icon-box {
     position: absolute;
     right: 4px;
     bottom: 0;
@@ -36,11 +36,11 @@ export default css`
     z-index: 1;
   }
 
-  wui-button {
+  cross-wui-button {
     display: none;
   }
 
-  [data-error='true'] wui-icon-box {
+  [data-error='true'] cross-wui-icon-box {
     opacity: 1;
     transform: scale(1);
   }

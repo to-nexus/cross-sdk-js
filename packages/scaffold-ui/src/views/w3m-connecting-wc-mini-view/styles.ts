@@ -56,14 +56,14 @@ export default css`
     box-sizing: border-box !important;
   }
 
-  cross-w3m-connecting-wc-qrcode wui-flex {
+  cross-w3m-connecting-wc-qrcode cross-wui-flex {
     width: 100% !important;
     height: 100% !important;
     padding: 0 !important;
     gap: 0 !important;
   }
 
-  cross-w3m-connecting-wc-qrcode wui-shimmer {
+  cross-w3m-connecting-wc-qrcode cross-wui-shimmer {
     width: 280px !important;
     height: 280px !important;
     max-width: 280px !important;
@@ -71,18 +71,18 @@ export default css`
     border-radius: var(--wui-border-radius-l) !important;
   }
 
-  cross-w3m-connecting-wc-qrcode wui-qr-code {
+  cross-w3m-connecting-wc-qrcode cross-wui-qr-code {
     width: 280px !important;
     height: 280px !important;
     max-width: 280px !important;
     max-height: 280px !important;
   }
 
-  cross-w3m-connecting-wc-qrcode wui-text {
+  cross-w3m-connecting-wc-qrcode cross-wui-text {
     display: none !important;
   }
 
-  cross-w3m-connecting-wc-qrcode wui-link {
+  cross-w3m-connecting-wc-qrcode cross-wui-link {
     display: none !important;
   }
 
@@ -100,12 +100,12 @@ export default css`
     justify-content: center;
   }
 
-  cross-w3m-connecting-wc-mobile wui-wallet-image {
+  cross-w3m-connecting-wc-mobile cross-wui-wallet-image {
     width: 60px !important;
     height: 60px !important;
   }
 
-  cross-w3m-connecting-wc-mobile wui-text {
+  cross-w3m-connecting-wc-mobile cross-wui-text {
     font-size: 12px !important;
   }
 

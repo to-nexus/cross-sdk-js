@@ -12,12 +12,12 @@ export default css`
     border-radius: var(--wui-border-radius-xs);
   }
 
-  wui-icon-box {
+  cross-wui-icon-box {
     width: var(--wui-spacing-2xl);
     height: var(--wui-spacing-2xl);
   }
 
-  wui-flex {
+  cross-wui-flex {
     width: auto;
   }
 `

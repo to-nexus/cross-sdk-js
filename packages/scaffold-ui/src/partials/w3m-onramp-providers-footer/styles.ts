@@ -1,7 +1,7 @@
 import { css } from 'lit'
 
 export default css`
-  wui-flex {
+  cross-wui-flex {
     border-top: 1px solid var(--wui-color-gray-glass-005);
   }
 

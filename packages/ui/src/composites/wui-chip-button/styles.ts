@@ -40,42 +40,42 @@ export default css`
     padding: 0 var(--wui-spacing-l);
   }
 
-  button[data-size='sm'] > wui-image {
+  button[data-size='sm'] > cross-wui-image {
     width: 16px;
     height: 16px;
   }
 
-  button[data-size='md'] > wui-image {
+  button[data-size='md'] > cross-wui-image {
     width: 24px;
     height: 24px;
   }
 
-  button[data-size='sm'] > wui-icon {
+  button[data-size='sm'] > cross-wui-icon {
     width: 12px;
     height: 12px;
   }
 
-  button[data-size='md'] > wui-icon {
+  button[data-size='md'] > cross-wui-icon {
     width: 14px;
     height: 14px;
   }
 
-  wui-image {
+  cross-wui-image {
     border-radius: var(--wui-border-radius-3xl);
     overflow: hidden;
   }
 
-  button.disabled > wui-icon,
-  button.disabled > wui-image {
+  button.disabled > cross-wui-icon,
+  button.disabled > cross-wui-image {
     filter: grayscale(1);
   }
 
-  button[data-variant='main'] > wui-image {
+  button[data-variant='main'] > cross-wui-image {
     box-shadow: inset 0 0 0 1px var(--wui-color-accent-090);
   }
 
-  button[data-variant='shade'] > wui-image,
-  button[data-variant='gray'] > wui-image {
+  button[data-variant='shade'] > cross-wui-image,
+  button[data-variant='gray'] > cross-wui-image {
     box-shadow: inset 0 0 0 1px var(--wui-color-gray-glass-010);
   }
 

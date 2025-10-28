@@ -5,7 +5,7 @@ import { UiHelperUtil, customElement } from '@to-nexus/appkit-ui'
 
 import styles from './styles.js'
 
-@customElement('wui-permission-contract-call')
+@customElement('cross-wui-permission-contract-call')
 export class WuiPermissionContractCall extends LitElement {
   // -- State & Properties --------------------------------- //
   public static override styles = styles
@@ -21,39 +21,39 @@ export class WuiPermissionContractCall extends LitElement {
     }
 
     return html`
-      <wui-flex flexDirection="column" alignItems="center">
-        <wui-details-group>
-          <wui-details-group-item name="Type">
-            <wui-text variant="small-400" color="fg-100"> Contract Call </wui-text>
-          </wui-details-group-item>
-          <wui-details-group-item name="Contract">
-            <wui-text variant="small-400" color="fg-100">
+      <cross-wui-flex flexDirection="column" alignItems="center">
+        <cross-wui-details-group>
+          <cross-wui-details-group-item name="Type">
+            <cross-wui-text variant="small-400" color="fg-100"> Contract Call </cross-wui-text>
+          </cross-wui-details-group-item>
+          <cross-wui-details-group-item name="Contract">
+            <cross-wui-text variant="small-400" color="fg-100">
               ${UiHelperUtil.getTruncateString({
                 string: this.contractAddress,
                 truncate: 'middle',
                 charsStart: 4,
                 charsEnd: 4
               })}
-            </wui-text>
-          </wui-details-group-item>
-          <wui-details-group-item name="Functions">
-            <wui-text variant="small-400" color="fg-100">
+            </cross-wui-text>
+          </cross-wui-details-group-item>
+          <cross-wui-details-group-item name="Functions">
+            <cross-wui-text variant="small-400" color="fg-100">
               ${this.functions?.map(f => f.functionName).join(', ')}
-            </wui-text>
-          </wui-details-group-item>
-          <wui-flex justifyContent="space-between">
-            <wui-text color="fg-200">Duration</wui-text>
-            <wui-flex flexDirection="column" alignItems="flex-end" gap="s">
-              <wui-text variant="small-400" color="fg-100">
+            </cross-wui-text>
+          </cross-wui-details-group-item>
+          <cross-wui-flex justifyContent="space-between">
+            <cross-wui-text color="fg-200">Duration</cross-wui-text>
+            <cross-wui-flex flexDirection="column" alignItems="flex-end" gap="s">
+              <cross-wui-text variant="small-400" color="fg-100">
                 ~ ${Math.round((1000 * this.expiry - Date.now()) / 1000 / 3600)} hours
-              </wui-text>
-              <wui-text variant="tiny-600" color="fg-300">
+              </cross-wui-text>
+              <cross-wui-text variant="tiny-600" color="fg-300">
                 Expiring ${new Date(1000 * this.expiry).toDateString()}
-              </wui-text>
-            </wui-flex>
-          </wui-flex>
-        </wui-details-group>
-      </wui-flex>
+              </cross-wui-text>
+            </cross-wui-flex>
+          </cross-wui-flex>
+        </cross-wui-details-group>
+      </cross-wui-flex>
     `
   }
 }

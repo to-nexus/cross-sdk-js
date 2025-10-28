@@ -9,7 +9,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-wallet-image')
+@customElement('cross-wui-wallet-image')
 export class WuiWalletImage extends LitElement {
   public static override styles = [elementStyles, resetStyles, styles]
 
@@ -46,34 +46,34 @@ export class WuiWalletImage extends LitElement {
     }
 
     return html`
-      <wui-flex justifyContent="center" alignItems="center"> ${this.templateVisual()} </wui-flex>
+      <cross-wui-flex justifyContent="center" alignItems="center"> ${this.templateVisual()} </cross-wui-flex>
     `
   }
 
   // -- Private ------------------------------------------- //
   private templateVisual() {
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc} alt=${this.name}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt=${this.name}></cross-wui-image>`
     } else if (this.walletIcon) {
-      return html`<wui-icon
+      return html`<cross-wui-icon
         data-parent-size="md"
         size="md"
         color="inherit"
         name=${this.walletIcon}
-      ></wui-icon>`
+      ></cross-wui-icon>`
     }
 
-    return html`<wui-icon
+    return html`<cross-wui-icon
       data-parent-size=${this.size}
       size="inherit"
       color="inherit"
       name="walletPlaceholder"
-    ></wui-icon>`
+    ></cross-wui-icon>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-wallet-image': WuiWalletImage
+    'cross-wui-wallet-image': WuiWalletImage
   }
 }

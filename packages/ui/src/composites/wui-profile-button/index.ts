@@ -13,7 +13,7 @@ import '../wui-avatar/index.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-profile-button')
+@customElement('cross-wui-profile-button')
 export class WuiProfileButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -31,47 +31,47 @@ export class WuiProfileButton extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`<button data-testid="wui-profile-button">
-      <wui-flex gap="xs" alignItems="center">
-        <wui-avatar
+      <cross-wui-flex gap="xs" alignItems="center">
+        <cross-wui-avatar
           .imageSrc=${this.avatarSrc}
           alt=${this.address}
           address=${this.address}
-        ></wui-avatar>
+        ></cross-wui-avatar>
         ${this.networkImageTemplate()}
-        <wui-flex gap="xs" alignItems="center">
-          <wui-text variant="large-600" color="fg-100">
+        <cross-wui-flex gap="xs" alignItems="center">
+          <cross-wui-text variant="large-600" color="fg-100">
             ${UiHelperUtil.getTruncateString({
               string: this.profileName || this.address,
               charsStart: this.profileName ? 18 : 4,
               charsEnd: this.profileName ? 0 : 4,
               truncate: this.profileName ? 'end' : 'middle'
             })}
-          </wui-text>
-          <wui-icon size="sm" color="fg-200" name=${this.icon}></wui-icon>
-        </wui-flex>
-      </wui-flex>
+          </cross-wui-text>
+          <cross-wui-icon size="sm" color="fg-200" name=${this.icon}></cross-wui-icon>
+        </cross-wui-flex>
+      </cross-wui-flex>
     </button>`
   }
 
   // -- Private ------------------------------------------- //
   private networkImageTemplate() {
     if (this.networkSrc) {
-      return html`<wui-image src=${this.networkSrc}></wui-image>`
+      return html`<cross-wui-image src=${this.networkSrc}></cross-wui-image>`
     }
 
     return html`
-      <wui-icon-box
+      <cross-wui-icon-box
         size="xxs"
         iconColor="fg-200"
         backgroundColor="bg-100"
         icon="networkPlaceholder"
-      ></wui-icon-box>
+      ></cross-wui-icon-box>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-profile-button': WuiProfileButton
+    'cross-wui-profile-button': WuiProfileButton
   }
 }
