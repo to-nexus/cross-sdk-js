@@ -89,7 +89,7 @@ export const ConstantsUtil = {
   CROSS_WALLET_WEBAPP_LINK: {
     DEVELOPMENT: 'crossx://',
     STAGE: 'crossx://',
-    PRODUCTION: 'https://cross-wallet.crosstoken.io'
+    PRODUCTION: 'crossx://' // Todo: change to universal link (https://cross-wallet.crosstoken.io)
   },
 
   /* Connector IDs */
