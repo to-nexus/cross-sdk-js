@@ -1,1 +1,1 @@
-export const sdkVersion = '1.17.7-alpha.4'; export * from '../src/index.js'
+export const sdkVersion = '1.18.0-beta.0'; export * from '../src/index.js'
