@@ -3,7 +3,6 @@
 import { AppKit, type AppKitOptions, WcHelpersUtil } from '@to-nexus/appkit'
 import type {
   AppKitNetwork,
-  BaseNetwork,
   CaipNetwork,
   ChainNamespace
 } from '@to-nexus/appkit-common'
@@ -37,7 +36,6 @@ import {
   getEnsName,
   injected,
   prepareTransactionRequest,
-  reconnect,
   signMessage,
   switchChain,
   disconnect as wagmiDisconnect,
@@ -55,7 +53,6 @@ import { type Chain } from '@wagmi/core/chains'
 import {
   type GetEnsAddressReturnType,
   type Hex,
-  type HttpTransport,
   formatUnits,
   parseUnits
 } from 'viem'
@@ -65,6 +62,7 @@ import { authConnector } from './connectors/AuthConnector.js'
 import { walletConnect } from './connectors/UniversalConnector.js'
 import { LimitterUtil } from './utils/LimitterUtil.js'
 import { parseWalletCapabilities } from './utils/helpers.js'
+import { crossExtensionConnector } from './connectors/CrossExtentionConnector.js'
 
 interface EIP6963ProviderInfo {
   uuid: string
@@ -123,6 +121,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     this.namespace = CommonConstantsUtil.CHAIN.EVM
 
+
     this.createConfig({
       ...configParams,
       networks: CaipNetworksUtil.extendCaipNetworks(configParams.networks, {
@@ -132,7 +131,7 @@ export class WagmiAdapter extends AdapterBlueprint {
           ? Object.keys(configParams.transports).map(Number)
           : []
       }) as [CaipNetwork, ...CaipNetwork[]],
-      projectId: configParams.projectId
+      projectId: configParams.projectId,
     })
 
     this.setupWatchers()
@@ -159,7 +158,7 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
 
     const { addresses, address } = getAccount(this.wagmiConfig)
-
+    // console.log('[wagmiAdapter] getAccount', addresses, address)
     return Promise.resolve({
       accounts: (addresses || [address])?.map(val =>
         CoreHelperUtil.createAccount('eip155', val || '', 'eoa')
@@ -168,18 +167,13 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   private getWagmiConnector(id: string) {
-    // 먼저 정확한 ID로 찾기
     let connector = this.wagmiConfig.connectors.find(c => c.id === id)
-
-    if (!connector) {
-      // EIP6963 커넥터의 경우 injected 커넥터 사용
-      if (id.includes('.') || id.includes('crosswallet') || id.includes('nexus')) {
-        connector = this.wagmiConfig.connectors.find(c => c.id === 'injected')
-      }
+    if (!connector && id === 'nexus.to.crosswallet.desktop') {
+      connector = this.wagmiConfig._internal.connectors.setup(crossExtensionConnector())
     }
-
-    return connector
+    return connector;
   }
+
 
   private createConfig(
     configParams: Partial<CreateConfigParameters> & {
@@ -213,6 +207,8 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     const transports = Object.fromEntries(transportsArr)
     const connectors: CreateConnectorFn[] = [...(configParams.connectors ?? [])]
+
+    // console.log('[wagmiAdapter] connectors', connectors)
 
     // Create wagmi config with proper type handling
     this.wagmiConfig = createConfig({
@@ -248,13 +244,17 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   private setupWatchers() {
+    // console.log('[wagmiAdapter] setupWatchers')
     watchAccount(this.wagmiConfig, {
       onChange: (accountData, prevAccountData) => {
+        // console.log('[wagmiAdapter] onChange accountData', accountData)
+        // console.log('[wagmiAdapter] onChange prevAccountData', prevAccountData)
         if (accountData.status === 'disconnected' && prevAccountData.address) {
           this.emit('disconnect')
         }
 
         if (accountData.status === 'connected') {
+          // console.log('[wagmiAdapter] connected', accountData, prevAccountData)
           if (
             accountData.address !== prevAccountData?.address ||
             prevAccountData.status !== 'connected'
@@ -270,6 +270,29 @@ export class WagmiAdapter extends AdapterBlueprint {
               address: accountData.address,
               chainId: accountData.chainId
             })
+          }
+        }
+        const isConnectingExtensionWallet = accountData.status === 'connecting' && accountData?.connector?.id === 'nexus.to.crosswallet.desktop'
+        const isReconnectingExtensionWallet = prevAccountData.status === 'reconnecting' && prevAccountData?.connector?.id === 'nexus.to.crosswallet.desktop'
+        // Cross Extension Wallet 재연결 시 연결 시도
+        if (isConnectingExtensionWallet || isReconnectingExtensionWallet) {
+          // console.log('[wagmiAdapter] reconnecting', prevAccountData)
+
+          // 재연결 시도
+          const connector = this.getWagmiConnector('nexus.to.crosswallet.desktop')
+          if (connector) {
+            // console.log('[wagmiAdapter] trying to reconnect with connector', connector.id)
+            connect(this.wagmiConfig, { connector })
+              .then((result) => {
+                // console.log('[wagmiAdapter] reconnect success', result)
+                // 연결 성공 후 이벤트 발생
+                this.emit('accountChanged', {
+                  address: result.accounts[0]
+                })
+              })
+              .catch(error => {
+                console.error('[wagmiAdapter] reconnect failed', error)
+              })
           }
         }
       }
@@ -363,25 +386,30 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
   }
 
-  public async signEIP712(
-    params: AdapterBlueprint.SignEIP712Params
-  ): Promise<AdapterBlueprint.SignEIP712Result> {
-    return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
-  }
-
   public async etherSignMessage(
     params: AdapterBlueprint.EtherSignMessageParams
   ): Promise<AdapterBlueprint.EtherSignMessageResult> {
+    const { provider, message, address } = params
+    if (!provider) {
+      throw new Error('WagmiAdapter:etherSignMessage - provider is undefined')
+    }
+
     try {
-      const signature = await signMessage(this.wagmiConfig, {
-        message: params.message,
-        account: params.address as Hex
+      const signature = await provider.request({
+        method: 'eth_sign',
+        params: [address, message]
       })
 
       return { signature }
     } catch (error) {
       throw new Error('WagmiAdapter:etherSignMessage - Sign message failed')
     }
+  }
+
+  public async signEIP712(
+    _params: AdapterBlueprint.SignEIP712Params
+  ): Promise<AdapterBlueprint.SignEIP712Result> {
+    return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
   }
 
   public async signTypedDataV4(
@@ -409,6 +437,7 @@ export class WagmiAdapter extends AdapterBlueprint {
     params: AdapterBlueprint.SendTransactionParams
   ): Promise<AdapterBlueprint.SendTransactionResult> {
     const { chainId } = getAccount(this.wagmiConfig)
+
     const txParams = {
       account: params.address,
       to: params.to as Hex,
@@ -430,7 +459,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public async readContract(
-    params: AdapterBlueprint.ReadContractParams
+    _params: AdapterBlueprint.ReadContractParams
   ): Promise<AdapterBlueprint.ReadContractResult> {
     // Read contract
     return Promise.resolve({} as unknown as AdapterBlueprint.ReadContractResult)
@@ -514,6 +543,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   private async addWagmiConnector(connector: Connector, options: AppKitOptions) {
+    // console.log('[wagmiAdapter] addWagmiConnector', connector)
     /*
      * We don't need to set auth connector or walletConnect connector
      * from wagmi since we already set it in chain adapter blueprint
@@ -545,6 +575,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public async syncConnectors(options: AppKitOptions, appKit: AppKit) {
+
     /*
      * Watch for new connectors. This is needed because some EIP6963
      * connectors are added later in the process the initial setup
@@ -552,6 +583,7 @@ export class WagmiAdapter extends AdapterBlueprint {
     watchConnectors(this.wagmiConfig, {
       onChange: (connectors) => {
         connectors.forEach(connector => {
+          // console.log('[syncConnectors] connector', connector)
           this.addWagmiConnector(connector, options)
         })
       }
@@ -559,7 +591,6 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     // Listen for cross EIP6963 announce events
     this.listenCrossEIP6963Events(options)
-
     // Add current wagmi connectors to chain adapter blueprint
     await Promise.all(
       this.wagmiConfig.connectors.map(connector => this.addWagmiConnector(connector, options))
@@ -574,68 +605,62 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   private listenCrossEIP6963Events(options: AppKitOptions) {
     if (typeof window !== 'undefined') {
-      const handler = (event: Event) => this.crossEIP6963EventHandler(options, event as CustomEvent<EIP6963ProviderDetail>)
+      const handler = (event: Event) => this.eip6963EventHandler(event as CustomEvent<EIP6963ProviderDetail>, options)
       window.addEventListener(ConstantsUtil.EIP6963_CROSS_ANNOUNCE_EVENT, handler)
       window.dispatchEvent(new Event(ConstantsUtil.EIP6963_CROSS_REQUEST_EVENT))
     }
   }
 
-  private createAndRegisterEIP6963Connector(info: EIP6963ProviderInfo, provider: any) {
-    try {
-      // EIP6963 provider를 window.ethereum에 등록하여 기존 injected 커넥터가 인식하도록 함
-      if (typeof window !== 'undefined') {
-        // 기존 provider 백업
-        const originalProvider = (window as any).ethereum
 
-          // EIP6963 provider를 임시로 window.ethereum에 설정
-          ; (window as any).ethereum = provider
+  private eip6963EventHandler(event: CustomEventInit<EIP6963ProviderDetail>, options: AppKitOptions) {
+    if (event.detail) {
+      const { info, provider } = event.detail
+      const existingConnector = this.connectors?.find(c => c.name === info?.name)
 
-        // 원래 provider 복원 (필요시)
-        setTimeout(() => {
-          if (originalProvider) {
-            ; (window as any).ethereum = originalProvider
-          }
-        }, 100)
+      if (!existingConnector) {
+        const type = PresetsUtil.ConnectorTypesMap[CommonConstantsUtil.CONNECTOR_ID.EIP6963]
+
+        const id = info?.rdns || info?.name || info?.uuid
+        if (type && this.namespace && id) {
+          const connector = this.wagmiConfig._internal.connectors.setup(crossExtensionConnector())
+          this.wagmiConfig._internal.connectors.setState(prev => [...prev, connector])
+          this.addWagmiConnector(connector, options)
+          this.addConnector({
+            id,
+            type,
+            imageUrl: info?.icon,
+            name: info?.name || 'Unknown',
+            provider,
+            info,
+            chain: this.namespace as ChainNamespace,
+            chains: []
+          })
+
+        }
       }
-
-    } catch (error) {
-      console.error('EIP6963 provider 등록 실패:', error);
     }
-  }
-
-  private crossEIP6963EventHandler(options: AppKitOptions, event: CustomEvent<EIP6963ProviderDetail>) {
-    const { detail } = event
-    if (!detail) return
-
-    const { info, provider } = detail
-    const type = PresetsUtil.ConnectorTypesMap[CommonConstantsUtil.CONNECTOR_ID.EIP6963]
-    const id = info?.rdns || info?.name || info?.uuid
-
-    if (!type || !this.namespace || !id) return
-
-    this.createAndRegisterEIP6963Connector(info, provider)
-    this.addConnector({
-      id,
-      type,
-      imageUrl: info?.icon,
-      name: info?.name || 'Unknown',
-      provider,
-      info,
-      chain: this.namespace as ChainNamespace,
-      chains: []
-    })
   }
 
   public async syncConnection(
     params: AdapterBlueprint.SyncConnectionParams
   ): Promise<AdapterBlueprint.ConnectResult> {
     const { id } = params
+    // console.log('syncConnection', id)
+    // console.log('this.wagmiConfig', this.wagmiConfig)
     const connections = getConnections(this.wagmiConfig)
+    // console.log('connections', connections)
     const connection = connections.find(c => c.connector.id === id)
+    // console.log('connection', connection)
     const connector = this.getWagmiConnector(id)
-    const provider = (await connector?.getProvider()) as Provider
-
-
+    // console.log('connector', connector)
+    let provider: Provider | undefined = undefined
+    try {
+      provider = (await connector?.getProvider()) as Provider
+      // console.log('provider', provider)
+    } catch (error) {
+      console.log('error', error)
+      throw new Error('WagmiAdapter:syncConnection - error getting provider')
+    }
     // Emit accountChanged event after syncing connection
     if (connection?.accounts[0]) {
       this.emit('accountChanged', {
@@ -653,11 +678,6 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public override async connectWalletConnect(chainId?: number | string) {
-
-    // Check if already connecting to prevent duplicate requests
-    const connections = getConnections(this.wagmiConfig)
-
-
 
     // Attempt one click auth first, if authenticated, still connect with wagmi to store the session
     const walletConnectConnector = this.getWalletConnectConnector()
@@ -690,18 +710,12 @@ export class WagmiAdapter extends AdapterBlueprint {
     const { id, provider, type, info, chainId } = params
     const connector = this.getWagmiConnector(id)
 
+
     if (!connector) {
       throw new Error('connectionControllerClient:connectExternal - connector is undefined')
     }
 
-    // EIP6963 provider가 제공된 경우 처리
-    let originalProvider: any = null
-    if (provider && type === 'ANNOUNCED' && typeof window !== 'undefined') {
-      originalProvider = (window as any).ethereum
-        ; (window as any).ethereum = provider
-    }
-
-    if (provider && info && connector.id === CommonConstantsUtil.CONNECTOR_ID.EIP6963) {
+    if (provider && info && connector.id === 'nexus.to.crosswallet.desktop') {
       // @ts-expect-error Exists on EIP6963Connector
       connector.setEip6963Wallet?.({ provider, info })
     }
@@ -724,16 +738,21 @@ export class WagmiAdapter extends AdapterBlueprint {
         type: type as ConnectorType,
         id
       }
-    } finally {
-      // 원래 provider 복원
-      if (originalProvider && typeof window !== 'undefined') {
-        ; (window as any).ethereum = originalProvider
-      }
+    } catch (error) {
+      console.log('error', error)
+      throw new Error('WagmiAdapter:connect - error connecting')
     }
   }
 
   public override async reconnect(params: AdapterBlueprint.ConnectParams): Promise<void> {
     const { id } = params
+    // console.log('[wagmiAdapter] reconnect', id)
+    try {
+      // 먼저 모든 연결을 해제하여 상태를 초기화
+      await this.disconnect()
+    } catch (e) {
+      // 연결 해제 중 오류 무시
+    }
 
     const connector = this.getWagmiConnector(id)
 
@@ -741,16 +760,22 @@ export class WagmiAdapter extends AdapterBlueprint {
       throw new Error('connectionControllerClient:connectExternal - connector is undefined')
     }
 
-    await reconnect(this.wagmiConfig, {
-      connectors: [connector]
-    })
-
-    // Emit accountChanged event after successful reconnection
-    const account = getAccount(this.wagmiConfig)
-    if (account.address && account.status === 'connected') {
-      this.emit('accountChanged', {
-        address: account.address
+    try {
+      // 새로운 연결 시도
+      await connect(this.wagmiConfig, {
+        connector: connector as any
       })
+
+      // Emit accountChanged event after successful reconnection
+      const account = getAccount(this.wagmiConfig)
+
+      if (account.address && account.status === 'connected') {
+        this.emit('accountChanged', {
+          address: account.address
+        })
+      }
+    } catch (error) {
+      throw error
     }
   }
 
@@ -838,7 +863,18 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public override async switchNetwork(params: AdapterBlueprint.SwitchNetworkParams) {
-    await switchChain(this.wagmiConfig, { chainId: params.caipNetwork.id as number })
+    try {
+      await switchChain(this.wagmiConfig, { chainId: params.caipNetwork.id as number })
+    } catch (error: unknown) {
+      // Cross Extension Wallet이 체인 전환을 지원하지 않는 경우에 대한 처리
+      const err = error as Error
+      if (err.message?.includes('not support programmatic chain switching')) {
+        // 사용자가 수동으로 체인을 전환해야 함을 알려줌
+      }
+
+      // 오류를 그대로 전파하여 상위 계층에서 처리할 수 있도록 함
+      throw error
+    }
   }
 
   public async getCapabilities(params: string) {

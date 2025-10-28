@@ -1,10 +1,9 @@
-import type UniversalProvider from '@to-nexus/universal-provider'
-
 import { type AppKit, type AppKitOptions, CoreHelperUtil, type Provider } from '@to-nexus/appkit'
 import { ConstantsUtil } from '@to-nexus/appkit-common'
 import { ChainController, StorageUtil } from '@to-nexus/appkit-core'
 import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
 import { bitcoin } from '@to-nexus/appkit/networks'
+import type UniversalProvider from '@to-nexus/universal-provider'
 
 import { BitcoinWalletConnectConnector } from './connectors/BitcoinWalletConnectProvider.js'
 import { LeatherConnector } from './connectors/LeatherConnector.js'
@@ -149,8 +148,21 @@ export class BitcoinAdapter extends AdapterBlueprint<BitcoinConnector> {
   public async signEIP712(
     params: AdapterBlueprint.SignEIP712Params
   ): Promise<AdapterBlueprint.SignEIP712Result> {
-
     return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
+  }
+
+  public async etherSignMessage(
+    params: AdapterBlueprint.EtherSignMessageParams
+  ): Promise<AdapterBlueprint.EtherSignMessageResult> {
+    // Bitcoin does not support EVM-style signing
+    return Promise.resolve({} as unknown as AdapterBlueprint.EtherSignMessageResult)
+  }
+
+  public async signTypedDataV4(
+    params: AdapterBlueprint.SignTypedDataV4Params
+  ): Promise<AdapterBlueprint.SignTypedDataV4Result> {
+    // Bitcoin does not support EIP-712 typed data signing
+    return Promise.resolve({} as unknown as AdapterBlueprint.SignTypedDataV4Result)
   }
 
   public getWalletConnectProvider(

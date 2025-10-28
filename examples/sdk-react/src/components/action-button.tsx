@@ -121,22 +121,6 @@ const metadata = {
   icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 }
 
-// Wagmi Adapter Test 용 by Sonny
-// export const wagmiAdapter = new WagmiAdapter({
-//   projectId: projectId,
-//   networks: [
-//     etherMainnet,
-//     etherTestnet,
-//     crossMainnet,
-//     crossTestnet,
-//     bscMainnet,
-//     bscTestnet,
-//     kaiaMainnet,
-//     kaiaTestnet
-//   ]
-// })
-// initCrossSdk(projectId, redirectUrl, metadata, 'dark', undefined, [wagmiAdapter])
-
 initCrossSdk(projectId, redirectUrl, metadata, 'dark')
 
 // TypeScript용 전역 Caver 타입 선언
