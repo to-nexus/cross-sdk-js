@@ -118,8 +118,6 @@ const initCrossSdk = (
     }
   }
 
-  console.log('mobileLink : ', (CommonConstantsUtil as any).getCrossWalletWebappLink?.())
-
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
     networks: networkList,
