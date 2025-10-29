@@ -392,7 +392,6 @@ jobs:
 
   cdn_publish:
     name: CDN Publish
-    needs: [sonarqube]
     if: |
       github.event_name == 'workflow_dispatch' && 
       github.ref == 'refs/heads/main' && 
