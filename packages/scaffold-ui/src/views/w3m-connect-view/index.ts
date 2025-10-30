@@ -121,14 +121,14 @@ export class W3mConnectView extends LitElement {
     const tabIndex = isDisabled ? -1 : undefined
 
     return html`
-      <wui-flex flexDirection="column">
+      <cross-wui-flex flexDirection="column">
         ${this.legalCheckboxTemplate()}
-        <wui-flex
+        <cross-wui-flex
           data-testid="cross-w3m-connect-scroll-view"
           flexDirection="column"
           class=${classMap(classes)}
         >
-          <wui-flex
+          <cross-wui-flex
             class="connect-methods"
             flexDirection="column"
             gap="s"
@@ -140,10 +140,10 @@ export class W3mConnectView extends LitElement {
               : ['3xs', 's', 's', 's']}
           >
             ${this.renderConnectMethod(tabIndex)}
-          </wui-flex>
-        </wui-flex>
+          </cross-wui-flex>
+        </cross-wui-flex>
         <cross-w3m-legal-footer></cross-w3m-legal-footer>
-      </wui-flex>
+      </cross-wui-flex>
     `
 
     // hide guideTemplate before <cross-w3m-legal-footer />
@@ -228,24 +228,24 @@ export class W3mConnectView extends LitElement {
         const isWalletEnable = this.enableWallets
 
         return isWalletEnable && nextEnabledMethod && !isExplore
-          ? html`<wui-separator data-testid="wui-separator" text="or"></wui-separator>`
+          ? html`<cross-wui-separator data-testid="wui-separator" text="or"></cross-wui-separator>`
           : null
       }
       case 'email': {
         const isNextMethodSocial = nextEnabledMethod === 'social'
 
         return this.isAuthEnabled && this.isEmailEnabled && !isNextMethodSocial && nextEnabledMethod
-          ? html`<wui-separator
+          ? html`<cross-wui-separator
               data-testid="cross-w3m-email-login-or-separator"
               text="or"
-            ></wui-separator>`
+            ></cross-wui-separator>`
           : null
       }
       case 'social': {
         const isNextMethodEmail = nextEnabledMethod === 'email'
 
         return this.isAuthEnabled && this.isSocialEnabled && !isNextMethodEmail && nextEnabledMethod
-          ? html`<wui-separator data-testid="wui-separator" text="or"></wui-separator>`
+          ? html`<cross-wui-separator data-testid="wui-separator" text="or"></cross-wui-separator>`
           : null
       }
       default:
@@ -307,14 +307,14 @@ export class W3mConnectView extends LitElement {
 
     const hasOtherMethods = this.isAuthEnabled && (this.isEmailEnabled || this.isSocialEnabled)
 
-    // CROSS Wallet만 표시하도록 수정 - 축소 로직 비활성화
+    // CROSSx Wallet만 표시하도록 수정 - 축소 로직 비활성화
     // if (hasOtherMethods && shouldCollapseWallets) {
-    //   return html`<wui-list-button
+    //   return html`<cross-wui-list-button
     //     data-testid="cross-w3m-collapse-wallets-button"
     //     tabIdx=${ifDefined(tabIndex)}
     //     @click=${this.onContinueWalletClick.bind(this)}
     //     text="Continue with a wallet"
-    //   ></wui-list-button>`
+    //   ></cross-wui-list-button>`
     // }
 
     return html`<cross-w3m-wallet-login-list
@@ -342,14 +342,14 @@ export class W3mConnectView extends LitElement {
 
     return html`
       ${this.walletGuide === 'explore' && !ChainController.state.noAdapters
-        ? html`<wui-separator data-testid="wui-separator" id="explore" text="or"></wui-separator>`
+        ? html`<cross-wui-separator data-testid="wui-separator" id="explore" text="or"></cross-wui-separator>`
         : null}
-      <wui-flex flexDirection="column" .padding=${['s', '0', 'xl', '0']} class=${classMap(classes)}>
+      <cross-wui-flex flexDirection="column" .padding=${['s', '0', 'xl', '0']} class=${classMap(classes)}>
         <cross-w3m-wallet-guide
           tabIdx=${ifDefined(tabIndex)}
           walletGuide=${this.walletGuide}
         ></cross-w3m-wallet-guide>
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

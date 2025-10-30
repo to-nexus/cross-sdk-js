@@ -32,20 +32,20 @@ export class W3mConnectFeaturedWidget extends LitElement {
     const wallets = WalletUtil.filterOutDuplicateWallets(featured)
 
     return html`
-      <wui-flex flexDirection="column" gap="xs">
+      <cross-wui-flex flexDirection="column" gap="xs">
         ${wallets.map(
           wallet => html`
-            <wui-list-wallet
+            <cross-wui-list-wallet
               data-testid=${`wallet-selector-featured-${wallet.id}`}
               imageSrc=${ifDefined(AssetUtil.getWalletImage(wallet))}
               name=${wallet.name ?? 'Unknown'}
               @click=${() => this.onConnectWallet(wallet)}
               tabIdx=${ifDefined(this.tabIdx)}
             >
-            </wui-list-wallet>
+            </cross-wui-list-wallet>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 

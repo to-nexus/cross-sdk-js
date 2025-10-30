@@ -24,29 +24,29 @@ export class W3mOnRampProvidersFooter extends LitElement {
     }
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         .padding=${['m', 's', 's', 's'] as const}
         flexDirection="column"
         alignItems="center"
         justifyContent="center"
         gap="s"
       >
-        <wui-text color="fg-250" variant="small-400" align="center">
+        <cross-wui-text color="fg-250" variant="small-400" align="center">
           We work with the best providers to give you the lowest fees and best support. More options
           coming soon!
-        </wui-text>
+        </cross-wui-text>
 
         ${this.howDoesItWorkTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
   // -- Private ------------------------------------------- //
   private howDoesItWorkTemplate() {
-    return html` <wui-link @click=${this.onWhatIsBuy.bind(this)}>
-      <wui-icon size="xs" color="accent-100" slot="iconLeft" name="helpCircle"></wui-icon>
+    return html` <cross-wui-link @click=${this.onWhatIsBuy.bind(this)}>
+      <cross-wui-icon size="xs" color="accent-100" slot="iconLeft" name="helpCircle"></cross-wui-icon>
       How does it work?
-    </wui-link>`
+    </cross-wui-link>`
   }
 
   private onWhatIsBuy() {

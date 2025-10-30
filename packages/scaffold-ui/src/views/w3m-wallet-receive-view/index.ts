@@ -66,12 +66,12 @@ export class W3mWalletReceiveView extends LitElement {
 
     const networkImage = AssetUtil.getNetworkImage(this.network)
 
-    return html` <wui-flex
+    return html` <cross-wui-flex
       flexDirection="column"
       .padding=${['0', 'l', 'l', 'l'] as const}
       alignItems="center"
     >
-      <wui-chip-button
+      <cross-wui-chip-button
         data-testid="receive-address-copy-button"
         @click=${this.onCopyClick.bind(this)}
         text=${UiHelperUtil.getTruncateString({
@@ -84,27 +84,27 @@ export class W3mWalletReceiveView extends LitElement {
         size="sm"
         imageSrc=${networkImage ? networkImage : ''}
         variant="gray"
-      ></wui-chip-button>
-      <wui-flex
+      ></cross-wui-chip-button>
+      <cross-wui-flex
         flexDirection="column"
         .padding=${['l', '0', '0', '0'] as const}
         alignItems="center"
         gap="s"
       >
-        <wui-qr-code
+        <cross-wui-qr-code
           size=${232}
           theme=${ThemeController.state.themeMode}
           uri=${this.address}
           ?arenaClear=${true}
           color=${ifDefined(ThemeController.state.themeVariables['--w3m-qr-color'])}
           data-testid="wui-qr-code"
-        ></wui-qr-code>
-        <wui-text variant="paragraph-500" color="fg-100" align="center">
+        ></cross-wui-qr-code>
+        <cross-wui-text variant="paragraph-500" color="fg-100" align="center">
           Copy your address or scan this QR code
-        </wui-text>
-      </wui-flex>
+        </cross-wui-text>
+      </cross-wui-flex>
       ${this.networkTemplate()}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //
@@ -121,22 +121,22 @@ export class W3mWalletReceiveView extends LitElement {
         return null
       }
 
-      return html`<wui-compatible-network
+      return html`<cross-wui-compatible-network
         @click=${this.onReceiveClick.bind(this)}
         text="Only receive assets on this network"
         .networkImages=${[AssetUtil.getNetworkImage(caipNetwork) ?? '']}
-      ></wui-compatible-network>`
+      ></cross-wui-compatible-network>`
     }
     const slicedNetworks = requestedCaipNetworks
       ?.filter(network => network?.assets?.imageId)
       ?.slice(0, 5)
     const imagesArray = slicedNetworks.map(AssetUtil.getNetworkImage).filter(Boolean) as string[]
 
-    return html`<wui-compatible-network
+    return html`<cross-wui-compatible-network
       @click=${this.onReceiveClick.bind(this)}
       text="Only receive assets on these networks"
       .networkImages=${imagesArray}
-    ></wui-compatible-network>`
+    ></cross-wui-compatible-network>`
   }
 
   onReceiveClick() {

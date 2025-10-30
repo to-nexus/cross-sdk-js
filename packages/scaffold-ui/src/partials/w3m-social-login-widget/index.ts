@@ -66,14 +66,14 @@ export class W3mSocialLoginWidget extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         class="container"
         flexDirection="column"
         gap="xs"
         data-testid="cross-w3m-social-login-widget"
       >
         ${this.topViewTemplate()}${this.bottomViewTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -97,22 +97,22 @@ export class W3mSocialLoginWidget extends LitElement {
 
   private renderTopViewContent(socials: SocialProvider[]) {
     if (socials.length === 2) {
-      return html` <wui-flex gap="xs">
+      return html` <cross-wui-flex gap="xs">
         ${socials.slice(0, MAX_TOP_VIEW).map(
           social =>
-            html`<wui-logo-select
+            html`<cross-wui-logo-select
               data-testid=${`social-selector-${social}`}
               @click=${() => {
                 this.onSocialClick(social)
               }}
               logo=${social}
               tabIdx=${ifDefined(this.tabIdx)}
-            ></wui-logo-select>`
+            ></cross-wui-logo-select>`
         )}
-      </wui-flex>`
+      </cross-wui-flex>`
     }
 
-    return html` <wui-list-social
+    return html` <cross-wui-list-social
       data-testid=${`social-selector-${socials[0]}`}
       @click=${() => {
         this.onSocialClick(socials[0])
@@ -121,7 +121,7 @@ export class W3mSocialLoginWidget extends LitElement {
       align="center"
       name=${`Continue with ${socials[0]}`}
       tabIdx=${ifDefined(this.tabIdx)}
-    ></wui-list-social>`
+    ></cross-wui-list-social>`
   }
 
   private bottomViewTemplate() {
@@ -142,43 +142,43 @@ export class W3mSocialLoginWidget extends LitElement {
     }
 
     if (socials && socials.length > MAXIMUM_LENGTH) {
-      return html`<wui-flex gap="xs">
+      return html`<cross-wui-flex gap="xs">
         ${socials.slice(1, MAXIMUM_LENGTH - 1).map(
           social =>
-            html`<wui-logo-select
+            html`<cross-wui-logo-select
               data-testid=${`social-selector-${social}`}
               @click=${() => {
                 this.onSocialClick(social)
               }}
               logo=${social}
               tabIdx=${ifDefined(this.tabIdx)}
-            ></wui-logo-select>`
+            ></cross-wui-logo-select>`
         )}
-        <wui-logo-select
+        <cross-wui-logo-select
           logo="more"
           tabIdx=${ifDefined(this.tabIdx)}
           @click=${this.onMoreSocialsClick.bind(this)}
-        ></wui-logo-select>
-      </wui-flex>`
+        ></cross-wui-logo-select>
+      </cross-wui-flex>`
     }
 
     if (!socials) {
       return null
     }
 
-    return html`<wui-flex gap="xs">
+    return html`<cross-wui-flex gap="xs">
       ${socials.slice(1, socials.length).map(
         social =>
-          html`<wui-logo-select
+          html`<cross-wui-logo-select
             data-testid=${`social-selector-${social}`}
             @click=${() => {
               this.onSocialClick(social)
             }}
             logo=${social}
             tabIdx=${ifDefined(this.tabIdx)}
-          ></wui-logo-select>`
+          ></cross-wui-logo-select>`
       )}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   // -- Private Methods ----------------------------------- //

@@ -7,7 +7,7 @@ import type { ColorType, LineClamp, TextAlign, TextType } from '../../utils/Type
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-text')
+@customElement('cross-wui-text')
 export class WuiText extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -40,6 +40,6 @@ export class WuiText extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-text': WuiText
+    'cross-wui-text': WuiText
   }
 }

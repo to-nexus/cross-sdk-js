@@ -42,14 +42,14 @@ export class W3mConnectingHeader extends LitElement {
     const tabs = this.generateTabs()
 
     return html`
-      <wui-flex justifyContent="center" .padding=${['0', '0', 'l', '0'] as const}>
-        <wui-tabs
+      <cross-wui-flex justifyContent="center" .padding=${['0', '0', 'l', '0'] as const}>
+        <cross-wui-tabs
           style="--wui-tabs-active-bg:#fff;--wui-tabs-active-text-color:#222;--wui-tabs-active-icon-color:#222;--wui-tabs-disabled-opacity:1;--wui-tabs-active-disabled-text-color:#222;--wui-tabs-active-disabled-icon-color:#222"
           ?disabled=${this.buffering}
           .tabs=${tabs}
           .onTabChange=${this.onTabChange.bind(this)}
-        ></wui-tabs>
-      </wui-flex>
+        ></cross-wui-tabs>
+      </cross-wui-flex>
     `
   }
 
@@ -57,7 +57,7 @@ export class W3mConnectingHeader extends LitElement {
   private generateTabs() {
     const tabs = this.platforms.map(platform => {
       if (platform === 'browser') {
-        return { label: 'Desktop', icon: 'extension', platform: 'browser' } as const
+        return { label: 'Extension', icon: 'extension', platform: 'browser' } as const
       } else if (platform === 'mobile') {
         return { label: 'Mobile', icon: 'mobile', platform: 'mobile' } as const
       } else if (platform === 'qrcode') {
@@ -65,7 +65,7 @@ export class W3mConnectingHeader extends LitElement {
       } else if (platform === 'web') {
         return { label: 'Webapp', icon: 'browser', platform: 'web' } as const
       } else if (platform === 'desktop') {
-        return { label: 'Desktop', icon: 'desktop', platform: 'desktop' } as const
+        return { label: 'Extension', icon: 'desktop', platform: 'desktop' } as const
       }
 
       return { label: 'Browser', icon: 'extension', platform: 'unsupported' } as const

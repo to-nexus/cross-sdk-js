@@ -9,7 +9,7 @@ import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-cta-button')
+@customElement('cross-wui-cta-button')
 export class WuiCtaButton extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -23,21 +23,21 @@ export class WuiCtaButton extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         justifyContent="space-between"
         alignItems="center"
         .padding=${['1xs', '2l', '1xs', '2l'] as const}
       >
-        <wui-text variant="paragraph-500" color="fg-200">${this.label}</wui-text>
-        <wui-chip-button size="sm" variant="shade" text=${this.buttonLabel} icon="chevronRight">
-        </wui-chip-button>
-      </wui-flex>
+        <cross-wui-text variant="paragraph-500" color="fg-200">${this.label}</cross-wui-text>
+        <cross-wui-chip-button size="sm" variant="shade" text=${this.buttonLabel} icon="chevronRight">
+        </cross-wui-chip-button>
+      </cross-wui-flex>
     `
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-cta-button': WuiCtaButton
+    'cross-wui-cta-button': WuiCtaButton
   }
 }

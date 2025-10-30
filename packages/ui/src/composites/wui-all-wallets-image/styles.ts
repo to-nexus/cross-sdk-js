@@ -28,13 +28,13 @@ export default css`
     pointer-events: none;
   }
 
-  :host > wui-wallet-image {
+  :host > cross-wui-wallet-image {
     width: 14px;
     height: 14px;
     border-radius: var(--wui-border-radius-5xs);
   }
 
-  :host > wui-flex {
+  :host > cross-wui-flex {
     padding: 2px;
     position: fixed;
     overflow: hidden;

@@ -21,12 +21,12 @@ export class W3mWalletSendDetails extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    return html` <wui-text variant="small-400" color="fg-200">Details</wui-text>
-      <wui-flex flexDirection="column" gap="xxs">
-        <wui-list-content textTitle="Network cost" textValue="$${ifDefined(
+    return html` <cross-wui-text variant="small-400" color="fg-200">Details</cross-wui-text>
+      <cross-wui-flex flexDirection="column" gap="xxs">
+        <cross-wui-list-content textTitle="Network cost" textValue="$${ifDefined(
           UiHelperUtil.formatNumberToLocalString(this.networkFee, 2)
-        )}"></wui-list-content></wui-list-content>
-        <wui-list-content
+        )}"></cross-wui-list-content></cross-wui-list-content>
+        <cross-wui-list-content
           textTitle="Address"
           textValue=${UiHelperUtil.getTruncateString({
             string: this.receiverAddress ?? '',
@@ -35,20 +35,20 @@ export class W3mWalletSendDetails extends LitElement {
             truncate: 'middle'
           })}
         >
-        </wui-list-content>
+        </cross-wui-list-content>
         ${this.networkTemplate()}
-      </wui-flex>`
+      </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //
   private networkTemplate() {
     if (this.caipNetwork?.name) {
-      return html` <wui-list-content
+      return html` <cross-wui-list-content
         @click=${() => this.onNetworkClick(this.caipNetwork)}
         class="network"
         textTitle="Network"
         imageSrc=${ifDefined(AssetUtil.getNetworkImage(this.caipNetwork))}
-      ></wui-list-content>`
+      ></cross-wui-list-content>`
     }
 
     return null

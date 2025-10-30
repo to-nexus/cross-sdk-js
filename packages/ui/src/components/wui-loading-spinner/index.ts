@@ -6,7 +6,7 @@ import type { ColorType, SizeType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-loading-spinner')
+@customElement('cross-wui-loading-spinner')
 export class WuiLoadingSpinner extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -30,6 +30,6 @@ export class WuiLoadingSpinner extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-loading-spinner': WuiLoadingSpinner
+    'cross-wui-loading-spinner': WuiLoadingSpinner
   }
 }

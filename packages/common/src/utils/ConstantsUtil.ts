@@ -1,16 +1,16 @@
 import type { ChainNamespace } from './TypeUtil.js'
 
 function getEnv(): string {
-  // console.log('ConstantUtil.ts getEnv(), import.meta.env', import.meta.env)
-  if (typeof import.meta !== 'undefined' && import.meta.env?.['VITE_ENV_MODE']) {
+  // Console.log('ConstantUtil.ts getEnv(), import.meta.env', import.meta.env)
+  if (import.meta?.env?.['VITE_ENV_MODE']) {
     return import.meta.env['VITE_ENV_MODE']
   }
 
-  if (typeof process !== 'undefined' && process.env?.['NEXT_PUBLIC_ENV_MODE']) {
+  if (process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
-  if (typeof process !== 'undefined' && process.env?.['NODE_ENV']) {
+  if (process?.env?.['NODE_ENV']) {
     return process.env['NODE_ENV']
   }
 
@@ -20,12 +20,13 @@ function getEnv(): string {
 export const ConstantsUtil = {
   WC_NAME_SUFFIX: '.reown.id',
   WC_NAME_SUFFIX_LEGACY: '.wcn.id',
-  BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001', // todo: why not provide mainnet option?
-  PULSE_API_URL: 'https://pulse.walletconnect.org', // todo: remove this
+  BLOCKCHAIN_API_RPC_URL: 'https://testnet.crosstoken.io:22001', // Todo: why not provide mainnet option?
+  PULSE_API_URL: 'https://pulse.walletconnect.org', // Todo: remove this
   getWeb3mApiUrl() {
     const injectedEnv = getEnv()
     type EnvKey = keyof typeof ConstantsUtil.W3M_API_URL
     const envKey = injectedEnv.toUpperCase() as EnvKey
+
     return ConstantsUtil.W3M_API_URL[envKey]
   },
   W3M_API_URL: {
@@ -35,26 +36,30 @@ export const ConstantsUtil = {
   },
   getRelayUrl() {
     // VITE_CROSS_RELAY 환경변수가 있으면 우선 사용 (Vite 전용)
-    if (typeof import.meta !== 'undefined' && import.meta.env?.['VITE_CROSS_RELAY']) {
+    if (import.meta?.env?.['VITE_CROSS_RELAY']) {
       console.log(
         'Using VITE_CROSS_RELAY from import.meta.env:',
         import.meta.env['VITE_CROSS_RELAY']
       )
+
       return import.meta.env['VITE_CROSS_RELAY']
     }
 
     // CROSS_RELAY 환경변수가 있으면 우선 사용
-    if (typeof import.meta !== 'undefined' && import.meta.env?.['CROSS_RELAY']) {
+    if (import.meta?.env?.['CROSS_RELAY']) {
       console.log('Using CROSS_RELAY from import.meta.env:', import.meta.env['CROSS_RELAY'])
+
       return import.meta.env['CROSS_RELAY']
     }
 
-    if (typeof process !== 'undefined' && process.env?.['CROSS_RELAY']) {
+    if (process?.env?.['CROSS_RELAY']) {
       console.log('Using CROSS_RELAY from process.env:', process.env['CROSS_RELAY'])
+
       return process.env['CROSS_RELAY']
     }
 
     console.log('Using relay URL:', ConstantsUtil.RELAY_URL.PRODUCTION)
+
     return ConstantsUtil.RELAY_URL.PRODUCTION
   },
   RELAY_URL: {
@@ -66,6 +71,7 @@ export const ConstantsUtil = {
     const injectedEnv = getEnv()
     type EnvKey = keyof typeof ConstantsUtil.VERIFY_URL
     const envKey = injectedEnv.toUpperCase() as EnvKey
+
     return ConstantsUtil.VERIFY_URL[envKey]
   },
   VERIFY_URL: {
@@ -73,6 +79,19 @@ export const ConstantsUtil = {
     STAGE: 'http://cross-verify.crosstoken.io',
     PRODUCTION: 'http://cross-verify.crosstoken.io'
   },
+  getCrossWalletWebappLink() {
+    const injectedEnv = getEnv()
+    type EnvKey = keyof typeof ConstantsUtil.CROSS_WALLET_WEBAPP_LINK
+    const envKey = injectedEnv.toUpperCase() as EnvKey
+
+    return ConstantsUtil.CROSS_WALLET_WEBAPP_LINK[envKey]
+  },
+  CROSS_WALLET_WEBAPP_LINK: {
+    DEVELOPMENT: 'crossx://',
+    STAGE: 'crossx://',
+    PRODUCTION: 'crossx://' // Todo: change to universal link (https://cross-wallet.crosstoken.io)
+  },
+
   /* Connector IDs */
   CONNECTOR_ID: {
     WALLET_CONNECT: 'cross_wallet',

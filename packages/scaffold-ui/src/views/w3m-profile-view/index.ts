@@ -70,17 +70,17 @@ export class W3mProfileView extends LitElement {
     }
 
     return html`
-      <wui-flex flexDirection="column" gap="l" .padding=${['0', 'xl', 'm', 'xl'] as const}>
-        <wui-flex flexDirection="column" alignItems="center" gap="l">
-          <wui-avatar
+      <cross-wui-flex flexDirection="column" gap="l" .padding=${['0', 'xl', 'm', 'xl'] as const}>
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="l">
+          <cross-wui-avatar
             alt=${this.address}
             address=${this.address}
             imageSrc=${ifDefined(this.profileImage)}
             size="2lg"
-          ></wui-avatar>
-          <wui-flex flexDirection="column" alignItems="center">
-            <wui-flex gap="3xs" alignItems="center" justifyContent="center">
-              <wui-text variant="title-6-600" color="fg-100" data-testid="account-settings-address">
+          ></cross-wui-avatar>
+          <cross-wui-flex flexDirection="column" alignItems="center">
+            <cross-wui-flex gap="3xs" alignItems="center" justifyContent="center">
+              <cross-wui-text variant="title-6-600" color="fg-100" data-testid="account-settings-address">
                 ${this.profileName
                   ? UiHelperUtil.getTruncateString({
                       string: this.profileName,
@@ -94,40 +94,40 @@ export class W3mProfileView extends LitElement {
                       charsEnd: 6,
                       truncate: 'middle'
                     })}
-              </wui-text>
-              <wui-icon-link
+              </cross-wui-text>
+              <cross-wui-icon-link
                 size="md"
                 icon="copy"
                 iconColor="fg-200"
                 @click=${this.onCopyAddress}
-              ></wui-icon-link>
-            </wui-flex>
-          </wui-flex>
-        </wui-flex>
-        <wui-flex
+              ></cross-wui-icon-link>
+            </cross-wui-flex>
+          </cross-wui-flex>
+        </cross-wui-flex>
+        <cross-wui-flex
           data-testid="account-settings-button"
           justifyContent="center"
           alignItems="center"
           class="account-settings-button"
           @click=${() => RouterController.push('AccountSettings')}
         >
-          <wui-text variant="paragraph-500" color="fg-100">Account Settings</wui-text>
-        </wui-flex>
+          <cross-wui-text variant="paragraph-500" color="fg-100">Account Settings</cross-wui-text>
+        </cross-wui-flex>
         ${this.accountsTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
   // -- Private ------------------------------------------- //
   private accountsTemplate() {
-    return html`<wui-flex flexDirection="column">
-      <wui-flex .padding=${['3xs', 'm', 's', 's'] as const}>
-        <wui-text color="fg-200" variant="paragraph-400">Your accounts</wui-text>
-      </wui-flex>
-      <wui-flex flexDirection="column" gap="xxs">
+    return html`<cross-wui-flex flexDirection="column">
+      <cross-wui-flex .padding=${['3xs', 'm', 's', 's'] as const}>
+        <cross-wui-text color="fg-200" variant="paragraph-400">Your accounts</cross-wui-text>
+      </cross-wui-flex>
+      <cross-wui-flex flexDirection="column" gap="xxs">
         ${this.accounts.map(account => this.accountTemplate(account))}
-      </wui-flex>
-    </wui-flex>`
+      </cross-wui-flex>
+    </cross-wui-flex>`
   }
 
   private async onSwitchAccount(account: AccountType) {
@@ -143,10 +143,10 @@ export class W3mProfileView extends LitElement {
   }
 
   private accountTemplate(account: AccountType) {
-    return html`<wui-list-account accountAddress=${account.address} accountType=${account.type}>
+    return html`<cross-wui-list-account accountAddress=${account.address} accountType=${account.type}>
       ${account.address === this.address
         ? ''
-        : html`<wui-button
+        : html`<cross-wui-button
             slot="action"
             textVariant="small-600"
             size="md"
@@ -155,7 +155,7 @@ export class W3mProfileView extends LitElement {
             .loading=${this.loading}
             >Switch</wui-button
           >`}
-    </wui-list-account>`
+    </cross-wui-list-account>`
   }
 
   private onCopyAddress() {

@@ -24,7 +24,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     EventsController.sendEvent({
       type: 'track',
       event: 'SELECT_WALLET',
-      properties: { name: this.wallet?.name ?? 'CROSS Wallet', platform: 'qrcode' }
+      properties: { name: this.wallet?.name ?? 'CROSSx Wallet', platform: 'qrcode' }
     })
   }
 
@@ -41,7 +41,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     // 가로모드에서는 QR 코드만 표시
     if (CoreHelperUtil.isMobileLandscape()) {
       return html`
-        <wui-flex
+        <cross-wui-flex
           flexDirection="column"
           alignItems="center"
           justifyContent="center"
@@ -52,35 +52,35 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
           ${this.ready && this.uri
             ? html` ${this.qrCodeTemplate()} `
             : html`
-                <wui-shimmer
+                <cross-wui-shimmer
                   borderRadius="l"
                   width="270px"
                   height="270px"
                   style="width: 270px; height: 270px; max-width: 270px; max-height: 270px;"
                 >
-                </wui-shimmer>
+                </cross-wui-shimmer>
               `}
-        </wui-flex>
+        </cross-wui-flex>
       `
     }
 
     // 세로모드에서는 기존 UI 유지
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['0', 'xl', 'xl', 'xl']}
         gap="xl"
       >
-        <wui-shimmer borderRadius="l" width="100%" style="max-width:300px;">
+        <cross-wui-shimmer borderRadius="l" width="100%" style="max-width:300px;">
           ${this.qrCodeTemplate()}
-        </wui-shimmer>
+        </cross-wui-shimmer>
 
-        <wui-text variant="paragraph-500" color="fg-100">
+        <cross-wui-text variant="paragraph-500" color="fg-100">
           Scan this QR Code with your phone
-        </wui-text>
+        </cross-wui-text>
         ${this.copyTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
       <cross-w3m-mobile-download-links .wallet=${this.wallet}></cross-w3m-mobile-download-links>
     `
   }
@@ -101,11 +101,11 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     }
 
     const size = this.getBoundingClientRect().width - 40
-    const alt = this.wallet ? this.wallet.name : 'CROSS Wallet'
+    const alt = this.wallet ? this.wallet.name : 'CROSSx Wallet'
     ConnectionController.setWcLinking(undefined)
     ConnectionController.setRecentWallet(this.wallet)
 
-    return html` <wui-qr-code
+    return html` <cross-wui-qr-code
       size=${size}
       theme=${ThemeController.state.themeMode}
       uri=${this.uri}
@@ -113,21 +113,21 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
       color=${ifDefined(ThemeController.state.themeVariables['--w3m-qr-color'])}
       alt=${ifDefined(alt)}
       data-testid="wui-qr-code"
-    ></wui-qr-code>`
+    ></cross-wui-qr-code>`
   }
 
   private copyTemplate() {
     const inactive = !this.uri || !this.ready
 
-    return html`<wui-link
+    return html`<cross-wui-link
       .disabled=${inactive}
       @click=${this.onCopyUri}
       color="fg-200"
       data-testid="copy-wc2-uri"
     >
-      <wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></wui-icon>
+      <cross-wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></cross-wui-icon>
       Copy link
-    </wui-link>`
+    </cross-wui-link>`
   }
 
   private forceUpdate = () => {

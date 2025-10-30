@@ -44,21 +44,21 @@ export class W3mOnRampActivityItem extends LitElement {
 
   public override render() {
     return html`
-      <wui-flex>
+      <cross-wui-flex>
         ${this.imageTemplate()}
-        <wui-flex flexDirection="column" gap="4xs" flexGrow="1">
-          <wui-flex gap="xxs" alignItems="center" justifyContent="flex-start">
+        <cross-wui-flex flexDirection="column" gap="4xs" flexGrow="1">
+          <cross-wui-flex gap="xxs" alignItems="center" justifyContent="flex-start">
             ${this.statusIconTemplate()}
-            <wui-text variant="paragraph-500" color="fg-100"> ${this.label}</wui-text>
-          </wui-flex>
-          <wui-text variant="small-400" color="fg-200">
+            <cross-wui-text variant="paragraph-500" color="fg-100"> ${this.label}</cross-wui-text>
+          </cross-wui-flex>
+          <cross-wui-text variant="small-400" color="fg-200">
             + ${this.purchaseValue} ${this.purchaseCurrency}
-          </wui-text>
-        </wui-flex>
+          </cross-wui-text>
+        </cross-wui-flex>
         ${this.inProgress
-          ? html`<wui-loading-spinner color="fg-200" size="md"></wui-loading-spinner>`
-          : html`<wui-text variant="micro-700" color="fg-300"><span>${this.date}</span></wui-text>`}
-      </wui-flex>
+          ? html`<cross-wui-loading-spinner color="fg-200" size="md"></cross-wui-loading-spinner>`
+          : html`<cross-wui-text variant="micro-700" color="fg-300"><span>${this.date}</span></cross-wui-text>`}
+      </cross-wui-flex>
     `
   }
 
@@ -76,33 +76,33 @@ export class W3mOnRampActivityItem extends LitElement {
   }
 
   private errorIconTemplate() {
-    return html`<wui-icon-box
+    return html`<cross-wui-icon-box
       size="xxs"
       iconColor="error-100"
       backgroundColor="error-100"
       background="opaque"
       icon="close"
       borderColor="wui-color-bg-125"
-    ></wui-icon-box>`
+    ></cross-wui-icon-box>`
   }
 
   private imageTemplate() {
     const icon = this.icon || `https://avatar.vercel.sh/andrew.svg?size=50&text=${this.symbol}`
 
-    return html`<wui-flex class="purchase-image-container">
-      <wui-image src=${icon}></wui-image>
-    </wui-flex>`
+    return html`<cross-wui-flex class="purchase-image-container">
+      <cross-wui-image src=${icon}></cross-wui-image>
+    </cross-wui-flex>`
   }
 
   private boughtIconTemplate() {
-    return html`<wui-icon-box
+    return html`<cross-wui-icon-box
       size="xxs"
       iconColor="success-100"
       backgroundColor="success-100"
       background="opaque"
       icon="arrowBottom"
       borderColor="wui-color-bg-125"
-    ></wui-icon-box>`
+    ></cross-wui-icon-box>`
   }
 }
 

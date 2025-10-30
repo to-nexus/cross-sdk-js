@@ -35,11 +35,11 @@ export default css`
       0px 14px 64px -4px var(--wui-color-gray-glass-010);
   }
 
-  :host > button > wui-text {
+  :host > button > cross-wui-text {
     text-transform: capitalize;
   }
 
-  :host > button > wui-image {
+  :host > button > cross-wui-image {
     height: 24px;
     width: 24px;
     border-radius: var(--wui-border-radius-s);
@@ -54,7 +54,7 @@ export default css`
     cursor: default;
   }
 
-  :host > button:disabled > wui-icon {
+  :host > button:disabled > cross-wui-icon {
     filter: grayscale(1);
   }
 `

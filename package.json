@@ -1,5 +1,5 @@
 {
-  "version": "1.17.5",
+  "version": "1.18.0-beta.3",
   "name": "cross-sdk-js-monorepo",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "build:example:vue-wagmi": "pnpm --filter @examples/vue-wagmi build",
     "build:example:parcel-react-wagmi": "pnpm --filter @examples/parcel-react-wagmi build",
     "build:example:wagmi-app-router": "pnpm --filter @examples/next-wagmi-app-router build",
-    "build": "turbo run build --filter={./packages/*}",
+    "build": "turbo run build --filter={./packages/*} --filter={./packages/adapters/*} --filter=!@to-nexus/appkit-adapter-bitcoin --filter=!@to-nexus/appkit-adapter-solana",
     "watch": "turbo run watch --filter={./packages/*,./packages/adapters/*} --concurrency=50 --continue",
     "gallery": "turbo run dev --filter={./apps/gallery}",
     "gallery-new": "turbo run dev --filter={./apps/gallery-new}",
@@ -99,14 +99,19 @@
   "packageManager": "pnpm@9.5.0",
   "pnpm": {
     "overrides": {
-      "@solana/web3.js": "1.95.8"
+      "@solana/web3.js": "1.95.8",
+      "@wagmi/core": "2.16.4",
+      "wagmi": "2.14.11",
+      "viem": "^2.38.0"
     }
   },
   "resolutions": {
-    "@solana/web3.js": "1.95.8"
+    "@solana/web3.js": "1.95.8",
+    "viem": "^2.38.4"
   },
   "overrides": {
-    "@solana/web3.js": "1.95.8"
+    "@solana/web3.js": "1.95.8",
+    "viem": "^2.38.4"
   },
   "@parcel/resolver-default": {
     "packageExports": true

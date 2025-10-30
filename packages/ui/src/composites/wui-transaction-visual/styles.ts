@@ -1,7 +1,7 @@
 import { css } from 'lit'
 
 export default css`
-  :host > wui-flex {
+  :host > cross-wui-flex {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -12,12 +12,12 @@ export default css`
     background-color: var(--wui-color-gray-glass-005);
   }
 
-  :host > wui-flex wui-image {
+  :host > wui-flex cross-wui-image {
     display: block;
   }
 
-  :host > wui-flex,
-  :host > wui-flex wui-image,
+  :host > cross-wui-flex,
+  :host > wui-flex cross-wui-image,
   .swap-images-container,
   .swap-images-container.nft,
   wui-image.nft {
@@ -27,12 +27,12 @@ export default css`
     border-bottom-right-radius: var(--local-right-border-radius);
   }
 
-  wui-icon {
+  cross-wui-icon {
     width: 20px;
     height: 20px;
   }
 
-  wui-icon-box {
+  cross-wui-icon-box {
     position: absolute;
     right: 0;
     bottom: 0;

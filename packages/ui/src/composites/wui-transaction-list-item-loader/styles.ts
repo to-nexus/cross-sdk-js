@@ -7,7 +7,7 @@ export default css`
     width: 100%;
   }
 
-  wui-flex {
+  cross-wui-flex {
     display: flex;
     flex: 1;
   }

@@ -7,7 +7,7 @@ import { elementStyles, resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-promo')
+@customElement('cross-wui-promo')
 export class WuiPromo extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -17,14 +17,14 @@ export class WuiPromo extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`<button>
-      <wui-text variant="small-600" color="bg-100">${this.text}</wui-text>
-      <wui-icon color="bg-100" size="xs" name="arrowRight"></wui-icon>
+      <cross-wui-text variant="small-600" color="bg-100">${this.text}</cross-wui-text>
+      <cross-wui-icon color="bg-100" size="xs" name="arrowRight"></cross-wui-icon>
     </button>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-promo': WuiPromo
+    'cross-wui-promo': WuiPromo
   }
 }

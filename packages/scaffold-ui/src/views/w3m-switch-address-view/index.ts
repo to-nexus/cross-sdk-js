@@ -65,16 +65,16 @@ export class W3mSwitchAddressView extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex justifyContent="center" .padding=${['xl', '0', 'xl', '0'] as const}>
-        <wui-banner-img
+      <cross-wui-flex justifyContent="center" .padding=${['xl', '0', 'xl', '0'] as const}>
+        <cross-wui-banner-img
           imageSrc=${ifDefined(this.metadata?.icons[0])}
           text=${ifDefined(this.metadata?.url)}
           size="sm"
-        ></wui-banner-img>
-      </wui-flex>
-      <wui-flex flexDirection="column" gap="xxl" .padding=${['l', 'xl', 'xl', 'xl'] as const}>
+        ></cross-wui-banner-img>
+      </cross-wui-flex>
+      <cross-wui-flex flexDirection="column" gap="xxl" .padding=${['l', 'xl', 'xl', 'xl'] as const}>
         ${this.allAccounts.map((account, index) => this.getAddressTemplate(account, index))}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -88,25 +88,25 @@ export class W3mSwitchAddressView extends LitElement {
     const shouldShowIcon = connectorId === ConstantsUtil.CONNECTOR_ID.AUTH
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="row"
         justifyContent="space-between"
         data-testid="switch-address-item"
       >
-        <wui-flex alignItems="center">
-          <wui-avatar address=${account.address}></wui-avatar>
+        <cross-wui-flex alignItems="center">
+          <cross-wui-avatar address=${account.address}></cross-wui-avatar>
           ${shouldShowIcon
-            ? html`<wui-icon-box
+            ? html`<cross-wui-icon-box
                 size="sm"
                 iconcolor="fg-200"
                 backgroundcolor="glass-002"
                 background="gray"
                 icon="${this.getAddressIcon(account.type)}"
                 ?border=${true}
-              ></wui-icon-box>`
-            : html`<wui-flex .padding="${['0', '0', '0', 's'] as const}"></wui-flex>`}
-          <wui-flex flexDirection="column">
-            <wui-text class="address" variant="paragraph-500" color="fg-100"
+              ></cross-wui-icon-box>`
+            : html`<cross-wui-flex .padding="${['0', '0', '0', 's'] as const}"></cross-wui-flex>`}
+          <cross-wui-flex flexDirection="column">
+            <cross-wui-text class="address" variant="paragraph-500" color="fg-100"
               >${label
                 ? label
                 : UiHelperUtil.getTruncateString({
@@ -116,18 +116,18 @@ export class W3mSwitchAddressView extends LitElement {
                     truncate: 'middle'
                   })}</wui-text
             >
-            <wui-text class="address-description" variant="small-400">
+            <cross-wui-text class="address-description" variant="small-400">
               ${typeof this.balances[account.address] === 'number'
                 ? `$${this.balances[account.address]?.toFixed(2)}`
-                : html`<wui-loading-spinner size="sm" color="accent-100"></wui-loading-spinner>`}
-            </wui-text>
-          </wui-flex>
-        </wui-flex>
-        <wui-flex gap="s" alignItems="center">
+                : html`<cross-wui-loading-spinner size="sm" color="accent-100"></cross-wui-loading-spinner>`}
+            </cross-wui-text>
+          </cross-wui-flex>
+        </cross-wui-flex>
+        <cross-wui-flex gap="s" alignItems="center">
           ${account.address?.toLowerCase() === this.currentAddress?.toLowerCase()
             ? ''
             : html`
-                <wui-button
+                <cross-wui-button
                   data-testid=${`w3m-switch-address-button-${index}`}
                   textVariant="small-600"
                   size="md"
@@ -136,8 +136,8 @@ export class W3mSwitchAddressView extends LitElement {
                   >Switch to</wui-button
                 >
               `}
-        </wui-flex>
-      </wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 

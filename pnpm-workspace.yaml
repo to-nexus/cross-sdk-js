@@ -18,6 +18,7 @@ packages:
   - 'examples/sdk-html'
   - 'examples/sdk-vanilla'
   - 'examples/sdk-cdn'
+  - 'examples/sdk-wagmi'
   - 'examples/cocos-creator'
   - 'packages/cdn'
   - 'packages/sign-client'

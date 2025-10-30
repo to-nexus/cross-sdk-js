@@ -23,21 +23,21 @@ export class W3mConnectingWcBasicView extends LitElement {
       const showConnectors =
         featured.length || recommended.length || customWallets?.length || recent.length
 
-      return html`<wui-flex
+      return html`<cross-wui-flex
         flexDirection="column"
         gap="xs"
         .margin=${['3xs', 's', 's', 's'] as const}
       >
         ${showConnectors ? html`<cross-w3m-connector-list></cross-w3m-connector-list>` : null}
         <cross-w3m-all-wallets-widget></cross-w3m-all-wallets-widget>
-      </wui-flex>`
+      </cross-wui-flex>`
     }
 
-    return html`<wui-flex flexDirection="column" .padding=${['0', '0', 'l', '0'] as const}>
+    return html`<cross-wui-flex flexDirection="column" .padding=${['0', '0', 'l', '0'] as const}>
       <cross-w3m-connecting-wc-view></cross-w3m-connecting-wc-view>
-      <wui-flex flexDirection="column" .padding=${['0', 'm', '0', 'm'] as const}>
+      <cross-wui-flex flexDirection="column" .padding=${['0', 'm', '0', 'm'] as const}>
         <cross-w3m-all-wallets-widget></cross-w3m-all-wallets-widget> </wui-flex
-    ></wui-flex>`
+    ></cross-wui-flex>`
   }
 }
 declare global {

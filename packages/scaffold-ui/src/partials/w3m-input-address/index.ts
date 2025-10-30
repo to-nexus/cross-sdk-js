@@ -33,32 +33,32 @@ export class W3mInputAddress extends LitElement {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    return html` <wui-flex
+    return html` <cross-wui-flex
       @click=${this.onBoxClick.bind(this)}
       flexDirection="column"
       justifyContent="center"
       gap="4xs"
       .padding=${['2xl', 'l', 'xl', 'l'] as const}
     >
-      <wui-text
+      <cross-wui-text
         ${ref(this.instructionElementRef)}
         class="instruction"
         color="fg-300"
         variant="medium-400"
       >
         Type or
-        <wui-button
+        <cross-wui-button
           class="paste"
           size="md"
           variant="neutral"
           iconLeft="copy"
           @click=${this.onPasteClick.bind(this)}
         >
-          <wui-icon size="sm" color="inherit" slot="iconLeft" name="copy"></wui-icon>
+          <cross-wui-icon size="sm" color="inherit" slot="iconLeft" name="copy"></cross-wui-icon>
           Paste
-        </wui-button>
+        </cross-wui-button>
         address
-      </wui-text>
+      </cross-wui-text>
       <textarea
         spellcheck="false"
         ?disabled=${!this.instructionHidden}
@@ -70,7 +70,7 @@ export class W3mInputAddress extends LitElement {
       >
 ${this.value ?? ''}</textarea
       >
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //

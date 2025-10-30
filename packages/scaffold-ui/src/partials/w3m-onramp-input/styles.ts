@@ -5,7 +5,7 @@ export default css`
     width: 100%;
   }
 
-  wui-loading-spinner {
+  cross-wui-loading-spinner {
     position: absolute;
     top: 50%;
     right: 20px;
@@ -27,7 +27,7 @@ export default css`
     cursor: pointer;
   }
 
-  .currency-container > wui-image {
+  .currency-container > cross-wui-image {
     height: 24px;
     width: 24px;
     border-radius: 50%;

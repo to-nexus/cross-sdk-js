@@ -11,13 +11,13 @@ export default css`
     border-radius: var(--wui-border-radius-xxs);
   }
 
-  wui-image {
+  cross-wui-image {
     border-radius: 100%;
     width: var(--wui-spacing-xl);
     height: var(--wui-spacing-xl);
   }
 
-  wui-icon-box {
+  cross-wui-icon-box {
     width: var(--wui-spacing-xl);
     height: var(--wui-spacing-xl);
   }

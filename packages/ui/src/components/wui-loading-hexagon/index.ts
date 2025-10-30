@@ -4,7 +4,7 @@ import { resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-loading-hexagon')
+@customElement('cross-wui-loading-hexagon')
 export class WuiLoadingHexagon extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -24,6 +24,6 @@ export class WuiLoadingHexagon extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-loading-hexagon': WuiLoadingHexagon
+    'cross-wui-loading-hexagon': WuiLoadingHexagon
   }
 }

@@ -116,14 +116,14 @@ export class W3mConnectingWcMiniView extends LitElement {
 
   private isCrossWalletInstalled(rdns: string): boolean {
     const currentConnectors = ConnectorController.state.connectors
-    const announced = currentConnectors.filter(c => c.type === 'ANNOUNCED' && c.id === rdns)
+    const crossWalletExtensionConnectors = currentConnectors.filter(c => (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.id === rdns)
 
-    if (announced && announced.length > 0) {
+    if (crossWalletExtensionConnectors && crossWalletExtensionConnectors.length > 0) {
       return true
     }
 
     const isCrossWalletInWindow =
-      typeof window !== 'undefined' && (window as any).ethereum && (window as any).ethereum[rdns]
+      typeof window !== 'undefined' && (window as any).crossWallet
 
     return Boolean(isCrossWalletInWindow)
   }
@@ -195,7 +195,7 @@ export class W3mConnectingWcMiniView extends LitElement {
     const isDesktopWc = desktop_link && !CoreHelperUtil.isMobile()
 
     const isCrossWallet =
-      this.wallet.name?.includes('CROSS Wallet') || rdns === 'nexus.to.crosswallet.desktop'
+      this.wallet.name?.includes('CROSSx Wallet') || rdns === 'nexus.to.crosswallet.desktop'
 
     if (isCrossWallet && rdns) {
       this.determinePlatformsForCross({ mobile_link, rdns, isBrowser: Boolean(isBrowser) })
@@ -256,10 +256,10 @@ export class W3mConnectingWcMiniView extends LitElement {
 
     return html`
       <div class="platform-indicator">
-        <wui-text variant="small-400" color="fg-200">
+        <cross-wui-text variant="small-400" color="fg-200">
           ${platformLabels[this.platform!] || 'Unknown'}
           (${currentIndex + 1}/${this.platforms.length})
-        </wui-text>
+        </cross-wui-text>
       </div>
     `
   }
@@ -284,12 +284,12 @@ export class W3mConnectingWcMiniView extends LitElement {
       const nextIndex = (currentIndex + 1) % this.platforms.length
       this.platform = this.platforms[nextIndex]
 
-      // 페이드 인
-      ;(container as HTMLElement).animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: 150,
-        fill: 'forwards',
-        easing: 'ease'
-      })
+        // 페이드 인
+        ; (container as HTMLElement).animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: 150,
+          fill: 'forwards',
+          easing: 'ease'
+        })
     }
   }
 }

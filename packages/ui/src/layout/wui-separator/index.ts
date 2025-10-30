@@ -6,7 +6,7 @@ import { resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-separator')
+@customElement('cross-wui-separator')
 export class WuiSeparator extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -21,7 +21,7 @@ export class WuiSeparator extends LitElement {
   // -- Private ------------------------------------------- //
   private template() {
     if (this.text) {
-      return html`<wui-text variant="small-500" color="fg-200">${this.text}</wui-text>`
+      return html`<cross-wui-text variant="small-500" color="fg-200">${this.text}</cross-wui-text>`
     }
 
     return null
@@ -30,6 +30,6 @@ export class WuiSeparator extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-separator': WuiSeparator
+    'cross-wui-separator': WuiSeparator
   }
 }

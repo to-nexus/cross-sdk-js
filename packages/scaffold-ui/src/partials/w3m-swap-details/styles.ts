@@ -5,7 +5,7 @@ export default css`
     width: 100%;
   }
 
-  .details-container > wui-flex {
+  .details-container > cross-wui-flex {
     background: var(--wui-color-gray-glass-002);
     border-radius: var(--wui-border-radius-xxs);
     width: 100%;
@@ -27,7 +27,7 @@ export default css`
     justify-content: center;
   }
 
-  .details-content-container > wui-flex {
+  .details-content-container > cross-wui-flex {
     width: 100%;
   }
 

@@ -11,7 +11,7 @@ export default css`
     display: none;
   }
 
-  wui-icon-box {
+  cross-wui-icon-box {
     width: 40px;
     height: 40px;
     border-radius: var(--wui-border-radius-xxs);

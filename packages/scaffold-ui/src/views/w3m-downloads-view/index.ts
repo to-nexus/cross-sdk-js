@@ -15,10 +15,10 @@ export class W3mDownloadsView extends LitElement {
     }
 
     return html`
-      <wui-flex gap="xs" flexDirection="column" .padding=${['s', 's', 'l', 's'] as const}>
+      <cross-wui-flex gap="xs" flexDirection="column" .padding=${['s', 's', 'l', 's'] as const}>
         ${this.chromeTemplate()} ${this.iosTemplate()} ${this.androidTemplate()}
         ${this.homepageTemplate()}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -28,15 +28,15 @@ export class W3mDownloadsView extends LitElement {
       return null
     }
 
-    return html`<wui-list-item
+    return html`<cross-wui-list-item
       variant="icon"
       icon="chromeStore"
       iconVariant="square"
       @click=${this.onChromeStore.bind(this)}
       chevron
     >
-      <wui-text variant="paragraph-500" color="fg-100">Chrome Extension</wui-text>
-    </wui-list-item>`
+      <cross-wui-text variant="paragraph-500" color="fg-100">Chrome Extension</cross-wui-text>
+    </cross-wui-list-item>`
   }
 
   private iosTemplate() {
@@ -44,15 +44,15 @@ export class W3mDownloadsView extends LitElement {
       return null
     }
 
-    return html`<wui-list-item
+    return html`<cross-wui-list-item
       variant="icon"
       icon="appStore"
       iconVariant="square"
       @click=${this.onAppStore.bind(this)}
       chevron
     >
-      <wui-text variant="paragraph-500" color="fg-100">iOS App</wui-text>
-    </wui-list-item>`
+      <cross-wui-text variant="paragraph-500" color="fg-100">iOS App</cross-wui-text>
+    </cross-wui-list-item>`
   }
 
   private androidTemplate() {
@@ -60,15 +60,15 @@ export class W3mDownloadsView extends LitElement {
       return null
     }
 
-    return html`<wui-list-item
+    return html`<cross-wui-list-item
       variant="icon"
       icon="playStore"
       iconVariant="square"
       @click=${this.onPlayStore.bind(this)}
       chevron
     >
-      <wui-text variant="paragraph-500" color="fg-100">Android App</wui-text>
-    </wui-list-item>`
+      <cross-wui-text variant="paragraph-500" color="fg-100">Android App</cross-wui-text>
+    </cross-wui-list-item>`
   }
 
   private homepageTemplate() {
@@ -77,15 +77,15 @@ export class W3mDownloadsView extends LitElement {
     }
 
     return html`
-      <wui-list-item
+      <cross-wui-list-item
         variant="icon"
         icon="browser"
         iconVariant="square-blue"
         @click=${this.onHomePage.bind(this)}
         chevron
       >
-        <wui-text variant="paragraph-500" color="fg-100">Website</wui-text>
-      </wui-list-item>
+        <cross-wui-text variant="paragraph-500" color="fg-100">Website</cross-wui-text>
+      </cross-wui-list-item>
     `
   }
 

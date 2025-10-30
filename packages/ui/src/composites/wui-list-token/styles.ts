@@ -15,13 +15,13 @@ export default css`
     background-color: transparent;
   }
 
-  wui-image,
-  wui-icon {
+  cross-wui-image,
+  cross-wui-icon {
     width: var(--wui-spacing-3xl);
     height: var(--wui-spacing-3xl);
   }
 
-  wui-image {
+  cross-wui-image {
     border-radius: var(--wui-border-radius-3xl);
   }
 `

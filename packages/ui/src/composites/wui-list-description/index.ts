@@ -9,7 +9,7 @@ import type { ColorType, IconType } from '../../utils/TypeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-list-description')
+@customElement('cross-wui-list-description')
 export class WuiListDescription extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -32,16 +32,16 @@ export class WuiListDescription extends LitElement {
   public override render() {
     return html`
       <button ?disabled=${this.disabled}>
-        <wui-icon-box
+        <cross-wui-icon-box
           iconColor=${this.iconColor}
           backgroundColor=${this.iconBackgroundColor}
           size="inherit"
           icon=${this.icon}
           iconSize="md"
-        ></wui-icon-box>
-        <wui-flex flexDirection="column" justifyContent="spaceBetween">
+        ></cross-wui-icon-box>
+        <cross-wui-flex flexDirection="column" justifyContent="spaceBetween">
           ${this.titleTemplate()}
-          <wui-text variant="small-400" color="fg-200"> ${this.description}</wui-text></wui-flex
+          <cross-wui-text variant="small-400" color="fg-200"> ${this.description}</cross-wui-text></wui-flex
         >
       </button>
     `
@@ -50,18 +50,18 @@ export class WuiListDescription extends LitElement {
   // -- Private ------------------------------------------- //
   private titleTemplate() {
     if (this.tag) {
-      return html` <wui-flex alignItems="center" gap="xxs"
-        ><wui-text variant="paragraph-500" color="fg-100">${this.text}</wui-text
-        ><wui-tag tagType="main" size="md">${this.tag}</wui-tag>
-      </wui-flex>`
+      return html` <cross-wui-flex alignItems="center" gap="xxs"
+        ><cross-wui-text variant="paragraph-500" color="fg-100">${this.text}</wui-text
+        ><cross-wui-tag tagType="main" size="md">${this.tag}</cross-wui-tag>
+      </cross-wui-flex>`
     }
 
-    return html`<wui-text variant="paragraph-500" color="fg-100">${this.text}</wui-text>`
+    return html`<cross-wui-text variant="paragraph-500" color="fg-100">${this.text}</cross-wui-text>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-list-description': WuiListDescription
+    'cross-wui-list-description': WuiListDescription
   }
 }

@@ -24,11 +24,11 @@ export class W3mLegalCheckbox extends LitElement {
     }
 
     return html`
-      <wui-checkbox data-testid="wui-checkbox">
-        <wui-text color="fg-250" variant="small-400" align="left">
+      <cross-wui-checkbox data-testid="wui-checkbox">
+        <cross-wui-text color="fg-250" variant="small-400" align="left">
           I agree to our ${this.termsTemplate()} ${this.andTemplate()} ${this.privacyTemplate()}
-        </wui-text>
-      </wui-checkbox>
+        </cross-wui-text>
+      </cross-wui-checkbox>
     `
   }
 

@@ -1,7 +1,7 @@
 import { css } from 'lit'
 
 export default css`
-  :host > wui-flex {
+  :host > cross-wui-flex {
     height: 500px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -17,11 +17,11 @@ export default css`
     display: none;
   }
 
-  :host > wui-flex > wui-flex {
+  :host > wui-flex > cross-wui-flex {
     width: 100%;
   }
 
-  wui-transaction-list-item-loader {
+  cross-wui-transaction-list-item-loader {
     width: 100%;
   }
 `

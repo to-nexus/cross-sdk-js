@@ -11,10 +11,17 @@
   },
   "dependencies": {
     "@to-nexus/sdk": "workspace:*",
+    "@reown/appkit": "^1.8.11",
+    "@reown/appkit-adapter-wagmi": "^1.8.11",
+    "@reown/appkit-wallet-button": "^1.8.11",
+    "@tanstack/react-query": "^5.56.2",
+    "@wagmi/core": "^2.22.1",
     "ethers": "^6.13.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "viem": "^2.38.4",
+    "wagmi": "^2.18.2"
   },
   "devDependencies": {
     "@types/react-dom": "^19.1.6",

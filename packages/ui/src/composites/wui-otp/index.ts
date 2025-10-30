@@ -9,7 +9,7 @@ import '../wui-input-numeric/index.js'
 import { WuiInputNumeric } from '../wui-input-numeric/index.js'
 import styles from './styles.js'
 
-@customElement('wui-otp')
+@customElement('cross-wui-otp')
 export class WuiOtp extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -36,20 +36,20 @@ export class WuiOtp extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex gap="xxs" data-testid="wui-otp-input">
+      <cross-wui-flex gap="xxs" data-testid="wui-otp-input">
         ${Array.from({ length: this.length }).map(
           (_, index: number) => html`
-            <wui-input-numeric
+            <cross-wui-input-numeric
               @input=${(e: InputEvent) => this.handleInput(e, index)}
               @click=${(e: MouseEvent) => this.selectInput(e)}
               @keydown=${(e: KeyboardEvent) => this.handleKeyDown(e, index)}
               .disabled=${!this.shouldInputBeEnabled(index)}
               .value=${this.values[index] || ''}
             >
-            </wui-input-numeric>
+            </cross-wui-input-numeric>
           `
         )}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -213,6 +213,6 @@ export class WuiOtp extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-otp': WuiOtp
+    'cross-wui-otp': WuiOtp
   }
 }

@@ -12,7 +12,7 @@ export default css`
     background-color: var(--wui-color-bg-300);
   }
 
-  wui-icon {
+  cross-wui-icon {
     color: var(--wui-color-bg-200) !important;
   }
 

@@ -26,6 +26,8 @@ import {
 import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
 
+import { useAppKitWallet as useMetaMaskAppKitWallet } from '@reown/appkit-wallet-button/react'
+
 import { sampleEIP712 } from '../contracts/sample-eip712'
 import { sampleErc20ABI } from '../contracts/sample-erc20'
 import { sampleErc721ABI } from '../contracts/sample-erc721'
@@ -138,9 +140,63 @@ export function ActionButtonList() {
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
   const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
     useAppKitWallet()
+  const { connect: connectMetaMask } = useMetaMaskAppKitWallet()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
+
+  // 🆕 Error analysis utility function
+  const analyzeAndShowError = useCallback(
+    (error: unknown, operationType: 'sign' | 'transaction') => {
+      console.error(`Error in ${operationType}:`, error)
+
+      // Extract error message properly
+      let errorMessage: string
+      if (error instanceof Error) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      } else if (error && typeof error === 'object') {
+        // Try to extract message from error object
+        const errorObj = error as any
+        errorMessage = errorObj.message || errorObj.reason || JSON.stringify(error, null, 2)
+      } else {
+        errorMessage = String(error)
+      }
+
+      const isUserRejection =
+        errorMessage.includes('User rejected') ||
+        errorMessage.includes('User denied') ||
+        errorMessage.includes('User cancelled') ||
+        errorMessage.includes('rejected methods') ||
+        errorMessage.includes('Sign message failed') ||
+        errorMessage.includes('rejected') ||
+        errorMessage.includes('cancelled') ||
+        errorMessage.includes('denied')
+
+      const isTimeout = errorMessage.includes('timeout') || errorMessage.includes('expired')
+
+      const operationName = operationType === 'sign' ? 'Signature' : 'Transaction'
+
+      if (isUserRejection) {
+        showError(
+          `${operationName} Cancelled`,
+          `User cancelled the ${operationName.toLowerCase()}.`
+        )
+      } else if (isTimeout) {
+        showError(
+          `${operationName} Timeout`,
+          `The ${operationName.toLowerCase()} request timed out. Please try again.`
+        )
+      } else {
+        showError(
+          `${operationName} Failed`,
+          `An error occurred during ${operationName.toLowerCase()}:\n\n${errorMessage}`
+        )
+      }
+    },
+    [showError]
+  )
 
   // erc20 token contract address
   const ERC20_ADDRESS = contractData[network.chainId as keyof typeof contractData]
@@ -384,6 +440,56 @@ export function ActionButtonList() {
     connect('cross_wallet')
   }
 
+  // MetaMask QR Code 모달 직접 열기 (WalletConnect via Reown)
+  function handleConnectMetaMaskQRCode() {
+    connectMetaMask('metamask')
+  }
+
+  // MetaMask Extension 직접 연결
+  async function handleConnectMetaMaskExtension() {
+    try {
+      setIsLoading(true)
+
+      // MetaMask가 설치되어 있는지 확인
+      if (typeof window.ethereum === 'undefined') {
+        showError(
+          'MetaMask 미설치',
+          'MetaMask가 설치되어 있지 않습니다. MetaMask를 먼저 설치해주세요.'
+        )
+        return
+      }
+
+      // MetaMask 연결 요청 (타입 안전하게 처리)
+      const ethereum = window.ethereum as any
+      const accounts = await ethereum['request']({
+        method: 'eth_requestAccounts'
+      })
+
+      if (accounts && accounts.length > 0) {
+        showSuccess(
+          'MetaMask 연결 성공!',
+          `Connected to: ${accounts[0]}\n\nMetaMask가 성공적으로 연결되었습니다.`
+        )
+      }
+    } catch (error) {
+      console.error('MetaMask 연결 실패:', error)
+
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const isUserRejection =
+        errorMessage.includes('User rejected') ||
+        errorMessage.includes('User denied') ||
+        errorMessage.includes('rejected')
+
+      if (isUserRejection) {
+        showError('연결 취소됨', '사용자가 MetaMask 연결을 취소했습니다.')
+      } else {
+        showError('MetaMask 연결 실패', `오류: ${errorMessage}`)
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Cross Extension Wallet 직접 연결
   const handleConnectCrossExtension = async () => {
     try {
@@ -582,13 +688,17 @@ export function ActionButtonList() {
       return
     }
 
-    const signedMessage = await ConnectionController.signMessage({
-      message: `Hello, world! ${Date.now()}`,
-      customData: {
-        metadata: 'This is metadata for signed message'
-      }
-    })
-    showSuccess('Sign Message Successful!', `signedMessage: ${signedMessage}`)
+    try {
+      const signedMessage = await ConnectionController.signMessage({
+        message: `Hello, world! ${Date.now()}`,
+        customData: {
+          metadata: 'This is metadata for signed message'
+        }
+      })
+      showSuccess('Sign Message Successful!', `signedMessage: ${signedMessage}`)
+    } catch (error) {
+      analyzeAndShowError(error, 'sign')
+    }
   }
 
   // NEW: Generic EIP-712 signing using universal signTypedDataV4 method
@@ -598,51 +708,86 @@ export function ActionButtonList() {
       return
     }
 
+    // Get current chain ID for the fallback data
+    const currentChainId =
+      typeof network?.chainId === 'string' ? parseInt(network.chainId, 10) : network?.chainId || 1
+
+    // Fallback typed data for when API fails
+    const fallbackTypedData = {
+      domain: {
+        name: 'Example',
+        version: '1',
+        chainId: currentChainId,
+        verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
+      },
+      message: {
+        contents: 'hello'
+      },
+      primaryType: 'Ping',
+      types: {
+        Ping: [{ name: 'contents', type: 'string' }]
+      }
+    } as unknown as SignTypedDataV4Args
+
     try {
-      // Example: Get typed data from API (can be any source)
-      const response = await fetch(
-        'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
-        {
-          method: 'POST',
-          headers: {
-            accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            account: FROM_ADDRESS, // Use actual connected wallet address
-            amount: '1',
-            direction: true,
-            pair_id: 1,
-            project_id: 'nexus-ramp-v1'
-          })
+      let paramsData: SignTypedDataV4Args
+      let apiData: SignTypedDataApiResponse | null = null
+      let usingFallback = false
+
+      try {
+        // Example: Get typed data from API (can be any source)
+        const response = await fetch(
+          'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
+          {
+            method: 'POST',
+            headers: {
+              accept: 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              account: FROM_ADDRESS, // Use actual connected wallet address
+              amount: '1',
+              direction: true,
+              pair_id: 1,
+              project_id: 'nexus-ramp-v1'
+            })
+          }
+        )
+
+        if (!response.ok) {
+          throw new Error(`API response: ${response.status} ${response.statusText}`)
         }
-      )
 
-      if (!response.ok) {
-        throw new Error(`API response: ${response.status} ${response.statusText}`)
+        apiData = await response.json()
+
+        if (!apiData?.data?.params) {
+          throw new Error('Invalid API response: missing params data')
+        }
+
+        // Extract only the typedData (second element) from API response params
+        const tupleParams = apiData.data!.params as [string, SignTypedDataV4Args]
+        paramsData = tupleParams[1]
+      } catch (apiError) {
+        console.warn('API request failed, using fallback data:', apiError)
+        paramsData = fallbackTypedData
+        usingFallback = true
       }
-
-      const apiData: SignTypedDataApiResponse = await response.json()
-
-      if (!apiData.data?.params) {
-        throw new Error('Invalid API response: missing params data')
-      }
-
-      // Extract only the typedData (second element) from API response params
-      const tupleParams = apiData.data.params as [string, SignTypedDataV4Args]
-      const paramsData = tupleParams[1]
 
       // Use the new universal signTypedDataV4 method
       const signature = await ConnectionController.signTypedDataV4(paramsData, {
         metadata: {
-          apiResponse: {
-            hash: apiData.data.hash,
-            uuid: apiData.data.uuid,
-            recover: apiData.data.recover,
-            code: apiData.code,
-            message: apiData.message
-          },
-          description: 'Universal EIP-712 typed data signature',
+          apiResponse: apiData
+            ? {
+                hash: apiData.data.hash,
+                uuid: apiData.data.uuid,
+                recover: apiData.data.recover,
+                code: apiData.code,
+                message: apiData.message
+              }
+            : undefined,
+          description: usingFallback
+            ? 'Universal EIP-712 typed data signature (using fallback data)'
+            : 'Universal EIP-712 typed data signature',
           timestamp: new Date().toISOString()
         }
       })
@@ -653,20 +798,26 @@ export function ActionButtonList() {
       }
 
       // Show detailed results
-      showSuccess(
-        'Signature Successful!',
-        `🔑 Signature: ${signature}
-📝 Hash: ${apiData.data.hash}
-🆔 UUID: ${apiData.data.uuid}
+      const resultMessage = usingFallback
+        ? `🔑 Signature: ${signature}
+⚠️ Using Fallback Data (API unavailable)
 🔗 Primary Type: ${paramsData.primaryType}
 ⛓️ Chain ID: ${paramsData.domain.chainId}
 📋 Contract: ${paramsData.domain.verifyingContract}
 
 Check console for full details.`
-      )
+        : `🔑 Signature: ${signature}
+📝 Hash: ${apiData!.data.hash}
+🆔 UUID: ${apiData!.data.uuid}
+🔗 Primary Type: ${paramsData.primaryType}
+⛓️ Chain ID: ${paramsData.domain.chainId}
+📋 Contract: ${paramsData.domain.verifyingContract}
+
+Check console for full details.`
+
+      showSuccess('Signature Successful!', resultMessage)
     } catch (error) {
-      console.error('Error in handleSignTypedDataV4:', error)
-      showError('Error in handleSignTypedDataV4', `❌ Error: ${(error as Error).message}`)
+      analyzeAndShowError(error, 'sign')
     }
   }
 
@@ -684,33 +835,38 @@ Check console for full details.`
 
     const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
 
-    const resTx = await ConnectionController.writeContract({
-      fromAddress,
-      contractAddress,
-      args,
-      method,
-      abi,
-      chainNamespace,
-      customData: {
-        metadata: {
-          activity: 'You are about to send custom transaction to the contract.',
-          currentFormat: 'This is a JSON formatted custom data.',
-          providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
-          txTime: new Date().toISOString(),
-          randomValue: uuidv4()
-        }
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-    })
+    try {
+      const resTx = await ConnectionController.writeContract({
+        fromAddress,
+        contractAddress,
+        args,
+        method,
+        abi,
+        chainNamespace,
+        customData: {
+          metadata: {
+            activity: 'You are about to send custom transaction to the contract.',
+            currentFormat: 'This is a JSON formatted custom data.',
+            providedFormat:
+              'Plain text(string), HTML(string), JSON(key value object) are supported.',
+            txTime: new Date().toISOString(),
+            randomValue: uuidv4()
+          }
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+      })
 
-    showSuccess('Transaction Successful!', `resTx: ${JSON.stringify(resTx)}`)
+      showSuccess('Transaction Successful!', `resTx: ${JSON.stringify(resTx)}`)
 
-    // generate new tokenId for next NFT
-    const uuidHex = uuidv4().replace(/-/g, '')
-    const tokenId = BigInt(`0x${uuidHex}`).toString()
-    const newArgs = [FROM_ADDRESS as `0x${string}`, tokenId]
+      // generate new tokenId for next NFT
+      const uuidHex = uuidv4().replace(/-/g, '')
+      const tokenId = BigInt(`0x${uuidHex}`).toString()
+      const newArgs = [FROM_ADDRESS as `0x${string}`, tokenId]
 
-    setContractArgs({ ...contractArgs, args: newArgs })
+      setContractArgs({ ...contractArgs, args: newArgs })
+    } catch (error) {
+      analyzeAndShowError(error, 'transaction')
+    }
   }
 
   // used for sending CROSS
@@ -720,19 +876,23 @@ Check console for full details.`
       return
     }
 
-    const resTx = await SendController.sendNativeToken({
-      data: '0x',
-      receiverAddress: RECEIVER_ADDRESS,
-      sendTokenAmount:
-        network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : SEND_CROSS_AMOUNT, // in eth (not wei)
-      decimals: '18',
-      customData: {
-        metadata:
-          'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-    })
-    showSuccess('Send Native Successful!', `resTx: ${JSON.stringify(resTx)}`)
+    try {
+      const resTx = await SendController.sendNativeToken({
+        data: '0x',
+        receiverAddress: RECEIVER_ADDRESS,
+        sendTokenAmount:
+          network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : SEND_CROSS_AMOUNT, // in eth (not wei)
+        decimals: '18',
+        customData: {
+          metadata:
+            'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+      })
+      showSuccess('Send Native Successful!', `resTx: ${JSON.stringify(resTx)}`)
+    } catch (error) {
+      analyzeAndShowError(error, 'transaction')
+    }
   }
 
   // used for sending any of game tokens
@@ -742,18 +902,22 @@ Check console for full details.`
       return
     }
 
-    const resTx = await SendController.sendERC20Token({
-      receiverAddress: RECEIVER_ADDRESS,
-      contractAddress: ERC20_CAIP_ADDRESS,
-      sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
-      decimals: '18',
-      customData: {
-        metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-    })
-    showSuccess('Send ERC20 Token Successful!', `resTx: ${JSON.stringify(resTx)}`)
-    getBalanceOfERC20({ showResult: false })
+    try {
+      const resTx = await SendController.sendERC20Token({
+        receiverAddress: RECEIVER_ADDRESS,
+        contractAddress: ERC20_CAIP_ADDRESS,
+        sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
+        decimals: '18',
+        customData: {
+          metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+      })
+      showSuccess('Send ERC20 Token Successful!', `resTx: ${JSON.stringify(resTx)}`)
+      getBalanceOfERC20({ showResult: false })
+    } catch (error) {
+      analyzeAndShowError(error, 'transaction')
+    }
   }
 
   // used for sending custom transaction
@@ -770,33 +934,38 @@ Check console for full details.`
 
     const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
 
-    const resTx = await ConnectionController.writeContract({
-      fromAddress,
-      contractAddress,
-      args,
-      method,
-      abi,
-      chainNamespace,
-      customData: {
-        metadata: {
-          activity: 'You are about to send custom transaction to the contract.',
-          currentFormat: 'This is a JSON formatted custom data.',
-          providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
-          txTime: new Date().toISOString(),
-          randomValue: uuidv4()
-        }
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
-    })
+    try {
+      const resTx = await ConnectionController.writeContract({
+        fromAddress,
+        contractAddress,
+        args,
+        method,
+        abi,
+        chainNamespace,
+        customData: {
+          metadata: {
+            activity: 'You are about to send custom transaction to the contract.',
+            currentFormat: 'This is a JSON formatted custom data.',
+            providedFormat:
+              'Plain text(string), HTML(string), JSON(key value object) are supported.',
+            txTime: new Date().toISOString(),
+            randomValue: uuidv4()
+          }
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+      })
 
-    showSuccess('Transaction Successful!', `resTx: ${JSON.stringify(resTx)}`)
+      showSuccess('Transaction Successful!', `resTx: ${JSON.stringify(resTx)}`)
 
-    // generate new tokenId for next NFT
-    const uuidHex = uuidv4().replace(/-/g, '')
-    const tokenId = BigInt(`0x${uuidHex}`).toString()
-    const newArgs = [FROM_ADDRESS as `0x${string}`, tokenId]
+      // generate new tokenId for next NFT
+      const uuidHex = uuidv4().replace(/-/g, '')
+      const tokenId = BigInt(`0x${uuidHex}`).toString()
+      const newArgs = [FROM_ADDRESS as `0x${string}`, tokenId]
 
-    setContractArgs({ ...contractArgs, args: newArgs })
+      setContractArgs({ ...contractArgs, args: newArgs })
+    } catch (error) {
+      analyzeAndShowError(error, 'transaction')
+    }
   }
 
   // used for sending CROSS
@@ -806,18 +975,22 @@ Check console for full details.`
       return
     }
 
-    const resTx = await SendController.sendNativeToken({
-      data: '0x',
-      receiverAddress: RECEIVER_ADDRESS,
-      sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
-      decimals: '18',
-      customData: {
-        metadata:
-          'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
-    })
-    showSuccess('Send Native Successful!', `resTx: ${JSON.stringify(resTx)}`)
+    try {
+      const resTx = await SendController.sendNativeToken({
+        data: '0x',
+        receiverAddress: RECEIVER_ADDRESS,
+        sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
+        decimals: '18',
+        customData: {
+          metadata:
+            'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+      })
+      showSuccess('Send Native Successful!', `resTx: ${JSON.stringify(resTx)}`)
+    } catch (error) {
+      analyzeAndShowError(error, 'transaction')
+    }
   }
 
   // used for sending any of game tokens
@@ -827,21 +1000,25 @@ Check console for full details.`
       return
     }
 
-    const resTx = await SendController.sendERC20Token({
-      receiverAddress: RECEIVER_ADDRESS,
-      contractAddress: ERC20_CAIP_ADDRESS,
-      sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
-      decimals: '18',
-      gas: BigInt(147726), // optional (you can set this your calculated gas or skip it )
-      maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
-      maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
-      customData: {
-        metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
-    })
-    showSuccess('Send ERC20 Token Successful!', `resTx: ${JSON.stringify(resTx)}`)
-    getBalanceOfERC20({ showResult: false })
+    try {
+      const resTx = await SendController.sendERC20Token({
+        receiverAddress: RECEIVER_ADDRESS,
+        contractAddress: ERC20_CAIP_ADDRESS,
+        sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
+        decimals: '18',
+        gas: BigInt(147726), // optional (you can set this your calculated gas or skip it )
+        maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+        maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
+        customData: {
+          metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+      })
+      showSuccess('Send ERC20 Token Successful!', `resTx: ${JSON.stringify(resTx)}`)
+      getBalanceOfERC20({ showResult: false })
+    } catch (error) {
+      analyzeAndShowError(error, 'transaction')
+    }
   }
 
   async function getBalanceOfNative() {
@@ -1107,8 +1284,30 @@ Check console for full details.`
         {/* 연결되지 않은 경우에만 연결 버튼들 표시 */}
         {!account?.isConnected && (
           <>
-            <button onClick={handleConnect}>Connect</button>
-            <button onClick={handleConnectWallet}>Connect CROSSx</button>
+            <button
+              onClick={handleConnectMetaMaskQRCode}
+              style={{
+                backgroundColor: '#F6851B',
+                color: 'white',
+                cursor: 'pointer'
+              }}
+            >
+              Connect MetaMask (QR Code)
+            </button>
+            <button
+              onClick={handleConnectMetaMaskExtension}
+              disabled={isLoading}
+              style={{
+                backgroundColor: '#F6851B',
+                color: 'white',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                opacity: isLoading ? 0.6 : 1
+              }}
+            >
+              {isLoading ? 'Connecting...' : 'Connect MetaMask Extension'}
+            </button>
+            <button onClick={handleConnect}>Connect CROSSx</button>
+            <button onClick={handleConnectWallet}>Connect CROSSx (QR Code)</button>
             <button
               onClick={handleConnectCrossExtension}
               disabled={!isCrossExtensionInstalled || isLoading}

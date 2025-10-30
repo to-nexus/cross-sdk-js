@@ -13,7 +13,7 @@ export default css`
   }
 
   /* 직접적인 wui-card 타겟팅 */
-  wui-card {
+  cross-wui-card {
     max-width: 700px !important;
     width: 700px !important;
     height: 360px !important;
@@ -117,7 +117,7 @@ export default css`
     margin: 0;
   }
 
-  .landscape-left cross-w3m-connecting-wc-mobile wui-flex {
+  .landscape-left cross-w3m-connecting-wc-mobile cross-wui-flex {
     padding: 0 var(--wui-spacing-s) 0 var(--wui-spacing-s) !important;
     margin: 0 !important;
     transform: translateY(0) !important;
@@ -125,15 +125,15 @@ export default css`
     align-items: center !important;
   }
 
-  .landscape-left cross-w3m-connecting-wc-mobile wui-wallet-image {
+  .landscape-left cross-w3m-connecting-wc-mobile cross-wui-wallet-image {
     margin: 0 !important;
   }
 
-  .landscape-left cross-w3m-connecting-wc-mobile wui-text {
+  .landscape-left cross-w3m-connecting-wc-mobile cross-wui-text {
     margin: var(--wui-spacing-xs) 0 !important;
   }
 
-  .landscape-left cross-w3m-connecting-wc-mobile wui-button {
+  .landscape-left cross-w3m-connecting-wc-mobile cross-wui-button {
     margin: var(--wui-spacing-s) 0 0 0 !important;
   }
 
@@ -145,7 +145,7 @@ export default css`
     justify-content: center !important;
   }
 
-  .qr-section cross-w3m-connecting-wc-qrcode wui-flex {
+  .qr-section cross-w3m-connecting-wc-qrcode cross-wui-flex {
     width: 100% !important;
     height: 100% !important;
     justify-content: center !important;
@@ -153,14 +153,14 @@ export default css`
     padding: 0 !important;
   }
 
-  .qr-section cross-w3m-connecting-wc-qrcode wui-shimmer {
+  .qr-section cross-w3m-connecting-wc-qrcode cross-wui-shimmer {
     width: 280px !important;
     height: 280px !important;
     max-width: 280px !important;
     max-height: 280px !important;
   }
 
-  .qr-section cross-w3m-connecting-wc-qrcode wui-flex {
+  .qr-section cross-w3m-connecting-wc-qrcode cross-wui-flex {
     width: 100% !important;
     height: 100% !important;
     justify-content: center !important;
@@ -168,14 +168,14 @@ export default css`
     padding: 0 !important;
   }
 
-  .qr-section cross-w3m-connecting-wc-qrcode wui-qr-code {
+  .qr-section cross-w3m-connecting-wc-qrcode cross-wui-qr-code {
     width: 280px !important;
     height: 280px !important;
     max-width: 280px !important;
     max-height: 280px !important;
   }
 
-  .qr-section cross-w3m-connecting-wc-qrcode wui-text {
+  .qr-section cross-w3m-connecting-wc-qrcode cross-wui-text {
     display: none !important;
   }
 

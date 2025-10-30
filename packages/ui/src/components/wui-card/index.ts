@@ -4,7 +4,7 @@ import { resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-card')
+@customElement('cross-wui-card')
 export class WuiCard extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -16,6 +16,6 @@ export class WuiCard extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-card': WuiCard
+    'cross-wui-card': WuiCard
   }
 }

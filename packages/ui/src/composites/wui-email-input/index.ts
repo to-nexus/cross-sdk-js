@@ -9,7 +9,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-input-text/index.js'
 import styles from './styles.js'
 
-@customElement('wui-email-input')
+@customElement('cross-wui-email-input')
 export class WuiEmailInput extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -25,7 +25,7 @@ export class WuiEmailInput extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-input-text
+      <cross-wui-input-text
         type="email"
         placeholder="Email"
         icon="mail"
@@ -34,7 +34,7 @@ export class WuiEmailInput extends LitElement {
         .value=${this.value}
         data-testid="wui-email-input"
         tabIdx=${ifDefined(this.tabIdx)}
-      ></wui-input-text>
+      ></cross-wui-input-text>
       ${this.templateError()}
     `
   }
@@ -42,7 +42,7 @@ export class WuiEmailInput extends LitElement {
   // -- Private ------------------------------------------- //
   private templateError() {
     if (this.errorMessage) {
-      return html`<wui-text variant="tiny-500" color="error-100">${this.errorMessage}</wui-text>`
+      return html`<cross-wui-text variant="tiny-500" color="error-100">${this.errorMessage}</cross-wui-text>`
     }
 
     return null
@@ -51,6 +51,6 @@ export class WuiEmailInput extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-email-input': WuiEmailInput
+    'cross-wui-email-input': WuiEmailInput
   }
 }

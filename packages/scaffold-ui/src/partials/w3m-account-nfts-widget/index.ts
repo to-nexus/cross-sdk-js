@@ -16,46 +16,46 @@ export class W3mAccountNftsWidget extends LitElement {
 
   // -- Private ------------------------------------------- //
   private nftTemplate() {
-    return html` <wui-flex
+    return html` <cross-wui-flex
       class="contentContainer"
       alignItems="center"
       justifyContent="center"
       flexDirection="column"
       gap="l"
     >
-      <wui-icon-box
+      <cross-wui-icon-box
         icon="wallet"
         size="inherit"
         iconColor="fg-200"
         backgroundColor="fg-200"
         iconSize="lg"
-      ></wui-icon-box>
-      <wui-flex
+      ></cross-wui-icon-box>
+      <cross-wui-flex
         class="textContent"
         gap="xs"
         flexDirection="column"
         justifyContent="center"
         flexDirection="column"
       >
-        <wui-text
+        <cross-wui-text
           variant="paragraph-500"
           align="center"
           color="fg-100"
           data-testid="nft-template-title"
           >Coming soon</wui-text
         >
-        <wui-text
+        <cross-wui-text
           variant="small-400"
           align="center"
           color="fg-200"
           data-testid="nft-template-description"
           >Stay tuned for our upcoming NFT feature</wui-text
         >
-      </wui-flex>
-      <wui-link @click=${this.onReceiveClick.bind(this)} data-testid="link-receive-funds"
+      </cross-wui-flex>
+      <cross-wui-link @click=${this.onReceiveClick.bind(this)} data-testid="link-receive-funds"
         >Receive funds</wui-link
       >
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   private onReceiveClick() {

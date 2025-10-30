@@ -7,7 +7,7 @@ import { colorStyles, elementStyles, resetStyles } from '../../utils/ThemeUtil.j
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-switch')
+@customElement('cross-wui-switch')
 export class WuiSwitch extends LitElement {
   public static override styles = [resetStyles, elementStyles, colorStyles, styles]
 
@@ -46,6 +46,6 @@ export class WuiSwitch extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-switch': WuiSwitch
+    'cross-wui-switch': WuiSwitch
   }
 }

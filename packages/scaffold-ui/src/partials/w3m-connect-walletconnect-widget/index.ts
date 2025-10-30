@@ -55,7 +55,7 @@ export class W3mConnectWalletConnectWidget extends LitElement {
     const connectorImage = connector.imageUrl || this.connectorImages[connector?.imageId ?? '']
 
     return html`
-      <wui-list-wallet
+      <cross-wui-list-wallet
         imageSrc=${ifDefined(connectorImage)}
         name=${connector.name ?? 'Unknown'}
         @click=${() => this.onConnector(connector)}
@@ -64,7 +64,7 @@ export class W3mConnectWalletConnectWidget extends LitElement {
         tabIdx=${ifDefined(this.tabIdx)}
         data-testid="wallet-selector-walletconnect"
       >
-      </wui-list-wallet>
+      </cross-wui-list-wallet>
     `
   }
 

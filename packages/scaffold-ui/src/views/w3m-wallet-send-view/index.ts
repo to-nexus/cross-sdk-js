@@ -70,28 +70,28 @@ export class W3mWalletSendView extends LitElement {
   public override render() {
     this.getMessage()
 
-    return html` <wui-flex flexDirection="column" .padding=${['0', 'l', 'l', 'l'] as const}>
-      <wui-flex class="inputContainer" gap="xs" flexDirection="column">
+    return html` <cross-wui-flex flexDirection="column" .padding=${['0', 'l', 'l', 'l'] as const}>
+      <cross-wui-flex class="inputContainer" gap="xs" flexDirection="column">
         <cross-w3m-input-token
           .token=${this.token}
           .sendTokenAmount=${this.sendTokenAmount}
           .gasPriceInUSD=${this.gasPriceInUSD}
           .gasPrice=${this.gasPrice}
         ></cross-w3m-input-token>
-        <wui-icon-box
+        <cross-wui-icon-box
           size="inherit"
           backgroundColor="fg-300"
           iconSize="lg"
           iconColor="fg-250"
           background="opaque"
           icon="arrowBottom"
-        ></wui-icon-box>
+        ></cross-wui-icon-box>
         <cross-w3m-input-address
           .value=${this.receiverProfileName ? this.receiverProfileName : this.receiverAddress}
         ></cross-w3m-input-address>
-      </wui-flex>
-      <wui-flex .margin=${['l', '0', '0', '0'] as const}>
-        <wui-button
+      </cross-wui-flex>
+      <cross-wui-flex .margin=${['l', '0', '0', '0'] as const}>
+        <cross-wui-button
           @click=${this.onButtonClick.bind(this)}
           ?disabled=${!this.message.startsWith('Preview Send')}
           size="lg"
@@ -100,9 +100,9 @@ export class W3mWalletSendView extends LitElement {
           fullWidth
         >
           ${this.message}
-        </wui-button>
-      </wui-flex>
-    </wui-flex>`
+        </cross-wui-button>
+      </cross-wui-flex>
+    </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //

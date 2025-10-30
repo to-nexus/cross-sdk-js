@@ -57,7 +57,7 @@ const svgOptions: Record<VisualType, TemplateResult<2>> = {
   solana: solanaSvg
 }
 
-@customElement('wui-visual')
+@customElement('cross-wui-visual')
 export class WuiVisual extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -78,6 +78,6 @@ export class WuiVisual extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-visual': WuiVisual
+    'cross-wui-visual': WuiVisual
   }
 }

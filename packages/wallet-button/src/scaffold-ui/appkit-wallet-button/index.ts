@@ -99,7 +99,7 @@ export class AppKitWalletButton extends LitElement {
     const walletName = this.wallet === 'walletConnect' ? 'WalletConnect' : walletButton?.name
 
     return html`
-      <wui-wallet-button
+      <cross-wui-wallet-button
         data-testid="apkt-wallet-button"
         name=${(!this.ready && !walletConnect) || this.modalLoading
           ? 'Loading...'
@@ -120,7 +120,7 @@ export class AppKitWalletButton extends LitElement {
         .imageSrc=${ifDefined(walletImage)}
         ?disabled=${Boolean(this.caipAddress) || loading || this.modalLoading}
         ?loading=${loading || this.modalLoading}
-      ></wui-wallet-button>
+      ></cross-wui-wallet-button>
     `
   }
 
@@ -132,7 +132,7 @@ export class AppKitWalletButton extends LitElement {
     const connectorImage = AssetUtil.getConnectorImage(connector)
 
     return html`
-      <wui-wallet-button
+      <cross-wui-wallet-button
         data-testid="apkt-wallet-button-external"
         name=${this.modalLoading ? 'Loading...' : ifDefined(connector.name)}
         @click=${async () => {
@@ -146,12 +146,12 @@ export class AppKitWalletButton extends LitElement {
         ?disabled=${Boolean(this.caipAddress) || this.loading || this.modalLoading}
         ?loading=${this.loading || this.modalLoading}
         ?error=${this.error}
-      ></wui-wallet-button>
+      ></cross-wui-wallet-button>
     `
   }
 
   private socialTemplate() {
-    return html`<wui-wallet-button
+    return html`<cross-wui-wallet-button
       data-testid="apkt-wallet-button-social"
       name=${this.modalLoading ? 'Loading...' : this.wallet}
       @click=${async () => {
@@ -165,7 +165,7 @@ export class AppKitWalletButton extends LitElement {
       ?disabled=${Boolean(this.caipAddress) || this.loading || this.modalLoading}
       ?loading=${this.loading || this.modalLoading}
       ?error=${this.error}
-    ></wui-wallet-button>`
+    ></cross-wui-wallet-button>`
   }
 }
 

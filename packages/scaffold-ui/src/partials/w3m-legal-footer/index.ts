@@ -24,12 +24,12 @@ export class W3mLegalFooter extends LitElement {
     }
 
     return html`
-      <wui-flex .padding=${['m', 's', 's', 's'] as const} justifyContent="center">
-        <wui-text color="fg-250" variant="small-400" align="center">
+      <cross-wui-flex .padding=${['m', 's', 's', 's'] as const} justifyContent="center">
+        <cross-wui-text color="fg-250" variant="small-400" align="center">
           By connecting your wallet, you agree to our <br />
           ${this.termsTemplate()} ${this.andTemplate()} ${this.privacyTemplate()}
-        </wui-text>
-      </wui-flex>
+        </cross-wui-text>
+      </cross-wui-flex>
     `
   }
 

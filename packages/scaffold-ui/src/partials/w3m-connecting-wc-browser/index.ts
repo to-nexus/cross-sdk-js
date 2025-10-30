@@ -65,11 +65,11 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
 
     // 1순위: ANNOUNCED 커넥터에서 정확한 RDNS로 찾기
     const { connectors } = ConnectorController.state
-    const announced = connectors.filter(
-      c => c.type === 'ANNOUNCED' && c.info?.rdns === this.wallet?.rdns
+    const crossWalletConnectors = connectors.filter(
+      c => (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.info?.rdns === this.wallet?.rdns
     )
 
-    if (announced && announced.length > 0) {
+    if (crossWalletConnectors && crossWalletConnectors.length > 0) {
       this.isCrossWalletInstalled = true
       return
     }
@@ -77,61 +77,13 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
     // 2순위: window에서 Cross Wallet 전용 체크
     if (typeof window !== 'undefined') {
       const rdns = this.wallet.rdns
-
-      // Cross Wallet의 정확한 RDNS 체크
+      // crossWallet은 window.crossWallet에 무조건 객체를 넣음
       if (rdns === 'nexus.to.crosswallet.desktop') {
-        const ethereum = (window as any).ethereum
-
-        // 디버깅을 위한 로그
-        console.log('Cross Wallet Detection Debug:', {
-          hasEthereum: !!ethereum,
-          hasRdnsProperty: !!(ethereum && ethereum[rdns]),
-          rdns,
-          ethereumKeys: ethereum ? Object.keys(ethereum) : [],
-          providers: ethereum?.providers ? ethereum.providers.length : 0
-        })
-
-        // 1. RDNS 기반 직접 체크
-        const crossWallet = ethereum && ethereum[rdns]
-        if (crossWallet) {
-          console.log('Cross Wallet found via RDNS:', crossWallet)
+        const crossWalletProvider = (window as any).crossWallet
+        if (crossWalletProvider) {
           this.isCrossWalletInstalled = true
           return
         }
-
-        // 2. ethereum providers 배열에서 Cross Wallet 찾기
-        if (ethereum && ethereum.providers && Array.isArray(ethereum.providers)) {
-          const crossProvider = ethereum.providers.find((provider: any) => {
-            const hasRdns = provider.rdns === rdns
-            const hasName = provider._metadata?.name?.includes('Cross Wallet')
-            const isCross = provider.isCrossWallet
-
-            console.log('Provider check:', {
-              rdns: provider.rdns,
-              name: provider._metadata?.name,
-              isCrossWallet: provider.isCrossWallet,
-              matches: hasRdns || hasName || isCross
-            })
-
-            return hasRdns || hasName || isCross
-          })
-
-          if (crossProvider) {
-            console.log('Cross Wallet found in providers:', crossProvider)
-            this.isCrossWalletInstalled = true
-            return
-          }
-        }
-
-        // 3. 글로벌 스코프에서 Cross Wallet 찾기
-        if ((window as any)[rdns]) {
-          console.log('Cross Wallet found in global scope')
-          this.isCrossWalletInstalled = true
-          return
-        }
-
-        // Cross Wallet이 실제로 설치되지 않음을 확인
-        console.log('Cross Wallet not found - will show install links')
       }
     }
 
@@ -144,41 +96,41 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
     const chromeStoreUrl = this.wallet?.chrome_store
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" alignItems="center">
-          <wui-wallet-image size="lg" imageSrc=${this.wallet?.image_url || ''}></wui-wallet-image>
-        </wui-flex>
+        <cross-wui-flex justifyContent="center" alignItems="center">
+          <cross-wui-wallet-image size="lg" imageSrc=${this.wallet?.image_url || ''}></cross-wui-wallet-image>
+        </cross-wui-flex>
 
-        <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <wui-text variant="paragraph-500" color="fg-100"> Cross Wallet not installed </wui-text>
-          <wui-text align="center" variant="small-500" color="fg-200">
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+          <cross-wui-text variant="paragraph-500" color="fg-100"> Cross Wallet not installed </cross-wui-text>
+          <cross-wui-text align="center" variant="small-500" color="fg-200">
             Install Cross Wallet to continue with browser connection
-          </wui-text>
-        </wui-flex>
+          </cross-wui-text>
+        </cross-wui-flex>
 
         ${isChrome && chromeStoreUrl
-          ? html`
-              <wui-button
+        ? html`
+              <cross-wui-button
                 variant="accent"
                 size="md"
                 @click=${() => this.openChromeStore()}
                 data-testid="cross-w3m-install-wallet-button"
               >
-                <wui-icon color="inherit" slot="iconLeft" name="externalLink"></wui-icon>
+                <cross-wui-icon color="inherit" slot="iconLeft" name="externalLink"></cross-wui-icon>
                 Install from Chrome Store
-              </wui-button>
+              </cross-wui-button>
             `
-          : html`
-              <wui-text align="center" variant="small-500" color="fg-200">
+        : html`
+              <cross-wui-text align="center" variant="small-500" color="fg-200">
                 Please install Cross Wallet extension for your browser
-              </wui-text>
+              </cross-wui-text>
             `}
-      </wui-flex>
+      </cross-wui-flex>
     `
   }
 
@@ -206,10 +158,10 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
       // 최종 선택된 커넥터 - 우선순위 기반 선택
       let connector = null
 
-      // 1순위: ANNOUNCED 커넥터 (CROSS Wallet 전용)
+      // 1순위: ANNOUNCED 또는 INJECTED 커넥터 (CROSS Extension 전용)
       if (this.wallet?.rdns) {
         connector = connectors.find(
-          c => c.type === 'ANNOUNCED' && c.info?.rdns === this.wallet?.rdns
+          c => (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.info?.rdns === this.wallet?.rdns
         )
       }
 

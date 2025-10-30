@@ -13,7 +13,7 @@ import { customElement } from '../../utils/WebComponentsUtil.js'
 import '../wui-icon-box/index.js'
 import styles from './styles.js'
 
-@customElement('wui-transaction-visual')
+@customElement('cross-wui-transaction-visual')
 export class WuiTransactionVisual extends LitElement {
   public static override styles = [styles]
 
@@ -48,7 +48,7 @@ export class WuiTransactionVisual extends LitElement {
     --local-right-border-radius: ${rightRadius};
     `
 
-    return html`<wui-flex> ${this.templateVisual()} ${this.templateIcon()} </wui-flex>`
+    return html`<cross-wui-flex> ${this.templateVisual()} ${this.templateIcon()} </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //
@@ -59,19 +59,19 @@ export class WuiTransactionVisual extends LitElement {
     if (haveTwoImages && (firstImage?.url || secondImage?.url)) {
       return html`<div class="swap-images-container">
         ${firstImage?.url
-          ? html`<wui-image src=${firstImage.url} alt="Transaction image"></wui-image>`
+          ? html`<cross-wui-image src=${firstImage.url} alt="Transaction image"></cross-wui-image>`
           : null}
         ${secondImage?.url
-          ? html`<wui-image src=${secondImage.url} alt="Transaction image"></wui-image>`
+          ? html`<cross-wui-image src=${secondImage.url} alt="Transaction image"></cross-wui-image>`
           : null}
       </div>`
     } else if (firstImage?.url) {
-      return html`<wui-image src=${firstImage.url} alt="Transaction image"></wui-image>`
+      return html`<cross-wui-image src=${firstImage.url} alt="Transaction image"></cross-wui-image>`
     } else if (firstImageType === 'NFT') {
-      return html`<wui-icon size="inherit" color="fg-200" name="nftPlaceholder"></wui-icon>`
+      return html`<cross-wui-icon size="inherit" color="fg-200" name="nftPlaceholder"></cross-wui-icon>`
     }
 
-    return html`<wui-icon size="inherit" color="fg-200" name="coinPlaceholder"></wui-icon>`
+    return html`<cross-wui-icon size="inherit" color="fg-200" name="coinPlaceholder"></cross-wui-icon>`
   }
 
   private templateIcon() {
@@ -89,7 +89,7 @@ export class WuiTransactionVisual extends LitElement {
     }
 
     return html`
-      <wui-icon-box
+      <cross-wui-icon-box
         size="xxs"
         iconColor=${color}
         backgroundColor=${color}
@@ -97,7 +97,7 @@ export class WuiTransactionVisual extends LitElement {
         icon=${icon}
         ?border=${true}
         borderColor="wui-color-bg-125"
-      ></wui-icon-box>
+      ></cross-wui-icon-box>
     `
   }
 
@@ -144,6 +144,6 @@ export class WuiTransactionVisual extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-transaction-visual': WuiTransactionVisual
+    'cross-wui-transaction-visual': WuiTransactionVisual
   }
 }

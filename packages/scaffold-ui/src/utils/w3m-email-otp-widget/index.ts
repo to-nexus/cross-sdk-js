@@ -66,53 +66,53 @@ export class W3mEmailOtpWidget extends LitElement {
     const footerLabels = this.getFooterLabels(isResendDisabled)
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         .padding=${['l', '0', 'l', '0'] as const}
         gap="l"
       >
-        <wui-flex
+        <cross-wui-flex
           class="email-display"
           flexDirection="column"
           alignItems="center"
           .padding=${['0', 'xl', '0', 'xl'] as const}
         >
-          <wui-text variant="paragraph-400" color="fg-100" align="center">
+          <cross-wui-text variant="paragraph-400" color="fg-100" align="center">
             Enter the code we sent to
-          </wui-text>
-          <wui-text variant="paragraph-500" color="fg-100" lineClamp="1" align="center">
+          </cross-wui-text>
+          <cross-wui-text variant="paragraph-500" color="fg-100" lineClamp="1" align="center">
             ${this.email}
-          </wui-text>
-        </wui-flex>
+          </cross-wui-text>
+        </cross-wui-flex>
 
-        <wui-text variant="small-400" color="fg-200">The code expires in 20 minutes</wui-text>
+        <cross-wui-text variant="small-400" color="fg-200">The code expires in 20 minutes</cross-wui-text>
 
         ${this.loading
-          ? html`<wui-loading-spinner size="xl" color="accent-100"></wui-loading-spinner>`
-          : html` <wui-flex flexDirection="column" alignItems="center" gap="xs">
-              <wui-otp
+          ? html`<cross-wui-loading-spinner size="xl" color="accent-100"></cross-wui-loading-spinner>`
+          : html` <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+              <cross-wui-otp
                 dissabled
                 length="6"
                 @inputChange=${this.onOtpInputChange.bind(this)}
                 .otp=${this.otp}
-              ></wui-otp>
+              ></cross-wui-otp>
               ${this.error
                 ? html`
-                    <wui-text variant="small-400" align="center" color="error-100">
+                    <cross-wui-text variant="small-400" align="center" color="error-100">
                       ${this.error}. Try Again
-                    </wui-text>
+                    </cross-wui-text>
                   `
                 : null}
-            </wui-flex>`}
+            </cross-wui-flex>`}
 
-        <wui-flex alignItems="center" gap="xs">
-          <wui-text variant="small-400" color="fg-200">${footerLabels.title}</wui-text>
-          <wui-link @click=${this.onResendCode.bind(this)} .disabled=${isResendDisabled}>
+        <cross-wui-flex alignItems="center" gap="xs">
+          <cross-wui-text variant="small-400" color="fg-200">${footerLabels.title}</cross-wui-text>
+          <cross-wui-link @click=${this.onResendCode.bind(this)} .disabled=${isResendDisabled}>
             ${footerLabels.action}
-          </wui-link>
-        </wui-flex>
-      </wui-flex>
+          </cross-wui-link>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 

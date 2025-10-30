@@ -18,7 +18,7 @@ export default css`
     will-change: background-color;
   }
 
-  wui-tooltip {
+  cross-wui-tooltip {
     padding: 7px var(--wui-spacing-s) 8px var(--wui-spacing-s);
     position: absolute;
     top: -8px;

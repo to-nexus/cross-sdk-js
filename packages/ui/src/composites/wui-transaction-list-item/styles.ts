@@ -12,16 +12,16 @@ export default css`
     text-transform: capitalize;
   }
 
-  wui-transaction-visual {
+  cross-wui-transaction-visual {
     width: 40px;
     height: 40px;
   }
 
-  wui-flex {
+  cross-wui-flex {
     flex: 1;
   }
 
-  :host wui-flex wui-flex {
+  :host wui-flex cross-wui-flex {
     overflow: hidden;
   }
 
@@ -29,7 +29,7 @@ export default css`
     word-break: break-all;
   }
 
-  :host .description-container wui-text {
+  :host .description-container cross-wui-text {
     overflow: hidden;
   }
 

@@ -6,13 +6,13 @@ export default css`
     border-radius: var(--wui-border-radius-3xl);
   }
 
-  wui-image {
+  cross-wui-image {
     border-radius: var(--wui-border-radius-3xl);
     overflow: hidden;
   }
 
   a.disabled > wui-icon:not(.image-icon),
-  a.disabled > wui-image {
+  a.disabled > cross-wui-image {
     filter: grayscale(1);
   }
 
@@ -74,18 +74,18 @@ export default css`
     padding: 9px var(--wui-spacing-m) 9px var(--wui-spacing-m);
   }
 
-  a[data-variant='fill'] > wui-image,
-  a[data-variant='shade'] > wui-image {
+  a[data-variant='fill'] > cross-wui-image,
+  a[data-variant='shade'] > cross-wui-image {
     width: 24px;
     height: 24px;
   }
 
-  a[data-variant='fill'] > wui-image {
+  a[data-variant='fill'] > cross-wui-image {
     box-shadow: inset 0 0 0 1px var(--wui-color-accent-090);
   }
 
-  a[data-variant='shade'] > wui-image,
-  a[data-variant='shadeSmall'] > wui-image {
+  a[data-variant='shade'] > cross-wui-image,
+  a[data-variant='shadeSmall'] > cross-wui-image {
     box-shadow: inset 0 0 0 1px var(--wui-color-gray-glass-010);
   }
 
@@ -95,10 +95,10 @@ export default css`
     height: 14px;
   }
 
-  a[data-variant='transparent'] > wui-image,
-  a[data-variant='success'] > wui-image,
-  a[data-variant='shadeSmall'] > wui-image,
-  a[data-variant='error'] > wui-image {
+  a[data-variant='transparent'] > cross-wui-image,
+  a[data-variant='success'] > cross-wui-image,
+  a[data-variant='shadeSmall'] > cross-wui-image,
+  a[data-variant='error'] > cross-wui-image {
     width: 14px;
     height: 14px;
   }

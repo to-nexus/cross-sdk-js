@@ -13,63 +13,63 @@ export class W3mRegisterAccountNameSuccess extends LitElement {
   // -- Render -------------------------------------------- //
   public override render() {
     return html`
-      <wui-flex
+      <cross-wui-flex
         flexDirection="column"
         alignItems="center"
         gap="xxl"
         .padding=${['0', '0', 'l', '0'] as const}
       >
         ${this.onboardingTemplate()} ${this.buttonsTemplate()}
-        <wui-link
+        <cross-wui-link
           @click=${() => {
             CoreHelperUtil.openHref(NavigationUtil.URLS.FAQ, '_blank')
           }}
         >
           Learn more
-          <wui-icon color="inherit" slot="iconRight" name="externalLink"></wui-icon>
-        </wui-link>
-      </wui-flex>
+          <cross-wui-icon color="inherit" slot="iconRight" name="externalLink"></cross-wui-icon>
+        </cross-wui-link>
+      </cross-wui-flex>
     `
   }
 
   // -- Private ------------------------------------------- //
   private onboardingTemplate() {
-    return html` <wui-flex
+    return html` <cross-wui-flex
       flexDirection="column"
       gap="xxl"
       alignItems="center"
       .padding=${['0', 'xxl', '0', 'xxl'] as const}
     >
-      <wui-flex gap="s" alignItems="center" justifyContent="center">
-        <wui-icon-box
+      <cross-wui-flex gap="s" alignItems="center" justifyContent="center">
+        <cross-wui-icon-box
           size="xl"
           iconcolor="success-100"
           backgroundcolor="success-100"
           icon="checkmark"
           background="opaque"
-        ></wui-icon-box>
-      </wui-flex>
-      <wui-flex flexDirection="column" alignItems="center" gap="s">
-        <wui-text align="center" variant="medium-600" color="fg-100">
+        ></cross-wui-icon-box>
+      </cross-wui-flex>
+      <cross-wui-flex flexDirection="column" alignItems="center" gap="s">
+        <cross-wui-text align="center" variant="medium-600" color="fg-100">
           Account name chosen successfully
-        </wui-text>
-        <wui-text align="center" variant="paragraph-400" color="fg-100">
+        </cross-wui-text>
+        <cross-wui-text align="center" variant="paragraph-400" color="fg-100">
           You can now fund your account and trade crypto
-        </wui-text>
-      </wui-flex>
-    </wui-flex>`
+        </cross-wui-text>
+      </cross-wui-flex>
+    </cross-wui-flex>`
   }
 
   private buttonsTemplate() {
-    return html`<wui-flex
+    return html`<cross-wui-flex
       .padding=${['0', '2l', '0', '2l'] as const}
       gap="s"
       class="continue-button-container"
     >
-      <wui-button fullWidth size="lg" borderRadius="xs" @click=${this.redirectToAccount.bind(this)}
+      <cross-wui-button fullWidth size="lg" borderRadius="xs" @click=${this.redirectToAccount.bind(this)}
         >Let's Go!
-      </wui-button>
-    </wui-flex>`
+      </cross-wui-button>
+    </cross-wui-flex>`
   }
 
   private redirectToAccount() {

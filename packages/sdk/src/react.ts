@@ -1,8 +1,10 @@
 import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
 import type { AppKitNetwork } from '@to-nexus/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
   ApiController,
+  type ChainAdapter,
   ConnectionController,
   ConstantsUtil,
   SendController,
@@ -43,7 +45,8 @@ export type {
   SignTypedDataV4Args,
   TypedDataDomain,
   TypedDataTypes,
-  TypedDataField
+  TypedDataField,
+  ChainAdapter
 } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
@@ -78,12 +81,23 @@ export type CrossSdkParams = {
   metadata?: Metadata
   themeMode?: ThemeMode
   defaultNetwork?: SupportedNetworks
+  adapters?: ChainAdapter[]
+  mobileLink?: string
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork } = params
+  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters, mobileLink } =
+    params
 
-  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork)
+  return initCrossSdk(
+    projectId,
+    redirectUrl,
+    metadata,
+    themeMode,
+    defaultNetwork,
+    adapters,
+    mobileLink
+  )
 }
 
 // Create modal
@@ -92,7 +106,9 @@ const initCrossSdk = (
   redirectUrl?: string,
   metadata?: Metadata,
   themeMode?: ThemeMode,
-  defaultNetwork?: SupportedNetworks
+  defaultNetwork?: SupportedNetworks,
+  adapters?: ChainAdapter[],
+  mobileLink?: string
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -103,7 +119,7 @@ const initCrossSdk = (
   }
 
   return createAppKit({
-    adapters: [ethersAdapter],
+    adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
     networks: networkList,
     defaultNetwork,
     metadata: mergedMetadata,
@@ -125,9 +141,12 @@ const initCrossSdk = (
     customWallets: [
       {
         id: 'cross_wallet',
-        name: 'CROSS Wallet',
+        name: 'CROSSx Wallet',
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
-        mobile_link: 'crossx://',
+        mobile_link:
+          mobileLink ||
+          (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
+          'https://cross-wallet.crosstoken.io',
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
         play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
         chrome_store:

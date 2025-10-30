@@ -29,7 +29,7 @@ export class W3mAllWalletsSearch extends LitElement {
     this.onSearch()
 
     return this.loading
-      ? html`<wui-loading-spinner color="accent-100"></wui-loading-spinner>`
+      ? html`<cross-wui-loading-spinner color="accent-100"></cross-wui-loading-spinner>`
       : this.walletsTemplate()
   }
 
@@ -50,29 +50,29 @@ export class W3mAllWalletsSearch extends LitElement {
 
     if (!search.length) {
       return html`
-        <wui-flex
+        <cross-wui-flex
           data-testid="no-wallet-found"
           justifyContent="center"
           alignItems="center"
           gap="s"
           flexDirection="column"
         >
-          <wui-icon-box
+          <cross-wui-icon-box
             size="lg"
             iconColor="fg-200"
             backgroundColor="fg-300"
             icon="wallet"
             background="transparent"
-          ></wui-icon-box>
-          <wui-text data-testid="no-wallet-found-text" color="fg-200" variant="paragraph-500">
+          ></cross-wui-icon-box>
+          <cross-wui-text data-testid="no-wallet-found-text" color="fg-200" variant="paragraph-500">
             No Wallet found
-          </wui-text>
-        </wui-flex>
+          </cross-wui-text>
+        </cross-wui-flex>
       `
     }
 
     return html`
-      <wui-grid
+      <cross-wui-grid
         data-testid="wallet-list"
         .padding=${['0', 's', 's', 's'] as const}
         rowGap="l"
@@ -88,7 +88,7 @@ export class W3mAllWalletsSearch extends LitElement {
             ></cross-w3m-all-wallets-list-item>
           `
         )}
-      </wui-grid>
+      </cross-wui-grid>
     `
   }
 

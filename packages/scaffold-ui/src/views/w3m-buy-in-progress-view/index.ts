@@ -77,7 +77,7 @@ export class W3mBuyInProgressView extends LitElement {
       : `We’ll notify you once your Buy is processed`
 
     return html`
-      <wui-flex
+      <cross-wui-flex
         data-error=${ifDefined(this.error)}
         data-retry=${this.showRetry}
         flexDirection="column"
@@ -85,17 +85,17 @@ export class W3mBuyInProgressView extends LitElement {
         .padding=${['3xl', 'xl', 'xl', 'xl'] as const}
         gap="xl"
       >
-        <wui-flex justifyContent="center" alignItems="center">
-          <wui-visual
+        <cross-wui-flex justifyContent="center" alignItems="center">
+          <cross-wui-visual
             name=${ifDefined(this.selectedOnRampProvider?.name)}
             size="lg"
             class="provider-image"
           >
-          </wui-visual>
+          </cross-wui-visual>
 
           ${this.error ? null : this.loaderTemplate()}
 
-          <wui-icon-box
+          <cross-wui-icon-box
             backgroundColor="error-100"
             background="opaque"
             iconColor="error-100"
@@ -103,25 +103,25 @@ export class W3mBuyInProgressView extends LitElement {
             size="sm"
             border
             borderColor="wui-color-bg-125"
-          ></wui-icon-box>
-        </wui-flex>
+          ></cross-wui-icon-box>
+        </cross-wui-flex>
 
-        <wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <wui-text variant="paragraph-500" color=${this.error ? 'error-100' : 'fg-100'}>
+        <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
+          <cross-wui-text variant="paragraph-500" color=${this.error ? 'error-100' : 'fg-100'}>
             ${label}
-          </wui-text>
-          <wui-text align="center" variant="small-500" color="fg-200">${subLabel}</wui-text>
-        </wui-flex>
+          </cross-wui-text>
+          <cross-wui-text align="center" variant="small-500" color="fg-200">${subLabel}</cross-wui-text>
+        </cross-wui-flex>
 
         ${this.error ? this.tryAgainTemplate() : null}
-      </wui-flex>
+      </cross-wui-flex>
 
-      <wui-flex .padding=${['0', 'xl', 'xl', 'xl'] as const} justifyContent="center">
-        <wui-link @click=${this.onCopyUri} color="fg-200">
-          <wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></wui-icon>
+      <cross-wui-flex .padding=${['0', 'xl', 'xl', 'xl'] as const} justifyContent="center">
+        <cross-wui-link @click=${this.onCopyUri} color="fg-200">
+          <cross-wui-icon size="xs" color="fg-200" slot="iconLeft" name="copy"></cross-wui-icon>
           Copy link
-        </wui-link>
-      </wui-flex>
+        </cross-wui-link>
+      </cross-wui-flex>
     `
   }
 
@@ -196,17 +196,17 @@ export class W3mBuyInProgressView extends LitElement {
       return null
     }
 
-    return html`<wui-button size="md" variant="accent" @click=${this.onTryAgain.bind(this)}>
-      <wui-icon color="inherit" slot="iconLeft" name="refresh"></wui-icon>
+    return html`<cross-wui-button size="md" variant="accent" @click=${this.onTryAgain.bind(this)}>
+      <cross-wui-icon color="inherit" slot="iconLeft" name="refresh"></cross-wui-icon>
       Try again
-    </wui-button>`
+    </cross-wui-button>`
   }
 
   private loaderTemplate() {
     const borderRadiusMaster = ThemeController.state.themeVariables['--w3m-border-radius-master']
     const radius = borderRadiusMaster ? parseInt(borderRadiusMaster.replace('px', ''), 10) : 4
 
-    return html`<wui-loading-thumbnail radius=${radius * 9}></wui-loading-thumbnail>`
+    return html`<cross-wui-loading-thumbnail radius=${radius * 9}></cross-wui-loading-thumbnail>`
   }
 
   private onCopyUri() {

@@ -176,7 +176,7 @@ export default css`
     cursor: not-allowed;
   }
 
-  button > wui-text {
+  button > cross-wui-text {
     transition: opacity var(--wui-ease-out-power-1) var(--wui-duration-md);
     will-change: opacity;
     opacity: var(--local-opacity-100);
@@ -188,7 +188,7 @@ export default css`
     opacity: var(--local-opacity-100);
   }
 
-  wui-loading-spinner {
+  cross-wui-loading-spinner {
     position: absolute;
     left: 50%;
     top: 50%;

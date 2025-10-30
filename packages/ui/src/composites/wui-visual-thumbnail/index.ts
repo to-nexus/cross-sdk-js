@@ -7,7 +7,7 @@ import { resetStyles } from '../../utils/ThemeUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-visual-thumbnail')
+@customElement('cross-wui-visual-thumbnail')
 export class WuiVisualThumbnail extends LitElement {
   public static override styles = [resetStyles, styles]
 
@@ -30,20 +30,20 @@ export class WuiVisualThumbnail extends LitElement {
   // -- Private ------------------------------------------- //
   private templateVisual() {
     if (this.imageSrc) {
-      return html`<wui-image src=${this.imageSrc} alt=${this.alt ?? ''}></wui-image>`
+      return html`<cross-wui-image src=${this.imageSrc} alt=${this.alt ?? ''}></cross-wui-image>`
     }
 
-    return html`<wui-icon
+    return html`<cross-wui-icon
       data-parent-size="md"
       size="inherit"
       color="inherit"
       name="walletPlaceholder"
-    ></wui-icon>`
+    ></cross-wui-icon>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-visual-thumbnail': WuiVisualThumbnail
+    'cross-wui-visual-thumbnail': WuiVisualThumbnail
   }
 }

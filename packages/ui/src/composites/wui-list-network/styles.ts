@@ -28,7 +28,7 @@ export default css`
     background-color: var(--wui-color-gray-glass-005);
   }
 
-  wui-image {
+  cross-wui-image {
     width: var(--wui-spacing-3xl);
     height: var(--wui-spacing-3xl);
     border-radius: 100%;
@@ -40,7 +40,7 @@ export default css`
     cursor: not-allowed;
   }
 
-  button:disabled > wui-tag {
+  button:disabled > cross-wui-tag {
     background-color: var(--wui-color-gray-glass-010);
     color: var(--wui-color-fg-300);
   }

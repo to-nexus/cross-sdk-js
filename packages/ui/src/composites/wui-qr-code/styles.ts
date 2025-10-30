@@ -21,26 +21,26 @@ export default css`
     background-color: var(--wui-color-bg-125);
   }
 
-  :host([data-clear='true']) > wui-icon {
+  :host([data-clear='true']) > cross-wui-icon {
     display: none;
   }
 
   svg:first-child,
-  wui-image,
-  wui-icon {
+  cross-wui-image,
+  cross-wui-icon {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translateY(-50%) translateX(-50%);
   }
 
-  wui-image {
+  cross-wui-image {
     width: 25%;
     height: 25%;
     border-radius: var(--wui-border-radius-xs);
   }
 
-  wui-icon {
+  cross-wui-icon {
     width: 100%;
     height: 100%;
     color: var(--local-icon-color) !important;

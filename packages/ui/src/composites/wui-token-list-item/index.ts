@@ -11,7 +11,7 @@ import { UiHelperUtil } from '../../utils/UiHelperUtil.js'
 import { customElement } from '../../utils/WebComponentsUtil.js'
 import styles from './styles.js'
 
-@customElement('wui-token-list-item')
+@customElement('cross-wui-token-list-item')
 export class WuiTokenListItem extends LitElement {
   public static override styles = [resetStyles, elementStyles, styles]
 
@@ -67,47 +67,47 @@ export class WuiTokenListItem extends LitElement {
       this.amount && this.price ? NumberUtil.multiply(this.price, this.amount)?.toFixed(3) : null
 
     return html`
-      <wui-flex alignItems="center">
+      <cross-wui-flex alignItems="center">
         ${this.visualTemplate()}
-        <wui-flex flexDirection="column" gap="3xs">
-          <wui-flex justifyContent="space-between">
-            <wui-text variant="paragraph-500" color="fg-100" lineClamp="1">${this.name}</wui-text>
+        <cross-wui-flex flexDirection="column" gap="3xs">
+          <cross-wui-flex justifyContent="space-between">
+            <cross-wui-text variant="paragraph-500" color="fg-100" lineClamp="1">${this.name}</cross-wui-text>
             ${value
               ? html`
-                  <wui-text variant="paragraph-500" color="fg-100">
+                  <cross-wui-text variant="paragraph-500" color="fg-100">
                     $${UiHelperUtil.formatNumberToLocalString(value, 3)}
-                  </wui-text>
+                  </cross-wui-text>
                 `
               : null}
-          </wui-flex>
-          <wui-flex justifyContent="space-between">
-            <wui-text variant="small-400" color="fg-200" lineClamp="1">${this.symbol}</wui-text>
+          </cross-wui-flex>
+          <cross-wui-flex justifyContent="space-between">
+            <cross-wui-text variant="small-400" color="fg-200" lineClamp="1">${this.symbol}</cross-wui-text>
             ${this.amount
-              ? html`<wui-text variant="small-400" color="fg-200">
+              ? html`<cross-wui-text variant="small-400" color="fg-200">
                   ${UiHelperUtil.formatNumberToLocalString(this.amount, 4)}
-                </wui-text>`
+                </cross-wui-text>`
               : null}
-          </wui-flex>
-        </wui-flex>
-      </wui-flex>
+          </cross-wui-flex>
+        </cross-wui-flex>
+      </cross-wui-flex>
     `
   }
 
   // -- Private ------------------------------------------- //
   private visualTemplate() {
     if (this.imageError) {
-      return html`<wui-flex class="token-item-image-placeholder">
-        <wui-icon name="image" color="inherit"></wui-icon>
-      </wui-flex>`
+      return html`<cross-wui-flex class="token-item-image-placeholder">
+        <cross-wui-icon name="image" color="inherit"></cross-wui-icon>
+      </cross-wui-flex>`
     }
 
     if (this.imageSrc) {
-      return html`<wui-image
+      return html`<cross-wui-image
         width="40"
         height="40"
         src=${this.imageSrc}
         @onLoadError=${this.imageLoadError}
-      ></wui-image>`
+      ></cross-wui-image>`
     }
 
     return null
@@ -120,6 +120,6 @@ export class WuiTokenListItem extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wui-token-list-item': WuiTokenListItem
+    'cross-wui-token-list-item': WuiTokenListItem
   }
 }

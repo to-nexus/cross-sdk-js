@@ -91,15 +91,15 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
       throw new Error('cross-w3m-account-view: No account provided')
     }
 
-    return html`<wui-flex
+    return html`<cross-wui-flex
       flexDirection="column"
       .padding=${['0', 'xl', 'm', 'xl'] as const}
       alignItems="center"
       gap="m"
       data-testid="cross-w3m-account-wallet-features-widget"
     >
-      ${this.network && html`<wui-network-icon .network=${this.network}></wui-network-icon>`}
-      <wui-profile-button
+      ${this.network && html`<cross-wui-network-icon .network=${this.network}></cross-wui-network-icon>`}
+      <cross-wui-profile-button
         @click=${this.onProfileButtonClick.bind(this)}
         address=${ifDefined(this.address)}
         networkSrc=${ifDefined(this.networkImage)}
@@ -107,20 +107,20 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
         avatarSrc=${ifDefined(this.profileImage ? this.profileImage : undefined)}
         profileName=${ifDefined(this.profileName ?? undefined)}
         data-testid="cross-w3m-profile-button"
-      ></wui-profile-button>
+      ></cross-wui-profile-button>
 
       ${this.tokenBalanceTemplate()} ${this.orderedWalletFeatures()}
 
-      <wui-tabs
+      <cross-wui-tabs
         .onTabChange=${this.onTabChange.bind(this)}
         .activeTab=${this.currentTab}
         localTabWidth=${CoreHelperUtil.isMobile() && window.innerWidth < MODAL_MOBILE_VIEW_PX
           ? `${(window.innerWidth - TABS_PADDING) / TABS}px`
           : '104px'}
         .tabs=${ConstantsUtil.ACCOUNT_TABS}
-      ></wui-tabs>
+      ></cross-wui-tabs>
       ${this.listContentTemplate()}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   // -- Private ------------------------------------------- //
@@ -133,7 +133,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
       return null
     }
 
-    return html`<wui-flex gap="s">
+    return html`<cross-wui-flex gap="s">
       ${walletFeaturesOrder.map(feature => {
         switch (feature) {
           case 'onramp':
@@ -148,7 +148,7 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
             return null
         }
       })}
-    </wui-flex>`
+    </cross-wui-flex>`
   }
 
   private onrampTemplate() {
@@ -160,11 +160,11 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
     return html`
       <cross-w3m-tooltip-trigger text="Buy">
-        <wui-icon-button
+        <cross-wui-icon-button
           data-testid="wallet-features-onramp-button"
           @click=${this.onBuyClick.bind(this)}
           icon="card"
-        ></wui-icon-button>
+        ></cross-wui-icon-button>
       </cross-w3m-tooltip-trigger>
     `
   }
@@ -179,12 +179,12 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
     return html`
       <cross-w3m-tooltip-trigger text="Swap">
-        <wui-icon-button
+        <cross-wui-icon-button
           data-testid="wallet-features-swaps-button"
           @click=${this.onSwapClick.bind(this)}
           icon="recycleHorizontal"
         >
-        </wui-icon-button>
+        </cross-wui-icon-button>
       </cross-w3m-tooltip-trigger>
     `
   }
@@ -198,12 +198,12 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
     return html`
       <cross-w3m-tooltip-trigger text="Receive">
-        <wui-icon-button
+        <cross-wui-icon-button
           data-testid="wallet-features-receive-button"
           @click=${this.onReceiveClick.bind(this)}
           icon="arrowBottomCircle"
         >
-        </wui-icon-button>
+        </cross-wui-icon-button>
       </cross-w3m-tooltip-trigger>
     `
   }
@@ -218,11 +218,11 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
 
     return html`
       <cross-w3m-tooltip-trigger text="Send">
-        <wui-icon-button
+        <cross-wui-icon-button
           data-testid="wallet-features-send-button"
           @click=${this.onSendClick.bind(this)}
           icon="send"
-        ></wui-icon-button>
+        ></cross-wui-icon-button>
       </cross-w3m-tooltip-trigger>
     `
   }
@@ -263,10 +263,10 @@ export class W3mAccountWalletFeaturesWidget extends LitElement {
       const value = CoreHelperUtil.calculateBalance(this.tokenBalance)
       const { dollars = '0', pennies = '00' } = CoreHelperUtil.formatTokenBalance(value)
 
-      return html`<wui-balance dollars=${dollars} pennies=${pennies}></wui-balance>`
+      return html`<cross-wui-balance dollars=${dollars} pennies=${pennies}></cross-wui-balance>`
     }
 
-    return html`<wui-balance dollars="0" pennies="00"></wui-balance>`
+    return html`<cross-wui-balance dollars="0" pennies="00"></cross-wui-balance>`
   }
 
   private onTabChange(index: number) {

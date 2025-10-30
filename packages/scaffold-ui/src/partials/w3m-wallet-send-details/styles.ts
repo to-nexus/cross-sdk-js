@@ -12,11 +12,11 @@ export default css`
       var(--wui-spacing-1xs);
   }
 
-  wui-text {
+  cross-wui-text {
     padding: 0 var(--wui-spacing-1xs);
   }
 
-  wui-flex {
+  cross-wui-flex {
     margin-top: var(--wui-spacing-1xs);
   }
 

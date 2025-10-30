@@ -13,11 +13,11 @@ export default css`
     box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.25);
   }
 
-  wui-flex {
+  cross-wui-flex {
     width: 100%;
   }
 
-  wui-text {
+  cross-wui-text {
     word-break: break-word;
     flex: 1;
   }
