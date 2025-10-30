@@ -126,7 +126,8 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error('EthersAdapter:signMessage - Sign message failed')
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error, null, 2)
+      throw new Error(`EthersAdapter:signMessage - Sign message failed: ${errorMessage}`)
     }
   }
 
@@ -185,7 +186,8 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error(`EthersAdapter:signEIP712 failed: ${error}`)
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error, null, 2)
+      throw new Error(`EthersAdapter:signEIP712 failed: ${errorMessage}`)
     }
   }
 
@@ -248,7 +250,8 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error(`EthersAdapter:signTypedDataV4 failed: ${error}`)
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error, null, 2)
+      throw new Error(`EthersAdapter:signTypedDataV4 failed: ${errorMessage}`)
     }
   }
 
@@ -630,7 +633,7 @@ export class EthersAdapter extends AdapterBlueprint {
         const universalProvider = params.provider as UniversalProvider
         console.log('🔥 [EthersAdapter] WALLET_CONNECT 연결 해제 시작')
         console.log('🔥 [EthersAdapter] UniversalProvider 객체:', {
-          hasSession: !!universalProvider.session,
+          hasSession: Boolean(universalProvider.session),
           sessionTopic: universalProvider.session?.topic,
           sessionExpiry: universalProvider.session?.expiry,
           sessionSelf: universalProvider.session?.self,

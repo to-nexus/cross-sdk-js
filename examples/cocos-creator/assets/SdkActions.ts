@@ -323,35 +323,31 @@ export class SdkActions extends Component {
     try {
       const address = (window as any).CrossSdk?.AccountController?.state?.address
       if (!address) return //   alert('Connect wallet first')
+
+      // Get current chain ID
+      const chainId = (window as any).CrossSdk?.NetworkController?.state?.caipNetwork?.id
+        ? parseInt(
+            (window as any).CrossSdk.NetworkController.state.caipNetwork.id.split(':')[1],
+            10
+          )
+        : 1
+
       const typed = {
-        types: {
-          EIP712Domain: [
-            { name: 'name', type: 'string' },
-            { name: 'version', type: 'string' },
-            { name: 'chainId', type: 'uint256' },
-            { name: 'verifyingContract', type: 'address' }
-          ],
-          Mail: [
-            { name: 'from', type: 'address' },
-            { name: 'to', type: 'address' },
-            { name: 'contents', type: 'string' }
-          ]
-        },
-        primaryType: 'Mail',
         domain: {
-          name: 'Cross Demo',
+          name: 'Example',
           version: '1',
-          chainId: 1,
-          verifyingContract: address
+          chainId: chainId,
+          verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
         },
         message: {
-          from: address,
-          to: address,
-          contents: 'Hello from Cocos'
+          contents: 'hello from Cocos'
+        },
+        primaryType: 'Ping',
+        types: {
+          Ping: [{ name: 'contents', type: 'string' }]
         }
       }
-      const paramsData = [address, typed]
-      const sig = await window.CrossSdk.ConnectionController.signTypedDataV4(paramsData, {
+      const sig = await window.CrossSdk.ConnectionController.signTypedDataV4(typed, {
         metadata: { from: 'cocos-demo' }
       })
       console.log('EIP-712 signature:', sig)

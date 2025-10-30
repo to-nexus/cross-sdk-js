@@ -1850,11 +1850,8 @@ export class AppKit {
         this.setStatus('disconnected', chainNamespace)
       } else if (sessionNamespaces.length === 0) {
         this.setStatus('disconnected', chainNamespace)
-        // Console.log('Got ya! 😏 namespaces empty')
       } else {
-        console.log(
-          `Got ya! 😏 namespaces not empty: ${JSON.stringify(sessionNamespaces)} and chainNamespace: ${chainNamespace}`
-        )
+        this.setStatus('disconnected', chainNamespace)
       }
     })
 
@@ -2266,7 +2263,9 @@ export class AppKit {
         }
       },
       logger,
-      relayUrl
+      relayUrl,
+      // Use unique storage prefix to avoid conflicts with other WalletConnect/Reown instances
+      customStoragePrefix: 'nexus-'
     }
 
     console.log(`relayUrl: ${universalProviderOptions.relayUrl}`)
