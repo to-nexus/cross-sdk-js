@@ -13,7 +13,7 @@ import {
   ConstantsUtil as CoreConstantsUtil,
   type Provider
 } from '@to-nexus/appkit-core'
-import { CaipNetworksUtil, ConstantsUtil, PresetsUtil } from '@to-nexus/appkit-utils'
+import { CaipNetworksUtil, PresetsUtil } from '@to-nexus/appkit-utils'
 import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
 import { AdapterBlueprint } from '@to-nexus/appkit/adapters'
 import { WalletConnectConnector } from '@to-nexus/appkit/connectors'
@@ -147,11 +147,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   private getWagmiConnector(id: string) {
-    let connector = this.wagmiConfig.connectors.find(c => c.id === id)
-    if (!connector && id === 'nexus.to.crosswallet.desktop') {
-      connector = this.wagmiConfig._internal.connectors.setup(crossExtensionConnector())
-    }
-    return connector
+    return this.wagmiConfig.connectors.find(c => c.id === id)
   }
 
   private createConfig(
@@ -206,7 +202,7 @@ export class WagmiAdapter extends AdapterBlueprint {
       pollingInterval: this.pendingTransactionsFilter.pollingInterval,
       /* Magic RPC does not support the pending transactions. We handle transaction for the AuthConnector cases in AppKit client to handle all clients at once. Adding the onError handler to avoid the error to throw. */
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onError: () => {},
+      onError: () => { },
       onTransactions: () => {
         this.emit('pendingTransactions')
         LimitterUtil.increase('pendingTransactions')
@@ -244,33 +240,6 @@ export class WagmiAdapter extends AdapterBlueprint {
               address: accountData.address,
               chainId: accountData.chainId
             })
-          }
-        }
-        const isConnectingExtensionWallet =
-          accountData.status === 'connecting' &&
-          accountData?.connector?.id === 'nexus.to.crosswallet.desktop'
-        const isReconnectingExtensionWallet =
-          prevAccountData.status === 'reconnecting' &&
-          prevAccountData?.connector?.id === 'nexus.to.crosswallet.desktop'
-        // Cross Extension Wallet 재연결 시 연결 시도
-        if (isConnectingExtensionWallet || isReconnectingExtensionWallet) {
-          // console.log('[wagmiAdapter] reconnecting', prevAccountData)
-
-          // 재연결 시도
-          const connector = this.getWagmiConnector('nexus.to.crosswallet.desktop')
-          if (connector) {
-            // console.log('[wagmiAdapter] trying to reconnect with connector', connector.id)
-            connect(this.wagmiConfig, { connector })
-              .then(result => {
-                // console.log('[wagmiAdapter] reconnect success', result)
-                // 연결 성공 후 이벤트 발생
-                this.emit('accountChanged', {
-                  address: result.accounts[0]
-                })
-              })
-              .catch(error => {
-                console.error('[wagmiAdapter] reconnect failed', error)
-              })
           }
         }
       }
@@ -583,46 +552,6 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     // Add third party connectors
     await this.addThirdPartyConnectors(options)
-  }
-
-  private listenCrossEIP6963Events(options: AppKitOptions) {
-    if (typeof window !== 'undefined') {
-      const handler = (event: Event) =>
-        this.eip6963EventHandler(event as CustomEvent<EIP6963ProviderDetail>, options)
-      window.addEventListener(ConstantsUtil.EIP6963_CROSS_ANNOUNCE_EVENT, handler)
-      window.dispatchEvent(new Event(ConstantsUtil.EIP6963_CROSS_REQUEST_EVENT))
-    }
-  }
-
-  private eip6963EventHandler(
-    event: CustomEventInit<EIP6963ProviderDetail>,
-    options: AppKitOptions
-  ) {
-    if (event.detail) {
-      const { info, provider } = event.detail
-      const existingConnector = this.connectors?.find(c => c.name === info?.name)
-
-      if (!existingConnector) {
-        const type = PresetsUtil.ConnectorTypesMap[CommonConstantsUtil.CONNECTOR_ID.EIP6963]
-
-        const id = info?.rdns || info?.name || info?.uuid
-        if (type && this.namespace && id) {
-          const connector = this.wagmiConfig._internal.connectors.setup(crossExtensionConnector())
-          this.wagmiConfig._internal.connectors.setState(prev => [...prev, connector])
-          this.addWagmiConnector(connector, options)
-          this.addConnector({
-            id,
-            type,
-            imageUrl: info?.icon,
-            name: info?.name || 'Unknown',
-            provider,
-            info,
-            chain: this.namespace as ChainNamespace,
-            chains: []
-          })
-        }
-      }
-    }
   }
 
   public async syncConnection(
