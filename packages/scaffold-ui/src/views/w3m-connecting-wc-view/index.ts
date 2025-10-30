@@ -115,15 +115,15 @@ export class W3mConnectingWcView extends LitElement {
   private isCrossWalletInstalled(rdns: string): boolean {
     // ANNOUNCED 커넥터에서 찾기
     const currentConnectors = ConnectorController.state.connectors
-    const announced = currentConnectors.filter(c => c.type === 'ANNOUNCED' && c.id === rdns)
+    const crossWalletExtensionConnectors = currentConnectors.filter(c => (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.id === rdns)
 
-    if (announced && announced.length > 0) {
+    if (crossWalletExtensionConnectors && crossWalletExtensionConnectors.length > 0) {
       return true
     }
 
-    // window.ethereum에서 CROSSx Wallet 전용 체크
+    // window.ethereum에서 cross extension 프로바이더 체크
     const isCrossWalletInWindow =
-      typeof window !== 'undefined' && (window as any).ethereum && (window as any).ethereum[rdns]
+      typeof window !== 'undefined' && (window as any).crossWallet
 
     return Boolean(isCrossWalletInWindow)
   }
