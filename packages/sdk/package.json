@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/sdk",
-  "version": "1.17.7-alpha.4",
+  "version": "1.18.0-beta.3",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -43,7 +43,7 @@
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
     "@to-nexus/appkit-wallet-button": "workspace:*",
-    "@to-nexus/universal-provider": "2.19.14-alpha.2",
+    "@to-nexus/universal-provider": "2.19.14",
     "@walletconnect/logger": "^2.0.1",
     "big.js": "^6.2.1",
     "bs58": "^5.0.0",
