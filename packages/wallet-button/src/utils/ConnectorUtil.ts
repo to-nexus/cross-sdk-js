@@ -314,13 +314,13 @@ export const ConnectorUtil = {
           throw new Error('CROSSx Wallet RDNS가 설정되지 않았습니다.')
         }
         const currentConnectors = ConnectorController.state.connectors
-        const announced = currentConnectors.filter(c => {
-          return c.type === 'ANNOUNCED' && c.info?.rdns === crossWallet.rdns
+        const crossWalletExtensionConnectors = currentConnectors.filter(c => {
+          return (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.info?.rdns === crossWallet.rdns
         })
-        if (!announced || announced.length === 0) {
+        if (!crossWalletExtensionConnectors || crossWalletExtensionConnectors.length === 0) {
           throw new Error('CROSSx Wallet 익스텐션이 설치되지 않았습니다.')
         }
-        const browserConnector = announced[0]
+        const browserConnector = crossWalletExtensionConnectors[0]
         if (browserConnector) {
           const result = await ConnectorUtil.connectExternal(browserConnector)
           resolve(result)
@@ -340,9 +340,9 @@ export const ConnectorUtil = {
       return false
     }
     const { connectors } = ConnectorController.state
-    const announced = connectors.filter(c => {
-      return c.type === 'ANNOUNCED' && c.info?.rdns === crossWallet.rdns
+    const crossWalletExtensionConnectors = connectors.filter(c => {
+      return (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.info?.rdns === crossWallet.rdns
     })
-    return announced && announced.length > 0
+    return crossWalletExtensionConnectors && crossWalletExtensionConnectors.length > 0
   }
 }
