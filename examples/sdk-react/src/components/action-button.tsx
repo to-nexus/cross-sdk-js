@@ -121,7 +121,15 @@ const metadata = {
   icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 }
 
-initCrossSdk(projectId, redirectUrl, metadata, 'dark')
+initCrossSdk(
+  projectId,
+  redirectUrl,
+  metadata,
+  'dark',
+  undefined,
+  undefined,
+  'https://stg-cross-wallet.crosstoken.io'
+)
 
 // TypeScript용 전역 Caver 타입 선언
 declare global {
