@@ -56,7 +56,15 @@ RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
 RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm i
 RUN pnpm run build
 
-# sdk-cdn은 빌드가 필요없으므로 그대로 사용
+# Build packages/cdn explicitly
+WORKDIR $WORKDIR/packages/cdn
+RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm run build
+
+# Update sdk-cdn files from packages/cdn/dist
+WORKDIR $WORKDIR/examples/sdk-cdn
+RUN rm -f cross-sdk*.js cross-sdk*.js.map index-*.js index-*.js.map index.es-*.js secp256k1-*.js secp256k1-*.js.map w3m-modal-*.js w3m-modal-*.js.map sha2-*.js sha2-*.js.map && \
+    cp ../../packages/cdn/dist/*.js . && \
+    cp ../../packages/cdn/dist/*.map .
 
 FROM nginx:alpine AS runner
 
