@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import {
   bscMainnet,
@@ -10,19 +10,16 @@ import {
   kaiaMainnet,
   kaiaTestnet
 } from '@to-nexus/appkit/networks'
-import { useAppKitWallet } from '@to-nexus/appkit/react'
 import { v4 as uuidv4 } from 'uuid'
 import { parseEther, parseUnits } from 'viem'
 import {
   useAccount,
   useBalance,
-  useConnect,
   useReadContract,
   useSendTransaction,
   useSignMessage,
   useSignTypedData,
   useSwitchChain,
-  useDisconnect as useWagmiDisconnect,
   useWriteContract
 } from 'wagmi'
 
@@ -85,10 +82,7 @@ const contractData = {
 
 export function ActionButtonList() {
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
-  const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
   const [isNetworkModalOpen, setIsNetworkModalOpen] = useState(false)
-  const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
-    useAppKitWallet()
 
   // Wagmi hooks
   const wagmiAccount = useAccount()
@@ -109,31 +103,7 @@ export function ActionButtonList() {
   const { signTypedDataAsync } = useSignTypedData()
   const { sendTransactionAsync } = useSendTransaction()
   const { writeContractAsync } = useWriteContract()
-  const { disconnectAsync: wagmiDisconnect } = useWagmiDisconnect()
   const { switchChainAsync } = useSwitchChain()
-
-  // Cross Extension Wallet 설치 상태 확인
-  const checkWagmiCrossExtension = useCallback(() => {
-    try {
-      const crossWallet = (window as any).crossWallet
-      const ethereum = (window as any).ethereum
-      const hasCrossInProviders = ethereum?.providers?.some(
-        (p: any) => p.isCrossWallet || p.isCross || p.isCrossExtension
-      )
-
-      const installed = !!crossWallet || hasCrossInProviders
-      setIsCrossExtensionInstalled(installed)
-    } catch (error) {
-      console.error('Extension 설치 상태 확인 중 오류:', error)
-      setIsCrossExtensionInstalled(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    checkWagmiCrossExtension()
-    const interval = setInterval(checkWagmiCrossExtension, 3000)
-    return () => clearInterval(interval)
-  }, [checkWagmiCrossExtension])
 
   // 상수 정의
   const RECEIVER_ADDRESS = '0xB09f7E5309982523310Af3eA1422Fcc2e3a9c379'
@@ -256,21 +226,10 @@ export function ActionButtonList() {
       await switchChainAsync({ chainId })
 
       showSuccess('Wagmi Switch Chain Successful!', `Switched to Chain ID: ${chainId}`)
+      setIsNetworkModalOpen(false)
     } catch (error) {
       console.error('Error switching chain with Wagmi:', error)
       showError('Error in Wagmi Switch Chain', `Error: ${(error as Error).message}`)
-    }
-  }
-
-  // Wagmi를 사용한 연결 해제
-  async function handleWagmiDisconnect() {
-    try {
-      await wagmiDisconnect()
-
-      showSuccess('Wagmi Disconnect Successful!', 'Wallet disconnected successfully')
-    } catch (error) {
-      console.error('Error disconnecting with Wagmi:', error)
-      showError('Error in Wagmi Disconnect', `Error: ${(error as Error).message}`)
     }
   }
 
@@ -322,6 +281,15 @@ export function ActionButtonList() {
       return
     }
 
+    const address = wagmiAccount.chainId
+      ? contractData[wagmiAccount.chainId as keyof typeof contractData]?.erc20
+      : ''
+
+    if (address === '') {
+      showError('Error in Wagmi Get ERC20 Balance', 'Contract does not exist on this network.')
+      return
+    }
+
     try {
       await refetchErc20Balance()
 
@@ -344,6 +312,15 @@ export function ActionButtonList() {
   async function handleWagmiSendErc20() {
     if (!wagmiAccount.isConnected) {
       showError('Error in Wagmi Send ERC20', 'Please connect wallet first.')
+      return
+    }
+
+    const address = wagmiAccount.chainId
+      ? contractData[wagmiAccount.chainId as keyof typeof contractData]?.erc20
+      : ''
+
+    if (address === '') {
+      showError('Error in Wagmi Send ERC20', 'Contract does not exist on this network.')
       return
     }
 
@@ -467,114 +444,56 @@ export function ActionButtonList() {
 
   return (
     <div>
-      <div
-        className="action-button-list"
-        style={{ marginTop: '10px', borderTop: '2px solid #007bff', paddingTop: '10px' }}
-      >
-        <h3 style={{ margin: '0 0 10px 0', color: '#007bff' }}>
-          Wagmi Functions{' '}
-          {wagmiAccount.isConnected &&
-            `(Connected: ${wagmiAccount.address?.slice(0, 6)}...${wagmiAccount.address?.slice(-4)})`}
-        </h3>
-        {!wagmiAccount.isConnected && (
-          <>
-            {/* Cross Extension 전용 버튼 */}
-            <button
-              onClick={() => connectCrossExtensionWallet()}
-              disabled={!isCrossExtensionInstalled}
-              style={{
-                backgroundColor: isCrossExtensionInstalled ? '#28a745' : '#6c757d',
-                color: 'white',
-                cursor: isCrossExtensionInstalled ? 'pointer' : 'not-allowed'
-              }}
-            >
-              `Wagmi: Connect Cross Extension ${isCrossExtensionInstalled ? '✅' : '❌'}`
-            </button>
-
-            <button onClick={() => connect('cross_wallet')}>`Wagmi: Connect CROSSx Wallet`</button>
-          </>
-        )}
-        {/* 네트워크 변경 */}
+      {/* ============ 네트워크 전환 버튼 ============ */}
+      <div className="action-button-list">
         <button
           onClick={() => setIsNetworkModalOpen(true)}
           style={{ backgroundColor: '#6f42c1', color: 'white' }}
           disabled={!wagmiAccount.isConnected}
         >
-          Wagmi: Switch Network
+          Switch Network
         </button>
+      </div>
 
-        {/* 잔액 조회 */}
-        <button
-          onClick={handleWagmiGetBalance}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Get Balance
-        </button>
-        <button
-          onClick={handleWagmiGetErc20Balance}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Get ERC20 Balance
-        </button>
-        <button
-          onClick={handleWagmiGetNftBalance}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Get NFT Balance
-        </button>
-
-        {/* 서명 */}
-        <button
-          onClick={handleWagmiSignMessage}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Sign Message
-        </button>
-        <button
-          onClick={handleWagmiSignTypedData}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Sign Typed Data V4
-        </button>
-
-        {/* 전송 */}
-        <button
-          onClick={handleWagmiSendNative}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Send {SEND_CROSS_AMOUNT}{' '}
+      {/* ============ 전송 버튼 그룹 ============ */}
+      <div className="action-button-list" style={{ marginTop: '10px' }}>
+        <button onClick={handleWagmiSendNative} disabled={!wagmiAccount.isConnected}>
+          Send {SEND_CROSS_AMOUNT}{' '}
           {wagmiAccount.chainId
             ? contractData[wagmiAccount.chainId as keyof typeof contractData]?.coin
             : 'TOKEN'}
         </button>
-        <button
-          onClick={handleWagmiSendErc20}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Send 1 ERC20 Token
+        <button onClick={handleWagmiSendErc20} disabled={!wagmiAccount.isConnected}>
+          Send 1 ERC20
         </button>
-        <button
-          onClick={handleWagmiMintNft}
-          style={{ backgroundColor: '#0056b3', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Mint NFT (Custom Transaction)
+        <button onClick={handleWagmiMintNft} disabled={!wagmiAccount.isConnected}>
+          Mint NFT (Custom Transaction)
         </button>
+      </div>
 
-        {/* 연결 해제 */}
-        <button
-          onClick={handleWagmiDisconnect}
-          style={{ backgroundColor: '#dc3545', color: 'white' }}
-          disabled={!wagmiAccount.isConnected}
-        >
-          Wagmi: Disconnect
+      {/* ============ 서명 버튼 그룹 ============ */}
+      <div className="action-button-list" style={{ marginTop: '10px' }}>
+        <button onClick={handleWagmiSignMessage} disabled={!wagmiAccount.isConnected}>
+          Sign Message
+        </button>
+        <button onClick={handleWagmiSignTypedData} disabled={!wagmiAccount.isConnected}>
+          Sign TypedData V4
+        </button>
+      </div>
+
+      {/* ============ 잔액 조회 버튼 그룹 ============ */}
+      <div className="action-button-list" style={{ marginTop: '10px' }}>
+        <button onClick={handleWagmiGetBalance} disabled={!wagmiAccount.isConnected}>
+          Get Balance of{' '}
+          {wagmiAccount.chainId
+            ? contractData[wagmiAccount.chainId as keyof typeof contractData]?.coin
+            : 'TOKEN'}
+        </button>
+        <button onClick={handleWagmiGetErc20Balance} disabled={!wagmiAccount.isConnected}>
+          Get Balance of ERC20
+        </button>
+        <button onClick={handleWagmiGetNftBalance} disabled={!wagmiAccount.isConnected}>
+          Get Balance of NFT
         </button>
       </div>
 

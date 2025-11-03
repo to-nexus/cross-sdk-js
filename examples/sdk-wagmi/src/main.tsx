@@ -2,62 +2,108 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { WagmiAdapter } from '@to-nexus/appkit-adapter-wagmi'
-import {
-  bscMainnet,
-  bscTestnet,
-  crossMainnet,
-  crossTestnet,
-  etherMainnet,
-  etherTestnet,
-  kaiaMainnet,
-  kaiaTestnet
-} from '@to-nexus/appkit/networks'
+import { crossMainnet } from '@to-nexus/appkit/networks'
 import { initCrossSdk } from '@to-nexus/sdk/react'
-import { WagmiProvider } from 'wagmi'
+
+import { mainnet } from '@reown/appkit/networks'
+import { createAppKit } from '@reown/appkit/react'
 
 import App from './app.jsx'
 import './assets/main.css'
+import WalletProvider from './providers/WalletProvider'
+import {
+  crossSdkProjectId,
+  networks,
+  projectId,
+  sdkWagmiAdapter,
+  wagmiAdapter
+} from './utils/wagmi-utils'
 
-// WalletConnect project ID
-const projectId = import.meta.env['VITE_PROJECT_ID'] || 'YOUR_PROJECT_ID'
-
-// Metadata
-const metadata = {
-  name: 'Cross SDK Wagmi Example',
-  description: 'Cross SDK with Wagmi Integration',
-  url: 'http://localhost:3014',
-  icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
+// ========================================
+// 1. Reown AppKit 초기화 (MetaMask용)
+// ========================================
+if (!projectId) {
+  throw new Error('Reown AppKit Project ID is missing')
 }
 
-// Networks 설정
-const networks = [
-  etherMainnet,
-  etherTestnet,
-  bscMainnet,
-  bscTestnet,
-  crossTestnet,
-  crossMainnet,
-  kaiaMainnet,
-  kaiaTestnet
-] as const
-
-// WagmiAdapter 생성
-const wagmiAdapter = new WagmiAdapter({
-  projectId,
-  networks: [...networks]
+createAppKit({
+  adapters: [wagmiAdapter], // ← MetaMask용 adapter 전달 (중요!)
+  projectId: projectId,
+  networks: networks as any, // Type assertion for tuple requirement
+  defaultNetwork: crossMainnet, // Cross Mainnet을 기본으로 설정
+  metadata: {
+    name: 'Cross Wagmi SDK Example',
+    description: 'Cross SDK with Wagmi Integration - Dual Wallet Support',
+    url: 'http://localhost:3014',
+    icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
+  },
+  features: {
+    analytics: false,
+    email: false,
+    socials: false,
+    swaps: false
+  },
+  themeVariables: {
+    '--w3m-accent': '#00D5AA'
+  },
+  enableWalletConnect: true,
+  enableInjected: true,
+  enableCoinbase: false
 })
 
-initCrossSdk(projectId, 'http://localhost:3014', metadata, 'dark', crossMainnet, [wagmiAdapter])
+console.log('✅ Reown AppKit initialized for MetaMask')
 
+// ========================================
+// 2. CROSS SDK 초기화 (CrossWallet용)
+// ========================================
+if (!crossSdkProjectId) {
+  throw new Error('Cross SDK Project ID is missing')
+}
+
+initCrossSdk(
+  crossSdkProjectId,
+  'http://localhost:3014',
+  {
+    name: 'Cross Wagmi SDK Example',
+    description: 'Cross SDK with Wagmi Integration - Dual Wallet Support',
+    url: 'http://localhost:3014',
+    icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
+  },
+  'dark', // theme
+  crossMainnet, // default network
+  [sdkWagmiAdapter] // ← CrossWallet용 adapter 전달 (중요!)
+)
+
+console.log('✅ Cross SDK initialized for CrossWallet')
+
+// ========================================
+// 3. React 앱 렌더링
+// ========================================
 const queryClient = new QueryClient()
+
+// 클라이언트 쿠키에서 현재 지갑 읽기
+function getCurrentWalletFromCookie(): 'cross_wallet' | 'metamask' | undefined {
+  if (typeof document === 'undefined') return undefined
+
+  const cookies = document.cookie.split(';')
+  const walletCookie = cookies.find(c => c.trim().startsWith('currentWallet='))
+  const value = walletCookie?.split('=')[1]
+
+  if (value === 'cross_wallet' || value === 'metamask') {
+    return value
+  }
+
+  return undefined
+}
+
+const initialWallet = getCurrentWalletFromCookie()
 
 ReactDOM.createRoot(document.getElementById('app')!).render(
   <React.StrictMode>
-    <WagmiProvider config={wagmiAdapter.wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <WalletProvider currentWalletCookie={initialWallet}>
         <App />
-      </QueryClientProvider>
-    </WagmiProvider>
+      </WalletProvider>
+    </QueryClientProvider>
   </React.StrictMode>
 )
