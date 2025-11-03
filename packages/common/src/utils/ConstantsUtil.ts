@@ -93,7 +93,7 @@ export const ConstantsUtil = {
 
     console.log('Using universal link:', ConstantsUtil.UNIVERSAL_LINK.PRODUCTION)
 
-    return ConstantsUtil.UNIVERSAL_LINK.PRODUCTION
+    return undefined
   },
   UNIVERSAL_LINK: {
     DEVELOPMENT: 'https://dev-cross-wallet.crosstoken.io',
