@@ -17,6 +17,7 @@ import {
   ConstantsUtil,
   SendController
 } from '@to-nexus/sdk'
+import EthereumProvider from '@walletconnect/ethereum-provider'
 import { Signature, ethers } from 'ethers'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -127,6 +128,17 @@ const crossSdk = initCrossSdkWithParams({
 
 const appkitWallet = useAppKitWallet()
 
+// ========================================
+// WalletConnect Provider 초기화 (MetaMask QRCode 연결용)
+// ========================================
+const metamaskProjectId =
+  import.meta.env['VITE_METAMASK_PROJECT_ID'] || 'a48aa6e93d89fbc0f047637579e65356'
+
+// WalletConnect Provider 변수 (나중에 초기화)
+let walletConnectProvider = null
+
+console.log('✅ WalletConnect configuration ready for MetaMask QR Code')
+
 // 사용 가능한 네트워크 리스트
 const availableNetworks = [
   { id: 'cross-mainnet', name: 'Cross Mainnet', network: crossMainnet },
@@ -157,6 +169,36 @@ let walletInfo = {}
 let eip155Provider = null
 let contractArgs = null
 let previousCaipAddress = null // 이전 주소를 저장하기 위한 변수
+
+// MetaMask 상태
+let metamaskProvider = null
+let metamaskAccount = null
+let metamaskChainId = null
+
+// 현재 활성화된 지갑 타입 감지
+function getActiveWallet() {
+  // MetaMask가 연결되어 있으면
+  if (metamaskProvider && metamaskAccount) {
+    return {
+      type: 'metamask',
+      provider: metamaskProvider,
+      account: metamaskAccount,
+      chainId: metamaskChainId
+    }
+  }
+
+  // Cross Wallet이 연결되어 있으면
+  if (accountState?.isConnected && eip155Provider) {
+    return {
+      type: 'cross',
+      provider: eip155Provider,
+      account: accountState.address,
+      chainId: networkState.chainId
+    }
+  }
+
+  return null
+}
 
 // 세션 관리 관련 변수들
 let isPageActive = true
@@ -253,10 +295,17 @@ function createNetworkModal() {
   // 기존 네트워크 리스트 초기화
   networkList.innerHTML = ''
 
+  // 현재 연결된 지갑 확인
+  const activeWallet = getActiveWallet()
+
   // 네트워크 리스트 생성
   availableNetworks.forEach(networkInfo => {
     const networkItem = document.createElement('div')
-    const isCurrentNetwork = networkState?.caipNetwork?.id === networkInfo.network.id
+
+    // 현재 네트워크 확인 (MetaMask와 Cross Wallet 구분)
+    const currentChainId =
+      activeWallet?.type === 'metamask' ? metamaskChainId : networkState?.caipNetwork?.id
+    const isCurrentNetwork = currentChainId === networkInfo.network.id
 
     networkItem.className = `network-item ${isCurrentNetwork ? 'current' : ''}`
 
@@ -274,7 +323,63 @@ function createNetworkModal() {
     networkItem.onclick = async () => {
       if (!isCurrentNetwork) {
         try {
-          await crossSdk.switchNetwork(networkInfo.network)
+          const activeWallet = getActiveWallet()
+
+          if (activeWallet && activeWallet.type === 'metamask') {
+            // MetaMask 네트워크 전환
+            const chainId = '0x' + networkInfo.network.id.toString(16)
+
+            try {
+              await activeWallet.provider.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId }]
+              })
+
+              // MetaMask chainId 업데이트
+              metamaskChainId = networkInfo.network.id
+
+              showSuccess(
+                '🦊 MetaMask 네트워크 전환 성공!',
+                `${networkInfo.name}으로 전환되었습니다.`
+              )
+            } catch (switchError) {
+              // 네트워크가 없는 경우 추가 시도
+              if (switchError.code === 4902) {
+                try {
+                  await activeWallet.provider.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [
+                      {
+                        chainId,
+                        chainName: networkInfo.name,
+                        rpcUrls: networkInfo.network.rpcUrls?.default?.http || [],
+                        nativeCurrency: networkInfo.network.nativeCurrency,
+                        blockExplorerUrls: networkInfo.network.blockExplorers?.default?.url
+                          ? [networkInfo.network.blockExplorers.default.url]
+                          : []
+                      }
+                    ]
+                  })
+
+                  metamaskChainId = networkInfo.network.id
+
+                  showSuccess(
+                    '🦊 MetaMask 네트워크 추가 및 전환 성공!',
+                    `${networkInfo.name}이 추가되고 전환되었습니다.`
+                  )
+                } catch (addError) {
+                  console.error('Network add failed:', addError)
+                  showError('네트워크 추가 실패!', `Error: ${addError.message}`)
+                }
+              } else {
+                throw switchError
+              }
+            }
+          } else {
+            // Cross Wallet 네트워크 전환
+            await crossSdk.switchNetwork(networkInfo.network)
+          }
+
           closeNetworkModal()
         } catch (error) {
           console.error('Network switch failed:', error)
@@ -392,37 +497,58 @@ const updateTheme = mode => {
 
 // Action functions
 async function handleSignMessage() {
-  if (!accountState.isConnected) {
-    showError('Please connect wallet first.')
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
+    showError('지갑 미연결', 'Cross Wallet 또는 MetaMask를 먼저 연결해주세요.')
     return
   }
 
   try {
-    const signedMessage = await ConnectionController.signMessage({
-      message: `Hello, world! ${Date.now()}`,
-      customData: {
-        metadata: 'This is metadata for signed message'
-      }
-    })
-    showSuccess('Signature successful!', `Signature: ${signedMessage}`)
+    const message = `Hello, world! ${Date.now()}`
+
+    if (activeWallet.type === 'metamask') {
+      // MetaMask 사용
+      const signature = await activeWallet.provider.request({
+        method: 'personal_sign',
+        params: [message, activeWallet.account]
+      })
+      showSuccess(
+        '🦊 MetaMask 서명 성공!',
+        `메시지: ${message}\n서명: ${signature.slice(0, 20)}...${signature.slice(-20)}`
+      )
+    } else {
+      // Cross Wallet 사용
+      const signedMessage = await ConnectionController.signMessage({
+        message,
+        customData: {
+          metadata: 'This is metadata for signed message'
+        }
+      })
+      showSuccess('⚡ Cross Wallet 서명 성공!', `서명: ${signedMessage}`)
+    }
   } catch (error) {
     console.error('Error signing message:', error)
-    showError('Signature failed!', `Error: ${error.message}`)
+    showError('서명 실패!', `Error: ${error.message}`)
   }
 }
 
 // Universal EIP-712 signing using server-provided typed data
 async function handleSignTypedDataV4() {
-  if (!accountState.isConnected) {
-    showError('Please connect wallet first.')
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
+    showError('지갑 미연결', 'Cross Wallet 또는 MetaMask를 먼저 연결해주세요.')
     return
   }
 
   // Get current chain ID for the fallback data
   const currentChainId =
-    typeof networkState.chainId === 'string'
-      ? parseInt(networkState.chainId, 10)
-      : networkState.chainId || 1
+    activeWallet.type === 'metamask'
+      ? activeWallet.chainId
+      : typeof networkState.chainId === 'string'
+        ? parseInt(networkState.chainId, 10)
+        : networkState.chainId || 1
 
   // Fallback typed data for when API fails
   const fallbackTypedData = {
@@ -448,7 +574,7 @@ async function handleSignTypedDataV4() {
 
     try {
       console.log('Requesting typed data from Cross Ramp API...')
-      const FROM_ADDRESS = getFROM_ADDRESS()
+      const FROM_ADDRESS = activeWallet.account
 
       // Get typed data from API
       const response = await fetch(
@@ -489,23 +615,49 @@ async function handleSignTypedDataV4() {
       usingFallback = true
     }
 
-    // Use the universal signTypedDataV4 method
-    const signature = await ConnectionController.signTypedDataV4(paramsData, {
-      metadata: apiData
-        ? {
-            apiResponse: {
-              hash: apiData.data.hash,
-              uuid: apiData.data.uuid,
-              recover: apiData.data.recover
-            },
-            description: 'Universal EIP-712 typed data signature',
-            timestamp: new Date().toISOString()
-          }
-        : {
-            description: 'Universal EIP-712 typed data signature (using fallback data)',
-            timestamp: new Date().toISOString()
-          }
-    })
+    let signature
+
+    if (activeWallet.type === 'metamask') {
+      // MetaMask 사용 - eth_signTypedData_v4 메서드 사용
+      console.log('🦊 Signing with MetaMask...')
+
+      // EIP-712 형식으로 변환
+      const typedData = {
+        domain: paramsData.domain,
+        types: paramsData.types,
+        primaryType: paramsData.primaryType,
+        message: paramsData.message
+      }
+
+      signature = await activeWallet.provider.request({
+        method: 'eth_signTypedData_v4',
+        params: [activeWallet.account, JSON.stringify(typedData)]
+      })
+
+      console.log('🦊 MetaMask signature result:', signature)
+    } else {
+      // Cross Wallet 사용 - ConnectionController.signTypedDataV4 사용
+      console.log('⚡ Signing with Cross Wallet...')
+
+      signature = await ConnectionController.signTypedDataV4(paramsData, {
+        metadata: apiData
+          ? {
+              apiResponse: {
+                hash: apiData.data.hash,
+                uuid: apiData.data.uuid,
+                recover: apiData.data.recover
+              },
+              description: 'Universal EIP-712 typed data signature',
+              timestamp: new Date().toISOString()
+            }
+          : {
+              description: 'Universal EIP-712 typed data signature (using fallback data)',
+              timestamp: new Date().toISOString()
+            }
+      })
+
+      console.log('⚡ Cross Wallet signature result:', signature)
+    }
 
     if (!signature) {
       showError('Signature is undefined')
@@ -515,11 +667,13 @@ async function handleSignTypedDataV4() {
     console.log('Signature result:', signature)
 
     // Show detailed results
+    const walletIcon = activeWallet.type === 'metamask' ? '🦊' : '⚡'
+    const walletName = activeWallet.type === 'metamask' ? 'MetaMask' : 'Cross Wallet'
     const message = usingFallback
-      ? `Signature: ${signature}\n⚠️ Using Fallback Data (API unavailable)`
-      : `Signature: ${signature}`
+      ? `${walletIcon} ${walletName} Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n⚠️ Using Fallback Data (API unavailable)`
+      : `${walletIcon} ${walletName} Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}`
 
-    showSuccess('Signature successful!', message)
+    showSuccess('서명 성공!', message)
   } catch (error) {
     console.error('Error in handleSignTypedDataV4:', error)
     showError('Signature failed!', `Error: ${error.message}`)
@@ -545,7 +699,9 @@ async function handleProviderRequest() {
 }
 
 async function handleSendTransaction() {
-  if (!accountState.isConnected) {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
     showError('Please connect wallet first.')
     return
   }
@@ -556,35 +712,63 @@ async function handleSendTransaction() {
   }
 
   try {
-    const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 트랜잭션 (NFT Mint)
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+      const signer = await ethersProvider.getSigner()
 
-    const resTx = await ConnectionController.writeContract({
-      fromAddress,
-      contractAddress,
-      args,
-      method,
-      abi,
-      chainNamespace,
-      customData: {
-        metadata: {
-          activity: 'You are about to send custom transaction to the contract.',
-          currentFormat: 'This is a JSON formatted custom data.',
-          providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
-          txTime: new Date().toISOString(),
-          randomValue: uuidv4()
-        }
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-    })
+      const { contractAddress, args, abi } = contractArgs
 
-    showSuccess('Transaction successful!', `Response: ${JSON.stringify(resTx)}`)
+      const contract = new ethers.Contract(contractAddress, abi, signer)
 
-    // generate new tokenId for next NFT
-    const uuidHex = uuidv4().replace(/-/g, '')
-    const tokenId = BigInt(`0x${uuidHex}`).toString()
-    const newArgs = [getFROM_ADDRESS(), tokenId]
+      // mintTo 함수 호출
+      const tx = await contract.mintTo(...args)
+      await tx.wait()
 
-    contractArgs = { ...contractArgs, args: newArgs }
+      showSuccess(
+        '🦊 MetaMask Transaction successful!',
+        `Transaction Hash: ${tx.hash}\nContract: ${contractAddress}\nToken ID: ${args[1]}`
+      )
+
+      // generate new tokenId for next NFT
+      const uuidHex = uuidv4().replace(/-/g, '')
+      const tokenId = BigInt(`0x${uuidHex}`).toString()
+      const newArgs = [activeWallet.account, tokenId]
+
+      contractArgs = { ...contractArgs, args: newArgs }
+    } else {
+      // Cross SDK를 사용한 트랜잭션
+      const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
+
+      const resTx = await ConnectionController.writeContract({
+        fromAddress,
+        contractAddress,
+        args,
+        method,
+        abi,
+        chainNamespace,
+        customData: {
+          metadata: {
+            activity: 'You are about to send custom transaction to the contract.',
+            currentFormat: 'This is a JSON formatted custom data.',
+            providedFormat:
+              'Plain text(string), HTML(string), JSON(key value object) are supported.',
+            txTime: new Date().toISOString(),
+            randomValue: uuidv4()
+          }
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+      })
+
+      showSuccess('⚡ Cross Transaction successful!', `Response: ${JSON.stringify(resTx)}`)
+
+      // generate new tokenId for next NFT
+      const uuidHex = uuidv4().replace(/-/g, '')
+      const tokenId = BigInt(`0x${uuidHex}`).toString()
+      const newArgs = [getFROM_ADDRESS(), tokenId]
+
+      contractArgs = { ...contractArgs, args: newArgs }
+    }
   } catch (error) {
     console.error('Error sending transaction:', error)
     showError('Transaction failed!', `Error: ${error.message}`)
@@ -592,27 +776,53 @@ async function handleSendTransaction() {
 }
 
 async function handleSendNative() {
-  if (!accountState.isConnected) {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
     showError('Please connect wallet first.')
     return
   }
 
   try {
-    const resTx = await SendController.sendNativeToken({
-      data: '0x',
-      receiverAddress: RECEIVER_ADDRESS,
-      sendTokenAmount:
-        networkState.chainId === 1 || networkState.chainId === 11155111
-          ? 0.0001
-          : SEND_CROSS_AMOUNT, // in eth (not wei)
-      decimals: '18',
-      customData: {
-        metadata:
-          'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-    })
-    showSuccess('Native token send successful!', `Response: ${JSON.stringify(resTx)}`)
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 Native Token 전송
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+      const signer = await ethersProvider.getSigner()
+
+      const amount =
+        activeWallet.chainId === 1 || activeWallet.chainId === 11155111
+          ? '0.0001'
+          : SEND_CROSS_AMOUNT.toString()
+
+      const tx = await signer.sendTransaction({
+        to: RECEIVER_ADDRESS,
+        value: ethers.parseEther(amount)
+      })
+
+      await tx.wait()
+
+      showSuccess(
+        '🦊 MetaMask Native token send successful!',
+        `Transaction Hash: ${tx.hash}\nAmount: ${amount}\nTo: ${RECEIVER_ADDRESS}`
+      )
+    } else {
+      // Cross SDK를 사용한 Native Token 전송
+      const resTx = await SendController.sendNativeToken({
+        data: '0x',
+        receiverAddress: RECEIVER_ADDRESS,
+        sendTokenAmount:
+          networkState.chainId === 1 || networkState.chainId === 11155111
+            ? 0.0001
+            : SEND_CROSS_AMOUNT, // in eth (not wei)
+        decimals: '18',
+        customData: {
+          metadata:
+            'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+      })
+      showSuccess('⚡ Cross Native token send successful!', `Response: ${JSON.stringify(resTx)}`)
+    }
   } catch (error) {
     console.error('Error sending native token:', error)
     showError('Native token send failed!', `Error: ${error.message}`)
@@ -620,24 +830,55 @@ async function handleSendNative() {
 }
 
 async function handleSendERC20Token() {
-  if (!accountState.isConnected) {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
     showError('Please connect wallet first.')
     return
   }
 
   try {
-    const resTx = await SendController.sendERC20Token({
-      receiverAddress: RECEIVER_ADDRESS,
-      contractAddress: getERC20CAIPAddress(),
-      sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
-      decimals: '18',
-      customData: {
-        metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-    })
-    showSuccess('ERC20 token send successful!', `Response: ${JSON.stringify(resTx)}`)
-    getBalanceOfERC20({ showResult: false })
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 ERC20 Token 전송
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+      const signer = await ethersProvider.getSigner()
+
+      if (!ERC20_ADDRESS || ERC20_ADDRESS === '0x') {
+        showError('ERC20 contract does not exist on this network.')
+        return
+      }
+
+      // ERC20 ABI (transfer 함수만 필요)
+      const erc20Abi = ['function transfer(address to, uint256 amount) returns (bool)']
+
+      const contract = new ethers.Contract(ERC20_ADDRESS, erc20Abi, signer)
+
+      const amount = ethers.parseUnits(SEND_ERC20_AMOUNT.toString(), 18)
+
+      const tx = await contract.transfer(RECEIVER_ADDRESS, amount)
+      await tx.wait()
+
+      showSuccess(
+        '🦊 MetaMask ERC20 token send successful!',
+        `Transaction Hash: ${tx.hash}\nAmount: ${SEND_ERC20_AMOUNT}\nTo: ${RECEIVER_ADDRESS}\nContract: ${ERC20_ADDRESS}`
+      )
+
+      getBalanceOfERC20({ showResult: false })
+    } else {
+      // Cross SDK를 사용한 ERC20 Token 전송
+      const resTx = await SendController.sendERC20Token({
+        receiverAddress: RECEIVER_ADDRESS,
+        contractAddress: getERC20CAIPAddress(),
+        sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
+        decimals: '18',
+        customData: {
+          metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+      })
+      showSuccess('⚡ Cross ERC20 token send successful!', `Response: ${JSON.stringify(resTx)}`)
+      getBalanceOfERC20({ showResult: false })
+    }
   } catch (error) {
     console.error('Error sending ERC20 token:', error)
     showError('ERC20 token send failed!', `Error: ${error.message}`)
@@ -645,7 +886,9 @@ async function handleSendERC20Token() {
 }
 
 async function handleSendTransactionWithDynamicFee() {
-  if (!accountState.isConnected) {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
     showError('Please connect wallet first.')
     return
   }
@@ -656,35 +899,63 @@ async function handleSendTransactionWithDynamicFee() {
   }
 
   try {
-    const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 트랜잭션 (NFT Mint)
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+      const signer = await ethersProvider.getSigner()
 
-    const resTx = await ConnectionController.writeContract({
-      fromAddress,
-      contractAddress,
-      args,
-      method,
-      abi,
-      chainNamespace,
-      customData: {
-        metadata: {
-          activity: 'You are about to send custom transaction to the contract.',
-          currentFormat: 'This is a JSON formatted custom data.',
-          providedFormat: 'Plain text(string), HTML(string), JSON(key value object) are supported.',
-          txTime: new Date().toISOString(),
-          randomValue: uuidv4()
-        }
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
-    })
+      const { contractAddress, args, abi } = contractArgs
 
-    showSuccess('Transaction successful!', `Response: ${JSON.stringify(resTx)}`)
+      const contract = new ethers.Contract(contractAddress, abi, signer)
 
-    // generate new tokenId for next NFT
-    const uuidHex = uuidv4().replace(/-/g, '')
-    const tokenId = BigInt(`0x${uuidHex}`).toString()
-    const newArgs = [getFROM_ADDRESS(), tokenId]
+      // mintTo 함수 호출
+      const tx = await contract.mintTo(...args)
+      await tx.wait()
 
-    contractArgs = { ...contractArgs, args: newArgs }
+      showSuccess(
+        '🦊 MetaMask Transaction successful!',
+        `Transaction Hash: ${tx.hash}\nContract: ${contractAddress}\nToken ID: ${args[1]}`
+      )
+
+      // generate new tokenId for next NFT
+      const uuidHex = uuidv4().replace(/-/g, '')
+      const tokenId = BigInt(`0x${uuidHex}`).toString()
+      const newArgs = [activeWallet.account, tokenId]
+
+      contractArgs = { ...contractArgs, args: newArgs }
+    } else {
+      // Cross SDK를 사용한 트랜잭션
+      const { fromAddress, contractAddress, args, method, abi, chainNamespace } = contractArgs
+
+      const resTx = await ConnectionController.writeContract({
+        fromAddress,
+        contractAddress,
+        args,
+        method,
+        abi,
+        chainNamespace,
+        customData: {
+          metadata: {
+            activity: 'You are about to send custom transaction to the contract.',
+            currentFormat: 'This is a JSON formatted custom data.',
+            providedFormat:
+              'Plain text(string), HTML(string), JSON(key value object) are supported.',
+            txTime: new Date().toISOString(),
+            randomValue: uuidv4()
+          }
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+      })
+
+      showSuccess('⚡ Cross Transaction successful!', `Response: ${JSON.stringify(resTx)}`)
+
+      // generate new tokenId for next NFT
+      const uuidHex = uuidv4().replace(/-/g, '')
+      const tokenId = BigInt(`0x${uuidHex}`).toString()
+      const newArgs = [getFROM_ADDRESS(), tokenId]
+
+      contractArgs = { ...contractArgs, args: newArgs }
+    }
   } catch (error) {
     console.error('Error sending transaction with dynamic fee:', error)
     showError('Transaction with dynamic fee failed!', `Error: ${error.message}`)
@@ -692,27 +963,48 @@ async function handleSendTransactionWithDynamicFee() {
 }
 
 async function handleSendNativeWithDynamicFee() {
-  if (!accountState.isConnected) {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
     showError('Please connect wallet first.')
     return
   }
 
   try {
-    const resTx = await SendController.sendNativeToken({
-      data: '0x',
-      receiverAddress: RECEIVER_ADDRESS,
-      sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
-      decimals: '18',
-      customData: {
-        metadata:
-          'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
-    })
-    showSuccess(
-      'Native token send with dynamic fee successful!',
-      `Response: ${JSON.stringify(resTx)}`
-    )
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 Native Token 전송 (Dynamic Fee)
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+      const signer = await ethersProvider.getSigner()
+
+      const tx = await signer.sendTransaction({
+        to: RECEIVER_ADDRESS,
+        value: ethers.parseEther(SEND_CROSS_AMOUNT.toString())
+      })
+
+      await tx.wait()
+
+      showSuccess(
+        '🦊 MetaMask Native token send with dynamic fee successful!',
+        `Transaction Hash: ${tx.hash}\nAmount: ${SEND_CROSS_AMOUNT}\nTo: ${RECEIVER_ADDRESS}`
+      )
+    } else {
+      // Cross SDK를 사용한 Native Token 전송
+      const resTx = await SendController.sendNativeToken({
+        data: '0x',
+        receiverAddress: RECEIVER_ADDRESS,
+        sendTokenAmount: SEND_CROSS_AMOUNT, // in eth (not wei)
+        decimals: '18',
+        customData: {
+          metadata:
+            'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+      })
+      showSuccess(
+        '⚡ Cross Native token send with dynamic fee successful!',
+        `Response: ${JSON.stringify(resTx)}`
+      )
+    }
   } catch (error) {
     console.error('Error sending native token with dynamic fee:', error)
     showError('Native token send with dynamic fee failed!', `Error: ${error.message}`)
@@ -720,30 +1012,61 @@ async function handleSendNativeWithDynamicFee() {
 }
 
 async function handleSendERC20TokenWithDynamicFee() {
-  if (!accountState.isConnected) {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
     showError('Please connect wallet first.')
     return
   }
 
   try {
-    const resTx = await SendController.sendERC20Token({
-      receiverAddress: RECEIVER_ADDRESS,
-      contractAddress: getERC20CAIPAddress(),
-      sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
-      decimals: '18',
-      gas: BigInt(147726), // optional (you can set this your calculated gas or skip it )
-      maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
-      maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
-      customData: {
-        metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
-      },
-      type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
-    })
-    showSuccess(
-      'ERC20 token send with dynamic fee successful!',
-      `Response: ${JSON.stringify(resTx)}`
-    )
-    getBalanceOfERC20({ showResult: false })
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 ERC20 Token 전송 (Dynamic Fee)
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+      const signer = await ethersProvider.getSigner()
+
+      if (!ERC20_ADDRESS || ERC20_ADDRESS === '0x') {
+        showError('ERC20 contract does not exist on this network.')
+        return
+      }
+
+      // ERC20 ABI (transfer 함수만 필요)
+      const erc20Abi = ['function transfer(address to, uint256 amount) returns (bool)']
+
+      const contract = new ethers.Contract(ERC20_ADDRESS, erc20Abi, signer)
+
+      const amount = ethers.parseUnits(SEND_ERC20_AMOUNT.toString(), 18)
+
+      const tx = await contract.transfer(RECEIVER_ADDRESS, amount)
+      await tx.wait()
+
+      showSuccess(
+        '🦊 MetaMask ERC20 token send with dynamic fee successful!',
+        `Transaction Hash: ${tx.hash}\nAmount: ${SEND_ERC20_AMOUNT}\nTo: ${RECEIVER_ADDRESS}\nContract: ${ERC20_ADDRESS}`
+      )
+
+      getBalanceOfERC20({ showResult: false })
+    } else {
+      // Cross SDK를 사용한 ERC20 Token 전송
+      const resTx = await SendController.sendERC20Token({
+        receiverAddress: RECEIVER_ADDRESS,
+        contractAddress: getERC20CAIPAddress(),
+        sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
+        decimals: '18',
+        gas: BigInt(147726), // optional (you can set this your calculated gas or skip it )
+        maxFee: BigInt(3200000000), // optional (you can set this your calculated maxFee or skip it)
+        maxPriorityFee: BigInt(2000000000), // optional (you can set this your calculated maxPriorityFee or skip it)
+        customData: {
+          metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+        },
+        type: ConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+      })
+      showSuccess(
+        '⚡ Cross ERC20 token send with dynamic fee successful!',
+        `Response: ${JSON.stringify(resTx)}`
+      )
+      getBalanceOfERC20({ showResult: false })
+    }
   } catch (error) {
     console.error('Error sending ERC20 token with dynamic fee:', error)
     showError('ERC20 token send with dynamic fee failed!', `Error: ${error.message}`)
@@ -751,75 +1074,159 @@ async function handleSendERC20TokenWithDynamicFee() {
 }
 
 async function getBalanceOfNative() {
-  if (!accountState.isConnected) {
-    showError('Please connect wallet first.')
-    return
-  }
+  const activeWallet = getActiveWallet()
 
-  const balance = accountState?.balance
-  showSuccess('Native token balance!', `Balance: ${balance}`)
-}
-
-async function getBalanceOfERC20({ showResult = true } = {}) {
-  if (!accountState.isConnected) {
+  if (!activeWallet) {
     showError('Please connect wallet first.')
     return
   }
 
   try {
-    const amount = await ConnectionController.readContract({
-      contractAddress: ERC20_ADDRESS,
-      method: 'balanceOf',
-      abi: sampleErc20ABI,
-      args: [getFROM_ADDRESS()]
-    })
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 잔액 조회
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+      const balance = await ethersProvider.getBalance(activeWallet.account)
+      const balanceInEther = ethers.formatEther(balance)
 
-    const balance = accountState?.tokenBalance?.map(token => {
-      if (token.address === ERC20_ADDRESS.toLowerCase()) {
-        return {
-          ...token,
-          quantity: {
-            ...token.quantity,
-            numeric: amount
+      showSuccess(
+        '🦊 MetaMask Native token balance!',
+        `Balance: ${parseFloat(balanceInEther).toFixed(4)} ETH`
+      )
+    } else {
+      // Cross SDK를 사용한 잔액 조회
+      const balance = accountState?.balance
+      showSuccess('⚡ Cross Native token balance!', `Balance: ${balance}`)
+    }
+  } catch (error) {
+    console.error('Error getting native balance:', error)
+    showError('Failed to get native balance', `Error: ${error.message}`)
+  }
+}
+
+async function getBalanceOfERC20({ showResult = true } = {}) {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
+    showError('Please connect wallet first.')
+    return
+  }
+
+  try {
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 ERC20 잔액 조회
+      if (!ERC20_ADDRESS || ERC20_ADDRESS === '0x') {
+        if (showResult) {
+          showError('ERC20 contract does not exist on this network.')
+        }
+        return
+      }
+
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+
+      // ERC20 ABI (balanceOf 함수만 필요)
+      const erc20Abi = ['function balanceOf(address owner) view returns (uint256)']
+
+      const contract = new ethers.Contract(ERC20_ADDRESS, erc20Abi, ethersProvider)
+
+      const balance = await contract.balanceOf(activeWallet.account)
+      const balanceFormatted = ethers.formatUnits(balance, 18)
+
+      if (showResult) {
+        showSuccess(
+          '🦊 MetaMask ERC20 balance!',
+          `Balance: ${parseFloat(balanceFormatted).toFixed(4)}\nContract: ${ERC20_ADDRESS}`
+        )
+      }
+    } else {
+      // Cross SDK를 사용한 ERC20 잔액 조회
+      const amount = await ConnectionController.readContract({
+        contractAddress: ERC20_ADDRESS,
+        method: 'balanceOf',
+        abi: sampleErc20ABI,
+        args: [getFROM_ADDRESS()]
+      })
+
+      const balance = accountState?.tokenBalance?.map(token => {
+        if (token.address === ERC20_ADDRESS.toLowerCase()) {
+          return {
+            ...token,
+            quantity: {
+              ...token.quantity,
+              numeric: amount
+            }
           }
         }
-      }
-      return token
-    })
+        return token
+      })
 
-    if (!balance) {
-      console.log('balance not found')
-      return
+      if (!balance) {
+        console.log('balance not found')
+        return
+      }
+      await AccountController.updateTokenBalance(balance)
+      if (showResult)
+        showSuccess(
+          '⚡ Cross ERC20 balance updated!',
+          `Updated erc20 balance: ${JSON.stringify(
+            accountState?.tokenBalance?.find(
+              token => token.address === ERC20_ADDRESS.toLowerCase()
+            ),
+            (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+            2
+          )}`
+        )
     }
-    await AccountController.updateTokenBalance(balance)
-    if (showResult)
-      showSuccess(
-        'ERC20 balance updated!',
-        `Updated erc20 balance: ${JSON.stringify(
-          accountState?.tokenBalance?.find(token => token.address === ERC20_ADDRESS.toLowerCase()),
-          (key, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )}`
-      )
   } catch (error) {
     console.error('Error getting ERC20 balance:', error)
-    showError('Failed to get ERC20 balance')
+    if (showResult) {
+      showError('Failed to get ERC20 balance', `Error: ${error.message}`)
+    }
   }
 }
 
 async function getBalanceOfNFT() {
-  try {
-    const amount = await ConnectionController.readContract({
-      contractAddress: ERC721_ADDRESS,
-      method: 'balanceOf',
-      abi: sampleErc721ABI,
-      args: [getFROM_ADDRESS()]
-    })
+  const activeWallet = getActiveWallet()
 
-    showSuccess('NFT balance!', `Balance: ${amount}`)
+  if (!activeWallet) {
+    showError('Please connect wallet first.')
+    return
+  }
+
+  try {
+    if (activeWallet.type === 'metamask') {
+      // MetaMask를 사용한 NFT 잔액 조회
+      if (!ERC721_ADDRESS || ERC721_ADDRESS === '0x') {
+        showError('NFT contract does not exist on this network.')
+        return
+      }
+
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+
+      // ERC721 ABI (balanceOf 함수만 필요)
+      const erc721Abi = ['function balanceOf(address owner) view returns (uint256)']
+
+      const contract = new ethers.Contract(ERC721_ADDRESS, erc721Abi, ethersProvider)
+
+      const balance = await contract.balanceOf(activeWallet.account)
+
+      showSuccess(
+        '🦊 MetaMask NFT balance!',
+        `Balance: ${balance.toString()}\nContract: ${ERC721_ADDRESS}`
+      )
+    } else {
+      // Cross SDK를 사용한 NFT 잔액 조회
+      const amount = await ConnectionController.readContract({
+        contractAddress: ERC721_ADDRESS,
+        method: 'balanceOf',
+        abi: sampleErc721ABI,
+        args: [getFROM_ADDRESS()]
+      })
+
+      showSuccess('⚡ Cross NFT balance!', `Balance: ${amount}`)
+    }
   } catch (error) {
     console.error('Error getting NFT balance:', error)
-    showError('Failed to get NFT balance')
+    showError('Failed to get NFT balance', `Error: ${error.message}`)
   }
 }
 
@@ -885,6 +1292,11 @@ crossSdk.subscribeAccount(state => {
     2
   )
 
+  // Cross Wallet 연결 시 지갑 표시 업데이트
+  if (state.isConnected) {
+    updateWalletIndicator()
+  }
+
   // 버튼 가시성 업데이트
   updateButtonVisibility(accountState.isConnected)
 
@@ -944,12 +1356,24 @@ crossSdk.subscribeProviders(state => {
   eip155Provider = state['eip155']
 })
 
+// 연결된 지갑 타입을 버튼에 표시하는 함수 (주황색 버튼은 UI 변경 없음)
+function updateWalletIndicator() {
+  // 주황색 버튼들은 지갑 타입에 관계없이 원래 UI 유지
+  // 이 함수는 필요시 다른 용도로 확장 가능
+}
+
 // 버튼 표시/숨김을 관리하는 함수
 function updateButtonVisibility(isConnected) {
+  // 어떤 지갑이라도 연결되어 있는지 확인
+  const activeWallet = getActiveWallet()
+  const anyWalletConnected = !!activeWallet
+
   // 연결 관련 버튼들
   const connectButtons = [
     document.getElementById('connect-wallet'),
     document.getElementById('connect-cross-extension'),
+    document.getElementById('connect-metamask-qrcode'),
+    document.getElementById('connect-metamask-extension'),
     document.getElementById('check-cross-extension')
   ]
 
@@ -959,7 +1383,7 @@ function updateButtonVisibility(isConnected) {
   // 네트워크 변경 버튼
   const switchNetworkButton = document.getElementById('switch-network')
 
-  if (isConnected) {
+  if (anyWalletConnected) {
     // 연결됨: 연결 버튼들 숨기고, disconnect 버튼 표시
     connectButtons.forEach(button => {
       if (button) {
@@ -1045,12 +1469,457 @@ connectCrossExtension.addEventListener('click', async () => {
   }
 })
 
+// MetaMask QRCode 연결 버튼
+const connectMetaMaskQRCode = document.getElementById('connect-metamask-qrcode')
+connectMetaMaskQRCode.addEventListener('click', async () => {
+  try {
+    console.log('🦊 MetaMask QR Code 연결 시도')
+
+    // WalletConnect Provider 초기화 및 연결
+    if (!walletConnectProvider) {
+      walletConnectProvider = await EthereumProvider.init({
+        projectId: metamaskProjectId,
+        chains: [1], // Ethereum Mainnet
+        optionalChains: [
+          11155111, // Sepolia
+          crossMainnet.id, // Cross Mainnet
+          crossTestnet.id, // Cross Testnet
+          bscMainnet.id, // BSC Mainnet
+          bscTestnet.id, // BSC Testnet
+          kaiaMainnet.id, // Kaia Mainnet
+          kaiaTestnet.id // Kaia Testnet
+        ],
+        showQrModal: true, // QR 코드 모달 표시
+        qrModalOptions: {
+          themeMode: 'light',
+          themeVariables: {
+            '--wcm-accent-color': '#F6851B'
+          }
+        },
+        metadata: {
+          name: 'Cross JS SDK Sample',
+          description: 'Cross SDK for HTML with MetaMask support',
+          url: 'https://to.nexus',
+          icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
+        }
+      })
+    }
+
+    // 연결 시도
+    const accounts = await walletConnectProvider.enable()
+
+    if (accounts && accounts.length > 0) {
+      // MetaMask 전역 상태에 WalletConnect 정보 저장
+      metamaskProvider = walletConnectProvider
+      metamaskAccount = accounts[0]
+
+      // 네트워크 정보 가져오기
+      const chainId = await walletConnectProvider.request({ method: 'eth_chainId' })
+      metamaskChainId = parseInt(chainId, 16)
+
+      console.log('✅ MetaMask QR Code 연결 성공:', {
+        account: metamaskAccount,
+        chainId: metamaskChainId
+      })
+
+      // ethers provider 생성
+      const ethersProvider = new ethers.BrowserProvider(walletConnectProvider)
+      const balance = await ethersProvider.getBalance(metamaskAccount)
+      const balanceInEther = ethers.formatEther(balance)
+
+      alert(
+        `MetaMask QR Code 연결 성공!\n\n` +
+          `주소: ${metamaskAccount.slice(0, 10)}...${metamaskAccount.slice(-8)}\n` +
+          `Chain ID: ${metamaskChainId}\n` +
+          `잔액: ${parseFloat(balanceInEther).toFixed(4)}\n\n` +
+          `이제 MetaMask 버튼들을 사용할 수 있습니다.`
+      )
+
+      // 버튼 상태 업데이트
+      updateButtonVisibility(true)
+
+      // Switch Network 버튼 텍스트 업데이트
+      const switchNetworkButton = document.getElementById('switch-network')
+      if (switchNetworkButton) {
+        const networkName =
+          availableNetworks.find(n => n.network.id === metamaskChainId)?.name ||
+          `Chain ${metamaskChainId}`
+        switchNetworkButton.textContent = networkName
+      }
+
+      // WalletConnect 이벤트 리스너 추가
+      walletConnectProvider.on('chainChanged', newChainId => {
+        const newChainIdNumber = parseInt(newChainId, 16)
+        metamaskChainId = newChainIdNumber
+        console.log('🦊 MetaMask 네트워크 변경됨:', newChainIdNumber)
+
+        const networkName =
+          availableNetworks.find(n => n.network.id === newChainIdNumber)?.name ||
+          `Chain ${newChainIdNumber}`
+        if (switchNetworkButton) {
+          switchNetworkButton.textContent = networkName
+        }
+      })
+
+      walletConnectProvider.on('accountsChanged', newAccounts => {
+        if (newAccounts.length === 0) {
+          // 연결 해제됨
+          metamaskProvider = null
+          metamaskAccount = null
+          metamaskChainId = null
+          walletConnectProvider = null
+          updateButtonVisibility(false)
+          console.log('🦊 MetaMask 연결 해제됨')
+        } else {
+          metamaskAccount = newAccounts[0]
+          console.log('🦊 MetaMask 계정 변경됨:', metamaskAccount)
+        }
+      })
+
+      walletConnectProvider.on('disconnect', () => {
+        console.log('🦊 MetaMask 연결 해제됨')
+        metamaskProvider = null
+        metamaskAccount = null
+        metamaskChainId = null
+        walletConnectProvider = null
+        updateButtonVisibility(false)
+      })
+    }
+  } catch (error) {
+    console.error('Error connecting MetaMask QR Code:', error)
+
+    if (error.message.includes('User rejected')) {
+      alert('연결이 취소되었습니다.')
+    } else {
+      alert(`연결 실패: ${error.message}`)
+    }
+  }
+})
+
+// MetaMask Extension 연결 버튼
+const connectMetaMaskExtension = document.getElementById('connect-metamask-extension')
+connectMetaMaskExtension.addEventListener('click', async () => {
+  try {
+    // MetaMask 설치 확인
+    if (typeof window.ethereum === 'undefined') {
+      alert(
+        'MetaMask Extension이 설치되어 있지 않습니다.\n\nhttps://metamask.io 에서 MetaMask를 설치해주세요.'
+      )
+      return
+    }
+
+    // MetaMask provider 찾기 (여러 지갑이 설치된 경우)
+    const findMetaMaskProvider = () => {
+      if (window.ethereum.providers && Array.isArray(window.ethereum.providers)) {
+        return window.ethereum.providers.find(
+          provider => provider.isMetaMask && !provider.isCrossWallet
+        )
+      }
+      if (window.ethereum.isMetaMask && !window.ethereum.isCrossWallet) {
+        return window.ethereum
+      }
+      return null
+    }
+
+    const provider = findMetaMaskProvider()
+
+    if (!provider) {
+      alert(
+        'MetaMask Extension을 찾을 수 없습니다.\n\n' +
+          '1. MetaMask Extension을 활성화해주세요\n' +
+          '2. 다른 지갑 Extension을 비활성화하고 새로고침해주세요'
+      )
+      return
+    }
+
+    console.log('🦊 MetaMask Extension 연결 시도')
+
+    // MetaMask 연결 요청
+    const accounts = await provider.request({
+      method: 'eth_requestAccounts'
+    })
+
+    if (accounts && accounts.length > 0) {
+      console.log('✅ MetaMask Extension 연결 성공:', accounts[0])
+
+      // 전역 상태에 MetaMask 정보 저장
+      metamaskProvider = provider
+      metamaskAccount = accounts[0]
+
+      // ethers provider 생성
+      const ethersProvider = new ethers.BrowserProvider(provider)
+
+      // 네트워크 정보 가져오기
+      const network = await ethersProvider.getNetwork()
+      const chainId = Number(network.chainId)
+      metamaskChainId = chainId
+
+      // 잔액 조회
+      const balance = await ethersProvider.getBalance(accounts[0])
+      const balanceInEther = ethers.formatEther(balance)
+
+      alert(
+        `MetaMask Extension 연결 성공!\n\n` +
+          `주소: ${accounts[0].slice(0, 10)}...${accounts[0].slice(-8)}\n` +
+          `Chain ID: ${chainId}\n` +
+          `잔액: ${parseFloat(balanceInEther).toFixed(4)} ETH\n\n` +
+          `이제 MetaMask 전용 버튼들을 사용할 수 있습니다.`
+      )
+
+      // 지갑 연결 표시 및 버튼 가시성 업데이트
+      updateWalletIndicator()
+      updateButtonVisibility(true)
+
+      // Switch Network 버튼 텍스트 업데이트
+      const switchNetworkButton = document.getElementById('switch-network')
+      if (switchNetworkButton) {
+        const networkName =
+          availableNetworks.find(n => n.network.id === chainId)?.name || `Chain ${chainId}`
+        switchNetworkButton.textContent = networkName
+      }
+
+      // MetaMask 네트워크 변경 이벤트 리스너 추가
+      provider.on('chainChanged', newChainId => {
+        const newChainIdNumber = parseInt(newChainId, 16)
+        metamaskChainId = newChainIdNumber
+
+        console.log('🦊 MetaMask 네트워크 변경됨:', newChainIdNumber)
+
+        // Switch Network 버튼 텍스트 업데이트
+        const networkName =
+          availableNetworks.find(n => n.network.id === newChainIdNumber)?.name ||
+          `Chain ${newChainIdNumber}`
+        if (switchNetworkButton) {
+          switchNetworkButton.textContent = networkName
+        }
+      })
+
+      // MetaMask 계정 변경 이벤트 리스너 추가
+      provider.on('accountsChanged', newAccounts => {
+        if (newAccounts.length === 0) {
+          // 연결 해제됨
+          console.log('🦊 MetaMask 연결 해제됨')
+          metamaskProvider = null
+          metamaskAccount = null
+          metamaskChainId = null
+          updateButtonVisibility(false)
+        } else {
+          // 계정 변경됨
+          metamaskAccount = newAccounts[0]
+          console.log('🦊 MetaMask 계정 변경됨:', metamaskAccount)
+        }
+      })
+
+      // 상태 업데이트
+      console.log('📊 MetaMask 연결 상태:', {
+        address: accounts[0],
+        chainId,
+        balance: balanceInEther
+      })
+    }
+  } catch (error) {
+    console.error('MetaMask Extension 연결 실패:', error)
+
+    const errorMessage = error?.message || String(error)
+    const isUserRejection =
+      errorMessage.includes('User rejected') ||
+      errorMessage.includes('User denied') ||
+      errorMessage.includes('rejected the request')
+
+    if (isUserRejection) {
+      alert('연결 취소됨: 사용자가 MetaMask 연결을 취소했습니다.')
+    } else {
+      alert(`연결 실패: ${errorMessage}`)
+    }
+  }
+})
+
 // Cross Extension Wallet 설치 확인 버튼
 const checkCrossExtension = document.getElementById('check-cross-extension')
 checkCrossExtension.addEventListener('click', () => {
   const isInstalled = ConnectorUtil.isInstalledCrossExtensionWallet()
   console.log('Cross Extension Wallet 설치 상태:', isInstalled)
   alert(`Cross Extension Wallet ${isInstalled ? '설치됨' : '설치되지 않음'}`)
+})
+
+// ============ MetaMask 전용 액션 핸들러들 ============
+
+// MetaMask Sign Message
+document.getElementById('metamask-sign-message')?.addEventListener('click', async () => {
+  if (!metamaskProvider || !metamaskAccount) {
+    alert('먼저 MetaMask Extension을 연결해주세요.')
+    return
+  }
+
+  try {
+    const message = `Hello from MetaMask! ${Date.now()}`
+
+    const signature = await metamaskProvider.request({
+      method: 'personal_sign',
+      params: [message, metamaskAccount]
+    })
+
+    console.log('✅ MetaMask 서명 성공:', signature)
+    alert(
+      `MetaMask 서명 성공!\n\n` +
+        `메시지: ${message}\n` +
+        `서명: ${signature.slice(0, 20)}...${signature.slice(-20)}`
+    )
+  } catch (error) {
+    console.error('❌ MetaMask 서명 실패:', error)
+    alert(`서명 실패: ${error.message}`)
+  }
+})
+
+// MetaMask Send Transaction
+document.getElementById('metamask-send-transaction')?.addEventListener('click', async () => {
+  if (!metamaskProvider || !metamaskAccount) {
+    alert('먼저 MetaMask Extension을 연결해주세요.')
+    return
+  }
+
+  try {
+    const txHash = await metamaskProvider.request({
+      method: 'eth_sendTransaction',
+      params: [
+        {
+          from: metamaskAccount,
+          to: RECEIVER_ADDRESS,
+          value: ethers.parseEther('0.001').toString(16), // 0.001 ETH
+          gas: '0x5208' // 21000
+        }
+      ]
+    })
+
+    console.log('✅ MetaMask 트랜잭션 전송:', txHash)
+    alert(
+      `MetaMask 트랜잭션 전송 성공!\n\n` +
+        `Transaction Hash: ${txHash}\n` +
+        `To: ${RECEIVER_ADDRESS}\n` +
+        `Value: 0.001 ETH`
+    )
+  } catch (error) {
+    console.error('❌ MetaMask 트랜잭션 실패:', error)
+
+    const errorMessage = error?.message || String(error)
+    const isUserRejection =
+      errorMessage.includes('User rejected') || errorMessage.includes('User denied')
+
+    if (isUserRejection) {
+      alert('트랜잭션 취소됨: 사용자가 트랜잭션을 취소했습니다.')
+    } else {
+      alert(`트랜잭션 실패: ${errorMessage}`)
+    }
+  }
+})
+
+// MetaMask Get Balance
+document.getElementById('metamask-get-balance')?.addEventListener('click', async () => {
+  if (!metamaskProvider || !metamaskAccount) {
+    alert('먼저 MetaMask Extension을 연결해주세요.')
+    return
+  }
+
+  try {
+    const ethersProvider = new ethers.BrowserProvider(metamaskProvider)
+    const balance = await ethersProvider.getBalance(metamaskAccount)
+    const balanceInEther = ethers.formatEther(balance)
+
+    console.log('✅ MetaMask 잔액 조회:', balanceInEther)
+    alert(
+      `MetaMask 잔액 조회 성공!\n\n` +
+        `주소: ${metamaskAccount.slice(0, 10)}...${metamaskAccount.slice(-8)}\n` +
+        `잔액: ${parseFloat(balanceInEther).toFixed(6)} ETH\n` +
+        `Chain ID: ${metamaskChainId}`
+    )
+  } catch (error) {
+    console.error('❌ MetaMask 잔액 조회 실패:', error)
+    alert(`잔액 조회 실패: ${error.message}`)
+  }
+})
+
+// ============ 통합 액션 핸들러들 (자동 지갑 감지) ============
+
+// 통합 Send Transaction
+document.getElementById('send-transaction-unified')?.addEventListener('click', async () => {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
+    showError('지갑 미연결', 'Cross Wallet 또는 MetaMask를 먼저 연결해주세요.')
+    return
+  }
+
+  try {
+    if (activeWallet.type === 'metamask') {
+      // MetaMask 사용
+      const txHash = await activeWallet.provider.request({
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: activeWallet.account,
+            to: RECEIVER_ADDRESS,
+            value: '0x' + ethers.parseEther('0.001').toString(16), // 0.001 ETH
+            gas: '0x5208' // 21000
+          }
+        ]
+      })
+
+      showSuccess(
+        '🦊 MetaMask 트랜잭션 성공!',
+        `Tx Hash: ${txHash}\nTo: ${RECEIVER_ADDRESS}\nValue: 0.001 ETH`
+      )
+    } else {
+      // Cross Wallet 사용
+      const result = await SendController.sendTransaction({
+        to: RECEIVER_ADDRESS,
+        value: ConnectionController.parseUnits('0.01', 18),
+        data: '0x'
+      })
+
+      showSuccess('⚡ Cross Wallet 트랜잭션 성공!', `Tx Hash: ${result}\nTo: ${RECEIVER_ADDRESS}`)
+    }
+  } catch (error) {
+    console.error('Transaction error:', error)
+    showError('트랜잭션 실패!', `Error: ${error.message}`)
+  }
+})
+
+// 통합 Get Balance
+document.getElementById('get-balance-unified')?.addEventListener('click', async () => {
+  const activeWallet = getActiveWallet()
+
+  if (!activeWallet) {
+    showError('지갑 미연결', 'Cross Wallet 또는 MetaMask를 먼저 연결해주세요.')
+    return
+  }
+
+  try {
+    if (activeWallet.type === 'metamask') {
+      // MetaMask 사용
+      const ethersProvider = new ethers.BrowserProvider(activeWallet.provider)
+      const balance = await ethersProvider.getBalance(activeWallet.account)
+      const balanceInEther = ethers.formatEther(balance)
+
+      showSuccess(
+        '🦊 MetaMask 잔액 조회 성공!',
+        `주소: ${activeWallet.account.slice(0, 10)}...${activeWallet.account.slice(-8)}\n` +
+          `잔액: ${parseFloat(balanceInEther).toFixed(6)} ETH\n` +
+          `Chain ID: ${activeWallet.chainId}`
+      )
+    } else {
+      // Cross Wallet 사용
+      const balance = await ConnectionController.getBalance(activeWallet.account)
+      const coin = contractData[activeWallet.chainId]?.coin || 'TOKEN'
+
+      showSuccess(
+        '⚡ Cross Wallet 잔액 조회 성공!',
+        `주소: ${activeWallet.account}\n잔액: ${balance} ${coin}`
+      )
+    }
+  } catch (error) {
+    console.error('Balance error:', error)
+    showError('잔액 조회 실패!', `Error: ${error.message}`)
+  }
 })
 
 document.getElementById('toggle-theme')?.addEventListener('click', () => {
@@ -1064,8 +1933,40 @@ document.getElementById('toggle-theme')?.addEventListener('click', () => {
 const disconnectWallet = document.getElementById('disconnect-wallet')
 disconnectWallet.addEventListener('click', async () => {
   try {
-    await appkitWallet.disconnect()
-    console.log('지갑 연결 해제 완료')
+    const activeWallet = getActiveWallet()
+
+    if (!activeWallet) {
+      console.log('연결된 지갑이 없습니다.')
+      return
+    }
+
+    if (activeWallet.type === 'metamask') {
+      // MetaMask 연결 해제
+      console.log('🦊 MetaMask 연결 해제 중...')
+
+      // WalletConnect Provider가 있으면 disconnect 호출
+      if (walletConnectProvider) {
+        await walletConnectProvider.disconnect()
+        walletConnectProvider = null
+      }
+
+      // MetaMask 전역 상태 초기화
+      metamaskProvider = null
+      metamaskAccount = null
+      metamaskChainId = null
+
+      // 버튼 상태 업데이트
+      updateWalletIndicator()
+      updateButtonVisibility(false)
+
+      console.log('✅ MetaMask 연결 해제 완료')
+      alert('MetaMask 연결이 해제되었습니다.')
+    } else {
+      // Cross SDK 연결 해제
+      console.log('⚡ Cross Wallet 연결 해제 중...')
+      await appkitWallet.disconnect()
+      console.log('✅ Cross Wallet 연결 해제 완료')
+    }
   } catch (error) {
     console.error('지갑 연결 해제 실패:', error)
     alert(`연결 해제 실패: ${error.message}`)
