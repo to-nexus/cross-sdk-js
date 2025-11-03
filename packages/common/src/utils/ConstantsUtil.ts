@@ -67,6 +67,39 @@ export const ConstantsUtil = {
     STAGE: 'wss://stg-cross-relay.crosstoken.io/ws',
     PRODUCTION: 'wss://cross-relay.crosstoken.io/ws'
   },
+  getUniversalLink() {
+    // VITE_UNIVERSAL_LINK 환경변수가 있으면 우선 사용 (Vite 전용)
+    if (import.meta?.env?.['VITE_UNIVERSAL_LINK']) {
+      console.log(
+        'Using VITE_UNIVERSAL_LINK from import.meta.env:',
+        import.meta.env['VITE_UNIVERSAL_LINK']
+      )
+
+      return import.meta.env['VITE_UNIVERSAL_LINK']
+    }
+
+    // UNIVERSAL_LINK 환경변수가 있으면 우선 사용
+    if (import.meta?.env?.['UNIVERSAL_LINK']) {
+      console.log('Using UNIVERSAL_LINK from import.meta.env:', import.meta.env['UNIVERSAL_LINK'])
+
+      return import.meta.env['UNIVERSAL_LINK']
+    }
+
+    if (process?.env?.['UNIVERSAL_LINK']) {
+      console.log('Using UNIVERSAL_LINK from process.env:', process.env['UNIVERSAL_LINK'])
+
+      return process.env['UNIVERSAL_LINK']
+    }
+
+    console.log('Using universal link:', ConstantsUtil.UNIVERSAL_LINK.PRODUCTION)
+
+    return ConstantsUtil.UNIVERSAL_LINK.PRODUCTION
+  },
+  UNIVERSAL_LINK: {
+    DEVELOPMENT: 'https://dev-cross-wallet.crosstoken.io',
+    STAGE: 'https://stg-cross-wallet.crosstoken.io',
+    PRODUCTION: 'https://cross-wallet.crosstoken.io'
+  },
   getVerifyUrl() {
     const injectedEnv = getEnv()
     type EnvKey = keyof typeof ConstantsUtil.VERIFY_URL

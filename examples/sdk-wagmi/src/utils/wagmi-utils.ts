@@ -17,8 +17,9 @@ import { WagmiAdapter as ReownWagmiAdapter } from '@reown/appkit-adapter-wagmi'
 // VITE_PROJECT_ID는 Cross SDK용 (다른 examples와 일관성 유지)
 export const crossSdkProjectId =
   import.meta.env['VITE_PROJECT_ID'] || '0979fd7c92ec3dbd8e78f433c3e5a523'
-// MetaMask (Reown)용은 하드코딩 (sdk-react와 동일)
-export const projectId = 'a48aa6e93d89fbc0f047637579e65356'
+// MetaMask (Reown)용 Project ID (환경변수 또는 기본값)
+export const projectId =
+  import.meta.env['VITE_METAMASK_PROJECT_ID'] || 'a48aa6e93d89fbc0f047637579e65356'
 
 // 지원하는 네트워크 정의
 export const networks = [

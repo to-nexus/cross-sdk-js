@@ -46,12 +46,26 @@ Cross SDK의 `WagmiAdapter`와 Reown AppKit을 함께 사용하여 **MetaMask**�
 ```bash
 # Cross SDK Project ID (다른 examples와 일관성 유지)
 VITE_PROJECT_ID=0979fd7c92ec3dbd8e78f433c3e5a523
+
+# Optional: MetaMask (Reown) Project ID (default: a48aa6e93d89fbc0f047637579e65356)
+VITE_METAMASK_PROJECT_ID=a48aa6e93d89fbc0f047637579e65356
+
+# Optional: Universal Link for Cross Wallet (default: production URL)
+VITE_UNIVERSAL_LINK=https://stg-cross-wallet.crosstoken.io  # stage
+# VITE_UNIVERSAL_LINK=https://dev-cross-wallet.crosstoken.io  # development
+# VITE_UNIVERSAL_LINK=https://cross-wallet.crosstoken.io  # production (default)
 ```
 
-**프로젝트 ID 안내:**
+**환경변수 안내:**
 
 - `VITE_PROJECT_ID`: Cross SDK용 Project ID (다른 examples와 동일하게 사용)
-- MetaMask (Reown) Project ID는 코드에 하드코딩되어 있습니다 (`a48aa6e93d89fbc0f047637579e65356`)
+- `VITE_METAMASK_PROJECT_ID`: (Optional) MetaMask (Reown) Project ID
+  - 설정하지 않으면 기본값 사용 (`a48aa6e93d89fbc0f047637579e65356`)
+  - 새로운 Reown Project ID 발급: [cloud.reown.com](https://cloud.reown.com)
+- `VITE_UNIVERSAL_LINK`: (Optional) Cross Wallet 앱 연결을 위한 Universal Link
+  - 설정하지 않으면 production URL 사용 (`https://cross-wallet.crosstoken.io`)
+  - Stage 환경 테스트 시: `https://stg-cross-wallet.crosstoken.io`
+  - Dev 환경 테스트 시: `https://dev-cross-wallet.crosstoken.io`
 - Cross SDK Project ID 발급: Cross 팀에 문의
 
 ### 2. 의존성 설치

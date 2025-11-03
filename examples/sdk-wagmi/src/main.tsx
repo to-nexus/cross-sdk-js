@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { crossMainnet } from '@to-nexus/appkit/networks'
-import { initCrossSdk } from '@to-nexus/sdk/react'
+import { ConstantsUtil, initCrossSdk } from '@to-nexus/sdk/react'
 
 import { mainnet } from '@reown/appkit/networks'
 import { createAppKit } from '@reown/appkit/react'
@@ -71,7 +71,8 @@ initCrossSdk(
   },
   'dark', // theme
   crossMainnet, // default network
-  [sdkWagmiAdapter] // ← CrossWallet용 adapter 전달 (중요!)
+  [sdkWagmiAdapter], // ← CrossWallet용 adapter 전달 (중요!)
+  ConstantsUtil.getUniversalLink() // ← Universal Link (환경변수 또는 기본값)
 )
 
 console.log('✅ Cross SDK initialized for CrossWallet')

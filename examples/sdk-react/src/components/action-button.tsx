@@ -26,7 +26,7 @@ import {
 import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
 
-import { useAppKitWallet as useMetaMaskAppKitWallet } from '@reown/appkit-wallet-button/react'
+import { useAppKit as useReownAppKit } from '@reown/appkit/react'
 
 import { sampleEIP712 } from '../contracts/sample-eip712'
 import { sampleErc20ABI } from '../contracts/sample-erc20'
@@ -121,7 +121,15 @@ const metadata = {
   icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 }
 
-initCrossSdk(projectId, redirectUrl, metadata, 'dark')
+initCrossSdk(
+  projectId,
+  redirectUrl,
+  metadata,
+  'dark',
+  undefined,
+  undefined,
+  ConstantsUtil.getUniversalLink()
+)
 
 // TypeScript용 전역 Caver 타입 선언
 declare global {
@@ -140,7 +148,7 @@ export function ActionButtonList() {
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
   const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
     useAppKitWallet()
-  const { connect: connectMetaMask } = useMetaMaskAppKitWallet()
+  const reownAppKit = useReownAppKit()
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
@@ -441,8 +449,9 @@ export function ActionButtonList() {
   }
 
   // MetaMask QR Code 모달 직접 열기 (WalletConnect via Reown)
+  // Extension 감지 없이 무조건 QR Code 모달만 표시
   function handleConnectMetaMaskQRCode() {
-    connectMetaMask('metamask')
+    reownAppKit.open()
   }
 
   // MetaMask Extension 직접 연결

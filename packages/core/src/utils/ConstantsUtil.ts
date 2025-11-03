@@ -1,4 +1,5 @@
 import type { ChainNamespace } from '@to-nexus/appkit-common'
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 
 import type { DefaultAccountTypes, Features, SocialProvider } from './TypeUtil.js'
 
@@ -251,5 +252,11 @@ export const ConstantsUtil = {
     DYNAMIC: 2,
     // ???: 1, accessList (not supported)
     LEGACY: 0
-  } as const satisfies Record<string, number>
+  } as const satisfies Record<string, number>,
+
+  // Universal Link 관련 (CommonConstantsUtil에서 재사용)
+  getUniversalLink() {
+    return CommonConstantsUtil.getUniversalLink()
+  },
+  UNIVERSAL_LINK: CommonConstantsUtil.UNIVERSAL_LINK
 }
