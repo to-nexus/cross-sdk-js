@@ -121,7 +121,8 @@ const crossSdk = initCrossSdkWithParams({
   projectId,
   redirectUrl,
   metadata,
-  themeMode: 'light'
+  themeMode: 'light',
+  mobileLink: ConstantsUtil.getUniversalLink()
 })
 
 const appkitWallet = useAppKitWallet()
