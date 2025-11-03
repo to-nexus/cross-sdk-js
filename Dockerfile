@@ -3,13 +3,17 @@ FROM node:20 AS builder
 ARG SERVICE_NAME
 ARG WORKDIR
 ARG VITE_PROJECT_ID
+ARG VITE_UNIVERSAL_LINK
 ARG VITE_ENV_MODE
+ARG VITE_METAMASK_PROJECT_ID
 ARG REGISTRY_URL
 
 ENV SERVICE_NAME=$SERVICE_NAME
 ENV WORKDIR=$WORKDIR
 ENV VITE_PROJECT_ID=$VITE_PROJECT_ID
+ENV VITE_UNIVERSAL_LINK=$VITE_UNIVERSAL_LINK
 ENV VITE_ENV_MODE=$VITE_ENV_MODE
+ENV VITE_METAMASK_PROJECT_ID=$VITE_METAMASK_PROJECT_ID
 
 WORKDIR $WORKDIR
 
@@ -46,7 +50,19 @@ RUN pnpm run build
 
 # Build sdk-react
 WORKDIR $WORKDIR/examples/sdk-react
-RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
+RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env && \
+    echo "VITE_UNIVERSAL_LINK=$VITE_UNIVERSAL_LINK" >> .env && \
+    echo "VITE_ENV_MODE=$VITE_ENV_MODE" >> .env && \
+    echo "VITE_METAMASK_PROJECT_ID=$VITE_METAMASK_PROJECT_ID" >> .env
+RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm i
+RUN pnpm run build
+
+# Build sdk-wagmi
+WORKDIR $WORKDIR/examples/sdk-wagmi
+RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env && \
+    echo "VITE_UNIVERSAL_LINK=$VITE_UNIVERSAL_LINK" >> .env && \
+    echo "VITE_ENV_MODE=$VITE_ENV_MODE" >> .env && \
+    echo "VITE_METAMASK_PROJECT_ID=$VITE_METAMASK_PROJECT_ID" >> .env
 RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm i
 RUN pnpm run build
 
@@ -73,6 +89,7 @@ RUN addgroup -S nexus && adduser -S -G nexus nexus
 
 # 각 앱의 빌드 결과를 다른 경로에 복사
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-react/dist /usr/share/nginx/html/react
+COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-wagmi/dist /usr/share/nginx/html/wagmi
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-vanilla/dist /usr/share/nginx/html/vanilla
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/sdk-cdn /usr/share/nginx/html/cdn
 COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/cocos-creator/build/web-desktop /usr/share/nginx/html/cocos

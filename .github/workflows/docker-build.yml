@@ -33,6 +33,9 @@ jobs:
     env:
       VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
       VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      VITE_UNIVERSAL_LINK: ${{ vars.VITE_UNIVERSAL_LINK }}
+      VITE_ENV_MODE: ${{ vars.VITE_ENV_MODE }}
+      VITE_METAMASK_PROJECT_ID: ${{ vars.VITE_METAMASK_PROJECT_ID }}
 
     steps:
       - name: Checkout Repo
@@ -108,7 +111,9 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_UNIVERSAL_LINK=${{ vars.VITE_UNIVERSAL_LINK }}
             VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            VITE_METAMASK_PROJECT_ID=${{ vars.VITE_METAMASK_PROJECT_ID }}
             REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
@@ -128,7 +133,9 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_UNIVERSAL_LINK=${{ vars.VITE_UNIVERSAL_LINK }}
             VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            VITE_METAMASK_PROJECT_ID=${{ vars.VITE_METAMASK_PROJECT_ID }}
             REGISTRY_URL=${{ steps.registry_dev.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
@@ -145,6 +152,9 @@ jobs:
     env:
       VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
       VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      VITE_UNIVERSAL_LINK: ${{ vars.VITE_UNIVERSAL_LINK }}
+      VITE_ENV_MODE: ${{ vars.VITE_ENV_MODE }}
+      VITE_METAMASK_PROJECT_ID: ${{ vars.VITE_METAMASK_PROJECT_ID }}
 
     steps:
       - name: Checkout Repo
@@ -230,7 +240,9 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_UNIVERSAL_LINK=${{ vars.VITE_UNIVERSAL_LINK }}
             VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            VITE_METAMASK_PROJECT_ID=${{ vars.VITE_METAMASK_PROJECT_ID }}
             REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
@@ -250,7 +262,9 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_UNIVERSAL_LINK=${{ vars.VITE_UNIVERSAL_LINK }}
             VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            VITE_METAMASK_PROJECT_ID=${{ vars.VITE_METAMASK_PROJECT_ID }}
             REGISTRY_URL=${{ steps.registry_stage.outputs.NEXUS_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
@@ -263,6 +277,11 @@ jobs:
     runs-on: ubuntu-latest
 
     environment: ${{ inputs.environment }}
+    env:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_UNIVERSAL_LINK: ${{ vars.VITE_UNIVERSAL_LINK }}
+      VITE_ENV_MODE: ${{ vars.VITE_ENV_MODE }}
+      VITE_METAMASK_PROJECT_ID: ${{ vars.VITE_METAMASK_PROJECT_ID }}
 
     steps:
       - name: Checkout Repo
@@ -339,7 +358,9 @@ jobs:
             WORKDIR=/nexus/apps/${{ steps.env.outputs.SERVICE_NAME }}
             SERVICE_NAME=${{ steps.env.outputs.SERVICE_NAME }}
             VITE_PROJECT_ID=${{ secrets.VITE_PROJECT_ID }}
+            VITE_UNIVERSAL_LINK=${{ vars.VITE_UNIVERSAL_LINK }}
             VITE_ENV_MODE=${{ vars.VITE_ENV_MODE }}
+            VITE_METAMASK_PROJECT_ID=${{ vars.VITE_METAMASK_PROJECT_ID }}
             REGISTRY_URL=${{ secrets.NEXUS_REGISTRY_URL }}
           secrets: |
             github_token=${{ secrets.READ_ONLY_REPO }}
