@@ -1,6 +1,6 @@
 #### 📚 [Documentation](https://cross.readme.io/update/docs/js/)
 
-# CROSS SDK - React example
+# CROSS SDK - Vanilla JS example
 
 1.  Prerequisites
 
@@ -13,7 +13,7 @@
     - Create a `.env` file inside the example
 
     ```bash
-    cd examples/sdk-react
+    cd examples/sdk-vanilla
     touch .env
     ```
 
@@ -21,7 +21,6 @@
 
     ```bash
     VITE_PROJECT_ID=0979fd7c92ec3dbd8e78f433c3e5a523
-    VITE_ENV_MODE=production
         # Optional: MetaMask (Reown) Project ID (default: a48aa6e93d89fbc0f047637579e65356)
         VITE_METAMASK_PROJECT_ID=a48aa6e93d89fbc0f047637579e65356
 
@@ -34,13 +33,11 @@
     **Environment variable guide:**
 
     - `VITE_PROJECT_ID`: Project ID for Cross SDK (required)
-    - `VITE_ENV_MODE`: SDK environment (defaults to `production`)
     - `VITE_METAMASK_PROJECT_ID`: (Optional) MetaMask (Reown) Project ID
       - Defaults to the built-in value if not provided
       - Request a new Reown Project ID at [cloud.reown.com](https://cloud.reown.com)
     - `VITE_UNIVERSAL_LINK`: (Optional) Universal link for the Cross Wallet app
       - Falls back to the `crossx://` deep link when omitted
-    - The SDK package is public, so a GitHub token is not required.
 
 3.  Install dependencies
 
@@ -55,8 +52,8 @@
     - Start the dev server:
 
     ```bash
-    cd examples/sdk-react
+    cd examples/sdk-vanilla
     pnpm run dev
     ```
 
-    - Default port: `3012`. Use this port for local testing.
+    - Default port: `3013`. Use this port for local testing.

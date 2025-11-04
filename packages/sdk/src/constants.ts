@@ -1,1 +1,1 @@
-export const SDK_VERSION = '1.18.0-beta.3'
+export const SDK_VERSION = '1.18.1-beta.0'

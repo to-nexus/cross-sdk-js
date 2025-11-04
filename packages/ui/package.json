@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-ui",
-  "version": "1.18.0-beta.3",
+  "version": "1.18.1-beta.0",
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
