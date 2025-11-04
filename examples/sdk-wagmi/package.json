@@ -10,6 +10,8 @@
     "run:prod": "vite --port 3014 --mode production"
   },
   "dependencies": {
+    "@reown/appkit": "^1.8.11",
+    "@reown/appkit-adapter-wagmi": "^1.8.11",
     "@tanstack/react-query": "^5.56.2",
     "@to-nexus/appkit": "workspace:*",
     "@to-nexus/appkit-adapter-wagmi": "workspace:*",

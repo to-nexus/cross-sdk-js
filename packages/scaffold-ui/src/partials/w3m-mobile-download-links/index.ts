@@ -26,17 +26,19 @@ export class W3mMobileDownloadLinks extends LitElement {
     const isIos = CoreHelperUtil.isIos()
     const isAndroid = CoreHelperUtil.isAndroid()
     const isMultiple = [app_store, play_store, homepage, chrome_store].filter(Boolean).length > 1
-    const shortName = UiHelperUtil.getTruncateString({
-      string: name,
-      charsStart: 12,
-      charsEnd: 0,
-      truncate: 'end'
-    })
+    /*
+     * Const shortName = UiHelperUtil.getTruncateString({
+     *   string: name,
+     *   charsStart: 12,
+     *   charsEnd: 0,
+     *   truncate: 'end'
+     * })
+     */
 
     if (isMultiple && !isMobile) {
       return html`
         <cross-wui-cta-button
-          label=${`Don't have ${shortName}?`}
+          label=${`Don't have ${name}?`}
           buttonLabel="Get"
           @click=${() => RouterController.push('Downloads', { wallet: this.wallet })}
         ></cross-wui-cta-button>
@@ -46,7 +48,7 @@ export class W3mMobileDownloadLinks extends LitElement {
     if (!isMultiple && homepage) {
       return html`
         <cross-wui-cta-button
-          label=${`Don't have ${shortName}?`}
+          label=${`Don't have ${name}?`}
           buttonLabel="Get"
           @click=${this.onHomePage.bind(this)}
         ></cross-wui-cta-button>
@@ -56,7 +58,7 @@ export class W3mMobileDownloadLinks extends LitElement {
     if (app_store && isIos) {
       return html`
         <cross-wui-cta-button
-          label=${`Don't have ${shortName}?`}
+          label=${`Don't have ${name}?`}
           buttonLabel="Get"
           @click=${this.onAppStore.bind(this)}
         ></cross-wui-cta-button>
@@ -66,7 +68,7 @@ export class W3mMobileDownloadLinks extends LitElement {
     if (play_store && isAndroid) {
       return html`
         <cross-wui-cta-button
-          label=${`Don't have ${shortName}?`}
+          label=${`Don't have ${name}?`}
           buttonLabel="Get"
           @click=${this.onPlayStore.bind(this)}
         ></cross-wui-cta-button>
