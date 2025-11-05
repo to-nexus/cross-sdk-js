@@ -17,14 +17,17 @@
       <h1 class="page-title">CROSS SDK - CDN Example</h1>
 
       <div class="appkit-buttons-container">
-        <button id="connect-wallet">Connect Wallet</button>
-        <button id="connect-cross-extension">Connect Cross Extension</button>
-        <button id="check-cross-extension">Check Cross Extension</button>
+        <h3 style="margin-bottom: 10px; color: var(--text-primary)">🔗 Wallet Connection</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px">
+          <button id="connect-cross-qr" style="background-color: #00d4aa">Connect CROSSx Wallet</button>
+          <button id="connect-cross-extension" style="background-color: #00d4aa">Connect Cross Extension</button>
+          <button id="connect-metamask-extension" style="background-color: #f6851b">Connect MetaMask Extension</button>
+        </div>
         <button
           id="disconnect-wallet"
           style="background-color: #dc3545; color: white; display: none"
         >
-          Disconnect
+          🔓 Disconnect
         </button>
         <button id="switch-network">Switch Network</button>
         <button id="toggle-theme">

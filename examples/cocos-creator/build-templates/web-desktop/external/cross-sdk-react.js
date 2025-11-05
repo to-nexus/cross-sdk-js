@@ -1,4 +1,4 @@
-import { a0 as process$1, a1 as getDefaultExportFromCjs, a2 as subscribe, a3 as snapshot, a4 as p$1, a5 as a, a6 as w, C as ChainController, q as ConnectorController, c as CoreHelperUtil, k as ConnectionController, a7 as ProviderUtil, W as WalletButtonController, j as ApiController, l as ConstantsUtil, m as ConnectorUtil, p as WalletUtil, O as OptionsController, G as AccountController, h as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, s as networkList, t as ConstantsUtil$1, Z, u as etherTestnet, v as etherMainnet, w as kaiaTestnet, y as kaiaMainnet, z as bscTestnet, B as bscMainnet, D as crossTestnet, F as crossMainnet, H as SendController } from "./index.es-CRsArSgd.js";
+import { a2 as process$1, a3 as getDefaultExportFromCjs, a4 as subscribe, a5 as snapshot, a6 as p, a7 as a, a8 as w, C as ChainController, B as ConnectorController, c as CoreHelperUtil, v as ConnectionController, a9 as ProviderUtil, W as WalletButtonController, u as ApiController, w as ConstantsUtil, y as ConnectorUtil, z as WalletUtil, O as OptionsController, X as AccountController, s as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, f as ConstantsUtil$1, D as networkList, F as ConstantsUtil$2, Z, G as etherTestnet, I as etherMainnet, J as kaiaTestnet, K as kaiaMainnet, L as bscTestnet, N as bscMainnet, Q as crossTestnet, V as crossMainnet, Y as SendController } from "./index.es-DIcT9sP3.js";
 var react = { exports: {} };
 var react_production = {};
 var hasRequiredReact_production;
@@ -140,8 +140,8 @@ function requireReact_production() {
           }
       }
     if (invokeCallback)
-      return callback = callback(children), invokeCallback = "" === nameSoFar ? "." + getElementKey(children, 0) : nameSoFar, isArrayImpl(callback) ? (escapedPrefix = "", null != invokeCallback && (escapedPrefix = invokeCallback.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c2) {
-        return c2;
+      return callback = callback(children), invokeCallback = "" === nameSoFar ? "." + getElementKey(children, 0) : nameSoFar, isArrayImpl(callback) ? (escapedPrefix = "", null != invokeCallback && (escapedPrefix = invokeCallback.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c) {
+        return c;
       })) : null != callback && (isValidElement(callback) && (callback = cloneAndReplaceKey(
         callback,
         escapedPrefix + (null == callback.key || children && children.key === callback.key ? "" : ("" + callback.key).replace(
@@ -915,8 +915,8 @@ function requireReact_development() {
           invokeCallback = children;
           callback = callback(invokeCallback);
           var childKey = "" === nameSoFar ? "." + getElementKey(invokeCallback, 0) : nameSoFar;
-          isArrayImpl(callback) ? (escapedPrefix = "", null != childKey && (escapedPrefix = childKey.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c2) {
-            return c2;
+          isArrayImpl(callback) ? (escapedPrefix = "", null != childKey && (escapedPrefix = childKey.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c) {
+            return c;
           })) : null != callback && (isValidElement(callback) && (null != callback.key && (invokeCallback && invokeCallback.key === callback.key || checkKeyStringCoercion(callback.key)), escapedPrefix = cloneAndReplaceKey(
             callback,
             escapedPrefix + (null == callback.key || invokeCallback && invokeCallback.key === callback.key ? "" : ("" + callback.key).replace(
@@ -1558,30 +1558,30 @@ function requireUseSyncExternalStoreShim_production_min() {
   function h2(a2, b) {
     return a2 === b && (0 !== a2 || 1 / a2 === 1 / b) || a2 !== a2 && b !== b;
   }
-  var k = "function" === typeof Object.is ? Object.is : h2, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p2 = e.useDebugValue;
+  var k2 = "function" === typeof Object.is ? Object.is : h2, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p2 = e.useDebugValue;
   function q(a2, b) {
-    var d2 = b(), f = l({ inst: { value: d2, getSnapshot: b } }), c2 = f[0].inst, g = f[1];
+    var d = b(), f2 = l({ inst: { value: d, getSnapshot: b } }), c = f2[0].inst, g = f2[1];
     n(function() {
-      c2.value = d2;
-      c2.getSnapshot = b;
-      r(c2) && g({ inst: c2 });
-    }, [a2, d2, b]);
+      c.value = d;
+      c.getSnapshot = b;
+      r(c) && g({ inst: c });
+    }, [a2, d, b]);
     m(function() {
-      r(c2) && g({ inst: c2 });
+      r(c) && g({ inst: c });
       return a2(function() {
-        r(c2) && g({ inst: c2 });
+        r(c) && g({ inst: c });
       });
     }, [a2]);
-    p2(d2);
-    return d2;
+    p2(d);
+    return d;
   }
   function r(a2) {
     var b = a2.getSnapshot;
     a2 = a2.value;
     try {
-      var d2 = b();
-      return !k(a2, d2);
-    } catch (f) {
+      var d = b();
+      return !k2(a2, d);
+    } catch (f2) {
       return true;
     }
   }
@@ -1748,7 +1748,7 @@ function useSnapshot(proxyObject, options) {
     () => {
       const nextSnapshot = snapshot(proxyObject, use);
       try {
-        if (!inRender && lastSnapshot.current && lastAffected.current && !p$1(
+        if (!inRender && lastSnapshot.current && lastAffected.current && !p(
           lastSnapshot.current,
           nextSnapshot,
           lastAffected.current,
@@ -1971,14 +1971,14 @@ function useAppKitWallet(parameters) {
       if (customWallet && wallet === "cross_wallet") {
         await ConnectorUtil.connectWalletConnect({
           walletConnect: wallet === "cross_wallet",
-          connector: connectors.find((c2) => c2.id === wallet),
+          connector: connectors.find((c) => c.id === wallet),
           wallet: customWallet
         }).then(handleSuccess);
         return;
       }
       if ((customWallet == null ? void 0 : customWallet.rdns) && wallet !== "cross_wallet") {
         const currentConnectors = ConnectorController.state.connectors;
-        const announced = currentConnectors.filter((c2) => c2.type === "ANNOUNCED" && c2.id === customWallet.rdns);
+        const announced = currentConnectors.filter((c) => c.type === "ANNOUNCED" && c.id === customWallet.rdns);
         if (announced && announced.length > 0) {
           const browserConnector = announced[0];
           if (browserConnector) {
@@ -1990,7 +1990,7 @@ function useAppKitWallet(parameters) {
       }
       await ConnectorUtil.connectWalletConnect({
         walletConnect: wallet === "cross_wallet",
-        connector: connectors.find((c2) => c2.id === wallet),
+        connector: connectors.find((c) => c.id === wallet),
         wallet: customWallet
       }).then(handleSuccess);
     } catch (err) {
@@ -2058,29 +2058,38 @@ function useAppKitNetwork() {
     switchNetwork
   };
 }
-const p = new EthersAdapter(), c = {
+const f = new EthersAdapter(), h = {
   name: "Cross SDK",
   description: "Cross SDK for React",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
-}, h = (e) => {
-  const { projectId: t, redirectUrl: s, metadata: o, themeMode: a2, defaultNetwork: r } = e;
-  return d(t, s, o, a2, r);
-}, d = (e, t, s, o, a2) => {
-  const r = {
-    ...c,
-    ...s,
+}, A = (t) => {
+  const { projectId: s, redirectUrl: o, metadata: a2, themeMode: r, defaultNetwork: e, adapters: n, mobileLink: l } = t;
+  return k(
+    s,
+    o,
+    a2,
+    r,
+    e,
+    n,
+    l
+  );
+}, k = (t, s, o, a2, r, e, n) => {
+  var i, p2;
+  const l = {
+    ...h,
+    ...o,
     redirect: {
-      universal: t
+      universal: s
     }
   };
   return createAppKit({
-    adapters: [p],
+    adapters: e && e.length > 0 ? e : [f],
     networks: networkList,
-    defaultNetwork: a2,
-    metadata: r,
-    projectId: e,
-    themeMode: o || "light",
+    defaultNetwork: r,
+    metadata: l,
+    projectId: t,
+    themeMode: a2 || "light",
     features: {
       swaps: false,
       onramp: false,
@@ -2097,9 +2106,9 @@ const p = new EthersAdapter(), c = {
     customWallets: [
       {
         id: "cross_wallet",
-        name: "CROSS Wallet",
+        name: "CROSSx Wallet",
         image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: "crossx://",
+        mobile_link: n || ((p2 = (i = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : p2.call(i)) || "https://cross-wallet.crosstoken.io",
         app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
         play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
         chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
@@ -2116,8 +2125,8 @@ const p = new EthersAdapter(), c = {
 };
 if (typeof window !== "undefined") {
   window.CrossSdkReact = {
-    initCrossSdk: d,
-    initCrossSdkWithParams: h,
+    initCrossSdk: k,
+    initCrossSdkWithParams: A,
     useAppKit,
     useAppKitState,
     useAppKitTheme,
@@ -2141,13 +2150,13 @@ if (typeof window !== "undefined") {
     etherTestnet,
     UniversalProvider: Z,
     getUniversalProvider,
-    ConstantsUtil: ConstantsUtil$1
+    ConstantsUtil: ConstantsUtil$2
   };
 }
 export {
   AccountController,
   ConnectionController,
-  ConstantsUtil$1 as ConstantsUtil,
+  ConstantsUtil$2 as ConstantsUtil,
   SendController,
   Z as UniversalProvider,
   bscMainnet,
@@ -2157,8 +2166,8 @@ export {
   etherMainnet,
   etherTestnet,
   getUniversalProvider,
-  d as initCrossSdk,
-  h as initCrossSdkWithParams,
+  k as initCrossSdk,
+  A as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
   useAppKit,
