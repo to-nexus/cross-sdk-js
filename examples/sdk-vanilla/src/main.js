@@ -680,9 +680,10 @@ async function handleSignTypedDataV4() {
   }
 }
 
+// Cross SDK only
 async function handleProviderRequest() {
   if (!accountState.isConnected) {
-    showError('Please connect wallet first.')
+    showError('This feature is only available with Cross Wallet.')
     return
   }
 
@@ -1489,6 +1490,13 @@ connectMetaMaskQRCode.addEventListener('click', async () => {
           kaiaMainnet.id, // Kaia Mainnet
           kaiaTestnet.id // Kaia Testnet
         ],
+        // 커스텀 네트워크의 RPC URL 명시적으로 지정 (WalletConnect가 지원하지 않는 네트워크)
+        rpcMap: {
+          [crossMainnet.id]: crossMainnet.rpcUrls.default.http[0],
+          [crossTestnet.id]: crossTestnet.rpcUrls.default.http[0],
+          [kaiaMainnet.id]: kaiaMainnet.rpcUrls.default.http[0],
+          [kaiaTestnet.id]: kaiaTestnet.rpcUrls.default.http[0]
+        },
         showQrModal: true, // QR 코드 모달 표시
         qrModalOptions: {
           themeMode: 'light',
@@ -1515,7 +1523,12 @@ connectMetaMaskQRCode.addEventListener('click', async () => {
 
       // 네트워크 정보 가져오기
       const chainId = await walletConnectProvider.request({ method: 'eth_chainId' })
-      metamaskChainId = parseInt(chainId, 16)
+      metamaskChainId = parseInt(chainId)
+
+      console.log('🔍 [수동연결] chainId:', chainId, '→', metamaskChainId)
+
+      // QR Code 연결 타입 저장 (자동 재연결 시 Extension과 구분하기 위해)
+      localStorage.setItem('metamask_connection_type', 'qrcode')
 
       console.log('✅ MetaMask QR Code 연결 성공:', {
         account: metamaskAccount,
@@ -1549,9 +1562,9 @@ connectMetaMaskQRCode.addEventListener('click', async () => {
 
       // WalletConnect 이벤트 리스너 추가
       walletConnectProvider.on('chainChanged', newChainId => {
-        const newChainIdNumber = parseInt(newChainId, 16)
+        const newChainIdNumber = parseInt(newChainId)
         metamaskChainId = newChainIdNumber
-        console.log('🦊 MetaMask 네트워크 변경됨:', newChainIdNumber)
+        console.log('🦊 MetaMask 네트워크 변경됨:', newChainId, '→', newChainIdNumber)
 
         const networkName =
           availableNetworks.find(n => n.network.id === newChainIdNumber)?.name ||
@@ -1568,6 +1581,7 @@ connectMetaMaskQRCode.addEventListener('click', async () => {
           metamaskAccount = null
           metamaskChainId = null
           walletConnectProvider = null
+          localStorage.removeItem('metamask_connection_type')
           updateButtonVisibility(false)
           console.log('🦊 MetaMask 연결 해제됨')
         } else {
@@ -1582,6 +1596,7 @@ connectMetaMaskQRCode.addEventListener('click', async () => {
         metamaskAccount = null
         metamaskChainId = null
         walletConnectProvider = null
+        localStorage.removeItem('metamask_connection_type')
         updateButtonVisibility(false)
       })
     }
@@ -1658,6 +1673,9 @@ connectMetaMaskExtension.addEventListener('click', async () => {
       const balance = await ethersProvider.getBalance(accounts[0])
       const balanceInEther = ethers.formatEther(balance)
 
+      // Extension 연결 타입 저장 (자동 재연결 시 QR Code와 구분하기 위해)
+      localStorage.setItem('metamask_connection_type', 'extension')
+
       alert(
         `MetaMask Extension 연결 성공!\n\n` +
           `주소: ${accounts[0].slice(0, 10)}...${accounts[0].slice(-8)}\n` +
@@ -1677,6 +1695,10 @@ connectMetaMaskExtension.addEventListener('click', async () => {
           availableNetworks.find(n => n.network.id === chainId)?.name || `Chain ${chainId}`
         switchNetworkButton.textContent = networkName
       }
+
+      // 이벤트 리스너 중복 방지
+      provider.removeAllListeners?.('accountsChanged')
+      provider.removeAllListeners?.('chainChanged')
 
       // MetaMask 네트워크 변경 이벤트 리스너 추가
       provider.on('chainChanged', newChainId => {
@@ -1955,6 +1977,9 @@ disconnectWallet.addEventListener('click', async () => {
       metamaskAccount = null
       metamaskChainId = null
 
+      // 연결 타입 정보 삭제
+      localStorage.removeItem('metamask_connection_type')
+
       // 버튼 상태 업데이트
       updateWalletIndicator()
       updateButtonVisibility(false)
@@ -2042,15 +2067,238 @@ setupResultModalEvents()
 // 세션 관리 초기화
 initializeSessionManagement()
 
+// MetaMask QR Code (WalletConnect) 자동 재연결
+async function autoReconnectMetaMaskQRCode() {
+  try {
+    const connectionType = localStorage.getItem('metamask_connection_type')
+    if (connectionType !== 'qrcode') {
+      return // QR Code 연결이 아니면 건너뛰기
+    }
+
+    console.log('🔄 MetaMask QR Code 세션 복원 시도...')
+
+    // WalletConnect Provider 초기화 (기존 세션 자동 복원)
+    walletConnectProvider = await EthereumProvider.init({
+      projectId: metamaskProjectId,
+      chains: [1],
+      optionalChains: [
+        11155111,
+        crossMainnet.id,
+        crossTestnet.id,
+        bscMainnet.id,
+        bscTestnet.id,
+        kaiaMainnet.id,
+        kaiaTestnet.id
+      ],
+      rpcMap: {
+        [crossMainnet.id]: crossMainnet.rpcUrls.default.http[0],
+        [crossTestnet.id]: crossTestnet.rpcUrls.default.http[0],
+        [kaiaMainnet.id]: kaiaMainnet.rpcUrls.default.http[0],
+        [kaiaTestnet.id]: kaiaTestnet.rpcUrls.default.http[0]
+      },
+      showQrModal: false // 자동 재연결이므로 QR 모달 표시 안함
+    })
+
+    // 기존 세션이 있는지 확인
+    if (!walletConnectProvider.session) {
+      console.log('⏭️ 기존 WalletConnect 세션 없음')
+      localStorage.removeItem('metamask_connection_type')
+      return
+    }
+
+    // 세션이 있으면 계정 정보 가져오기
+    const accounts = walletConnectProvider.accounts
+    const chainId = await walletConnectProvider.request({ method: 'eth_chainId' })
+
+    if (accounts && accounts.length > 0) {
+      metamaskProvider = walletConnectProvider
+      metamaskAccount = accounts[0]
+      // chainId는 이미 16진수 문자열 (예: "0x95444")이므로 parseInt()만 사용
+      metamaskChainId = parseInt(chainId)
+
+      console.log('🔍 [자동재연결] chainId:', chainId, '→', metamaskChainId)
+
+      // 이벤트 리스너 설정
+      walletConnectProvider.on('chainChanged', newChainId => {
+        const newChainIdNumber = parseInt(newChainId)
+        metamaskChainId = newChainIdNumber
+        console.log('🦊 MetaMask 네트워크 변경됨:', newChainId, '→', newChainIdNumber)
+
+        const switchNetworkButton = document.getElementById('switch-network')
+        const networkName =
+          availableNetworks.find(n => n.network.id === newChainIdNumber)?.name ||
+          `Chain ${newChainIdNumber}`
+        if (switchNetworkButton) {
+          switchNetworkButton.textContent = networkName
+        }
+      })
+
+      walletConnectProvider.on('accountsChanged', newAccounts => {
+        if (newAccounts.length === 0) {
+          metamaskProvider = null
+          metamaskAccount = null
+          metamaskChainId = null
+          walletConnectProvider = null
+          localStorage.removeItem('metamask_connection_type')
+          updateButtonVisibility(false)
+          console.log('🦊 MetaMask 연결 해제됨')
+        } else {
+          metamaskAccount = newAccounts[0]
+          console.log('🦊 MetaMask 계정 변경됨:', metamaskAccount)
+        }
+      })
+
+      walletConnectProvider.on('disconnect', () => {
+        console.log('🦊 MetaMask 연결 해제됨')
+        metamaskProvider = null
+        metamaskAccount = null
+        metamaskChainId = null
+        walletConnectProvider = null
+        localStorage.removeItem('metamask_connection_type')
+        updateButtonVisibility(false)
+      })
+
+      // UI 업데이트
+      updateButtonVisibility(true)
+      const switchNetworkButton = document.getElementById('switch-network')
+      if (switchNetworkButton) {
+        const networkName =
+          availableNetworks.find(n => n.network.id === metamaskChainId)?.name ||
+          `Chain ${metamaskChainId}`
+        switchNetworkButton.textContent = networkName
+      }
+
+      console.log('✅ MetaMask QR Code 자동 재연결 성공:', metamaskAccount)
+    }
+  } catch (error) {
+    console.log('MetaMask QR Code 자동 재연결 실패 (무시):', error)
+    localStorage.removeItem('metamask_connection_type')
+  }
+}
+
+// MetaMask Extension 자동 재연결 (페이지 로드 시)
+async function autoReconnectMetaMask() {
+  try {
+    // QR Code로 연결된 경우 Extension 자동 재연결 건너뛰기
+    const connectionType = localStorage.getItem('metamask_connection_type')
+    if (connectionType === 'qrcode') {
+      console.log('⏭️ QR Code 연결 감지, Extension 자동 재연결 건너뛰기')
+      return
+    }
+
+    if (typeof window.ethereum === 'undefined') return
+
+    // MetaMask provider 찾기
+    const findMetaMaskProvider = () => {
+      if (window.ethereum.providers && Array.isArray(window.ethereum.providers)) {
+        return window.ethereum.providers.find(
+          provider => provider.isMetaMask && !provider.isCrossWallet
+        )
+      }
+      if (window.ethereum.isMetaMask && !window.ethereum.isCrossWallet) {
+        return window.ethereum
+      }
+      return null
+    }
+
+    const provider = findMetaMaskProvider()
+    if (!provider) return
+
+    // eth_accounts는 이미 연결된 계정만 반환 (사용자 승인 불필요)
+    const accounts = await provider.request({ method: 'eth_accounts' })
+
+    if (accounts && accounts.length > 0) {
+      console.log('🔄 MetaMask 자동 재연결 중...')
+
+      // 전역 상태에 MetaMask 정보 저장
+      metamaskProvider = provider
+      metamaskAccount = accounts[0]
+
+      // ethers provider 생성
+      const ethersProvider = new ethers.BrowserProvider(provider)
+
+      // 네트워크 정보 가져오기
+      const network = await ethersProvider.getNetwork()
+      const chainId = Number(network.chainId)
+      metamaskChainId = chainId
+
+      // 이벤트 리스너 중복 방지
+      provider.removeAllListeners?.('accountsChanged')
+      provider.removeAllListeners?.('chainChanged')
+
+      // MetaMask 네트워크 변경 이벤트 리스너 추가
+      provider.on('chainChanged', newChainId => {
+        const newChainIdNumber = parseInt(newChainId, 16)
+        metamaskChainId = newChainIdNumber
+        console.log('🦊 MetaMask 네트워크 변경됨:', newChainIdNumber)
+
+        // Switch Network 버튼 텍스트 업데이트
+        const switchNetworkButton = document.getElementById('switch-network')
+        const networkName =
+          availableNetworks.find(n => n.network.id === newChainIdNumber)?.name ||
+          `Chain ${newChainIdNumber}`
+        if (switchNetworkButton) {
+          switchNetworkButton.textContent = networkName
+        }
+      })
+
+      // MetaMask 계정 변경 이벤트 리스너 추가
+      provider.on('accountsChanged', newAccounts => {
+        console.log('🦊 MetaMask 계정 변경됨:', newAccounts)
+        if (newAccounts.length > 0) {
+          metamaskAccount = newAccounts[0]
+        } else {
+          metamaskAccount = null
+          metamaskProvider = null
+          metamaskChainId = null
+          localStorage.removeItem('metamask_connection_type')
+          updateButtonVisibility(false)
+        }
+        updateWalletIndicator()
+      })
+
+      // UI 업데이트
+      updateWalletIndicator()
+      updateButtonVisibility(true)
+
+      // Switch Network 버튼 텍스트 업데이트
+      const switchNetworkButton = document.getElementById('switch-network')
+      if (switchNetworkButton) {
+        const networkName =
+          availableNetworks.find(n => n.network.id === chainId)?.name || `Chain ${chainId}`
+        switchNetworkButton.textContent = networkName
+      }
+
+      // Extension 연결 타입 저장
+      localStorage.setItem('metamask_connection_type', 'extension')
+
+      console.log('✅ MetaMask 자동 재연결 성공:', metamaskAccount)
+    }
+  } catch (error) {
+    console.log('MetaMask 자동 재연결 실패 (무시):', error)
+  }
+}
+
 // Initialize contract args when state changes
 crossSdk.subscribeAccount(() => {
   setTimeout(initializeContractArgs, 100)
 })
 
-// 페이지 로드 시 초기 버튼 상태 설정
+// 페이지 로드 시 초기 버튼 상태 설정 및 MetaMask 자동 재연결
 window.addEventListener('DOMContentLoaded', () => {
   // 초기에는 연결되지 않은 상태로 버튼 설정
   updateButtonVisibility(false)
+
+  // MetaMask 자동 재연결 시도
+  setTimeout(async () => {
+    // 연결 타입에 따라 적절한 재연결 함수 실행
+    const connectionType = localStorage.getItem('metamask_connection_type')
+    if (connectionType === 'qrcode') {
+      await autoReconnectMetaMaskQRCode()
+    } else if (connectionType === 'extension') {
+      await autoReconnectMetaMask()
+    }
+  }, 500) // DOM이 완전히 로드된 후 실행
 })
 
 crossSdk.subscribeNetwork(() => {
