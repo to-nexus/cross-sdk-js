@@ -226,6 +226,30 @@ async function initializeApp() {
       return isMetaMaskExtensionInstalled
     }
 
+    // 현재 네트워크 이름 가져오기
+    function getCurrentNetworkName() {
+      const activeWallet = getActiveWallet()
+
+      if (activeWallet === 'metamask' && metamaskChainId) {
+        // MetaMask의 경우 chainId로 네트워크 찾기
+        const networkInfo = availableNetworks.find(n => n.network.id === metamaskChainId)
+        return networkInfo ? networkInfo.name : `Network ${metamaskChainId}`
+      } else if (activeWallet === 'cross') {
+        // Cross SDK의 경우
+        return networkState.caipNetwork?.name || 'Switch Network'
+      }
+
+      return 'Switch Network'
+    }
+
+    // 스위치 네트워크 버튼 텍스트 업데이트
+    function updateSwitchNetworkButton() {
+      const switchNetworkBtn = document.getElementById('switch-network')
+      if (switchNetworkBtn) {
+        switchNetworkBtn.textContent = getCurrentNetworkName()
+      }
+    }
+
     // 버튼 가시성 및 상태 업데이트 함수
     function updateButtonVisibility() {
       const activeWallet = getActiveWallet()
@@ -248,6 +272,9 @@ async function initializeApp() {
           disconnectWallet.textContent = `🔓 Disconnect (${activeWallet === 'metamask' ? 'MetaMask' : 'CROSSx'})`
         }
         if (switchNetwork) switchNetwork.style.display = 'inline-block'
+
+        // 네트워크 버튼 텍스트 업데이트
+        updateSwitchNetworkButton()
       } else {
         // 연결되지 않은 상태: 연결 버튼들 표시
         if (connectCrossQR) connectCrossQR.style.display = 'inline-block'
@@ -419,12 +446,15 @@ async function initializeApp() {
             try {
               if (activeWallet === 'metamask') {
                 // MetaMask Extension: wallet_switchEthereumChain 사용
-                const chainIdHex = `0x${networkInfo.network.chainId.toString(16)}`
+                const chainIdHex = `0x${networkInfo.network.id.toString(16)}`
                 try {
                   await metamaskProvider.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: chainIdHex }]
                   })
+                  // 네트워크 변경 후 버튼 텍스트 업데이트
+                  metamaskChainId = networkInfo.network.id
+                  updateSwitchNetworkButton()
                   closeNetworkModal()
                 } catch (switchError) {
                   // 네트워크가 없는 경우 추가
@@ -436,17 +466,20 @@ async function initializeApp() {
                           chainId: chainIdHex,
                           chainName: networkInfo.name,
                           nativeCurrency: {
-                            name: networkInfo.network.currency,
-                            symbol: networkInfo.network.currency,
-                            decimals: 18
+                            name: networkInfo.network.nativeCurrency.symbol,
+                            symbol: networkInfo.network.nativeCurrency.symbol,
+                            decimals: networkInfo.network.nativeCurrency.decimals
                           },
-                          rpcUrls: [networkInfo.network.rpcUrl],
-                          blockExplorerUrls: networkInfo.network.explorerUrl
-                            ? [networkInfo.network.explorerUrl]
+                          rpcUrls: [networkInfo.network.rpcUrls.default.http[0]],
+                          blockExplorerUrls: networkInfo.network.blockExplorers?.default?.url
+                            ? [networkInfo.network.blockExplorers.default.url]
                             : []
                         }
                       ]
                     })
+                    // 네트워크 변경 후 버튼 텍스트 업데이트
+                    metamaskChainId = networkInfo.network.id
+                    updateSwitchNetworkButton()
                     closeNetworkModal()
                   } else {
                     throw switchError
@@ -539,10 +572,12 @@ async function initializeApp() {
           console.log('MetaMask Extension chain changed:', chainIdHex)
           metamaskChainId = parseInt(chainIdHex, 16)
           updateButtonVisibility()
+          updateSwitchNetworkButton()
         })
 
         alert(`✅ MetaMask Extension 연결 성공!\n\n주소: ${metamaskAddress}`)
         updateButtonVisibility()
+        updateSwitchNetworkButton()
       } catch (error) {
         console.error('MetaMask Extension connection failed:', error)
         const errorMessage = error instanceof Error ? error.message : String(error)
@@ -1140,11 +1175,8 @@ ${JSON.stringify(status.sessions, null, 2)}`)
           : '1 ' + contractData[networkState?.chainId]?.coin || 'CROSS'
       document.getElementById('networkState').textContent = JSON.stringify(state, null, 2)
 
-      // switch-network 버튼 텍스트 안전하게 업데이트
-      const switchNetworkBtn = document.getElementById('switch-network')
-      if (switchNetworkBtn && networkState.caipNetwork?.name) {
-        switchNetworkBtn.textContent = networkState.caipNetwork.name
-      }
+      // switch-network 버튼 텍스트 업데이트 (Cross Wallet용)
+      updateSwitchNetworkButton()
     })
 
     crossSdk.subscribeState(state => {
@@ -1195,6 +1227,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
         const result = await window.CrossSdk.ConnectorUtil.connectCrossExtensionWallet()
         alert(`✅ Cross Extension 연결 성공!\n\n주소: ${result.address}`)
         updateButtonVisibility()
+        updateSwitchNetworkButton()
       } catch (error) {
         console.error('Cross Extension connection failed:', error)
         const errorMessage = error instanceof Error ? error.message : String(error)
@@ -1317,13 +1350,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
 
     // 초기 버튼 상태 설정
     updateButtonVisibility()
-
-    // 초기 버튼 텍스트 설정
-    const switchNetworkBtn = document.getElementById('switch-network')
-
-    if (switchNetworkBtn) {
-      switchNetworkBtn.textContent = networkState.caipNetwork?.name || 'Switch Network'
-    }
+    updateSwitchNetworkButton()
 
     console.log('App initialized successfully!')
   } catch (error) {

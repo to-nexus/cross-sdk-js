@@ -26,8 +26,15 @@ import {
 import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
 
-import { useAppKit as useReownAppKit } from '@reown/appkit/react'
+import {
+  useAppKitAccount as useReownAccount,
+  useAppKit as useReownAppKit,
+  useAppKitProvider as useReownAppKitProvider,
+  useDisconnect as useReownDisconnect,
+  useAppKitNetwork as useReownNetwork
+} from '@reown/appkit/react'
 
+import { useWalletContext } from '../contexts/wallet-context'
 import { sampleEIP712 } from '../contracts/sample-eip712'
 import { sampleErc20ABI } from '../contracts/sample-erc20'
 import { sampleErc721ABI } from '../contracts/sample-erc721'
@@ -149,9 +156,69 @@ export function ActionButtonList() {
   const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
     useAppKitWallet()
   const reownAppKit = useReownAppKit()
+  const reownAccount = useReownAccount() // 🆕 Reown AppKit 계정 (MetaMask QR)
+  const reownNetwork = useReownNetwork() // 🆕 Reown AppKit 네트워크 (MetaMask QR)
+  const { walletProvider: reownWalletProvider } =
+    useReownAppKitProvider<UniversalProvider>('eip155') // 🆕 Reown provider (MetaMask QR)
+  const { disconnect: reownDisconnect } = useReownDisconnect() // 🆕 Reown disconnect
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
   const [isLoading, setIsLoading] = useState(false)
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
+
+  // 🆕 MetaMask Extension 상태 관리 (Context 사용)
+  const {
+    metamaskProvider,
+    metamaskAccount,
+    metamaskChainId,
+    setMetamaskProvider,
+    setMetamaskAccount,
+    setMetamaskChainId
+  } = useWalletContext()
+
+  // 🆕 활성 지갑 감지 함수 (vanilla example 패턴)
+  const getActiveWallet = useCallback(() => {
+    // 1. MetaMask Extension으로 연결된 경우
+    if (metamaskProvider && metamaskAccount) {
+      return {
+        type: 'metamask_extension' as const,
+        provider: metamaskProvider,
+        account: metamaskAccount,
+        chainId: metamaskChainId
+      }
+    }
+
+    // 2. MetaMask QR Code (Reown AppKit)로 연결된 경우
+    if (reownAccount?.isConnected && reownAccount?.address && reownWalletProvider) {
+      return {
+        type: 'metamask_qr' as const,
+        provider: reownWalletProvider,
+        account: reownAccount.address,
+        chainId: reownNetwork?.chainId
+      }
+    }
+
+    // 3. Cross Wallet (Extension 또는 QR)로 연결된 경우
+    if (account?.isConnected && walletProvider) {
+      return {
+        type: 'cross' as const,
+        provider: walletProvider,
+        account: account.address,
+        chainId: network.chainId
+      }
+    }
+
+    return null
+  }, [
+    metamaskProvider,
+    metamaskAccount,
+    metamaskChainId,
+    reownAccount,
+    reownNetwork,
+    reownWalletProvider,
+    account,
+    walletProvider,
+    network
+  ])
 
   // 🆕 Error analysis utility function
   const analyzeAndShowError = useCallback(
@@ -439,18 +506,43 @@ export function ActionButtonList() {
   }
 
   // used for connecting wallet with wallet list
-  function handleConnect() {
+  async function handleConnect() {
+    // 먼저 Reown AppKit과 MetaMask Extension 상태 클리어
+    try {
+      await reownDisconnect()
+    } catch (e) {
+      // 연결되지 않았을 수 있으므로 에러 무시
+    }
+    setMetamaskProvider(null)
+    setMetamaskAccount(null)
+    setMetamaskChainId(null)
+
     appKit.connect()
   }
 
   // used for connecting CROSS wallet directly
-  function handleConnectWallet() {
+  async function handleConnectWallet() {
+    // 먼저 Reown AppKit과 MetaMask Extension 상태 클리어
+    try {
+      await reownDisconnect()
+    } catch (e) {
+      // 연결되지 않았을 수 있으므로 에러 무시
+    }
+    setMetamaskProvider(null)
+    setMetamaskAccount(null)
+    setMetamaskChainId(null)
+
     connect('cross_wallet')
   }
 
   // MetaMask QR Code 모달 직접 열기 (WalletConnect via Reown)
   // Extension 감지 없이 무조건 QR Code 모달만 표시
-  function handleConnectMetaMaskQRCode() {
+  async function handleConnectMetaMaskQRCode() {
+    // MetaMask Extension 상태 클리어
+    setMetamaskProvider(null)
+    setMetamaskAccount(null)
+    setMetamaskChainId(null)
+
     reownAppKit.open()
   }
 
@@ -458,6 +550,13 @@ export function ActionButtonList() {
   async function handleConnectMetaMaskExtension() {
     try {
       setIsLoading(true)
+
+      // 먼저 Reown AppKit만 해제
+      try {
+        await reownDisconnect()
+      } catch (e) {
+        // 연결되지 않았을 수 있으므로 에러 무시
+      }
 
       // MetaMask가 설치되어 있는지 확인
       if (typeof window.ethereum === 'undefined') {
@@ -468,13 +567,66 @@ export function ActionButtonList() {
         return
       }
 
-      // MetaMask 연결 요청 (타입 안전하게 처리)
-      const ethereum = window.ethereum as any
-      const accounts = await ethereum['request']({
+      // MetaMask provider 찾기 (여러 지갑이 설치된 경우 대비)
+      const findMetaMaskProvider = () => {
+        const ethereum = window.ethereum as any
+        if (ethereum.providers && Array.isArray(ethereum.providers)) {
+          return ethereum.providers.find((p: any) => p.isMetaMask && !p.isCrossWallet)
+        }
+        if (ethereum.isMetaMask && !ethereum.isCrossWallet) {
+          return ethereum
+        }
+        return null
+      }
+
+      const provider = findMetaMaskProvider()
+
+      if (!provider) {
+        showError(
+          'MetaMask 찾을 수 없음',
+          'MetaMask Extension을 찾을 수 없습니다.\n\n' +
+            '1. MetaMask Extension을 활성화해주세요\n' +
+            '2. 다른 지갑 Extension을 비활성화하고 새로고침해주세요'
+        )
+        return
+      }
+
+      // MetaMask 연결 요청
+      const accounts = await provider.request({
         method: 'eth_requestAccounts'
       })
 
       if (accounts && accounts.length > 0) {
+        // ✅ MetaMask 연결 상태 및 provider 저장
+        setMetamaskProvider(provider)
+        setMetamaskAccount(accounts[0])
+
+        // ethers provider로 네트워크 정보 가져오기
+        const { ethers } = await import('ethers')
+        const ethersProvider = new ethers.BrowserProvider(provider)
+        const networkInfo = await ethersProvider.getNetwork()
+        const chainId = Number(networkInfo.chainId)
+        setMetamaskChainId(chainId)
+
+        // 네트워크 변경 이벤트 리스너
+        provider.on('chainChanged', (newChainId: string) => {
+          const newChainIdNumber = parseInt(newChainId, 16)
+          setMetamaskChainId(newChainIdNumber)
+        })
+
+        // 계정 변경 이벤트 리스너
+        provider.on('accountsChanged', (newAccounts: string[]) => {
+          if (newAccounts.length === 0) {
+            // 연결 해제됨
+            setMetamaskProvider(null)
+            setMetamaskAccount(null)
+            setMetamaskChainId(null)
+          } else {
+            // 계정 변경됨
+            setMetamaskAccount(newAccounts[0] || null)
+          }
+        })
+
         showSuccess(
           'MetaMask 연결 성공!',
           `Connected to: ${accounts[0]}\n\nMetaMask가 성공적으로 연결되었습니다.`
@@ -504,25 +656,27 @@ export function ActionButtonList() {
     try {
       setIsLoading(true)
 
+      // 먼저 Reown AppKit과 MetaMask Extension 상태 클리어
+      try {
+        await reownDisconnect()
+      } catch (e) {
+        // 연결되지 않았을 수 있으므로 에러 무시
+      }
+      setMetamaskProvider(null)
+      setMetamaskAccount(null)
+      setMetamaskChainId(null)
+
       // 연결 시작 전 현재 연결 상태 저장
       const wasConnectedBefore = account?.isConnected
       const addressBefore = account?.address
 
-      console.log('🚀 Cross Extension Wallet 연결 시도 시작')
-      console.log('연결 전 상태:', { wasConnectedBefore, addressBefore })
-
       const result = await connectCrossExtensionWallet()
 
-      console.log('🎉 connectCrossExtensionWallet 완료:', result)
-
       // 연결 성공 후 실제로 새로운 연결이 이루어졌는지 확인
-      // 짧은 지연 후 상태 재확인
       await new Promise(resolve => setTimeout(resolve, 500))
 
       const isNowConnected = account?.isConnected
       const addressAfter = account?.address
-
-      console.log('연결 후 상태:', { isNowConnected, addressAfter })
 
       // 실제로 연결 상태가 변경되었는지 확인
       if (!isNowConnected || (wasConnectedBefore && addressBefore === addressAfter)) {
@@ -536,7 +690,6 @@ export function ActionButtonList() {
         'Cross Extension Wallet 연결 성공!',
         'Cross Extension Wallet이 성공적으로 연결되었습니다.'
       )
-      console.log('✅ Cross Extension Wallet 연결 성공')
     } catch (error) {
       console.error('Cross Extension Wallet 연결 실패:', error)
 
@@ -643,9 +796,38 @@ export function ActionButtonList() {
 
   async function handleDisconnect() {
     try {
-      await disconnect()
+      const activeWallet = getActiveWallet()
+
+      if (activeWallet?.type === 'metamask_extension') {
+        // MetaMask Extension 연결 해제
+        setMetamaskProvider(null)
+        setMetamaskAccount(null)
+        setMetamaskChainId(null)
+
+        try {
+          await reownDisconnect()
+        } catch (e) {
+          // 이미 해제되었을 수 있음
+        }
+
+        showSuccess('연결 해제 성공', 'MetaMask Extension이 연결 해제되었습니다.')
+      } else if (activeWallet?.type === 'metamask_qr') {
+        // MetaMask QR Code 연결 해제
+        await reownDisconnect()
+        showSuccess('연결 해제 성공', 'MetaMask QR Code가 연결 해제되었습니다.')
+      } else {
+        // Cross Wallet 연결 해제
+        await disconnect()
+        showSuccess('연결 해제 성공', 'Cross Wallet이 연결 해제되었습니다.')
+      }
+
+      // 모든 상태 클리어
+      setMetamaskProvider(null)
+      setMetamaskAccount(null)
+      setMetamaskChainId(null)
     } catch (error) {
       console.error('Error during disconnect:', error)
+      showError('연결 해제 실패', error instanceof Error ? error.message : '알 수 없는 오류')
     }
   }
 
@@ -692,19 +874,56 @@ export function ActionButtonList() {
 
   // used for signing custom message
   async function handleSignMessage() {
-    if (!account?.isConnected) {
+    const activeWallet = getActiveWallet()
+
+    if (!activeWallet) {
       showError('Error in handleSignMessage', 'Please connect wallet first.')
       return
     }
 
+    // MetaMask Extension이나 MetaMask QR는 provider가 필요
+    if (
+      (activeWallet.type === 'metamask_extension' || activeWallet.type === 'metamask_qr') &&
+      !activeWallet.provider
+    ) {
+      showError('Error in handleSignMessage', 'Provider is undefined')
+      return
+    }
+
     try {
-      const signedMessage = await ConnectionController.signMessage({
-        message: `Hello, world! ${Date.now()}`,
-        customData: {
-          metadata: 'This is metadata for signed message'
-        }
-      })
-      showSuccess('Sign Message Successful!', `signedMessage: ${signedMessage}`)
+      const message = `Hello, world! ${Date.now()}`
+
+      if (activeWallet.type === 'metamask_extension') {
+        // MetaMask Extension 사용
+        const signature = await activeWallet.provider.request({
+          method: 'personal_sign',
+          params: [message, activeWallet.account]
+        })
+        showSuccess(
+          '🦊 MetaMask Extension 서명 성공!',
+          `메시지: ${message}\n서명: ${signature.slice(0, 20)}...${signature.slice(-20)}`
+        )
+      } else if (activeWallet.type === 'metamask_qr') {
+        // MetaMask QR Code: Reown provider 사용
+        const provider = activeWallet.provider as UniversalProvider
+        const signature = (await provider.request({
+          method: 'personal_sign',
+          params: [message, activeWallet.account]
+        })) as string
+        showSuccess(
+          '🦊 MetaMask QR 서명 성공!',
+          `메시지: ${message}\n서명: ${signature.slice(0, 20)}...${signature.slice(-20)}`
+        )
+      } else {
+        // Cross Wallet: SDK 사용
+        const signedMessage = await ConnectionController.signMessage({
+          message,
+          customData: {
+            metadata: 'This is metadata for signed message'
+          }
+        })
+        showSuccess('⚡ Cross Wallet 서명 성공!', `서명: ${signedMessage}`)
+      }
     } catch (error) {
       analyzeAndShowError(error, 'sign')
     }
@@ -880,25 +1099,49 @@ Check console for full details.`
 
   // used for sending CROSS
   async function handleSendNative() {
-    if (!account?.isConnected) {
+    const activeWallet = getActiveWallet()
+
+    if (!activeWallet) {
       showError('Error in handleSendNative', 'Please connect wallet first.')
       return
     }
 
     try {
-      const resTx = await SendController.sendNativeToken({
-        data: '0x',
-        receiverAddress: RECEIVER_ADDRESS,
-        sendTokenAmount:
-          network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : SEND_CROSS_AMOUNT, // in eth (not wei)
-        decimals: '18',
-        customData: {
-          metadata:
-            'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
-        },
-        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-      })
-      showSuccess('Send Native Successful!', `resTx: ${JSON.stringify(resTx)}`)
+      if (activeWallet.type === 'metamask_extension') {
+        // MetaMask Extension: window.ethereum 사용
+        const { ethers } = await import('ethers')
+        const amount =
+          network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : SEND_CROSS_AMOUNT
+        const valueInWei = ethers.parseEther(amount.toString())
+
+        const txHash = await activeWallet.provider.request({
+          method: 'eth_sendTransaction',
+          params: [
+            {
+              from: activeWallet.account,
+              to: RECEIVER_ADDRESS,
+              value: `0x${valueInWei.toString(16)}`,
+              data: '0x'
+            }
+          ]
+        })
+        showSuccess('🦊 MetaMask Extension 전송 성공!', `트랜잭션 해시: ${txHash}`)
+      } else {
+        // Cross Wallet 또는 MetaMask QR: SDK 사용
+        const resTx = await SendController.sendNativeToken({
+          data: '0x',
+          receiverAddress: RECEIVER_ADDRESS,
+          sendTokenAmount:
+            network.chainId === 1 || network.chainId === 11155111 ? 0.0001 : SEND_CROSS_AMOUNT,
+          decimals: '18',
+          customData: {
+            metadata:
+              'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+          },
+          type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        })
+        showSuccess('⚡ 전송 성공!', `resTx: ${JSON.stringify(resTx)}`)
+      }
     } catch (error) {
       analyzeAndShowError(error, 'transaction')
     }
@@ -1277,21 +1520,60 @@ Check console for full details.`
     if (!account?.isConnected) return
 
     const accessUniversalProvider = async () => {
-      const universalProvider = await getUniversalProvider()
-      await universalProvider?.request({
-        method: 'eth_requestAccounts',
-        params: []
-      })
+      try {
+        const activeWallet = getActiveWallet()
+
+        // MetaMask Extension이나 MetaMask QR로 연결된 경우 건너뛰기
+        if (activeWallet?.type === 'metamask_extension' || activeWallet?.type === 'metamask_qr') {
+          return
+        }
+
+        const universalProvider = await getUniversalProvider()
+
+        // UniversalProvider가 없거나 이미 연결된 경우
+        if (!universalProvider) {
+          return
+        }
+
+        if (universalProvider.session) {
+          return
+        }
+
+        // UniversalProvider 연결 시도
+        await universalProvider.connect({
+          namespaces: {
+            eip155: {
+              methods: [
+                'eth_sendTransaction',
+                'eth_signTransaction',
+                'eth_sign',
+                'personal_sign',
+                'eth_signTypedData'
+              ],
+              chains: ['eip155:1'],
+              events: ['chainChanged', 'accountsChanged'],
+              rpcMap: {}
+            }
+          }
+        })
+
+        await universalProvider?.request({
+          method: 'eth_requestAccounts',
+          params: []
+        })
+      } catch (error) {
+        // Cross Extension으로 연결된 경우 이 에러는 무시
+      }
     }
 
     accessUniversalProvider()
-  }, [appKit])
+  }, [appKit, account?.isConnected])
 
   return (
     <div>
       <div className="action-button-list">
         {/* 연결되지 않은 경우에만 연결 버튼들 표시 */}
-        {!account?.isConnected && (
+        {!getActiveWallet() && (
           <>
             <button
               onClick={handleConnectMetaMaskQRCode}
@@ -1336,7 +1618,7 @@ Check console for full details.`
         )}
 
         {/* 연결된 경우에만 연결 해제 및 네트워크 변경 버튼들 표시 */}
-        {account?.isConnected && (
+        {getActiveWallet() && (
           <>
             <button
               onClick={handleDisconnect}
