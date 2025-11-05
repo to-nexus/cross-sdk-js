@@ -556,7 +556,10 @@ async function initializeApp() {
         const chainIdHex = await provider.request({ method: 'eth_chainId' })
         metamaskChainId = parseInt(chainIdHex, 16)
 
-        // Set up event listeners
+        // Set up event listeners (중복 방지를 위해 removeAllListeners)
+        provider.removeAllListeners('accountsChanged')
+        provider.removeAllListeners('chainChanged')
+
         provider.on('accountsChanged', accounts => {
           console.log('MetaMask Extension accounts changed:', accounts)
           if (accounts.length > 0) {
@@ -564,8 +567,10 @@ async function initializeApp() {
           } else {
             metamaskAddress = null
             metamaskProvider = null
+            metamaskChainId = null
           }
           updateButtonVisibility()
+          updateSwitchNetworkButton()
         })
 
         provider.on('chainChanged', chainIdHex => {
@@ -646,10 +651,10 @@ async function initializeApp() {
       }
     }
 
-    // Universal EIP-712 signing using server-provided typed data
+    // Universal EIP-712 signing using server-provided typed data (Cross SDK only)
     async function handleSignTypedDataV4() {
       if (!accountState.isConnected) {
-        alert('Please connect wallet first.')
+        alert('This feature is only available with Cross Wallet.')
         return
       }
 
@@ -778,9 +783,10 @@ Check console for full details.`)
       }
     }
 
+    // Cross SDK only
     async function handleProviderRequest() {
       if (!accountState.isConnected) {
-        alert('Please connect wallet first.')
+        alert('This feature is only available with Cross Wallet.')
         return
       }
 
@@ -796,9 +802,10 @@ Check console for full details.`)
       }
     }
 
+    // Cross SDK only
     async function handleSendTransaction() {
       if (!accountState.isConnected) {
-        alert('Please connect wallet first.')
+        alert('This feature is only available with Cross Wallet.')
         return
       }
 
@@ -845,63 +852,104 @@ Check console for full details.`)
     }
 
     async function handleSendNative() {
-      if (!accountState.isConnected) {
+      const activeWallet = getActiveWallet()
+
+      if (!activeWallet) {
         alert('Please connect wallet first.')
         return
       }
 
-      console.log('SEND_CROSS_AMOUNT', SEND_CROSS_AMOUNT)
-
       try {
-        const resTx = await SendController.sendNativeToken({
-          data: '0x',
-          receiverAddress: RECEIVER_ADDRESS,
-          sendTokenAmount:
-            networkState.caipNetwork.chainId === 1 || networkState.caipNetwork.chainId === 11155111
-              ? 0.0001
-              : SEND_CROSS_AMOUNT, // in eth (not wei)
-          decimals: '18',
-          customData: {
-            metadata:
-              'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
-          },
-          type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-        })
-        alert(`resTx: ${JSON.stringify(resTx)}`)
+        if (activeWallet === 'metamask') {
+          // MetaMask Extension: ethers.js v5 사용
+          const amount =
+            metamaskChainId === 1 || metamaskChainId === 11155111 ? 0.0001 : SEND_CROSS_AMOUNT
+          const valueInWei = ethers.utils.parseEther(amount.toString())
+
+          const txHash = await metamaskProvider.request({
+            method: 'eth_sendTransaction',
+            params: [
+              {
+                from: metamaskAddress,
+                to: RECEIVER_ADDRESS,
+                value: `0x${valueInWei.toHexString().slice(2)}`,
+                data: '0x'
+              }
+            ]
+          })
+
+          alert(`✅ MetaMask Native 전송 성공!\n\nTx Hash: ${txHash}`)
+        } else {
+          // Cross SDK
+          const resTx = await SendController.sendNativeToken({
+            data: '0x',
+            receiverAddress: RECEIVER_ADDRESS,
+            sendTokenAmount:
+              networkState.caipNetwork.chainId === 1 ||
+              networkState.caipNetwork.chainId === 11155111
+                ? 0.0001
+                : SEND_CROSS_AMOUNT,
+            decimals: '18',
+            customData: {
+              metadata:
+                'You are about to send 1 CROSS to the receiver address. This is plain text formatted custom data.'
+            },
+            type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+          })
+          alert(`✅ Cross Native 전송 성공!\n\nResponse: ${JSON.stringify(resTx)}`)
+        }
       } catch (error) {
         console.error('Error sending native token:', error)
-        alert('Failed to send native token')
+        alert(`❌ Failed to send native token: ${error.message}`)
       }
     }
 
     async function handleSendERC20Token() {
-      if (!accountState.isConnected) {
+      const activeWallet = getActiveWallet()
+
+      if (!activeWallet) {
         alert('Please connect wallet first.')
         return
       }
 
       try {
-        const resTx = await SendController.sendERC20Token({
-          receiverAddress: RECEIVER_ADDRESS,
-          contractAddress: getERC20CAIPAddress(),
-          sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
-          decimals: '18',
-          customData: {
-            metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
-          },
-          type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-        })
-        alert(`resTx: ${JSON.stringify(resTx)}`)
-        getBalanceOfERC20({ showResult: false })
+        if (activeWallet === 'metamask') {
+          // MetaMask Extension: ethers.js v5 사용
+          const provider = new ethers.providers.Web3Provider(metamaskProvider)
+          const signer = provider.getSigner()
+          const erc20Contract = new ethers.Contract(ERC20_ADDRESS, sampleErc20ABI, signer)
+
+          const amountInWei = ethers.utils.parseUnits(SEND_ERC20_AMOUNT.toString(), 18)
+          const tx = await erc20Contract.transfer(RECEIVER_ADDRESS, amountInWei)
+          const receipt = await tx.wait()
+
+          alert(`✅ MetaMask ERC20 전송 성공!\n\nTx Hash: ${receipt.transactionHash}`)
+          getBalanceOfERC20({ showResult: false })
+        } else {
+          // Cross SDK
+          const resTx = await SendController.sendERC20Token({
+            receiverAddress: RECEIVER_ADDRESS,
+            contractAddress: getERC20CAIPAddress(),
+            sendTokenAmount: SEND_ERC20_AMOUNT,
+            decimals: '18',
+            customData: {
+              metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+            },
+            type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+          })
+          alert(`✅ Cross ERC20 전송 성공!\n\nResponse: ${JSON.stringify(resTx)}`)
+          getBalanceOfERC20({ showResult: false })
+        }
       } catch (error) {
         console.error('Error sending ERC20 token:', error)
-        alert('Failed to send ERC20 token')
+        alert(`❌ Failed to send ERC20 token: ${error.message}`)
       }
     }
 
+    // Cross SDK only
     async function handleSendTransactionWithDynamicFee() {
       if (!accountState.isConnected) {
-        alert('Please connect wallet first.')
+        alert('This feature is only available with Cross Wallet.')
         return
       }
 
@@ -947,9 +995,10 @@ Check console for full details.`)
       }
     }
 
+    // Cross SDK only
     async function handleSendNativeWithDynamicFee() {
       if (!accountState.isConnected) {
-        alert('Please connect wallet first.')
+        alert('This feature is only available with Cross Wallet.')
         return
       }
 
@@ -972,9 +1021,10 @@ Check console for full details.`)
       }
     }
 
+    // Cross SDK only
     async function handleSendERC20TokenWithDynamicFee() {
       if (!accountState.isConnected) {
-        alert('Please connect wallet first.')
+        alert('This feature is only available with Cross Wallet.')
         return
       }
 
@@ -1001,60 +1051,95 @@ Check console for full details.`)
     }
 
     async function getBalanceOfNative() {
-      if (!accountState.isConnected) {
-        alert('Please connect wallet first.')
-        return
-      }
+      const activeWallet = getActiveWallet()
 
-      const balance = accountState?.balance
-      alert(`CROSS balance: ${balance}`)
-    }
-
-    async function getBalanceOfERC20({ showResult = true } = {}) {
-      if (!accountState.isConnected) {
+      if (!activeWallet) {
         alert('Please connect wallet first.')
         return
       }
 
       try {
-        const amount = await ConnectionController.readContract({
-          contractAddress: ERC20_ADDRESS,
-          method: 'balanceOf',
-          abi: sampleErc20ABI,
-          args: [getFROM_ADDRESS()]
-        })
+        if (activeWallet === 'metamask') {
+          // MetaMask Extension: ethers.js v5 사용
+          const provider = new ethers.providers.Web3Provider(metamaskProvider)
+          const balance = await provider.getBalance(metamaskAddress)
+          const balanceInEth = ethers.utils.formatEther(balance)
 
-        const balance = accountState?.tokenBalance?.map(token => {
-          if (token.address === ERC20_ADDRESS.toLowerCase()) {
-            return {
-              ...token,
-              quantity: {
-                ...token.quantity,
-                numeric: amount
+          alert(`✅ MetaMask Native 잔액!\n\nBalance: ${balanceInEth} ETH`)
+        } else {
+          // Cross SDK
+          const balance = accountState?.balance
+          alert(`✅ Cross Native 잔액!\n\nBalance: ${balance}`)
+        }
+      } catch (error) {
+        console.error('Error getting native balance:', error)
+        alert(`❌ Failed to get native balance: ${error.message}`)
+      }
+    }
+
+    async function getBalanceOfERC20({ showResult = true } = {}) {
+      const activeWallet = getActiveWallet()
+
+      if (!activeWallet) {
+        alert('Please connect wallet first.')
+        return
+      }
+
+      try {
+        if (activeWallet === 'metamask') {
+          // MetaMask Extension: ethers.js v5 사용
+          const provider = new ethers.providers.Web3Provider(metamaskProvider)
+          const erc20Contract = new ethers.Contract(ERC20_ADDRESS, sampleErc20ABI, provider)
+
+          const balance = await erc20Contract.balanceOf(metamaskAddress)
+          const balanceFormatted = ethers.utils.formatUnits(balance, 18)
+
+          if (showResult) {
+            alert(
+              `✅ MetaMask ERC20 잔액!\n\nBalance: ${balanceFormatted} tokens\nContract: ${ERC20_ADDRESS}`
+            )
+          }
+        } else {
+          // Cross SDK
+          const amount = await ConnectionController.readContract({
+            contractAddress: ERC20_ADDRESS,
+            method: 'balanceOf',
+            abi: sampleErc20ABI,
+            args: [getFROM_ADDRESS()]
+          })
+
+          const balance = accountState?.tokenBalance?.map(token => {
+            if (token.address === ERC20_ADDRESS.toLowerCase()) {
+              return {
+                ...token,
+                quantity: {
+                  ...token.quantity,
+                  numeric: amount
+                }
               }
             }
-          }
-          return token
-        })
+            return token
+          })
 
-        if (!balance) {
-          console.log('balance not found')
-          return
+          if (!balance) {
+            console.log('balance not found')
+            return
+          }
+          await AccountController.updateTokenBalance(balance)
+          if (showResult)
+            alert(
+              `✅ Cross ERC20 잔액!\n\n${JSON.stringify(
+                accountState?.tokenBalance?.find(
+                  token => token.address === ERC20_ADDRESS.toLowerCase()
+                ),
+                (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+                2
+              )}`
+            )
         }
-        await AccountController.updateTokenBalance(balance)
-        if (showResult)
-          alert(
-            `updated erc20 balance: ${JSON.stringify(
-              accountState?.tokenBalance?.find(
-                token => token.address === ERC20_ADDRESS.toLowerCase()
-              ),
-              (key, value) => (typeof value === 'bigint' ? value.toString() : value),
-              2
-            )}`
-          )
       } catch (error) {
         console.error('Error getting ERC20 balance:', error)
-        alert('Failed to get ERC20 balance')
+        alert(`❌ Failed to get ERC20 balance: ${error.message}`)
       }
     }
 
@@ -1333,9 +1418,59 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     // 세션 관리 초기화
     initializeSessionManagement()
 
+    // MetaMask Extension 자동 재연결 (페이지 로드 시)
+    async function autoReconnectMetaMask() {
+      try {
+        const provider = findMetaMaskProvider()
+        if (!provider) return
+
+        // eth_accounts는 이미 연결된 계정만 반환 (사용자 승인 불필요)
+        const accounts = await provider.request({ method: 'eth_accounts' })
+
+        if (accounts && accounts.length > 0) {
+          console.log('🔄 MetaMask 자동 재연결 중...')
+          metamaskAddress = accounts[0]
+          metamaskProvider = provider
+
+          // Get chain ID
+          const chainIdHex = await provider.request({ method: 'eth_chainId' })
+          metamaskChainId = parseInt(chainIdHex, 16)
+
+          // Set up event listeners (중복 방지)
+          provider.removeAllListeners('accountsChanged')
+          provider.removeAllListeners('chainChanged')
+
+          provider.on('accountsChanged', accounts => {
+            if (accounts.length > 0) {
+              metamaskAddress = accounts[0]
+            } else {
+              metamaskAddress = null
+              metamaskProvider = null
+              metamaskChainId = null
+            }
+            updateButtonVisibility()
+            updateSwitchNetworkButton()
+          })
+
+          provider.on('chainChanged', chainIdHex => {
+            metamaskChainId = parseInt(chainIdHex, 16)
+            updateButtonVisibility()
+            updateSwitchNetworkButton()
+          })
+
+          updateButtonVisibility()
+          updateSwitchNetworkButton()
+          console.log('✅ MetaMask 자동 재연결 성공:', metamaskAddress)
+        }
+      } catch (error) {
+        console.log('MetaMask 자동 재연결 실패 (무시):', error)
+      }
+    }
+
     // Extension 버튼 상태 주기적 업데이트 (SDK 로드 후)
     setTimeout(() => {
       updateExtensionButtonStates()
+      autoReconnectMetaMask() // MetaMask 자동 재연결 시도
       setInterval(updateExtensionButtonStates, 3000) // 3초마다 확인
     }, 1000) // 1초 후 시작
 

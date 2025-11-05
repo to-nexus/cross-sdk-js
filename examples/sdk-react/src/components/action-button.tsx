@@ -323,6 +323,101 @@ export function ActionButtonList() {
     return () => clearInterval(interval)
   }, [checkExtensionInstalled])
 
+  // MetaMask QR Code (Reown AppKit) 자동 재연결 확인
+  useEffect(() => {
+    // Reown AppKit이 세션을 자동으로 복원했는지 확인
+    if (reownAccount?.isConnected && reownAccount?.address) {
+      const connectionType = localStorage.getItem('metamask_connection_type')
+      if (!connectionType) {
+        // 세션은 복원되었지만 타입이 저장되지 않았으면 qrcode로 설정
+        localStorage.setItem('metamask_connection_type', 'qrcode')
+        console.log('✅ MetaMask QR Code 세션 자동 복원 확인:', reownAccount.address)
+      }
+    }
+  }, [reownAccount?.isConnected, reownAccount?.address])
+
+  // MetaMask Extension 자동 재연결 (페이지 로드 시)
+  useEffect(() => {
+    const autoReconnectMetaMask = async () => {
+      try {
+        // QR Code로 연결된 경우 Extension 자동 재연결 건너뛰기
+        const connectionType = localStorage.getItem('metamask_connection_type')
+        if (connectionType === 'qrcode') {
+          console.log('⏭️ QR Code 연결 감지, Extension 자동 재연결 건너뛰기')
+          return
+        }
+
+        if (typeof window.ethereum === 'undefined') return
+
+        // MetaMask provider 찾기
+        const findMetaMaskProvider = () => {
+          const ethereum = window.ethereum as any
+          if (ethereum.providers && Array.isArray(ethereum.providers)) {
+            return ethereum.providers.find((p: any) => p.isMetaMask && !p.isCrossWallet)
+          }
+          if (ethereum.isMetaMask && !ethereum.isCrossWallet) {
+            return ethereum
+          }
+          return null
+        }
+
+        const provider = findMetaMaskProvider()
+        if (!provider) return
+
+        // eth_accounts는 이미 연결된 계정만 반환 (사용자 승인 불필요)
+        const accounts = await provider.request({ method: 'eth_accounts' })
+
+        if (accounts && accounts.length > 0) {
+          console.log('🔄 MetaMask 자동 재연결 중...')
+
+          // ✅ MetaMask 연결 상태 및 provider 저장
+          setMetamaskProvider(provider)
+          setMetamaskAccount(accounts[0])
+
+          // ethers provider로 네트워크 정보 가져오기
+          const { ethers } = await import('ethers')
+          const ethersProvider = new ethers.BrowserProvider(provider)
+          const networkInfo = await ethersProvider.getNetwork()
+          const chainId = Number(networkInfo.chainId)
+          setMetamaskChainId(chainId)
+
+          // 이벤트 리스너 중복 방지
+          provider.removeAllListeners?.('chainChanged')
+          provider.removeAllListeners?.('accountsChanged')
+
+          // 네트워크 변경 이벤트 리스너
+          provider.on('chainChanged', (newChainId: string) => {
+            const newChainIdNumber = parseInt(newChainId, 16)
+            setMetamaskChainId(newChainIdNumber)
+          })
+
+          // 계정 변경 이벤트 리스너
+          provider.on('accountsChanged', (newAccounts: string[]) => {
+            if (newAccounts.length === 0) {
+              // 연결 해제됨
+              setMetamaskProvider(null)
+              setMetamaskAccount(null)
+              setMetamaskChainId(null)
+              localStorage.removeItem('metamask_connection_type')
+            } else {
+              // 계정 변경됨
+              setMetamaskAccount(newAccounts[0] || null)
+            }
+          })
+
+          // Extension 연결 타입 저장
+          localStorage.setItem('metamask_connection_type', 'extension')
+
+          console.log('✅ MetaMask 자동 재연결 성공:', accounts[0])
+        }
+      } catch (error) {
+        console.log('MetaMask 자동 재연결 실패 (무시):', error)
+      }
+    }
+
+    autoReconnectMetaMask()
+  }, []) // 페이지 로드 시 한 번만 실행
+
   // 세션 관리 로직 (SDK에서 이벤트 리스너 제거 후 DApp에서 직접 관리)
   useEffect(() => {
     const handleVisibilityChange = async () => {
@@ -608,6 +703,9 @@ export function ActionButtonList() {
         const chainId = Number(networkInfo.chainId)
         setMetamaskChainId(chainId)
 
+        // Extension 연결 타입 저장 (자동 재연결 시 QR Code와 구분하기 위해)
+        localStorage.setItem('metamask_connection_type', 'extension')
+
         // 네트워크 변경 이벤트 리스너
         provider.on('chainChanged', (newChainId: string) => {
           const newChainIdNumber = parseInt(newChainId, 16)
@@ -621,6 +719,7 @@ export function ActionButtonList() {
             setMetamaskProvider(null)
             setMetamaskAccount(null)
             setMetamaskChainId(null)
+            localStorage.removeItem('metamask_connection_type')
           } else {
             // 계정 변경됨
             setMetamaskAccount(newAccounts[0] || null)
@@ -825,6 +924,9 @@ export function ActionButtonList() {
       setMetamaskProvider(null)
       setMetamaskAccount(null)
       setMetamaskChainId(null)
+
+      // 연결 타입 정보 삭제
+      localStorage.removeItem('metamask_connection_type')
     } catch (error) {
       console.error('Error during disconnect:', error)
       showError('연결 해제 실패', error instanceof Error ? error.message : '알 수 없는 오류')
@@ -962,55 +1064,19 @@ export function ActionButtonList() {
       let apiData: SignTypedDataApiResponse | null = null
       let usingFallback = false
 
-      try {
-        // Example: Get typed data from API (can be any source)
-        const response = await fetch(
-          'https://dev-cross-ramp-api.crosstoken.io/api/v1/erc20/message/user',
-          {
-            method: 'POST',
-            headers: {
-              accept: 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              account: FROM_ADDRESS, // Use actual connected wallet address
-              amount: '1',
-              direction: true,
-              pair_id: 1,
-              project_id: 'nexus-ramp-v1'
-            })
-          }
-        )
-
-        if (!response.ok) {
-          throw new Error(`API response: ${response.status} ${response.statusText}`)
-        }
-
-        apiData = await response.json()
-
-        if (!apiData?.data?.params) {
-          throw new Error('Invalid API response: missing params data')
-        }
-
-        // Extract only the typedData (second element) from API response params
-        const tupleParams = apiData.data!.params as [string, SignTypedDataV4Args]
-        paramsData = tupleParams[1]
-      } catch (apiError) {
-        console.warn('API request failed, using fallback data:', apiError)
-        paramsData = fallbackTypedData
-        usingFallback = true
-      }
+      paramsData = fallbackTypedData
+      usingFallback = true
 
       // Use the new universal signTypedDataV4 method
       const signature = await ConnectionController.signTypedDataV4(paramsData, {
         metadata: {
           apiResponse: apiData
             ? {
-                hash: apiData.data.hash,
-                uuid: apiData.data.uuid,
-                recover: apiData.data.recover,
-                code: apiData.code,
-                message: apiData.message
+                hash: (apiData as SignTypedDataApiResponse).data.hash,
+                uuid: (apiData as SignTypedDataApiResponse).data.uuid,
+                recover: (apiData as SignTypedDataApiResponse).data.recover,
+                code: (apiData as SignTypedDataApiResponse).code,
+                message: (apiData as SignTypedDataApiResponse).message
               }
             : undefined,
           description: usingFallback
@@ -1149,33 +1215,84 @@ Check console for full details.`
 
   // used for sending any of game tokens
   async function handleSendERC20Token() {
-    if (!account?.isConnected) {
+    const activeWallet = getActiveWallet()
+
+    if (!activeWallet) {
       showError('Error in handleSendERC20Token', 'Please connect wallet first.')
       return
     }
 
     try {
-      const resTx = await SendController.sendERC20Token({
-        receiverAddress: RECEIVER_ADDRESS,
-        contractAddress: ERC20_CAIP_ADDRESS,
-        sendTokenAmount: SEND_ERC20_AMOUNT, // in eth (not wei)
-        decimals: '18',
-        customData: {
-          metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
-        },
-        type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
-      })
-      showSuccess('Send ERC20 Token Successful!', `resTx: ${JSON.stringify(resTx)}`)
-      getBalanceOfERC20({ showResult: false })
+      if (activeWallet.type === 'metamask_extension') {
+        // MetaMask Extension: ethers.js 사용
+        const { ethers } = await import('ethers')
+        const provider = new ethers.BrowserProvider(activeWallet.provider)
+        const signer = await provider.getSigner()
+
+        // ERC20 컨트랙트 인터페이스
+        const erc20Contract = new ethers.Contract(ERC20_ADDRESS, sampleErc20ABI, signer)
+
+        // 토큰 양을 wei로 변환
+        const amountInWei = ethers.parseUnits(SEND_ERC20_AMOUNT.toString(), 18)
+
+        // transfer 함수 호출
+        if (!erc20Contract['transfer']) {
+          throw new Error('ERC20 contract transfer function not found')
+        }
+        const tx = await erc20Contract['transfer'](RECEIVER_ADDRESS, amountInWei)
+        const receipt = await tx.wait()
+
+        showSuccess(
+          '🦊 MetaMask ERC20 전송 성공!',
+          `Tx Hash: ${receipt.hash}\nAmount: ${SEND_ERC20_AMOUNT} tokens`
+        )
+        getBalanceOfERC20({ showResult: false })
+      } else if (activeWallet.type === 'metamask_qr') {
+        // MetaMask QR Code: Reown provider 사용
+        const { ethers } = await import('ethers')
+        const provider = new ethers.BrowserProvider(activeWallet.provider as any)
+        const signer = await provider.getSigner()
+
+        const erc20Contract = new ethers.Contract(ERC20_ADDRESS, sampleErc20ABI, signer)
+        const amountInWei = ethers.parseUnits(SEND_ERC20_AMOUNT.toString(), 18)
+        if (!erc20Contract['transfer']) {
+          throw new Error('ERC20 contract transfer function not found')
+        }
+        const tx = await erc20Contract['transfer'](RECEIVER_ADDRESS, amountInWei)
+        const receipt = await tx.wait()
+
+        showSuccess(
+          '🦊 MetaMask QR ERC20 전송 성공!',
+          `Tx Hash: ${receipt.hash}\nAmount: ${SEND_ERC20_AMOUNT} tokens`
+        )
+        getBalanceOfERC20({ showResult: false })
+      } else {
+        // Cross SDK
+        const resTx = await SendController.sendERC20Token({
+          receiverAddress: RECEIVER_ADDRESS,
+          contractAddress: ERC20_CAIP_ADDRESS,
+          sendTokenAmount: SEND_ERC20_AMOUNT,
+          decimals: '18',
+          customData: {
+            metadata: `<DOCTYPE html><html><head><title>Game Developer can add custom data to the transaction</title></head><body><h1>Game Developer can add custom data to the transaction</h1><p>This is a HTML text formatted custom data.</p></body></html>`
+          },
+          type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
+        })
+        showSuccess('⚡ Cross Wallet ERC20 전송 성공!', `resTx: ${JSON.stringify(resTx)}`)
+        getBalanceOfERC20({ showResult: false })
+      }
     } catch (error) {
       analyzeAndShowError(error, 'transaction')
     }
   }
 
-  // used for sending custom transaction
+  // used for sending custom transaction (Cross SDK only)
   async function handleSendTransactionWithDynamicFee() {
     if (!account?.isConnected) {
-      showError('Error in handleSendTransactionWithDynamicFee', 'Please connect wallet first.')
+      showError(
+        'Error in handleSendTransactionWithDynamicFee',
+        'This feature is only available with Cross Wallet.'
+      )
       return
     }
 
@@ -1220,10 +1337,13 @@ Check console for full details.`
     }
   }
 
-  // used for sending CROSS
+  // used for sending CROSS (Cross SDK only)
   async function handleSendNativeWithDynamicFee() {
     if (!account?.isConnected) {
-      showError('Error in handleSendNativeWithDynamicFee', 'Please connect wallet first.')
+      showError(
+        'Error in handleSendNativeWithDynamicFee',
+        'This feature is only available with Cross Wallet.'
+      )
       return
     }
 
@@ -1246,9 +1366,13 @@ Check console for full details.`
   }
 
   // used for sending any of game tokens
+  // Cross SDK only
   async function handleSendERC20TokenWithDynamicFee() {
     if (!account?.isConnected) {
-      showError('Error in handleSendERC20TokenWithDynamicFee', 'Please connect wallet first.')
+      showError(
+        'Error in handleSendERC20TokenWithDynamicFee',
+        'This feature is only available with Cross Wallet.'
+      )
       return
     }
 
@@ -1274,62 +1398,110 @@ Check console for full details.`
   }
 
   async function getBalanceOfNative() {
-    if (!account?.isConnected) {
+    const activeWallet = getActiveWallet()
+
+    if (!activeWallet) {
       showError('Error in getBalanceOfNative', 'Please connect wallet first.')
       return
     }
 
-    const balance = account?.balance
-    showSuccess('Get Balance of Native Successful!', `CROSS balance: ${balance}`)
+    try {
+      if (activeWallet.type === 'metamask_extension' || activeWallet.type === 'metamask_qr') {
+        // MetaMask: ethers.js 사용
+        const { ethers } = await import('ethers')
+        const provider = new ethers.BrowserProvider(activeWallet.provider as any)
+        const balance = await provider.getBalance(activeWallet.account)
+        const balanceInEth = ethers.formatEther(balance)
+
+        showSuccess(
+          '🦊 MetaMask Native 잔액 조회 성공!',
+          `Balance: ${balanceInEth} ${network.chainId === 1 || network.chainId === 11155111 ? 'ETH' : contractData[network.chainId as keyof typeof contractData]?.coin || 'Native'}`
+        )
+      } else {
+        // Cross SDK
+        const balance = account?.balance
+        showSuccess('⚡ Cross Wallet Native 잔액 조회 성공!', `Balance: ${balance}`)
+      }
+    } catch (error) {
+      console.error('Error in getBalanceOfNative:', error)
+      showError('잔액 조회 실패', error instanceof Error ? error.message : '알 수 없는 오류')
+    }
   }
 
   async function getBalanceOfERC20({ showResult = true }: { showResult?: boolean } = {}) {
-    if (!account?.isConnected) {
+    const activeWallet = getActiveWallet()
+
+    if (!activeWallet) {
       showError('Error in getBalanceOfERC20', 'Please connect wallet first.')
       return
     }
 
-    const address = contractData[network.chainId as keyof typeof contractData].erc20
+    const address = contractData[network.chainId as keyof typeof contractData]?.erc20
 
-    if (address === '') {
+    if (!address || address === '') {
       showError('Error in getBalanceOfERC20', 'Contract does not exist.')
       return
     }
 
-    const amount = (await ConnectionController.readContract({
-      contractAddress: ERC20_ADDRESS,
-      method: 'balanceOf',
-      abi: sampleErc20ABI,
-      args: [FROM_ADDRESS as `0x${string}`]
-    })) as string
+    try {
+      if (activeWallet.type === 'metamask_extension' || activeWallet.type === 'metamask_qr') {
+        // MetaMask: ethers.js 사용
+        const { ethers } = await import('ethers')
+        const provider = new ethers.BrowserProvider(activeWallet.provider as any)
+        const erc20Contract = new ethers.Contract(ERC20_ADDRESS, sampleErc20ABI, provider)
 
-    const balance = account?.tokenBalance?.map(token => {
-      if (token.address === ERC20_ADDRESS.toLowerCase()) {
-        // ERC20_ADDRESS is checksum address, so convert to lowercase
-        return {
-          ...token,
-          quantity: {
-            ...token.quantity,
-            numeric: amount
-          }
+        if (!erc20Contract['balanceOf']) {
+          throw new Error('ERC20 contract balanceOf function not found')
         }
-      }
-      return token
-    })
+        const balance = await erc20Contract['balanceOf'](activeWallet.account)
+        const balanceFormatted = ethers.formatUnits(balance, 18)
 
-    if (!balance) {
-      return
+        if (showResult) {
+          showSuccess(
+            '🦊 MetaMask ERC20 잔액 조회 성공!',
+            `Balance: ${balanceFormatted} tokens\nContract: ${ERC20_ADDRESS}`
+          )
+        }
+      } else {
+        // Cross SDK
+        const amount = (await ConnectionController.readContract({
+          contractAddress: ERC20_ADDRESS,
+          method: 'balanceOf',
+          abi: sampleErc20ABI,
+          args: [FROM_ADDRESS as `0x${string}`]
+        })) as string
+
+        const balance = account?.tokenBalance?.map(token => {
+          if (token.address === ERC20_ADDRESS.toLowerCase()) {
+            return {
+              ...token,
+              quantity: {
+                ...token.quantity,
+                numeric: amount
+              }
+            }
+          }
+          return token
+        })
+
+        if (!balance) {
+          return
+        }
+        await AccountController.updateTokenBalance(balance)
+        if (showResult)
+          showSuccess(
+            '⚡ Cross Wallet ERC20 잔액 조회 성공!',
+            `updated erc20 balance: ${JSON.stringify(
+              account?.tokenBalance?.find(token => token.address === ERC20_ADDRESS.toLowerCase()),
+              (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+              2
+            )}`
+          )
+      }
+    } catch (error) {
+      console.error('Error in getBalanceOfERC20:', error)
+      showError('ERC20 잔액 조회 실패', error instanceof Error ? error.message : '알 수 없는 오류')
     }
-    await AccountController.updateTokenBalance(balance)
-    if (showResult)
-      showSuccess(
-        'Get Balance of ERC20 Successful!',
-        `updated erc20 balance: ${JSON.stringify(
-          account?.tokenBalance?.find(token => token.address === ERC20_ADDRESS.toLowerCase()),
-          (key, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )}`
-      )
   }
 
   async function getBalanceOfNFT() {
@@ -1350,9 +1522,13 @@ Check console for full details.`
     showSuccess('Get Balance of NFT Successful!', `erc721 balance: ${amount}`)
   }
 
+  // Cross SDK Balance API only
   async function getBalanceFromWalletWithChainFilter() {
     if (!account?.isConnected) {
-      showError('Error in getBalanceFromWalletWithChainFilter', 'Please connect wallet first.')
+      showError(
+        'Error in getBalanceFromWalletWithChainFilter',
+        'This feature is only available with Cross Wallet.'
+      )
       return
     }
 
@@ -1368,9 +1544,13 @@ Check console for full details.`
     )
   }
 
+  // Cross SDK Balance API only
   async function getBalanceFromWalletWithAssetFilter() {
     if (!account?.isConnected) {
-      showError('Error in getBalanceFromWalletWithAssetFilter', 'Please connect wallet first.')
+      showError(
+        'Error in getBalanceFromWalletWithAssetFilter',
+        'This feature is only available with Cross Wallet.'
+      )
       return
     }
 
@@ -1415,9 +1595,13 @@ Check console for full details.`
   }
 
   // 여러 체인의 여러 토큰 잔액을 한번에 요청하는 함수
+  // Cross SDK Balance API only
   async function getBalanceFromWalletOnMultipleChains() {
     if (!account?.isConnected) {
-      showError('Error in getBalanceFromWalletOnMultipleChains', 'Please connect wallet first.')
+      showError(
+        'Error in getBalanceFromWalletOnMultipleChains',
+        'This feature is only available with Cross Wallet.'
+      )
       return
     }
 
@@ -1460,9 +1644,13 @@ Check console for full details.`
   }
 
   // 지정된 토큰 타입만 필터링하여 요청하는 함수
+  // Cross SDK Balance API only
   async function getBalanceFromWalletByTokenType() {
     if (!account?.isConnected) {
-      showError('Error in getBalanceFromWalletByTokenType', 'Please connect wallet first.')
+      showError(
+        'Error in getBalanceFromWalletByTokenType',
+        'This feature is only available with Cross Wallet.'
+      )
       return
     }
 
@@ -1647,7 +1835,7 @@ Check console for full details.`
       </div>
       <div className="action-button-list" style={{ marginTop: '10px' }}>
         <button onClick={handleSignMessage}>Sign Message</button>
-        <button onClick={handleSignTypedDataV4}>Sign TypedData V4 (API)</button>
+        <button onClick={handleSignTypedDataV4}>Sign TypedData V4</button>
         <button onClick={handleProviderRequest}>Provider Request</button>
         <button onClick={logTopicInfo}>Get Topic Info</button>
         <button onClick={getSessionStatus} style={{ backgroundColor: '#28a745', color: 'white' }}>
