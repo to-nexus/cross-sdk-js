@@ -2,15 +2,16 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { sdkVersion } from '@to-nexus/sdk'
+import { crossMainnet, crossTestnet, kaiaMainnet, kaiaTestnet, sdkVersion } from '@to-nexus/sdk'
 import { WagmiProvider } from 'wagmi'
 
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { mainnet, sepolia } from '@reown/appkit/networks'
+import { bsc, bscTestnet, mainnet, sepolia } from '@reown/appkit/networks'
 import { createAppKit } from '@reown/appkit/react'
 
 import App from './app.jsx'
 import './assets/main.css'
+import { WalletProvider } from './contexts/wallet-context'
 
 ;(window as any).__nexus = {
   sdkVersion
@@ -20,16 +21,29 @@ import './assets/main.css'
 const metamaskProjectId =
   import.meta.env['VITE_METAMASK_PROJECT_ID'] || 'a48aa6e93d89fbc0f047637579e65356'
 
+// 모든 지원 네트워크 (MetaMask가 전환할 수 있는 모든 네트워크)
+// Cross SDK의 네트워크를 Reown AppKit과 호환되도록 사용
+const allNetworks = [
+  mainnet,
+  sepolia,
+  bsc,
+  bscTestnet,
+  crossMainnet,
+  crossTestnet,
+  kaiaMainnet,
+  kaiaTestnet
+] as const
+
 // Wagmi Adapter 생성 (MetaMask용)
 const wagmiAdapter = new WagmiAdapter({
-  networks: [mainnet, sepolia],
+  networks: allNetworks as any,
   projectId: metamaskProjectId
 })
 
 // MetaMask용 AppKit 생성 (고유 instanceId로 Cross SDK와 격리)
 createAppKit({
   adapters: [wagmiAdapter],
-  networks: [mainnet, sepolia],
+  networks: allNetworks as any,
   projectId: metamaskProjectId,
   features: {
     analytics: false, // analytics 비활성화로 SVG 이슈 방지
@@ -54,7 +68,9 @@ ReactDOM.createRoot(document.getElementById('app')!).render(
   <React.StrictMode>
     <WagmiProvider config={wagmiAdapter.wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <App />
+        <WalletProvider>
+          <App />
+        </WalletProvider>
       </QueryClientProvider>
     </WagmiProvider>
   </React.StrictMode>
