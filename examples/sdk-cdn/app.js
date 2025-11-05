@@ -179,62 +179,120 @@ async function initializeApp() {
     let contractArgs = null
     let previousCaipAddress = null // 이전 주소를 저장하기 위한 변수
 
+    // MetaMask 관련 변수들
+    let metamaskProvider = null
+    let metamaskAddress = null
+    let metamaskChainId = null
+    let isMetaMaskExtensionInstalled = false
+
     // 세션 관리 관련 변수들
     let isPageActive = true
     let lastActiveTime = Date.now()
 
+    // MetaMask provider 찾기 (multiple extensions support)
+    function findMetaMaskProvider() {
+      if (typeof window.ethereum === 'undefined') {
+        return null
+      }
+
+      // Single provider case
+      if (window.ethereum.isMetaMask && !window.ethereum.providers) {
+        return window.ethereum
+      }
+
+      // Multiple providers case
+      if (window.ethereum.providers) {
+        return window.ethereum.providers.find(p => p.isMetaMask) || null
+      }
+
+      return null
+    }
+
+    // 현재 활성화된 지갑 감지
+    function getActiveWallet() {
+      if (metamaskProvider && metamaskAddress) {
+        return 'metamask'
+      }
+      if (accountState?.isConnected) {
+        return 'cross'
+      }
+      return null
+    }
+
+    // MetaMask Extension 설치 확인
+    function checkMetaMaskExtension() {
+      const provider = findMetaMaskProvider()
+      isMetaMaskExtensionInstalled = provider !== null
+      return isMetaMaskExtensionInstalled
+    }
+
     // 버튼 가시성 및 상태 업데이트 함수
     function updateButtonVisibility() {
-      const isConnected = accountState?.isConnected || false
+      const activeWallet = getActiveWallet()
+      const isConnected = activeWallet !== null
 
       // 연결 관련 버튼들
-      const connectWallet = document.getElementById('connect-wallet')
+      const connectCrossQR = document.getElementById('connect-cross-qr')
       const connectCrossExtension = document.getElementById('connect-cross-extension')
-      const checkCrossExtension = document.getElementById('check-cross-extension')
+      const connectMetaMaskExtension = document.getElementById('connect-metamask-extension')
       const disconnectWallet = document.getElementById('disconnect-wallet')
       const switchNetwork = document.getElementById('switch-network')
 
       if (isConnected) {
-        // 연결된 상태: disconnect 버튼만 표시
-        if (connectWallet) connectWallet.style.display = 'none'
+        // 연결된 상태: 모든 연결 버튼 숨기고 disconnect 버튼 표시
+        if (connectCrossQR) connectCrossQR.style.display = 'none'
         if (connectCrossExtension) connectCrossExtension.style.display = 'none'
-        if (checkCrossExtension) checkCrossExtension.style.display = 'none'
-        if (disconnectWallet) disconnectWallet.style.display = 'inline-block'
+        if (connectMetaMaskExtension) connectMetaMaskExtension.style.display = 'none'
+        if (disconnectWallet) {
+          disconnectWallet.style.display = 'inline-block'
+          disconnectWallet.textContent = `🔓 Disconnect (${activeWallet === 'metamask' ? 'MetaMask' : 'CROSSx'})`
+        }
         if (switchNetwork) switchNetwork.style.display = 'inline-block'
       } else {
         // 연결되지 않은 상태: 연결 버튼들 표시
-        if (connectWallet) connectWallet.style.display = 'inline-block'
+        if (connectCrossQR) connectCrossQR.style.display = 'inline-block'
         if (connectCrossExtension) connectCrossExtension.style.display = 'inline-block'
-        if (checkCrossExtension) checkCrossExtension.style.display = 'inline-block'
+        if (connectMetaMaskExtension) connectMetaMaskExtension.style.display = 'inline-block'
         if (disconnectWallet) disconnectWallet.style.display = 'none'
         if (switchNetwork) switchNetwork.style.display = 'none'
 
-        // Cross Extension Wallet 버튼 활성화/비활성화 상태 업데이트
-        updateCrossExtensionButtonState()
+        // Extension 버튼 상태 업데이트
+        updateExtensionButtonStates()
       }
     }
 
-    // Cross Extension Wallet 버튼 상태 업데이트 함수
-    function updateCrossExtensionButtonState() {
+    // Extension 버튼들 상태 업데이트 함수
+    function updateExtensionButtonStates() {
+      // Cross Extension 버튼
       const connectCrossExtension = document.getElementById('connect-cross-extension')
-
       if (connectCrossExtension && window.CrossSdk?.ConnectorUtil) {
         try {
-          const isInstalled = window.CrossSdk.ConnectorUtil.isInstalledCrossExtensionWallet()
-
-          if (isInstalled) {
-            connectCrossExtension.disabled = false
-            connectCrossExtension.title = 'Cross Extension Wallet에 연결'
-            connectCrossExtension.style.opacity = '1'
-          } else {
-            connectCrossExtension.disabled = true
-            connectCrossExtension.title = 'Cross Extension Wallet이 설치되지 않았습니다'
-            connectCrossExtension.style.opacity = '0.6'
-          }
+          const isCrossInstalled = window.CrossSdk.ConnectorUtil.isInstalledCrossExtensionWallet()
+          connectCrossExtension.disabled = !isCrossInstalled
+          connectCrossExtension.title = isCrossInstalled
+            ? 'Cross Extension에 연결'
+            : 'Cross Extension이 설치되지 않았습니다'
+          connectCrossExtension.style.opacity = isCrossInstalled ? '1' : '0.6'
+          connectCrossExtension.textContent = isCrossInstalled
+            ? 'Connect Cross Extension ✅'
+            : 'Connect Cross Extension ❌'
         } catch (error) {
-          // SDK가 아직 로드되지 않은 경우 기본 상태 유지
           console.log('SDK not ready for extension check:', error.message)
         }
+      }
+
+      // MetaMask Extension 버튼
+      const connectMetaMaskExtension = document.getElementById('connect-metamask-extension')
+      if (connectMetaMaskExtension) {
+        const isMetaMaskInstalled = checkMetaMaskExtension()
+        connectMetaMaskExtension.disabled = !isMetaMaskInstalled
+        connectMetaMaskExtension.title = isMetaMaskInstalled
+          ? 'MetaMask Extension에 연결'
+          : 'MetaMask Extension이 설치되지 않았습니다'
+        connectMetaMaskExtension.style.opacity = isMetaMaskInstalled ? '1' : '0.6'
+        connectMetaMaskExtension.textContent = isMetaMaskInstalled
+          ? 'Connect MetaMask Extension ✅'
+          : 'Connect MetaMask Extension ❌'
       }
     }
 
@@ -325,14 +383,23 @@ async function initializeApp() {
     function createNetworkModal() {
       const modal = document.getElementById('network-modal')
       const networkList = document.getElementById('network-list')
+      const activeWallet = getActiveWallet()
 
       // 기존 네트워크 리스트 초기화
       networkList.innerHTML = ''
 
+      // 현재 네트워크 ID 결정
+      let currentNetworkId
+      if (activeWallet === 'metamask') {
+        currentNetworkId = metamaskChainId
+      } else {
+        currentNetworkId = networkState?.caipNetwork?.id
+      }
+
       // 네트워크 리스트 생성
       availableNetworks.forEach(networkInfo => {
         const networkItem = document.createElement('div')
-        const isCurrentNetwork = networkState?.caipNetwork?.id === networkInfo.network.id
+        const isCurrentNetwork = currentNetworkId === networkInfo.network.id
 
         networkItem.className = `network-item ${isCurrentNetwork ? 'current' : ''}`
 
@@ -350,11 +417,49 @@ async function initializeApp() {
         networkItem.onclick = async () => {
           if (!isCurrentNetwork) {
             try {
-              await crossSdk.switchNetwork(networkInfo.network)
-              closeNetworkModal()
+              if (activeWallet === 'metamask') {
+                // MetaMask Extension: wallet_switchEthereumChain 사용
+                const chainIdHex = `0x${networkInfo.network.chainId.toString(16)}`
+                try {
+                  await metamaskProvider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: chainIdHex }]
+                  })
+                  closeNetworkModal()
+                } catch (switchError) {
+                  // 네트워크가 없는 경우 추가
+                  if (switchError.code === 4902) {
+                    await metamaskProvider.request({
+                      method: 'wallet_addEthereumChain',
+                      params: [
+                        {
+                          chainId: chainIdHex,
+                          chainName: networkInfo.name,
+                          nativeCurrency: {
+                            name: networkInfo.network.currency,
+                            symbol: networkInfo.network.currency,
+                            decimals: 18
+                          },
+                          rpcUrls: [networkInfo.network.rpcUrl],
+                          blockExplorerUrls: networkInfo.network.explorerUrl
+                            ? [networkInfo.network.explorerUrl]
+                            : []
+                        }
+                      ]
+                    })
+                    closeNetworkModal()
+                  } else {
+                    throw switchError
+                  }
+                }
+              } else {
+                // Cross SDK: 기존 로직
+                await crossSdk.switchNetwork(networkInfo.network)
+                closeNetworkModal()
+              }
             } catch (error) {
               console.error('Network switch failed:', error)
-              alert('Network switch failed.')
+              alert(`Network switch failed: ${error.message}`)
             }
           }
         }
@@ -400,24 +505,109 @@ async function initializeApp() {
       }
     }
 
+    // MetaMask 연결 함수들
+    async function handleConnectMetaMaskExtension() {
+      try {
+        const provider = findMetaMaskProvider()
+        if (!provider) {
+          alert('❌ MetaMask Extension이 설치되지 않았습니다.')
+          return
+        }
+
+        // Request accounts
+        const accounts = await provider.request({ method: 'eth_requestAccounts' })
+        metamaskAddress = accounts[0]
+        metamaskProvider = provider
+
+        // Get chain ID
+        const chainIdHex = await provider.request({ method: 'eth_chainId' })
+        metamaskChainId = parseInt(chainIdHex, 16)
+
+        // Set up event listeners
+        provider.on('accountsChanged', accounts => {
+          console.log('MetaMask Extension accounts changed:', accounts)
+          if (accounts.length > 0) {
+            metamaskAddress = accounts[0]
+          } else {
+            metamaskAddress = null
+            metamaskProvider = null
+          }
+          updateButtonVisibility()
+        })
+
+        provider.on('chainChanged', chainIdHex => {
+          console.log('MetaMask Extension chain changed:', chainIdHex)
+          metamaskChainId = parseInt(chainIdHex, 16)
+          updateButtonVisibility()
+        })
+
+        alert(`✅ MetaMask Extension 연결 성공!\n\n주소: ${metamaskAddress}`)
+        updateButtonVisibility()
+      } catch (error) {
+        console.error('MetaMask Extension connection failed:', error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        if (errorMessage.includes('User rejected') || errorMessage.includes('User denied')) {
+          alert('❌ 연결 취소됨\n\n사용자가 MetaMask 연결을 취소했습니다.')
+        } else {
+          alert(`❌ MetaMask Extension 연결 실패: ${errorMessage}`)
+        }
+      }
+    }
+
+    async function disconnectWallet() {
+      try {
+        const activeWallet = getActiveWallet()
+
+        if (activeWallet === 'metamask') {
+          // MetaMask Extension 연결 해제
+          metamaskProvider = null
+          metamaskAddress = null
+          metamaskChainId = null
+          alert('✅ MetaMask Extension 연결이 해제되었습니다.')
+        } else {
+          // Cross SDK 연결 해제
+          await appkitWallet.disconnect()
+          alert('✅ CROSSx Wallet 연결이 해제되었습니다.')
+        }
+
+        updateButtonVisibility()
+      } catch (error) {
+        console.error('Wallet disconnect failed:', error)
+        alert(`❌ 연결 해제 실패: ${error.message}`)
+      }
+    }
+
     // Action functions
     async function handleSignMessage() {
-      if (!accountState.isConnected) {
+      const activeWallet = getActiveWallet()
+      if (!activeWallet) {
         alert('Please connect wallet first.')
         return
       }
 
       try {
-        const signedMessage = await ConnectionController.signMessage({
-          message: `Hello, world! ${Date.now()}`,
-          customData: {
-            metadata: 'This is metadata for signed message'
-          }
-        })
-        alert(`signedMessage: ${signedMessage}`)
+        const message = `Hello, world! ${Date.now()}`
+        let signedMessage
+
+        if (activeWallet === 'metamask') {
+          // MetaMask Extension: ethers.js 사용
+          const provider = new ethers.providers.Web3Provider(metamaskProvider)
+          const signer = provider.getSigner()
+          signedMessage = await signer.signMessage(message)
+        } else {
+          // Cross SDK
+          signedMessage = await ConnectionController.signMessage({
+            message,
+            customData: {
+              metadata: 'This is metadata for signed message'
+            }
+          })
+        }
+
+        alert(`✅ Message signed successfully!\n\nSignature: ${signedMessage}`)
       } catch (error) {
         console.error('Error signing message:', error)
-        alert('Failed to sign message')
+        alert(`❌ Failed to sign message: ${error.message}`)
       }
     }
 
@@ -982,12 +1172,53 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     })
 
     // Button event listeners
-    const connectWallet = document.getElementById('connect-wallet')
-    connectWallet.addEventListener('click', async () => {
-      // 이제는 연결만 담당 (disconnect는 별도 버튼으로 처리)
-      await appkitWallet.connect('cross_wallet')
+    console.log('🔧 Setting up button event listeners...')
+
+    // Cross QR Code 연결
+    const connectCrossQRBtn = document.getElementById('connect-cross-qr')
+    console.log('Connect Cross QR button:', connectCrossQRBtn)
+
+    connectCrossQRBtn?.addEventListener('click', async () => {
+      console.log('🔘 Connect Cross QR button clicked!')
+      try {
+        await appkitWallet.connect('cross_wallet')
+      } catch (error) {
+        console.error('Cross QR connection failed:', error)
+        alert(`❌ CROSSx 연결 실패: ${error.message}`)
+      }
     })
 
+    // Cross Extension 연결
+    document.getElementById('connect-cross-extension')?.addEventListener('click', async () => {
+      console.log('🔘 Connect Cross Extension button clicked!')
+      try {
+        const result = await window.CrossSdk.ConnectorUtil.connectCrossExtensionWallet()
+        alert(`✅ Cross Extension 연결 성공!\n\n주소: ${result.address}`)
+        updateButtonVisibility()
+      } catch (error) {
+        console.error('Cross Extension connection failed:', error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        const isUserRejection =
+          errorMessage.includes('User rejected') ||
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('cancelled')
+        if (isUserRejection) {
+          alert('❌ 연결 취소됨\n\n사용자가 지갑 연결을 취소했습니다.')
+        } else {
+          alert(`❌ 연결 실패: ${errorMessage}`)
+        }
+      }
+    })
+
+    // MetaMask Extension 연결
+    document
+      .getElementById('connect-metamask-extension')
+      ?.addEventListener('click', handleConnectMetaMaskExtension)
+
+    // Disconnect 버튼
+    document.getElementById('disconnect-wallet')?.addEventListener('click', disconnectWallet)
+
+    // Theme toggle
     document.getElementById('toggle-theme')?.addEventListener('click', () => {
       const newTheme = themeState.themeMode === 'dark' ? 'light' : 'dark'
       crossSdk.setThemeMode(newTheme)
@@ -995,11 +1226,11 @@ ${JSON.stringify(status.sessions, null, 2)}`)
       updateTheme(newTheme)
     })
 
+    // Switch network
     const switchNetwork = document.getElementById('switch-network')
-
     switchNetwork.addEventListener('click', () => {
-      // 연결된 상태에서만 네트워크 모달 열기
-      if (accountState.isConnected) {
+      const activeWallet = getActiveWallet()
+      if (activeWallet) {
         createNetworkModal()
       }
     })
@@ -1032,62 +1263,6 @@ ${JSON.stringify(status.sessions, null, 2)}`)
       .getElementById('get-balance-erc20')
       ?.addEventListener('click', () => getBalanceOfERC20())
     document.getElementById('get-balance-nft')?.addEventListener('click', getBalanceOfNFT)
-
-    // Cross Extension Wallet 버튼 이벤트 리스너
-    document.getElementById('connect-cross-extension')?.addEventListener('click', async () => {
-      try {
-        const result = await window.CrossSdk.ConnectorUtil.connectCrossExtensionWallet()
-        alert(`✅ Cross Extension Wallet 연결 성공!\n\n주소: ${result.address}`)
-      } catch (error) {
-        console.error('Cross Extension Wallet 연결 실패:', error)
-
-        // 에러 메시지 분석하여 사용자 취소 여부 확인
-        const errorMessage = error instanceof Error ? error.message : String(error)
-        const isUserRejection =
-          errorMessage.includes('User rejected') ||
-          errorMessage.includes('User denied') ||
-          errorMessage.includes('User cancelled') ||
-          errorMessage.includes('Connection rejected') ||
-          errorMessage.includes('Connection rejected by user') ||
-          errorMessage.includes('Modal closed') ||
-          errorMessage.includes('rejected') ||
-          errorMessage.includes('cancelled') ||
-          errorMessage.includes('denied')
-
-        const isTimeout = errorMessage.includes('Connection timeout')
-
-        if (isUserRejection) {
-          alert('❌ 연결 취소됨\n\n사용자가 지갑 연결을 취소했습니다.')
-        } else if (isTimeout) {
-          alert('⏰ 연결 시간 초과\n\n지갑 연결 요청이 시간 초과되었습니다. 다시 시도해주세요.')
-        } else if (errorMessage.includes('익스텐션이 설치되지 않았습니다')) {
-          alert(
-            '📦 익스텐션 미설치\n\nCross Extension Wallet이 설치되지 않았습니다. 먼저 익스텐션을 설치해주세요.'
-          )
-        } else if (errorMessage.includes('customWallets에 설정되지 않았습니다')) {
-          alert(
-            '⚙️ 설정 오류\n\nCross Wallet이 올바르게 설정되지 않았습니다. 개발자에게 문의해주세요.'
-          )
-        } else {
-          alert(`❌ 연결 실패\n\n지갑 연결 중 오류가 발생했습니다: ${errorMessage}`)
-        }
-      }
-    })
-
-    document.getElementById('check-cross-extension')?.addEventListener('click', () => {
-      const isInstalled = window.CrossSdk.ConnectorUtil.isInstalledCrossExtensionWallet()
-      alert(`Cross Extension Wallet 설치 상태: ${isInstalled ? '✅ 설치됨' : '❌ 설치되지 않음'}`)
-    })
-
-    document.getElementById('disconnect-wallet')?.addEventListener('click', async () => {
-      try {
-        await appkitWallet.disconnect()
-        alert('✅ 지갑 연결이 해제되었습니다.')
-      } catch (error) {
-        console.error('지갑 연결 해제 실패:', error)
-        alert(`❌ 연결 해제 실패: ${error.message}`)
-      }
-    })
 
     // 세션 관리 버튼 이벤트 리스너
     document.getElementById('get-session-status')?.addEventListener('click', getSessionStatus)
@@ -1125,10 +1300,10 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     // 세션 관리 초기화
     initializeSessionManagement()
 
-    // Cross Extension Wallet 버튼 상태 주기적 업데이트 (SDK 로드 후)
+    // Extension 버튼 상태 주기적 업데이트 (SDK 로드 후)
     setTimeout(() => {
-      updateCrossExtensionButtonState()
-      setInterval(updateCrossExtensionButtonState, 3000) // 3초마다 확인
+      updateExtensionButtonStates()
+      setInterval(updateExtensionButtonStates, 3000) // 3초마다 확인
     }, 1000) // 1초 후 시작
 
     // Initialize contract args when state changes
@@ -1144,12 +1319,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     updateButtonVisibility()
 
     // 초기 버튼 텍스트 설정
-    const connectWalletBtn = document.getElementById('connect-wallet')
     const switchNetworkBtn = document.getElementById('switch-network')
-
-    if (connectWalletBtn) {
-      connectWalletBtn.textContent = accountState.isConnected ? 'Connected' : 'Connect Wallet'
-    }
 
     if (switchNetworkBtn) {
       switchNetworkBtn.textContent = networkState.caipNetwork?.name || 'Switch Network'
@@ -1295,4 +1465,10 @@ const sampleEIP712 = [
 ]
 
 // DOM이 로드된 후 앱 초기화
-document.addEventListener('DOMContentLoaded', initializeApp)
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 DOM Content Loaded - Starting app initialization...')
+  initializeApp()
+})
+
+// Debugging: Check if script is loaded
+console.log('✅ app.js loaded successfully')

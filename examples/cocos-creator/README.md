@@ -119,6 +119,44 @@ ls dist/
 
 ## 🔧 SDK 통합 방법
 
+### ⚠️ 왜 CDN 방식을 사용하나요?
+
+Cocos Creator는 **자체 모듈 시스템(SystemJS)** 을 사용하며, 빌드 시 `import map`을 생성합니다.  
+이 import map에는 Cocos 엔진(`cc`)만 포함되며, **npm 패키지는 자동으로 포함되지 않습니다**.
+
+```json
+// build/web-mobile/src/import-map.json (빌드 결과)
+{ "imports": { "cc": "./../cocos-js/cc.js" } }
+ // ← npm 패키지 없음
+```
+
+따라서 다음과 같은 npm import는 **런타임 에러**가 발생합니다:
+
+```typescript
+// ❌ 작동하지 않음
+import * as CrossSdk from '@to-nexus/appkit/vanilla'
+
+// Error: Cannot resolve module '@to-nexus/appkit/vanilla'
+```
+
+**해결책**: 사전 빌드된 SDK 파일을 `external/` 폴더에 배치하고, HTML에서 로드합니다.
+
+```html
+<!-- ✅ 올바른 방법 -->
+<script type="module">
+  import * as CrossSdk from './external/cross-sdk.js'
+
+  window.CrossSdk = CrossSdk
+</script>
+```
+
+이는 Cocos Creator 생태계의 **표준 방식**이며, 다른 외부 라이브러리들도 동일하게 통합됩니다.
+
+> **💡 참고**: React, Vue, Vite 등 일반 웹 프로젝트에서는 npm 패키지를 직접 import할 수 있습니다.  
+> 이는 Cocos Creator의 특수한 빌드 시스템에서만 발생하는 제약사항입니다.
+
+---
+
 ### Step 1: Cross SDK 파일 준비
 
 Cross SDK를 프로젝트에 통합하는 첫 번째 단계입니다.
