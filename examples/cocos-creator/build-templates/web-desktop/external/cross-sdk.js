@@ -1,4 +1,4 @@
-import { h as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, j as ApiController, k as ConnectionController, l as ConstantsUtil, m as ConnectorUtil, p as WalletUtil, q as ConnectorController, O as OptionsController, E as EthersAdapter, s as networkList, t as ConstantsUtil$1, Z, u as etherTestnet, v as etherMainnet, w as kaiaTestnet, y as kaiaMainnet, z as bscTestnet, B as bscMainnet, D as crossTestnet, F as crossMainnet, G as AccountController, H as SendController } from "./index.es-CRsArSgd.js";
+import { s as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, u as ApiController, v as ConnectionController, w as ConstantsUtil, y as ConnectorUtil, z as WalletUtil, B as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, D as networkList, F as ConstantsUtil$2, Z, G as etherTestnet, I as etherMainnet, J as kaiaTestnet, K as kaiaMainnet, L as bscTestnet, N as bscMainnet, Q as crossTestnet, V as crossMainnet, X as AccountController, Y as SendController } from "./index.es-DIcT9sP3.js";
 function createAppKit(options) {
   return new AppKit({
     ...options,
@@ -43,7 +43,7 @@ class AppKitWalletButton {
         return result2;
       }
       const { customWallets } = OptionsController.state;
-      const customWallet = customWallets == null ? void 0 : customWallets.find((w2) => w2.id === wallet);
+      const customWallet = customWallets == null ? void 0 : customWallets.find((w) => w.id === wallet);
       const currentConnectors = ConnectorController.state.connectors;
       const result = await ConnectorUtil.connectWalletConnect({
         walletConnect: wallet === "cross_wallet",
@@ -74,29 +74,32 @@ function createAppKitWalletButton() {
   }
   return walletButton;
 }
-const p = new EthersAdapter(), m = {
+const d = new EthersAdapter(), f = (() => {
+  var e, t;
+  return ((t = (e = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : t.call(e)) || "https://cross-wallet.crosstoken.io/wc";
+})(), h = {
   name: "Cross SDK",
   description: "Cross SDK for HTML",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
-}, w = (e) => {
-  const { projectId: t, redirectUrl: s, metadata: o, themeMode: r, defaultNetwork: a } = e;
-  return d(t, s, o, r, a);
-}, d = (e, t, s, o, r) => {
-  const a = {
-    ...m,
-    ...s,
+}, _ = (e) => {
+  const { projectId: t, redirectUrl: o, metadata: a, themeMode: r, defaultNetwork: s, adapters: n } = e;
+  return u(t, o, a, r, s, n);
+}, u = (e, t, o, a, r, s) => {
+  const n = {
+    ...h,
+    ...o,
     redirect: {
       universal: t
     }
   };
   return createAppKit({
-    adapters: [p],
+    adapters: s && s.length > 0 ? s : [d],
     networks: networkList,
     defaultNetwork: r,
-    metadata: a,
+    metadata: n,
     projectId: e,
-    themeMode: o || "light",
+    themeMode: a || "light",
     features: {
       swaps: false,
       onramp: false,
@@ -113,12 +116,12 @@ const p = new EthersAdapter(), m = {
     customWallets: [
       {
         id: "cross_wallet",
-        name: "CROSS Wallet",
+        name: "CROSSx Wallet",
         image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: "crossx://",
+        mobile_link: f,
         app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
         play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
-        chrome_store: "https://chromewebstore.google.com/detail/cross-wallet/your-extension-id",
+        chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
         rdns: "nexus.to.crosswallet.desktop",
         injected: [
           {
@@ -129,12 +132,12 @@ const p = new EthersAdapter(), m = {
     ],
     allWallets: "HIDE"
   });
-}, C = () => createAppKitWalletButton(), x = "1.17.5";
+}, b = () => createAppKitWalletButton(), S = "1.18.1-beta.0";
 if (typeof window !== "undefined") {
   window.CrossSdk = {
-    initCrossSdk: d,
-    initCrossSdkWithParams: w,
-    useAppKitWallet: C,
+    initCrossSdk: u,
+    initCrossSdkWithParams: _,
+    useAppKitWallet: b,
     ConnectionController,
     ConnectorUtil,
     SendController,
@@ -148,15 +151,15 @@ if (typeof window !== "undefined") {
     etherMainnet,
     etherTestnet,
     UniversalProvider: Z,
-    ConstantsUtil: ConstantsUtil$1,
-    sdkVersion: x
+    ConstantsUtil: ConstantsUtil$2,
+    sdkVersion: S
   };
 }
 export {
   AccountController,
   ConnectionController,
   ConnectorUtil,
-  ConstantsUtil$1 as ConstantsUtil,
+  ConstantsUtil$2 as ConstantsUtil,
   SendController,
   Z as UniversalProvider,
   bscMainnet,
@@ -165,11 +168,11 @@ export {
   crossTestnet,
   etherMainnet,
   etherTestnet,
-  d as initCrossSdk,
-  w as initCrossSdkWithParams,
+  u as initCrossSdk,
+  _ as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
-  x as sdkVersion,
-  C as useAppKitWallet
+  S as sdkVersion,
+  b as useAppKitWallet
 };
 //# sourceMappingURL=cross-sdk.js.map
