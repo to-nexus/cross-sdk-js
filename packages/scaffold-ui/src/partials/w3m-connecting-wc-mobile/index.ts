@@ -12,14 +12,21 @@ import { W3mConnectingWidget } from '../../utils/w3m-connecting-widget/index.js'
 export class W3mConnectingWcMobile extends W3mConnectingWidget {
   private btnLabelTimeout?: ReturnType<typeof setTimeout> = undefined
   private labelTimeout?: ReturnType<typeof setTimeout> = undefined
+  protected override secondaryBtnIcon: 'refresh' | 'externalLink' = 'refresh'
 
   public constructor() {
     super()
     if (!this.wallet) {
       throw new Error('cross-w3m-connecting-wc-mobile: No wallet provided')
     }
-    this.secondaryBtnLabel = undefined
-    // 미니 윈도우일 때는 다른 텍스트 표시
+
+    const isIos = CoreHelperUtil.isIos()
+
+    /* IOS requires explicit user click for Universal Links (all browsers use WebKit), so show button immediately */
+    this.secondaryBtnLabel = isIos ? 'Open CrossX App' : undefined
+    this.secondaryBtnIcon = isIos ? 'externalLink' : 'refresh'
+
+    /* Show different text for mini window */
     const isMiniWindow = CoreHelperUtil.isMiniWindow()
     this.secondaryLabel = isMiniWindow
       ? 'Tap to switch connection method'
@@ -30,15 +37,19 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
       event: 'SELECT_WALLET',
       properties: { name: this.wallet.name, platform: 'mobile' }
     })
-    this.btnLabelTimeout = setTimeout(() => {
-      this.secondaryBtnLabel = 'Try again'
-      this.secondaryLabel = isMiniWindow
-        ? 'Tap to switch connection method'
-        : ConstantsUtil.CONNECT_LABELS.MOBILE
-    }, ConstantsUtil.FIVE_SEC_MS)
-    this.labelTimeout = setTimeout(() => {
-      this.secondaryLabel = `Hold tight... it's taking longer than expected`
-    }, ConstantsUtil.THREE_SEC_MS)
+
+    /* IOS doesn't need timers as user will click the button */
+    if (!isIos) {
+      this.btnLabelTimeout = setTimeout(() => {
+        this.secondaryBtnLabel = 'Try again'
+        this.secondaryLabel = isMiniWindow
+          ? 'Tap to switch connection method'
+          : ConstantsUtil.CONNECT_LABELS.MOBILE
+      }, ConstantsUtil.FIVE_SEC_MS)
+      this.labelTimeout = setTimeout(() => {
+        this.secondaryLabel = `Hold tight... it's taking longer than expected`
+      }, ConstantsUtil.THREE_SEC_MS)
+    }
   }
 
   public override disconnectedCallback() {
@@ -52,7 +63,15 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
   protected override onRender = () => {
     if (!this.ready && this.uri) {
       this.ready = true
-      this.onConnect?.()
+      /*
+       * IOS blocks programmatic Universal Link navigation (all browsers use WebKit).
+       * Only trigger auto-connect on non-IOS platforms.
+       * For IOS, button is already shown from constructor.
+       */
+      const isIos = CoreHelperUtil.isIos()
+      if (!isIos) {
+        this.onConnect?.()
+      }
     }
   }
 
@@ -64,8 +83,10 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
         const { redirect, href } = CoreHelperUtil.formatNativeUrl(mobile_link, this.uri)
         ConnectionController.setWcLinking({ name, href })
         ConnectionController.setRecentWallet(this.wallet)
+
         const target = CoreHelperUtil.isIframe() ? '_top' : '_self'
         CoreHelperUtil.openHref(redirect, target)
+
         clearTimeout(this.labelTimeout)
         const isMiniWindow = CoreHelperUtil.isMiniWindow()
         this.secondaryLabel = isMiniWindow
