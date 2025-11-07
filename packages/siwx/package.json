@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-siwx",
-  "version": "1.18.2-alpha.0",
+  "version": "1.18.2-beta.0",
   "type": "module",
   "main": "./dist/esm/src/index.js",
   "types": "./dist/types/src/index.d.ts",
