@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit",
-  "version": "1.18.1-beta.0",
+  "version": "1.18.2-alpha.0",
   "type": "module",
   "main": "./dist/esm/exports/index.js",
   "types": "./dist/types/exports/index.d.ts",
@@ -110,7 +110,7 @@
     "@to-nexus/appkit-utils": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
     "@to-nexus/appkit-wallet-button": "workspace:*",
-    "@to-nexus/universal-provider": "2.19.14",
+    "@to-nexus/universal-provider": "2.19.14-alpha.2",
     "@walletconnect/types": "2.18.0",
     "@walletconnect/utils": "2.18.0",
     "bs58": "6.0.0",
