@@ -587,15 +587,8 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public override async connectWalletConnect(chainId?: number | string) {
-    // Attempt one click auth first, if authenticated, still connect with wagmi to store the session
+    // Normal WalletConnect connection WITHOUT authentication
     const walletConnectConnector = this.getWalletConnectConnector()
-
-    try {
-      await walletConnectConnector.authenticate()
-    } catch (error) {
-      // Continue with regular connection even if auth fails
-    }
-
     const wagmiConnector = this.getWagmiConnector('walletConnect')
 
     if (!wagmiConnector) {
@@ -608,6 +601,24 @@ export class WagmiAdapter extends AdapterBlueprint {
     })
 
     return { clientId: await walletConnectConnector.provider.client.core.crypto.getClientId() }
+  }
+
+  public override async authenticateWalletConnect(chainId?: number | string): Promise<boolean> {
+    // wc_sessionAuthenticate 방식: 연결 + SIWE 한 번에
+    const walletConnectConnector = this.getWalletConnectConnector()
+    const isAuthenticated = await walletConnectConnector.authenticate()
+
+    if (isAuthenticated) {
+      const wagmiConnector = this.getWagmiConnector('walletConnect')
+      if (wagmiConnector) {
+        await connect(this.wagmiConfig, {
+          connector: wagmiConnector,
+          chainId: chainId ? Number(chainId) : undefined
+        })
+      }
+    }
+
+    return isAuthenticated
   }
 
   public async connect(

@@ -9,7 +9,7 @@ import { proxy, ref } from 'valtio/vanilla'
 import { subscribeKey as subKey } from 'valtio/vanilla/utils'
 
 import { CoreHelperUtil } from '../utils/CoreHelperUtil.js'
-import { SIWXUtil } from '../utils/SIWXUtil.js'
+import { type SIWXSession, SIWXUtil } from '../utils/SIWXUtil.js'
 import { StorageUtil } from '../utils/StorageUtil.js'
 import type {
   Connector,
@@ -43,6 +43,9 @@ export interface ConnectExternalOptions {
 
 export interface ConnectionControllerClient {
   connectWalletConnect?: () => Promise<void>
+  authenticateWalletConnect?: () => Promise<
+    { authenticated: boolean; sessions: SIWXSession[] } | boolean
+  >
   disconnect: () => Promise<void>
   signMessage: (params: { message: string; customData?: CustomData }) => Promise<string>
   etherSignMessage: (params: { message: string; address: `0x${string}` }) => Promise<string>
@@ -145,6 +148,75 @@ export const ConnectionController = {
       this.state.status = 'connected'
     } else {
       await this._getClient()?.connectWalletConnect?.()
+    }
+  },
+
+  async authenticateWalletConnect() {
+    // Connect all namespaces to WalletConnect with authentication (SIWE/SIWX)
+    const namespaces = [...ChainController.state.chains.keys()]
+    namespaces.forEach(namespace => {
+      StorageUtil.setConnectedConnectorId(namespace, ConstantsUtil.CONNECTOR_ID.WALLET_CONNECT)
+    })
+
+    const client = this._getClient()
+    if (!client?.authenticateWalletConnect) {
+      throw new Error('authenticateWalletConnect method is not available')
+    }
+
+    this.state.status = 'connecting'
+
+    try {
+      const result = await client.authenticateWalletConnect()
+
+      // 반환값이 객체인 경우 (세션 정보 포함)
+      if (result && typeof result === 'object' && 'authenticated' in result) {
+        if (result.authenticated) {
+          this.state.status = 'connected'
+          EventsController.sendEvent({
+            type: 'track',
+            event: 'CONNECT_SUCCESS',
+            properties: {
+              method: 'qrcode',
+              name: 'WalletConnect'
+            }
+          })
+
+          return result
+        }
+
+        this.state.status = 'disconnected'
+
+        return result
+      }
+
+      // 반환값이 boolean인 경우 (레거시 호환성)
+      if (result) {
+        this.state.status = 'connected'
+        EventsController.sendEvent({
+          type: 'track',
+          event: 'CONNECT_SUCCESS',
+          properties: {
+            method: 'qrcode',
+            name: 'WalletConnect'
+          }
+        })
+
+        return true
+      }
+
+      this.state.status = 'disconnected'
+
+      return false
+    } catch (error) {
+      this.state.status = 'disconnected'
+      EventsController.sendEvent({
+        type: 'track',
+        event: 'CONNECT_ERROR',
+        properties: {
+          message: error instanceof Error ? error.message : 'Unknown error'
+        }
+      })
+      throw error
     }
   },
 

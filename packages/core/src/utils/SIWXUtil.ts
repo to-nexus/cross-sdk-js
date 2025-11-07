@@ -1,8 +1,7 @@
-import UniversalProvider from '@to-nexus/universal-provider'
-
 import type { CaipNetworkId, ChainNamespace } from '@to-nexus/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
+import UniversalProvider from '@to-nexus/universal-provider'
 
 import { AccountController } from '../controllers/AccountController.js'
 import { ChainController } from '../controllers/ChainController.js'
@@ -205,7 +204,7 @@ export const SIWXUtil = {
     const namespaces = new Set(chains.map(chain => chain.split(':')[0] as ChainNamespace))
 
     if (!siwx || namespaces.size !== 1 || !namespaces.has('eip155')) {
-      return false
+      return { authenticated: false, sessions: [] }
     }
 
     // Ignores chainId and account address to get other message data
@@ -213,6 +212,13 @@ export const SIWXUtil = {
       chainId: ChainController.getActiveCaipNetwork()?.caipNetworkId || ('' as CaipNetworkId),
       accountAddress: ''
     })
+
+    // URI 이벤트 리스너 등록 (QR 코드 표시용)
+    universalProvider.once('display_uri', (uri: string) => {
+      ConnectionController.setUri(uri)
+    })
+
+    SnackController.showLoading('Authenticating...', { autoClose: false })
 
     const result = await universalProvider.authenticate({
       nonce: siwxMessage.nonce,
@@ -230,8 +236,6 @@ export const SIWXUtil = {
       // The first chainId is what is used for universal provider to build the message
       chains: [siwxMessage.chainId, ...chains.filter(chain => chain !== siwxMessage.chainId)]
     })
-
-    SnackController.showLoading('Authenticating...', { autoClose: false })
 
     AccountController.setConnectedWalletInfo(
       {
@@ -275,6 +279,8 @@ export const SIWXUtil = {
           event: 'SIWX_AUTH_SUCCESS',
           properties: SIWXUtil.getSIWXEventProperties()
         })
+
+        return { authenticated: true, sessions }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('SIWX:universalProviderAuth - failed to set sessions', error)
@@ -293,7 +299,7 @@ export const SIWXUtil = {
       }
     }
 
-    return true
+    return { authenticated: false, sessions: [] }
   },
   getSIWXEventProperties() {
     return {
