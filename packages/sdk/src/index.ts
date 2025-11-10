@@ -10,6 +10,7 @@ import {
   ConstantsUtil,
   CoreHelperUtil,
   OptionsController,
+  type SIWXConfig,
   SendController,
   type ThemeMode,
   createDefaultSIWXConfig
@@ -84,12 +85,32 @@ export type CrossSdkParams = {
   themeMode?: ThemeMode
   defaultNetwork?: SupportedNetworks
   adapters?: ChainAdapter[]
+  mobileLink?: string
+  siwx?: SIWXConfig
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters } = params
+  const {
+    projectId,
+    redirectUrl,
+    metadata,
+    themeMode,
+    defaultNetwork,
+    adapters,
+    mobileLink,
+    siwx
+  } = params
 
-  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters)
+  return initCrossSdk(
+    projectId,
+    redirectUrl,
+    metadata,
+    themeMode,
+    defaultNetwork,
+    adapters,
+    mobileLink,
+    siwx
+  )
 }
 
 // Create modal
@@ -99,7 +120,9 @@ const initCrossSdk = (
   metadata?: Metadata,
   themeMode?: ThemeMode,
   defaultNetwork?: SupportedNetworks,
-  adapters?: ChainAdapter[]
+  adapters?: ChainAdapter[],
+  mobileLink?: string,
+  siwx?: SIWXConfig
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -116,6 +139,7 @@ const initCrossSdk = (
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
+    siwx,
     features: {
       swaps: false,
       onramp: false,
@@ -134,7 +158,10 @@ const initCrossSdk = (
         id: 'cross_wallet',
         name: 'CROSSx Wallet',
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
-        mobile_link: CROSS_WALLET_WEBAPP_LINK,
+        mobile_link:
+          mobileLink ||
+          (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
+          CROSS_WALLET_WEBAPP_LINK,
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
         play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
         chrome_store:

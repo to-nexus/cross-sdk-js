@@ -4,17 +4,21 @@
  */
 import {
   AccountController,
+  ChainController,
   ConnectionController,
   ConnectorUtil,
   ConstantsUtil,
+  CoreHelperUtil,
   type CrossSdkParams,
   type Metadata,
+  OptionsController,
   SendController,
   UniversalProvider,
   bscMainnet,
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  createDefaultSIWXConfig,
   etherMainnet,
   etherTestnet,
   initCrossSdk,
@@ -30,10 +34,14 @@ export {
   initCrossSdk,
   initCrossSdkWithParams,
   useAppKitWallet,
+  createDefaultSIWXConfig,
   ConnectionController,
   ConnectorUtil,
   SendController,
   AccountController,
+  ChainController,
+  CoreHelperUtil,
+  OptionsController,
   crossMainnet,
   crossTestnet,
   bscMainnet,
@@ -56,10 +64,14 @@ declare global {
       initCrossSdk: typeof initCrossSdk
       initCrossSdkWithParams: typeof initCrossSdkWithParams
       useAppKitWallet: typeof useAppKitWallet
+      createDefaultSIWXConfig: typeof createDefaultSIWXConfig
       ConnectionController: typeof ConnectionController
       ConnectorUtil: typeof ConnectorUtil
       SendController: typeof SendController
       AccountController: typeof AccountController
+      ChainController: typeof ChainController
+      CoreHelperUtil: typeof CoreHelperUtil
+      OptionsController: typeof OptionsController
       crossMainnet: typeof crossMainnet
       crossTestnet: typeof crossTestnet
       bscMainnet: typeof bscMainnet
@@ -81,10 +93,14 @@ if (typeof window !== 'undefined') {
     initCrossSdk,
     initCrossSdkWithParams,
     useAppKitWallet,
+    createDefaultSIWXConfig,
     ConnectionController,
     ConnectorUtil,
     SendController,
     AccountController,
+    ChainController,
+    CoreHelperUtil,
+    OptionsController,
     crossMainnet,
     crossTestnet,
     bscMainnet,

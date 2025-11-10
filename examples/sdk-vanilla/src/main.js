@@ -1466,12 +1466,14 @@ function updateButtonVisibility(isConnected) {
   const activeWallet = getActiveWallet()
   const anyWalletConnected = !!activeWallet
 
-  // 연결 관련 버튼들
+  // 연결 관련 버튼들 (Connect + Auth 버튼들 포함)
   const connectButtons = [
     document.getElementById('connect-wallet'),
     document.getElementById('connect-cross-extension'),
     document.getElementById('connect-metamask-qrcode'),
     document.getElementById('connect-metamask-extension'),
+    document.getElementById('authenticate-cross-extension'),
+    document.getElementById('authenticate-walletconnect'),
     document.getElementById('check-cross-extension')
   ]
 
@@ -1915,11 +1917,13 @@ authenticateCrossExtension.addEventListener('click', async () => {
     const address = CoreHelperUtil.getPlainAddress(caipAddress)
     console.log('📝 Creating SIWE message for address:', address)
 
-    const message = await siwx.createMessage({
+    const siwxMessage = await siwx.createMessage({
       chainId: activeNetwork.caipNetworkId,
       accountAddress: address
     })
 
+    // Convert SIWXMessage to string for signing
+    const messageString = siwxMessage.toString()
     console.log('✍️ SIWE message created, requesting signature...')
 
     // 7. Extension을 통해 직접 서명
@@ -1928,23 +1932,32 @@ authenticateCrossExtension.addEventListener('click', async () => {
       throw new Error('Client or signMessage method not available')
     }
 
-    const signature = await client.signMessage({
-      message: message.message,
-      address
-    })
+    const signature = await client.signMessage({ message: messageString })
 
     console.log('✅ Signature obtained:', signature.substring(0, 20) + '...')
 
     // 8. 세션 저장
-    await siwx.addSession({
+    const session = {
       data: {
-        accountAddress: address,
-        chainId: activeNetwork.caipNetworkId
+        accountAddress: siwxMessage.accountAddress,
+        chainId: siwxMessage.chainId,
+        domain: siwxMessage.domain,
+        uri: siwxMessage.uri,
+        version: siwxMessage.version,
+        nonce: siwxMessage.nonce,
+        issuedAt: siwxMessage.issuedAt,
+        expirationTime: siwxMessage.expirationTime,
+        statement: siwxMessage.statement,
+        requestId: siwxMessage.requestId,
+        resources: siwxMessage.resources,
+        notBefore: siwxMessage.notBefore
       },
-      message: message.message,
+      message: messageString,
       signature,
       cacao: undefined
-    })
+    }
+
+    await siwx.addSession(session)
 
     console.log('💾 Session saved successfully')
 
@@ -1953,9 +1966,10 @@ authenticateCrossExtension.addEventListener('click', async () => {
       '🎉 SIWE 인증 성공!',
       `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
         `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `📍 Address:\n${address}\n\n` +
-        `🔗 Chain ID:\n${activeNetwork.caipNetworkId}\n\n` +
-        `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n` +
+        `📍 Address:\n${session.data.accountAddress}\n\n` +
+        `🔗 Chain ID:\n${session.data.chainId}\n\n` +
+        `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
+        `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
         `━━━━━━━━━━━━━━━━━━━━━━`
     )
   } catch (error) {

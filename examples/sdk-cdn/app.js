@@ -349,10 +349,12 @@ async function initializeApp() {
       const activeWallet = getActiveWallet()
       const isConnected = activeWallet !== null
 
-      // 연결 관련 버튼들
+      // 연결 관련 버튼들 (Connect + Auth 버튼들 포함)
       const connectCrossQR = document.getElementById('connect-cross-qr')
       const connectCrossExtension = document.getElementById('connect-cross-extension')
       const connectMetaMaskExtension = document.getElementById('connect-metamask-extension')
+      const authenticateCrossExtension = document.getElementById('authenticate-cross-extension')
+      const authenticateWalletConnect = document.getElementById('authenticate-walletconnect')
       const disconnectWallet = document.getElementById('disconnect-wallet')
       const switchNetwork = document.getElementById('switch-network')
 
@@ -361,6 +363,8 @@ async function initializeApp() {
         if (connectCrossQR) connectCrossQR.style.display = 'none'
         if (connectCrossExtension) connectCrossExtension.style.display = 'none'
         if (connectMetaMaskExtension) connectMetaMaskExtension.style.display = 'none'
+        if (authenticateCrossExtension) authenticateCrossExtension.style.display = 'none'
+        if (authenticateWalletConnect) authenticateWalletConnect.style.display = 'none'
         if (disconnectWallet) {
           disconnectWallet.style.display = 'inline-block'
           disconnectWallet.textContent = `🔓 Disconnect (${activeWallet === 'metamask' ? 'MetaMask' : 'CROSSx'})`
@@ -374,6 +378,8 @@ async function initializeApp() {
         if (connectCrossQR) connectCrossQR.style.display = 'inline-block'
         if (connectCrossExtension) connectCrossExtension.style.display = 'inline-block'
         if (connectMetaMaskExtension) connectMetaMaskExtension.style.display = 'inline-block'
+        if (authenticateCrossExtension) authenticateCrossExtension.style.display = 'inline-block'
+        if (authenticateWalletConnect) authenticateWalletConnect.style.display = 'inline-block'
         if (disconnectWallet) disconnectWallet.style.display = 'none'
         if (switchNetwork) switchNetwork.style.display = 'none'
 
@@ -1493,11 +1499,13 @@ ${JSON.stringify(status.sessions, null, 2)}`)
         const address = window.CrossSdk.CoreHelperUtil.getPlainAddress(caipAddress)
         console.log('📝 Creating SIWE message for address:', address)
 
-        const message = await siwx.createMessage({
+        const siwxMessage = await siwx.createMessage({
           chainId: activeNetwork.caipNetworkId,
           accountAddress: address
         })
 
+        // Convert SIWXMessage to string for signing
+        const messageString = siwxMessage.toString()
         console.log('✍️ SIWE message created, requesting signature...')
 
         // 7. Extension을 통해 직접 서명
@@ -1506,23 +1514,32 @@ ${JSON.stringify(status.sessions, null, 2)}`)
           throw new Error('Client or signMessage method not available')
         }
 
-        const signature = await client.signMessage({
-          message: message.message,
-          address
-        })
+        const signature = await client.signMessage({ message: messageString })
 
         console.log('✅ Signature obtained:', signature.substring(0, 20) + '...')
 
         // 8. 세션 저장
-        await siwx.addSession({
+        const session = {
           data: {
-            accountAddress: address,
-            chainId: activeNetwork.caipNetworkId
+            accountAddress: siwxMessage.accountAddress,
+            chainId: siwxMessage.chainId,
+            domain: siwxMessage.domain,
+            uri: siwxMessage.uri,
+            version: siwxMessage.version,
+            nonce: siwxMessage.nonce,
+            issuedAt: siwxMessage.issuedAt,
+            expirationTime: siwxMessage.expirationTime,
+            statement: siwxMessage.statement,
+            requestId: siwxMessage.requestId,
+            resources: siwxMessage.resources,
+            notBefore: siwxMessage.notBefore
           },
-          message: message.message,
+          message: messageString,
           signature,
           cacao: undefined
-        })
+        }
+
+        await siwx.addSession(session)
 
         console.log('💾 Session saved successfully')
 
@@ -1531,9 +1548,10 @@ ${JSON.stringify(status.sessions, null, 2)}`)
           `🎉 SIWE 인증 성공!\n\n` +
             `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
             `━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📍 Address:\n${address}\n\n` +
-            `🔗 Chain ID:\n${activeNetwork.caipNetworkId}\n\n` +
-            `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n` +
+            `📍 Address:\n${session.data.accountAddress}\n\n` +
+            `🔗 Chain ID:\n${session.data.chainId}\n\n` +
+            `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
+            `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
             `━━━━━━━━━━━━━━━━━━━━━━`
         )
       } catch (error) {
