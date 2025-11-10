@@ -197,23 +197,61 @@ initCrossSdkWithParams({
     // 백엔드에서 세션 조회
     getSessions: async (chainId, address) => {
       try {
+        console.log('🔍 getSessions called with:', { chainId, address })
+
         // 실제 프로덕션에서는 백엔드에서 세션 조회
         // const response = await fetch(
         //   `/api/siwe/sessions?chain=${chainId}&address=${address}`
         // )
         // return response.json()
 
-        // 데모용: localStorage에서 조회
+        // 데모용: localStorage에서 조회 (단수와 복수 키 모두 확인)
+
+        // 1. 먼저 siwx_session (단수) 확인 - Extension + SIWE에서 저장
         const sessionStr = localStorage.getItem('siwx_session')
+        console.log('📦 localStorage siwx_session:', sessionStr ? 'exists' : 'null')
+
         if (sessionStr) {
           const session = JSON.parse(sessionStr)
+          console.log('🔍 Comparing (single):', {
+            storedChainId: session.data.chainId,
+            requestedChainId: chainId,
+            storedAddress: session.data.accountAddress,
+            requestedAddress: address,
+            chainIdMatch: session.data.chainId === chainId,
+            addressMatch: session.data.accountAddress.toLowerCase() === address.toLowerCase()
+          })
+
           if (
             session.data.chainId === chainId &&
             session.data.accountAddress.toLowerCase() === address.toLowerCase()
           ) {
+            console.log('✅ Session found in siwx_session (single)')
             return [session]
           }
         }
+
+        // 2. siwx_sessions (복수) 확인 - QR code + SIWE에서 저장
+        const sessionsStr = localStorage.getItem('siwx_sessions')
+        console.log('📦 localStorage siwx_sessions:', sessionsStr ? 'exists' : 'null')
+
+        if (sessionsStr) {
+          const sessions = JSON.parse(sessionsStr)
+          console.log('🔍 Checking sessions array:', sessions.length)
+
+          const matchingSessions = sessions.filter(
+            (session: any) =>
+              session.data.chainId === chainId &&
+              session.data.accountAddress.toLowerCase() === address.toLowerCase()
+          )
+
+          if (matchingSessions.length > 0) {
+            console.log('✅ Session found in siwx_sessions (plural)', matchingSessions.length)
+            return matchingSessions
+          }
+        }
+
+        console.log('❌ No matching session found in either storage')
         return []
       } catch (error) {
         console.error('Failed to get sessions:', error)
@@ -318,6 +356,18 @@ export function ActionButtonList() {
     walletProvider,
     network
   ])
+
+  // ✅ 연결 상태 변화 감지 (Cross Wallet QR code 연결)
+  useEffect(() => {
+    if (account?.isConnected && account.address) {
+      const activeWallet = getActiveWallet()
+      if (activeWallet?.type === 'cross') {
+        // Cross Wallet QR code 연결 성공 시 플래그 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
+      }
+    }
+  }, [account?.isConnected, account?.address, getActiveWallet])
 
   // 🆕 Error analysis utility function
   const analyzeAndShowError = useCallback(
@@ -812,6 +862,11 @@ export function ActionButtonList() {
         // SIWE 메시지 요약 (첫 줄만)
         const messageSummary = message.split('\n')[0]
 
+        // ✅ 연결 및 인증 상태 저장 (세션 포함)
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
+        localStorage.setItem('has_siwx_session', 'true')
+
         showSuccess(
           '🎉 SIWE 인증 성공!',
           `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
@@ -824,6 +879,10 @@ export function ActionButtonList() {
             `━━━━━━━━━━━━━━━━━━━━━━`
         )
       } else {
+        // ✅ 일반 연결 시에도 상태 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
+
         showSuccess('연결 성공', 'Cross Extension이 연결되었습니다.')
       }
     } catch (error) {
@@ -871,6 +930,11 @@ export function ActionButtonList() {
 
           // SIWE 메시지 요약 (첫 줄만)
           const messageSummary = message.split('\n')[0]
+
+          // ✅ 연결 및 인증 상태 저장 (세션 포함)
+          localStorage.setItem('wallet_connected', 'true')
+          localStorage.setItem('wallet_type', 'cross')
+          localStorage.setItem('has_siwx_session', 'true')
 
           // 서명 정보를 포함한 성공 메시지
           showSuccess(
@@ -985,6 +1049,9 @@ export function ActionButtonList() {
         const chainId = Number(networkInfo.chainId)
         setMetamaskChainId(chainId)
 
+        // ✅ 연결 상태 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'metamask')
         // Extension 연결 타입 저장 (자동 재연결 시 QR Code와 구분하기 위해)
         localStorage.setItem('metamask_connection_type', 'extension')
 
@@ -1066,6 +1133,10 @@ export function ActionButtonList() {
 
       // 연결 성공 후 상태 즉시 업데이트
       checkExtensionInstalled()
+
+      // ✅ 연결 상태 저장
+      localStorage.setItem('wallet_connected', 'true')
+      localStorage.setItem('wallet_type', 'cross')
 
       showSuccess(
         'Cross Extension Wallet 연결 성공!',
@@ -1207,7 +1278,11 @@ export function ActionButtonList() {
       setMetamaskAccount(null)
       setMetamaskChainId(null)
 
-      // 연결 타입 정보 삭제
+      // ✅ 연결 상태 제거 (자동 재연결 방지)
+      localStorage.removeItem('wallet_connected')
+      localStorage.removeItem('wallet_type')
+      localStorage.removeItem('has_siwx_session')
+      localStorage.removeItem('siwx_session')
       localStorage.removeItem('metamask_connection_type')
     } catch (error) {
       console.error('Error during disconnect:', error)

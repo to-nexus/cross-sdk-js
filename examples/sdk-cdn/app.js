@@ -220,7 +220,9 @@ async function initializeApp() {
             // )
             // return response.json()
 
-            // 데모용: localStorage에서 조회
+            // 데모용: localStorage에서 조회 (단수와 복수 키 모두 확인)
+
+            // 1. 먼저 siwx_session (단수) 확인 - Extension + SIWE에서 저장
             const sessionStr = localStorage.getItem('siwx_session')
             if (sessionStr) {
               const session = JSON.parse(sessionStr)
@@ -231,6 +233,21 @@ async function initializeApp() {
                 return [session]
               }
             }
+
+            // 2. siwx_sessions (복수) 확인 - QR code + SIWE에서 저장
+            const sessionsStr = localStorage.getItem('siwx_sessions')
+            if (sessionsStr) {
+              const sessions = JSON.parse(sessionsStr)
+              const matchingSessions = sessions.filter(
+                session =>
+                  session.data.chainId === chainId &&
+                  session.data.accountAddress.toLowerCase() === address.toLowerCase()
+              )
+              if (matchingSessions.length > 0) {
+                return matchingSessions
+              }
+            }
+
             return []
           } catch (error) {
             console.error('Failed to get sessions:', error)
@@ -656,6 +673,10 @@ async function initializeApp() {
         const chainIdHex = await provider.request({ method: 'eth_chainId' })
         metamaskChainId = parseInt(chainIdHex, 16)
 
+        // ✅ 연결 상태 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'metamask')
+
         // Set up event listeners (중복 방지를 위해 removeAllListeners)
         provider.removeAllListeners('accountsChanged')
         provider.removeAllListeners('chainChanged')
@@ -703,10 +724,22 @@ async function initializeApp() {
           metamaskProvider = null
           metamaskAddress = null
           metamaskChainId = null
+
+          // ✅ 연결 상태 제거 (자동 재연결 방지)
+          localStorage.removeItem('wallet_connected')
+          localStorage.removeItem('wallet_type')
+          localStorage.removeItem('metamask_connection_type')
+
           alert('✅ MetaMask Extension 연결이 해제되었습니다.')
         } else {
           // Cross SDK 연결 해제
           await appkitWallet.disconnect()
+
+          // ✅ 연결 상태 제거 (자동 재연결 방지)
+          localStorage.removeItem('wallet_connected')
+          localStorage.removeItem('wallet_type')
+          localStorage.removeItem('siwx_session')
+
           alert('✅ CROSSx Wallet 연결이 해제되었습니다.')
         }
 
@@ -1399,6 +1432,10 @@ ${JSON.stringify(status.sessions, null, 2)}`)
       console.log('🔘 Connect Cross QR button clicked!')
       try {
         await appkitWallet.connect('cross_wallet')
+
+        // ✅ 연결 상태 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
       } catch (error) {
         console.error('Cross QR connection failed:', error)
         alert(`❌ CROSSx 연결 실패: ${error.message}`)
@@ -1410,6 +1447,11 @@ ${JSON.stringify(status.sessions, null, 2)}`)
       console.log('🔘 Connect Cross Extension button clicked!')
       try {
         const result = await window.CrossSdk.ConnectorUtil.connectCrossExtensionWallet()
+
+        // ✅ 연결 상태 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
+
         alert(`✅ Cross Extension 연결 성공!\n\n주소: ${result.address}`)
         updateButtonVisibility()
         updateSwitchNetworkButton()
@@ -1552,6 +1594,11 @@ ${JSON.stringify(status.sessions, null, 2)}`)
           await new Promise(resolve => setTimeout(resolve, 100))
         }
 
+        // ✅ 연결 및 인증 상태 저장 (세션 포함)
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
+        localStorage.setItem('has_siwx_session', 'true')
+
         // 9. 성공 알림
         alert(
           `🎉 SIWE 인증 성공!\n\n` +
@@ -1622,6 +1669,11 @@ ${JSON.stringify(status.sessions, null, 2)}`)
 
             // SIWE 메시지 요약 (첫 줄만)
             const messageSummary = message.split('\n')[0]
+
+            // ✅ 연결 및 인증 상태 저장 (세션 포함)
+            localStorage.setItem('wallet_connected', 'true')
+            localStorage.setItem('wallet_type', 'cross')
+            localStorage.setItem('has_siwx_session', 'true')
 
             // 성공 알림
             alert(
@@ -1758,8 +1810,20 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     // MetaMask Extension 자동 재연결 (페이지 로드 시)
     async function autoReconnectMetaMask() {
       try {
+        // ✅ 이전 연결 상태 확인
+        const wasConnected = localStorage.getItem('wallet_connected') === 'true'
+        const walletType = localStorage.getItem('wallet_type')
+
+        if (!wasConnected || walletType !== 'metamask') {
+          console.log('⏭️ Skipping auto-reconnect - not previously connected as MetaMask')
+          return
+        }
+
         const provider = findMetaMaskProvider()
-        if (!provider) return
+        if (!provider) {
+          console.log('⏭️ MetaMask provider not found')
+          return
+        }
 
         // eth_accounts는 이미 연결된 계정만 반환 (사용자 승인 불필요)
         const accounts = await provider.request({ method: 'eth_accounts' })
