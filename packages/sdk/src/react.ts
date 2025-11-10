@@ -9,6 +9,7 @@ import {
   ConnectionController,
   ConstantsUtil,
   CoreHelperUtil,
+  createDefaultSIWXConfig,
   OptionsController,
   type SIWXConfig,
   SIWXUtil,
@@ -54,7 +55,8 @@ export type {
   ChainAdapter,
   SIWXConfig,
   SIWXMessage,
-  SIWXSession
+  SIWXSession,
+  CreateSIWXConfigOptions
 } from '@to-nexus/appkit-core'
 
 export type { CaipNetworkId } from '@to-nexus/appkit-common'
@@ -206,6 +208,7 @@ export {
   ChainController,
   OptionsController,
   CoreHelperUtil,
+  createDefaultSIWXConfig,
   SIWXUtil,
   crossMainnet,
   crossTestnet,

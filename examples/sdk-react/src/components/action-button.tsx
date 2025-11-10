@@ -12,6 +12,7 @@ import {
   UniversalProvider,
   bscMainnet,
   bscTestnet,
+  createDefaultSIWXConfig,
   crossMainnet,
   crossTestnet,
   etherMainnet,
@@ -28,15 +29,7 @@ import {
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
-import type {
-  AssetFilterType,
-  CaipNetworkId,
-  SIWXConfig,
-  SIWXMessage,
-  SIWXSession,
-  SignTypedDataV4Args,
-  WriteContractArgs
-} from '@to-nexus/sdk/react'
+import type { AssetFilterType, SignTypedDataV4Args, WriteContractArgs } from '@to-nexus/sdk/react'
 import { v4 as uuidv4 } from 'uuid'
 
 import {
@@ -129,138 +122,110 @@ const metadata = {
   icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 }
 
-// SIWE 예제 설정 (선택사항)
-// 실제 프로덕션에서는 백엔드 API를 구현해야 합니다
-const createSIWXConfig = (): SIWXConfig => {
-  // 현재 연결된 체인을 추적하기 위한 상태
-  let currentChainId: CaipNetworkId | undefined
-
-  // AccountController를 구독하여 체인 변경 감지
-  AccountController.subscribeKey('caipAddress', caipAddress => {
-    if (caipAddress) {
-      // caipAddress 형식: "eip155:612044:0x..."
-      const parts = caipAddress.split(':')
-      if (parts.length >= 2) {
-        currentChainId = `${parts[0]}:${parts[1]}` as CaipNetworkId
-      }
-    }
-  })
-
-  return {
-    // SIWX 메시지 생성
-    createMessage: async (input: {
-      chainId: CaipNetworkId
-      accountAddress: string
-      notBefore?: string
-    }): Promise<SIWXMessage> => {
-      // 현재 연결된 체인 ID 사용 (없으면 input의 chainId 사용)
-      const chainId = currentChainId || input.chainId
-
-      const message: SIWXMessage = {
-        ...input,
-        chainId,
-        domain: window.location.host,
-        uri: window.location.origin,
-        version: '1',
-        nonce: Math.random().toString(36).substring(2, 15),
-        issuedAt: new Date().toISOString(),
-        expirationTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24시간
-        statement: 'Sign in with your wallet to Cross SDK Sample App',
-        toString: () => {
-          return [
-            `${message.domain} wants you to sign in with your account:`,
-            message.accountAddress,
-            '',
-            message.statement || '',
-            '',
-            `URI: ${message.uri}`,
-            `Version: ${message.version}`,
-            `Chain ID: ${message.chainId}`,
-            `Nonce: ${message.nonce}`,
-            `Issued At: ${message.issuedAt}`,
-            message.expirationTime ? `Expiration Time: ${message.expirationTime}` : ''
-          ]
-            .filter(Boolean)
-            .join('\n')
-        }
-      }
-
-      return message
-    },
-
-    // 세션 추가 (서명 검증)
-    addSession: async (session: SIWXSession): Promise<void> => {
-      console.log('✅ SIWX Session added:', session)
-      // 실제 프로덕션: 백엔드로 세션 전송 및 검증
-      // await fetch('/api/siwe/verify', {
-      //   method: 'POST',
-      //   body: JSON.stringify(session)
-      // })
-
-      // 예제: localStorage에 저장
-      localStorage.setItem('siwx_session', JSON.stringify(session))
-    },
-
-    // 세션 취소
-    revokeSession: async (chainId: CaipNetworkId, address: string): Promise<void> => {
-      console.log('🗑️ SIWX Session revoked:', { chainId, address })
-      localStorage.removeItem('siwx_session')
-    },
-
-    // 모든 세션 설정
-    setSessions: async (sessions: SIWXSession[]): Promise<void> => {
-      console.log('📝 SIWX Sessions set:', sessions)
-      if (sessions.length > 0) {
-        localStorage.setItem('siwx_sessions', JSON.stringify(sessions))
-      } else {
-        localStorage.removeItem('siwx_sessions')
-      }
-    },
-
-    // 세션 가져오기
-    getSessions: async (chainId: CaipNetworkId, address: string): Promise<SIWXSession[]> => {
-      console.log('📖 SIWX Getting sessions for:', { chainId, address })
-
-      // 단일 세션 확인
-      const sessionStr = localStorage.getItem('siwx_session')
-      if (sessionStr) {
-        const session = JSON.parse(sessionStr) as SIWXSession
-        if (
-          session.data.chainId === chainId &&
-          session.data.accountAddress.toLowerCase() === address.toLowerCase()
-        ) {
-          return [session]
-        }
-      }
-
-      // 다중 세션 확인
-      const sessionsStr = localStorage.getItem('siwx_sessions')
-      if (sessionsStr) {
-        const sessions = JSON.parse(sessionsStr) as SIWXSession[]
-        return sessions.filter(
-          s =>
-            s.data.chainId === chainId &&
-            s.data.accountAddress.toLowerCase() === address.toLowerCase()
-        )
-      }
-
-      return []
-    },
-
-    // SIWX가 필수인지 여부
-    getRequired: () => false // false로 설정하면 사용자가 거부해도 연결 유지
-  }
-}
-
-// SDK 초기화 with SIWX
+// SDK 초기화 with SIWX (이제 SDK가 기본 구현 제공!)
 initCrossSdkWithParams({
   projectId,
   redirectUrl,
   metadata,
   themeMode: 'dark',
   mobileLink: ConstantsUtil.getUniversalLink(),
-  siwx: createSIWXConfig() // SIWX 설정 추가
-}) // TODO: SDK 빌드 후 타입 오류 해결
+  // ⚠️ 개발/데모용: 클라이언트에서 랜덤 nonce 생성 (보안 취약!)
+  // siwx: createDefaultSIWXConfig({
+  //   statement: 'Sign in with your wallet to Cross SDK Sample App'
+  // })
+
+  // ✅ 프로덕션 권장: 백엔드에서 nonce 생성 및 서명 검증
+  siwx: createDefaultSIWXConfig({
+    statement: 'Sign in with your wallet to Cross SDK Sample App',
+
+    // 🔐 백엔드에서 nonce 가져오기 (보안 필수!)
+    getNonce: async () => {
+      try {
+        // 실제 프로덕션에서는 백엔드 API를 호출해야 합니다
+        // const response = await fetch('/api/siwe/nonce')
+        // const { nonce } = await response.json()
+        // return nonce
+
+        // 데모용: 임시로 랜덤 생성 (프로덕션에서는 절대 사용 금지!)
+        console.warn(
+          '⚠️ Using client-side nonce generation. Implement backend /api/siwe/nonce for production!'
+        )
+        return (
+          Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+        )
+      } catch (error) {
+        console.error('Failed to get nonce:', error)
+        throw error
+      }
+    },
+
+    // 백엔드에서 서명 검증 및 세션 저장
+    addSession: async session => {
+      try {
+        // 실제 프로덕션에서는 백엔드로 서명 검증 요청
+        // const response = await fetch('/api/siwe/verify', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     message: session.message,
+        //     signature: session.signature,
+        //     nonce: session.data.nonce,
+        //     address: session.data.accountAddress,
+        //     chainId: session.data.chainId
+        //   })
+        // })
+        //
+        // if (!response.ok) {
+        //   throw new Error('Signature verification failed')
+        // }
+
+        // 데모용: localStorage에 저장 (프로덕션에서는 백엔드에 저장!)
+        console.log('✅ SIWX Session (save to backend in production):', {
+          address: session.data.accountAddress,
+          chainId: session.data.chainId,
+          nonce: session.data.nonce,
+          signature: session.signature.substring(0, 20) + '...',
+          expiresAt: session.data.expirationTime
+        })
+        localStorage.setItem('siwx_session', JSON.stringify(session))
+      } catch (error) {
+        console.error('Failed to verify signature:', error)
+        throw error
+      }
+    },
+
+    // 백엔드에서 세션 조회
+    getSessions: async (chainId, address) => {
+      try {
+        // 실제 프로덕션에서는 백엔드에서 세션 조회
+        // const response = await fetch(
+        //   `/api/siwe/sessions?chain=${chainId}&address=${address}`
+        // )
+        // return response.json()
+
+        // 데모용: localStorage에서 조회
+        const sessionStr = localStorage.getItem('siwx_session')
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr)
+          if (
+            session.data.chainId === chainId &&
+            session.data.accountAddress.toLowerCase() === address.toLowerCase()
+          ) {
+            return [session]
+          }
+        }
+        return []
+      } catch (error) {
+        console.error('Failed to get sessions:', error)
+        return []
+      }
+    }
+
+    // 세션 만료 시간 커스터마이징 (선택사항)
+    // expirationTime: (issuedAt) =>
+    //   new Date(issuedAt.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7일
+  })
+})
 
 // TypeScript용 전역 Caver 타입 선언
 declare global {
@@ -277,8 +242,12 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
-  const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
-    useAppKitWallet()
+  const {
+    connect,
+    connectCrossExtensionWallet,
+    authenticateCrossExtensionWallet,
+    isInstalledCrossExtensionWallet
+  } = useAppKitWallet()
   const reownAppKit = useReownAppKit()
   const reownAccount = useReownAccount() // 🆕 Reown AppKit 계정 (MetaMask QR)
   const reownNetwork = useReownNetwork() // 🆕 Reown AppKit 네트워크 (MetaMask QR)
@@ -799,7 +768,7 @@ export function ActionButtonList() {
     connect('cross_wallet')
   }
 
-  // Cross Extension 연결 + SIWE 인증을 한번에 수행
+  // Cross Extension 연결 + SIWE 인증을 한번에 수행 (이제 SDK가 처리!)
   async function handleAuthenticateCrossExtension() {
     try {
       setLoadingStates(prev => ({ ...prev, authenticateCrossExtension: true }))
@@ -820,68 +789,43 @@ export function ActionButtonList() {
         return
       }
 
-      // Extension 연결 (모달이 뜨고 사용자가 승인하면 Promise가 resolve됨)
-      try {
-        await connectCrossExtensionWallet()
-      } catch (connectError) {
-        // 사용자가 모달을 닫았거나 연결을 거부한 경우
-        console.error('Extension 연결 실패:', connectError)
-        return
-      }
+      // 🎉 이제 SDK의 authenticateCrossExtensionWallet()가 모든 걸 처리합니다!
+      // - Extension 연결
+      // - SIWE 메시지 생성
+      // - 사용자 서명
+      // - 세션 저장
+      const result = await authenticateCrossExtensionWallet()
 
-      // SIWE 서명 요청
-      try {
-        await SIWXUtil.requestSignMessage()
-      } catch (signError) {
-        console.error('SIWE 서명 요청 실패:', signError)
-        showError(
-          'SIWE 서명 실패',
-          signError instanceof Error ? signError.message : 'SIWE 서명 요청 중 오류가 발생했습니다.'
-        )
-        return
-      }
-
-      // 서명 후 세션 정보 가져오기
-      const siwx = OptionsController.state.siwx
-      if (siwx) {
-        const caipAddress = ChainController.getActiveCaipAddress()
-        const network = ChainController.getActiveCaipNetwork()
-        if (caipAddress && network) {
-          const address = CoreHelperUtil.getPlainAddress(caipAddress)
-          if (address) {
-            const sessions = await siwx.getSessions(network.caipNetworkId, address)
-            if (sessions && sessions.length > 0) {
-              const session = sessions[0]
-              if (!session) {
-                showError('인증 오류', '세션 정보를 가져올 수 없습니다.')
-                return
-              }
-
-              const signature = session.signature
-              const message = session.message
-              const expiresAt = session.data.expirationTime
-
-              // SIWE 메시지 요약 (첫 줄만)
-              const messageSummary = message.split('\n')[0]
-
-              showSuccess(
-                '🎉 SIWE 인증 성공!',
-                `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
-                  `📍 Address:\n${address}\n\n` +
-                  `🔗 Chain ID:\n${network.caipNetworkId}\n\n` +
-                  `📝 SIWE Message:\n${messageSummary}...\n\n` +
-                  `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
-                  `⏰ Expires At:\n${expiresAt}\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━`
-              )
-              return
-            }
-          }
+      if (result && result.authenticated && result.sessions && result.sessions.length > 0) {
+        const session = result.sessions[0]
+        if (!session) {
+          showError('인증 오류', '세션 정보를 가져올 수 없습니다.')
+          return
         }
-      }
 
-      showSuccess('연결 성공', 'Cross Extension이 연결되었습니다.')
+        const signature = session.signature
+        const address = session.data.accountAddress
+        const chainId = session.data.chainId
+        const message = session.message
+        const expiresAt = session.data.expirationTime
+
+        // SIWE 메시지 요약 (첫 줄만)
+        const messageSummary = message.split('\n')[0]
+
+        showSuccess(
+          '🎉 SIWE 인증 성공!',
+          `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `📍 Address:\n${address}\n\n` +
+            `🔗 Chain ID:\n${chainId}\n\n` +
+            `📝 SIWE Message:\n${messageSummary}...\n\n` +
+            `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
+            `⏰ Expires At:\n${expiresAt}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━`
+        )
+      } else {
+        showSuccess('연결 성공', 'Cross Extension이 연결되었습니다.')
+      }
     } catch (error) {
       console.error('Authentication error:', error)
       showError(

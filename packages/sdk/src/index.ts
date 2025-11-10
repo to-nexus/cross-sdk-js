@@ -5,10 +5,14 @@ import {
   AccountController,
   ApiController,
   type ChainAdapter,
+  ChainController,
   ConnectionController,
   ConstantsUtil,
+  CoreHelperUtil,
+  OptionsController,
   SendController,
-  type ThemeMode
+  type ThemeMode,
+  createDefaultSIWXConfig
 } from '@to-nexus/appkit-core'
 import type { CustomWallet } from '@to-nexus/appkit-core'
 import { ConnectorUtil, createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
@@ -36,7 +40,11 @@ export type {
   TypedDataDomain,
   TypedDataTypes,
   TypedDataField,
-  ChainAdapter
+  ChainAdapter,
+  CreateSIWXConfigOptions,
+  SIWXConfig,
+  SIWXMessage,
+  SIWXSession
 } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
@@ -158,6 +166,10 @@ export {
   SendController,
   AccountController,
   ApiController,
+  ChainController,
+  CoreHelperUtil,
+  createDefaultSIWXConfig,
+  OptionsController,
   crossMainnet,
   crossTestnet,
   bscMainnet,
