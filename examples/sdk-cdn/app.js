@@ -1489,127 +1489,37 @@ ${JSON.stringify(status.sessions, null, 2)}`)
 
       console.log('🔐 Starting Cross Extension authentication...')
       try {
-        // 1. Extension 연결 시작
-        const connectPromise = window.CrossSdk.ConnectorUtil.connectCrossExtensionWallet().catch(
-          error => {
-            console.error('❌ Connection failed:', error)
-            throw error
-          }
-        )
+        // ✅ SDK의 authenticateCrossExtensionWallet() 사용 (플래그 관리 포함!)
+        const result = await window.CrossSdk.ConnectorUtil.authenticateCrossExtensionWallet()
 
-        // 2. 연결 상태 감지를 위한 Promise
-        const waitForConnection = new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Connection timeout - address not set after 30 seconds'))
-          }, 30000)
+        if (result && result.authenticated && result.sessions && result.sessions.length > 0) {
+          const session = result.sessions[0]
+          const signature = session.signature
+          const address = session.data.accountAddress
+          const chainId = session.data.chainId
+          const expiresAt = session.data.expirationTime
 
-          const unsubscribe = window.CrossSdk.AccountController.subscribeKey('address', address => {
-            if (address) {
-              clearTimeout(timeout)
-              unsubscribe()
-              console.log('✅ Address detected:', address)
-              resolve(address)
-            }
-          })
-        })
+          // ✅ 연결 및 인증 상태 저장 (세션 포함)
+          localStorage.setItem('wallet_connected', 'true')
+          localStorage.setItem('wallet_type', 'cross')
+          localStorage.setItem('has_siwx_session', 'true')
 
-        // 3. 연결과 상태 감지 동시 실행
-        await Promise.all([connectPromise, waitForConnection])
+          console.log('💾 Session saved successfully')
 
-        console.log('🔗 Extension connected, checking connection state...')
-
-        // 4. 연결 상태 확인
-        const caipAddress = window.CrossSdk.ChainController.getActiveCaipAddress()
-        const activeNetwork = window.CrossSdk.ChainController.getActiveCaipNetwork()
-
-        if (!caipAddress || !activeNetwork) {
-          throw new Error('Connection state not properly initialized')
+          // 성공 알림
+          alert(
+            `🎉 SIWE 인증 성공!\n\n` +
+              `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
+              `━━━━━━━━━━━━━━━━━━━━━━\n` +
+              `📍 Address:\n${address}\n\n` +
+              `🔗 Chain ID:\n${chainId}\n\n` +
+              `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
+              `📅 Expires:\n${expiresAt || 'N/A'}\n` +
+              `━━━━━━━━━━━━━━━━━━━━━━`
+          )
+        } else {
+          alert('✅ Cross Extension이 연결되었습니다.')
         }
-
-        console.log('📍 Connection state verified:', {
-          caipAddress,
-          network: activeNetwork.caipNetworkId
-        })
-
-        // 5. SIWE 직접 처리
-        const siwx = window.CrossSdk.OptionsController.state.siwx
-        if (!siwx) {
-          throw new Error('SIWE not configured in SDK')
-        }
-
-        // 6. SIWE 메시지 생성
-        const address = window.CrossSdk.CoreHelperUtil.getPlainAddress(caipAddress)
-        console.log('📝 Creating SIWE message for address:', address)
-
-        const siwxMessage = await siwx.createMessage({
-          chainId: activeNetwork.caipNetworkId,
-          accountAddress: address
-        })
-
-        // Convert SIWXMessage to string for signing
-        const messageString = siwxMessage.toString()
-        console.log('✍️ SIWE message created, requesting signature...')
-
-        // 7. Extension을 통해 직접 서명
-        const client = window.CrossSdk.ConnectionController._getClient()
-        if (!client || !client.signMessage) {
-          throw new Error('Client or signMessage method not available')
-        }
-
-        const signature = await client.signMessage({ message: messageString })
-
-        console.log('✅ Signature obtained:', signature.substring(0, 20) + '...')
-
-        // 8. 세션 저장
-        const session = {
-          data: {
-            accountAddress: siwxMessage.accountAddress,
-            chainId: siwxMessage.chainId,
-            domain: siwxMessage.domain,
-            uri: siwxMessage.uri,
-            version: siwxMessage.version,
-            nonce: siwxMessage.nonce,
-            issuedAt: siwxMessage.issuedAt,
-            expirationTime: siwxMessage.expirationTime,
-            statement: siwxMessage.statement,
-            requestId: siwxMessage.requestId,
-            resources: siwxMessage.resources,
-            notBefore: siwxMessage.notBefore
-          },
-          message: messageString,
-          signature,
-          cacao: undefined
-        }
-
-        await siwx.addSession(session)
-
-        console.log('💾 Session saved successfully')
-
-        // Verify session was saved before SDK's auto initializeIfEnabled() runs
-        // This prevents duplicate SIWE modal from appearing
-        const savedSessions = await siwx.getSessions(activeNetwork.caipNetworkId, address)
-        if (savedSessions.length === 0) {
-          console.warn('⚠️ Session not found immediately after saving, waiting...')
-          // Give a small delay for session to be fully persisted
-          await new Promise(resolve => setTimeout(resolve, 100))
-        }
-
-        // ✅ 연결 및 인증 상태 저장 (세션 포함)
-        localStorage.setItem('wallet_connected', 'true')
-        localStorage.setItem('wallet_type', 'cross')
-        localStorage.setItem('has_siwx_session', 'true')
-
-        // 9. 성공 알림
-        alert(
-          `🎉 SIWE 인증 성공!\n\n` +
-            `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📍 Address:\n${session.data.accountAddress}\n\n` +
-            `🔗 Chain ID:\n${session.data.chainId}\n\n` +
-            `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
-            `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━`
-        )
       } catch (error) {
         console.error('❌ Authentication failed:', error)
 
