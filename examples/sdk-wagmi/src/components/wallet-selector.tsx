@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { useAppKit } from '@to-nexus/appkit/react'
+import { useAppKit, useAppKitState } from '@to-nexus/appkit/react'
 import { useAppKitWallet } from '@to-nexus/appkit/react'
 import { useAccount } from 'wagmi'
 
@@ -12,7 +12,17 @@ import { sdkWagmiAdapter } from '../utils/wagmi-utils'
 export function WalletSelector() {
   const { currentWallet, handleConnect, handleDisconnect } = useWallet()
   const { address, isConnected } = useAccount()
-  const [isLoading, setIsLoading] = useState(false)
+
+  // ✅ 개별 버튼별 loading state 관리
+  const [loadingStates, setLoadingStates] = useState({
+    metamaskQR: false,
+    metamaskExtension: false,
+    crossQR: false,
+    crossExtension: false,
+    authenticateCrossExtension: false,
+    authenticateWalletConnect: false
+  })
+
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
   const [isMetaMaskExtensionInstalled, setIsMetaMaskExtensionInstalled] = useState(false)
 
@@ -20,9 +30,13 @@ export function WalletSelector() {
   const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
     useAppKitWallet()
   const crossAppKit = useAppKit()
+  const appKitState = useAppKitState()
 
   // Reown AppKit hook
   const reownAppKit = useReownAppKit()
+
+  // ✅ 전체 loading 여부 계산
+  const isAnyLoading = Object.values(loadingStates).some(state => state)
 
   // MetaMask provider 찾기 헬퍼
   const findMetaMaskProvider = useCallback(() => {
@@ -84,6 +98,29 @@ export function WalletSelector() {
     return () => clearInterval(interval)
   }, [checkCrossExtension, checkMetaMaskExtension])
 
+  // ✅ 연결 해제 시 모든 loading state 초기화
+  useEffect(() => {
+    if (!isConnected) {
+      setLoadingStates({
+        metamaskQR: false,
+        metamaskExtension: false,
+        crossQR: false,
+        crossExtension: false,
+        authenticateCrossExtension: false,
+        authenticateWalletConnect: false
+      })
+    }
+  }, [isConnected])
+
+  // ✅ 모달이 닫힐 때 WalletConnect 인증 로딩 상태 리셋
+  useEffect(() => {
+    // 모달이 닫히고 authenticateWalletConnect가 로딩 중이면 리셋
+    if (!appKitState.open && loadingStates.authenticateWalletConnect) {
+      console.log('🔄 Modal closed, resetting authenticateWalletConnect loading state')
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
+    }
+  }, [appKitState.open, loadingStates.authenticateWalletConnect])
+
   // MetaMask QR Code 연결
   const handleConnectMetaMaskQRCode = async () => {
     // ✅ MetaMask 연결 시 Cross SDK의 자동 SIWE 모달 방지
@@ -100,7 +137,7 @@ export function WalletSelector() {
     }
 
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, metamaskQR: true }))
       console.log('🦊 MetaMask QR Code 연결 시도')
 
       // 이미 MetaMask로 설정되어 있으면 바로 모달 열기
@@ -122,7 +159,7 @@ export function WalletSelector() {
       console.error('Error connecting MetaMask QR Code:', error)
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, metamaskQR: false }))
       // ✅ Re-enable auto SIWE after connection
       if (SIWXUtil) {
         setTimeout(() => {
@@ -149,7 +186,7 @@ export function WalletSelector() {
     }
 
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, metamaskExtension: true }))
       console.log('🦊 MetaMask Extension 연결 시도')
 
       // MetaMask provider 찾기
@@ -202,7 +239,7 @@ export function WalletSelector() {
       console.error('Error connecting MetaMask Extension:', error)
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, metamaskExtension: false }))
       // ✅ Re-enable auto SIWE after connection
       if (SIWXUtil) {
         setTimeout(() => {
@@ -216,7 +253,7 @@ export function WalletSelector() {
   // CrossWallet QR Code 연결
   const handleConnectCrossWalletQRCode = async () => {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, crossQR: true }))
       console.log('⚡ CROSSx QR Code 연결 시도')
 
       // 이미 CrossWallet으로 설정되어 있으면 바로 모달 열기
@@ -238,14 +275,14 @@ export function WalletSelector() {
       console.error('Error connecting CrossWallet QR Code:', error)
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, crossQR: false }))
     }
   }
 
   // Cross Extension 연결
   const handleConnectCrossExtension = async () => {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, crossExtension: true }))
       console.log('⚡ Cross Extension Wallet 연결 시도')
 
       // 이미 CrossWallet으로 설정되어 있으면 바로 연결
@@ -271,14 +308,14 @@ export function WalletSelector() {
       console.error('Error connecting Cross Extension:', error)
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, crossExtension: false }))
     }
   }
 
   // ✅ Cross Extension 연결 + SIWE 인증 통합
   const handleAuthenticateCrossExtension = async () => {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, authenticateCrossExtension: true }))
       console.log('🔐 Cross Extension + SIWE 인증 시작')
 
       // 이미 CrossWallet으로 설정되어 있으면 바로 인증
@@ -336,14 +373,14 @@ export function WalletSelector() {
       console.error('Error authenticating Cross Extension:', error)
       alert(`인증 실패: ${(error as Error).message}`)
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, authenticateCrossExtension: false }))
     }
   }
 
   // ✅ QR Code 연결 + SIWE 인증 통합
   const handleAuthenticateWalletConnect = async () => {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: true }))
       console.log('🔐 QR Code + SIWE 인증 시작')
 
       // 이미 CrossWallet으로 설정되어 있으면 바로 인증
@@ -403,7 +440,7 @@ export function WalletSelector() {
       console.error('Error authenticating WalletConnect:', error)
       alert(`인증 실패: ${(error as Error).message}`)
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
     }
   }
 
@@ -449,7 +486,7 @@ export function WalletSelector() {
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button
                 onClick={handleConnectMetaMaskQRCode}
-                disabled={isLoading}
+                disabled={isAnyLoading}
                 style={{
                   flex: 1,
                   minWidth: '200px',
@@ -458,17 +495,17 @@ export function WalletSelector() {
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  cursor: isAnyLoading ? 'not-allowed' : 'pointer',
                   fontWeight: '600',
                   fontSize: '14px',
-                  opacity: isLoading ? 0.6 : 1
+                  opacity: isAnyLoading ? 0.6 : 1
                 }}
               >
-                {isLoading ? 'Connecting...' : 'Connect MetaMask (QR Code)'}
+                {loadingStates.metamaskQR ? 'Connecting...' : 'Connect MetaMask (QR Code)'}
               </button>
               <button
                 onClick={handleConnectMetaMaskExtension}
-                disabled={!isMetaMaskExtensionInstalled || isLoading}
+                disabled={!isMetaMaskExtensionInstalled || isAnyLoading}
                 style={{
                   flex: 1,
                   minWidth: '200px',
@@ -477,13 +514,13 @@ export function WalletSelector() {
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: isMetaMaskExtensionInstalled && !isLoading ? 'pointer' : 'not-allowed',
+                  cursor: isMetaMaskExtensionInstalled && !isAnyLoading ? 'pointer' : 'not-allowed',
                   fontWeight: '600',
                   fontSize: '14px',
-                  opacity: isMetaMaskExtensionInstalled && !isLoading ? 1 : 0.6
+                  opacity: isMetaMaskExtensionInstalled && !isAnyLoading ? 1 : 0.6
                 }}
               >
-                {isLoading
+                {loadingStates.metamaskExtension
                   ? 'Connecting...'
                   : `Connect MetaMask Extension ${isMetaMaskExtensionInstalled ? '✅' : '❌'}`}
               </button>
@@ -500,7 +537,7 @@ export function WalletSelector() {
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button
                 onClick={handleConnectCrossWalletQRCode}
-                disabled={isLoading}
+                disabled={isAnyLoading}
                 style={{
                   flex: 1,
                   minWidth: '200px',
@@ -509,17 +546,17 @@ export function WalletSelector() {
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  cursor: isAnyLoading ? 'not-allowed' : 'pointer',
                   fontWeight: '600',
                   fontSize: '14px',
-                  opacity: isLoading ? 0.6 : 1
+                  opacity: isAnyLoading ? 0.6 : 1
                 }}
               >
-                {isLoading ? 'Connecting...' : 'Connect CROSSx (QR Code)'}
+                {loadingStates.crossQR ? 'Connecting...' : 'Connect CROSSx (QR Code)'}
               </button>
               <button
                 onClick={handleConnectCrossExtension}
-                disabled={!isCrossExtensionInstalled || isLoading}
+                disabled={!isCrossExtensionInstalled || isAnyLoading}
                 style={{
                   flex: 1,
                   minWidth: '200px',
@@ -528,13 +565,13 @@ export function WalletSelector() {
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: isCrossExtensionInstalled && !isLoading ? 'pointer' : 'not-allowed',
+                  cursor: isCrossExtensionInstalled && !isAnyLoading ? 'pointer' : 'not-allowed',
                   fontWeight: '600',
                   fontSize: '14px',
-                  opacity: isCrossExtensionInstalled && !isLoading ? 1 : 0.6
+                  opacity: isCrossExtensionInstalled && !isAnyLoading ? 1 : 0.6
                 }}
               >
-                {isLoading
+                {loadingStates.crossExtension
                   ? 'Connecting...'
                   : `Connect Cross Extension ${isCrossExtensionInstalled ? '✅' : '❌'}`}
               </button>
@@ -544,7 +581,7 @@ export function WalletSelector() {
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
               <button
                 onClick={handleAuthenticateWalletConnect}
-                disabled={isLoading}
+                disabled={isAnyLoading}
                 style={{
                   flex: 1,
                   minWidth: '200px',
@@ -553,18 +590,20 @@ export function WalletSelector() {
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  cursor: isAnyLoading ? 'not-allowed' : 'pointer',
                   fontWeight: '600',
                   fontSize: '14px',
-                  opacity: isLoading ? 0.6 : 1,
+                  opacity: isAnyLoading ? 0.6 : 1,
                   boxShadow: '0 4px 6px rgba(139, 92, 246, 0.3)'
                 }}
               >
-                {isLoading ? 'Authenticating...' : '🔐 Connect + Auth (QR Code)'}
+                {loadingStates.authenticateWalletConnect
+                  ? 'Authenticating...'
+                  : '🔐 Connect + Auth (QR Code)'}
               </button>
               <button
                 onClick={handleAuthenticateCrossExtension}
-                disabled={!isCrossExtensionInstalled || isLoading}
+                disabled={!isCrossExtensionInstalled || isAnyLoading}
                 style={{
                   flex: 1,
                   minWidth: '200px',
@@ -573,16 +612,16 @@ export function WalletSelector() {
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: isCrossExtensionInstalled && !isLoading ? 'pointer' : 'not-allowed',
+                  cursor: isCrossExtensionInstalled && !isAnyLoading ? 'pointer' : 'not-allowed',
                   fontWeight: '600',
                   fontSize: '14px',
-                  opacity: isCrossExtensionInstalled && !isLoading ? 1 : 0.6,
+                  opacity: isCrossExtensionInstalled && !isAnyLoading ? 1 : 0.6,
                   boxShadow: isCrossExtensionInstalled
                     ? '0 4px 6px rgba(99, 102, 241, 0.3)'
                     : 'none'
                 }}
               >
-                {isLoading
+                {loadingStates.authenticateCrossExtension
                   ? 'Authenticating...'
                   : `🔐 Connect + Auth (Extension) ${isCrossExtensionInstalled ? '✅' : '❌'}`}
               </button>
