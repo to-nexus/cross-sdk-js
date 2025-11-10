@@ -86,6 +86,19 @@ export function WalletSelector() {
 
   // MetaMask QR Code 연결
   const handleConnectMetaMaskQRCode = async () => {
+    // ✅ MetaMask 연결 시 Cross SDK의 자동 SIWE 모달 방지
+    let SIWXUtil: any = null
+    try {
+      const core = await import('@to-nexus/appkit-core')
+      SIWXUtil = core.SIWXUtil
+      if (SIWXUtil) {
+        console.log('🚫 Temporarily disabling auto SIWE for MetaMask')
+        SIWXUtil._isAuthenticating = true
+      }
+    } catch (e) {
+      // Ignore if SIWXUtil is not available
+    }
+
     try {
       setIsLoading(true)
       console.log('🦊 MetaMask QR Code 연결 시도')
@@ -95,12 +108,12 @@ export function WalletSelector() {
         console.log('✅ 이미 MetaMask로 설정됨, 모달 열기')
         reownAppKit.open()
       } else {
-        // CrossWallet에서 전환 필요
+        // CrossWallet에서 전환 필요 (자동 연결 없이 전환만)
         console.log('🔄 MetaMask로 전환 중...')
-        await handleConnect('metamask')
+        await handleConnect('metamask', { autoConnect: false })
 
         // 지갑 전환 완료 대기 (리마운트 시간)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 500))
 
         console.log('✅ MetaMask로 전환 완료, 모달 열기')
         reownAppKit.open()
@@ -110,11 +123,31 @@ export function WalletSelector() {
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
       setIsLoading(false)
+      // ✅ Re-enable auto SIWE after connection
+      if (SIWXUtil) {
+        setTimeout(() => {
+          console.log('✅ Re-enabling auto SIWE')
+          SIWXUtil._isAuthenticating = false
+        }, 1000)
+      }
     }
   }
 
   // MetaMask Extension 연결
   const handleConnectMetaMaskExtension = async () => {
+    // ✅ MetaMask 연결 시 Cross SDK의 자동 SIWE 모달 방지
+    let SIWXUtil: any = null
+    try {
+      const core = await import('@to-nexus/appkit-core')
+      SIWXUtil = core.SIWXUtil
+      if (SIWXUtil) {
+        console.log('🚫 Temporarily disabling auto SIWE for MetaMask')
+        SIWXUtil._isAuthenticating = true
+      }
+    } catch (e) {
+      // Ignore if SIWXUtil is not available
+    }
+
     try {
       setIsLoading(true)
       console.log('🦊 MetaMask Extension 연결 시도')
@@ -148,12 +181,12 @@ export function WalletSelector() {
           console.log('✅ MetaMask Extension 연결 성공:', accounts[0])
         }
       } else {
-        // CrossWallet에서 전환 필요
+        // CrossWallet에서 전환 필요 (자동 연결 없이 전환만)
         console.log('🔄 MetaMask로 전환 중...')
-        await handleConnect('metamask')
+        await handleConnect('metamask', { autoConnect: false })
 
-        // 지갑 전환 완료 대기 (리마운트 시간 + 추가)
-        await new Promise(resolve => setTimeout(resolve, 1200))
+        // 지갑 전환 완료 대기 (리마운트 시간)
+        await new Promise(resolve => setTimeout(resolve, 500))
 
         console.log('✅ MetaMask로 전환 완료, Extension 연결')
 
@@ -170,6 +203,13 @@ export function WalletSelector() {
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
       setIsLoading(false)
+      // ✅ Re-enable auto SIWE after connection
+      if (SIWXUtil) {
+        setTimeout(() => {
+          console.log('✅ Re-enabling auto SIWE')
+          SIWXUtil._isAuthenticating = false
+        }, 1000)
+      }
     }
   }
 

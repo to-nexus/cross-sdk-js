@@ -97,7 +97,10 @@ export const siwxConfig = createDefaultSIWXConfig({
     }
 
     return []
-  }
+  },
+
+  // ✅ 일반 Connect 시 자동 SIWE 모달을 띄우지 않음 (Connect + Auth 버튼에서만 SIWE 수행)
+  getRequired: () => false
 })
 
 // CrossWallet용 CROSS SDK Adapter
