@@ -353,9 +353,15 @@ export const ConnectorUtil = {
       return { authenticated: false, sessions: [] }
     }
 
+    // Set flag to prevent auto SIWE modal during manual authentication
+    console.log('🚀 Setting _isAuthenticating = true before connecting extension')
+    SIWXUtil._isAuthenticating = true
+
     try {
       // 1. Connect the extension wallet
+      console.log('🔌 Starting extension connection...')
       await ConnectorUtil.connectCrossExtensionWallet()
+      console.log('✅ Extension connected')
 
       // 2. Wait for connection to be established
       const caipAddress = await new Promise<string>((resolve, reject) => {
@@ -437,12 +443,33 @@ export const ConnectorUtil = {
 
       await siwx.addSession(session)
 
+      // Verify session was saved before SDK's auto initializeIfEnabled() runs
+      // This prevents duplicate SIWE modal from appearing
+      let savedSessions = await siwx.getSessions(network.caipNetworkId, address)
+      if (savedSessions.length === 0) {
+        console.warn('⚠️ Session not found immediately after saving, waiting...')
+        // Give a small delay for session to be fully persisted
+        await new Promise(resolve => setTimeout(resolve, 100))
+        // Re-check after delay
+        savedSessions = await siwx.getSessions(network.caipNetworkId, address)
+        console.log('🔄 Re-checked sessions after delay:', savedSessions.length)
+      }
+
+      // Delay flag clearing to ensure initializeIfEnabled sees the flag
+      // Use setTimeout to clear flag after current call stack
+      setTimeout(() => {
+        console.log('🏁 Clearing _isAuthenticating flag (delayed)')
+        SIWXUtil._isAuthenticating = false
+      }, 200)
+
       return {
         authenticated: true,
         sessions: [session]
       }
     } catch (error) {
       console.error('❌ Authentication failed:', error)
+      // Clear flag after failed authentication
+      SIWXUtil._isAuthenticating = false
       // Re-throw to let caller handle the error
       throw error
     }

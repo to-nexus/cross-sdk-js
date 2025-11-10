@@ -18,29 +18,49 @@ import { StorageUtil } from './StorageUtil.js'
  * SIWXUtil holds the methods to interact with the SIWX plugin and must be called internally on AppKit.
  */
 export const SIWXUtil = {
+  // Flag to prevent duplicate SIWE modal when manually authenticating
+  _isAuthenticating: false,
+
   getSIWX() {
     return OptionsController.state.siwx
   },
   async initializeIfEnabled() {
+    console.log('🔍 initializeIfEnabled called, _isAuthenticating:', this._isAuthenticating)
+
     const siwx = OptionsController.state.siwx
     const caipAddress = ChainController.getActiveCaipAddress()
 
     if (!(siwx && caipAddress)) {
+      console.log('⏭️ No siwx or caipAddress, skipping')
+
       return
     }
     const [namespace, chainId, address] = caipAddress.split(':') as [ChainNamespace, string, string]
 
     if (!ChainController.checkIfSupportedNetwork(namespace)) {
+      console.log('⏭️ Network not supported, skipping')
+
+      return
+    }
+
+    // Skip if already authenticating manually (e.g., via Connect + Auth button)
+    if (this._isAuthenticating) {
+      console.log('⏭️ Skipping auto SIWE modal - manual authentication in progress')
+
       return
     }
 
     try {
       const sessions = await siwx.getSessions(`${namespace}:${chainId}`, address)
+      console.log('📋 Existing sessions:', sessions.length)
 
       if (sessions.length) {
+        console.log('✅ Session exists, skipping modal')
+
         return
       }
 
+      console.log('🚨 Opening SIWE modal - no session found')
       await ModalController.open({
         view: 'SIWXSignMessage'
       })
@@ -224,6 +244,9 @@ export const SIWXUtil = {
       return { authenticated: false, sessions: [] }
     }
 
+    // Set flag to prevent auto SIWE modal during manual authentication
+    this._isAuthenticating = true
+
     // Ignores chainId and account address to get other message data
     const siwxMessage = await siwx.createMessage({
       chainId: ChainController.getActiveCaipNetwork()?.caipNetworkId || ('' as CaipNetworkId),
@@ -291,11 +314,43 @@ export const SIWXUtil = {
       try {
         await siwx.setSessions(sessions)
 
+        /*
+         * Verify sessions were saved before SDK's auto initializeIfEnabled() runs
+         * This prevents duplicate SIWE modal from appearing
+         */
+        if (sessions.length > 0 && sessions[0]) {
+          const firstSession = sessions[0]
+          let savedSessions = await siwx.getSessions(
+            firstSession.data.chainId,
+            firstSession.data.accountAddress
+          )
+          if (savedSessions.length === 0) {
+            console.warn('⚠️ Sessions not found immediately after saving, waiting...')
+            // Give a small delay for sessions to be fully persisted
+            await new Promise(resolve => setTimeout(resolve, 100))
+            // Re-check after delay
+            savedSessions = await siwx.getSessions(
+              firstSession.data.chainId,
+              firstSession.data.accountAddress
+            )
+            console.log('🔄 Re-checked sessions after delay:', savedSessions.length)
+          }
+        }
+
         EventsController.sendEvent({
           type: 'track',
           event: 'SIWX_AUTH_SUCCESS',
           properties: SIWXUtil.getSIWXEventProperties()
         })
+
+        /*
+         * Delay flag clearing to ensure initializeIfEnabled sees the flag
+         * Use setTimeout to clear flag after current call stack
+         */
+        setTimeout(() => {
+          console.log('🏁 Clearing _isAuthenticating flag (delayed)')
+          this._isAuthenticating = false
+        }, 200)
 
         return { authenticated: true, sessions }
       } catch (error) {
@@ -310,11 +365,18 @@ export const SIWXUtil = {
 
         // eslint-disable-next-line no-console
         await universalProvider.disconnect().catch(console.error)
+
+        // Clear flag after failed authentication
+        this._isAuthenticating = false
+
         throw error
       } finally {
         SnackController.hide()
       }
     }
+
+    // Clear flag if authentication not applicable (fallback case)
+    this._isAuthenticating = false
 
     return { authenticated: false, sessions: [] }
   },

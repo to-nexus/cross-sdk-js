@@ -1543,6 +1543,15 @@ ${JSON.stringify(status.sessions, null, 2)}`)
 
         console.log('💾 Session saved successfully')
 
+        // Verify session was saved before SDK's auto initializeIfEnabled() runs
+        // This prevents duplicate SIWE modal from appearing
+        const savedSessions = await siwx.getSessions(activeNetwork.caipNetworkId, address)
+        if (savedSessions.length === 0) {
+          console.warn('⚠️ Session not found immediately after saving, waiting...')
+          // Give a small delay for session to be fully persisted
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+
         // 9. 성공 알림
         alert(
           `🎉 SIWE 인증 성공!\n\n` +

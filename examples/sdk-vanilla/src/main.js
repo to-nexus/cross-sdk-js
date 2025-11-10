@@ -1961,6 +1961,15 @@ authenticateCrossExtension.addEventListener('click', async () => {
 
     console.log('💾 Session saved successfully')
 
+    // Verify session was saved before SDK's auto initializeIfEnabled() runs
+    // This prevents duplicate SIWE modal from appearing
+    const savedSessions = await siwx.getSessions(activeNetwork.caipNetworkId, address)
+    if (savedSessions.length === 0) {
+      console.warn('⚠️ Session not found immediately after saving, waiting...')
+      // Give a small delay for session to be fully persisted
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
     // 9. 성공 모달 표시
     showSuccess(
       '🎉 SIWE 인증 성공!',
