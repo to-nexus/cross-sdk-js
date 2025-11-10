@@ -1,9 +1,8 @@
-import type { SessionTypes } from '@walletconnect/types'
-import UniversalProvider from '@to-nexus/universal-provider'
-
 import { type CaipNetwork, type ChainNamespace, ConstantsUtil } from '@to-nexus/appkit-common'
-import { SIWXUtil } from '@to-nexus/appkit-core'
+import { type SIWXSession, SIWXUtil } from '@to-nexus/appkit-core'
 import { PresetsUtil } from '@to-nexus/appkit-utils'
+import UniversalProvider from '@to-nexus/universal-provider'
+import type { SessionTypes } from '@walletconnect/types'
 
 import type { ChainAdapterConnector } from '../adapters/ChainAdapterConnector.js'
 import { WcHelpersUtil } from '../utils/index.js'
@@ -34,15 +33,12 @@ export class WalletConnectConnector<Namespace extends ChainNamespace = ChainName
   }
 
   async connectWalletConnect() {
-    const isAuthenticated = await this.authenticate()
+    // Normal WalletConnect connection (wc_sessionProposal)
+    const optionalNamespaces = WcHelpersUtil.createNamespaces(this.caipNetworks)
 
-    const optionalNamespaces = WcHelpersUtil.createNamespaces(this.caipNetworks);
-
-    if (!isAuthenticated) {
-      await this.provider.connect({
-        optionalNamespaces
-      })
-    }
+    await this.provider.connect({
+      optionalNamespaces
+    })
 
     return {
       clientId: await this.provider.client.core.crypto.getClientId(),
@@ -50,11 +46,28 @@ export class WalletConnectConnector<Namespace extends ChainNamespace = ChainName
     }
   }
 
+  async authenticateWalletConnect(): Promise<{ authenticated: boolean; sessions: SIWXSession[] }> {
+    // Wc_sessionAuthenticate 방식: 연결 + SIWE 한 번에
+    const result = await this.authenticate()
+
+    if (!result.authenticated) {
+      // 인증 실패 시 일반 연결로 fallback
+      const optionalNamespaces = WcHelpersUtil.createNamespaces(this.caipNetworks)
+      await this.provider.connect({
+        optionalNamespaces
+      })
+
+      return { authenticated: false, sessions: [] }
+    }
+
+    return result
+  }
+
   async disconnect() {
     await this.provider.disconnect()
   }
 
-  async authenticate(): Promise<boolean> {
+  async authenticate(): Promise<{ authenticated: boolean; sessions: SIWXSession[] }> {
     const chains = this.chains.map(network => network.caipNetworkId)
 
     return SIWXUtil.universalProviderAuthenticate({

@@ -140,6 +140,10 @@ export function useAppKit() {
     await modal?.open()
   }
 
+  async function authenticateWalletConnect() {
+    return await modal?.authenticateWalletConnect()
+  }
+
   // async function open(options?: OpenOptions) {
   //   await modal?.open(options)
   // }
@@ -148,7 +152,7 @@ export function useAppKit() {
   //   await modal?.close()
   // }
 
-  return { connect }
+  return { connect, authenticateWalletConnect }
 }
 
 export function useWalletInfo() {

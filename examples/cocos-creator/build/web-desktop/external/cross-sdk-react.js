@@ -1,4 +1,4 @@
-import { a2 as process$1, a3 as getDefaultExportFromCjs, a4 as subscribe, a5 as snapshot, a6 as p, a7 as a, a8 as w, C as ChainController, B as ConnectorController, c as CoreHelperUtil, v as ConnectionController, a9 as ProviderUtil, W as WalletButtonController, u as ApiController, w as ConstantsUtil, y as ConnectorUtil, z as WalletUtil, O as OptionsController, X as AccountController, s as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, f as ConstantsUtil$1, D as networkList, F as ConstantsUtil$2, Z, G as etherTestnet, I as etherMainnet, J as kaiaTestnet, K as kaiaMainnet, L as bscTestnet, N as bscMainnet, Q as crossTestnet, V as crossMainnet, Y as SendController } from "./index.es-DIcT9sP3.js";
+import { a2 as process$1, a3 as getDefaultExportFromCjs, a4 as subscribe, a5 as snapshot, a6 as p, a7 as a, a8 as w, C as ChainController, D as ConnectorController, c as CoreHelperUtil, w as ConnectionController, a9 as ProviderUtil, W as WalletButtonController, v as ApiController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, O as OptionsController, s as AccountController, u as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as etherTestnet, J as etherMainnet, K as kaiaTestnet, L as kaiaMainnet, N as bscTestnet, Q as bscMainnet, V as crossTestnet, X as crossMainnet, Y as SendController } from "./index.es-DuX4IOPH.js";
 var react = { exports: {} };
 var react_production = {};
 var hasRequiredReact_production;
@@ -1558,18 +1558,18 @@ function requireUseSyncExternalStoreShim_production_min() {
   function h2(a2, b) {
     return a2 === b && (0 !== a2 || 1 / a2 === 1 / b) || a2 !== a2 && b !== b;
   }
-  var k2 = "function" === typeof Object.is ? Object.is : h2, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p2 = e.useDebugValue;
+  var k = "function" === typeof Object.is ? Object.is : h2, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p2 = e.useDebugValue;
   function q(a2, b) {
-    var d = b(), f2 = l({ inst: { value: d, getSnapshot: b } }), c = f2[0].inst, g = f2[1];
+    var d = b(), f = l({ inst: { value: d, getSnapshot: b } }), c = f[0].inst, g2 = f[1];
     n(function() {
       c.value = d;
       c.getSnapshot = b;
-      r(c) && g({ inst: c });
+      r(c) && g2({ inst: c });
     }, [a2, d, b]);
     m(function() {
-      r(c) && g({ inst: c });
+      r(c) && g2({ inst: c });
       return a2(function() {
-        r(c) && g({ inst: c });
+        r(c) && g2({ inst: c });
       });
     }, [a2]);
     p2(d);
@@ -1580,8 +1580,8 @@ function requireUseSyncExternalStoreShim_production_min() {
     a2 = a2.value;
     try {
       var d = b();
-      return !k2(a2, d);
-    } catch (f2) {
+      return !k(a2, d);
+    } catch (f) {
       return true;
     }
   }
@@ -1889,7 +1889,10 @@ function useAppKit() {
       return;
     await (modal$1 == null ? void 0 : modal$1.open());
   }
-  return { connect };
+  async function authenticateWalletConnect() {
+    return await (modal$1 == null ? void 0 : modal$1.authenticateWalletConnect());
+  }
+  return { connect, authenticateWalletConnect };
 }
 function useWalletInfo() {
   if (!modal$1) {
@@ -2014,6 +2017,19 @@ function useAppKitWallet(parameters) {
       WalletButtonController.setPending(false);
     }
   }, [handleSuccess, handleError]);
+  const authenticateCrossExtensionWallet = reactExports.useCallback(async () => {
+    try {
+      WalletButtonController.setPending(true);
+      WalletButtonController.setError(void 0);
+      const result = await ConnectorUtil.authenticateCrossExtensionWallet();
+      return result;
+    } catch (err) {
+      handleError(err);
+      throw err;
+    } finally {
+      WalletButtonController.setPending(false);
+    }
+  }, [handleError]);
   const isInstalledCrossExtensionWallet = reactExports.useCallback(() => {
     return ConnectorUtil.isInstalledCrossExtensionWallet();
   }, []);
@@ -2027,6 +2043,7 @@ function useAppKitWallet(parameters) {
     connect,
     connectCrossWallet,
     connectCrossExtensionWallet,
+    authenticateCrossExtensionWallet,
     isInstalledCrossExtensionWallet
   };
 }
@@ -2058,38 +2075,49 @@ function useAppKitNetwork() {
     switchNetwork
   };
 }
-const f = new EthersAdapter(), h = {
+const h = new EthersAdapter(), C = {
   name: "Cross SDK",
   description: "Cross SDK for React",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
-}, A = (t) => {
-  const { projectId: s, redirectUrl: o, metadata: a2, themeMode: r, defaultNetwork: e, adapters: n, mobileLink: l } = t;
-  return k(
+}, S = (t) => {
+  const {
+    projectId: s,
+    redirectUrl: o,
+    metadata: r,
+    themeMode: a2,
+    defaultNetwork: e,
+    adapters: l,
+    mobileLink: n,
+    siwx: i
+  } = t;
+  return g(
     s,
     o,
-    a2,
     r,
+    a2,
     e,
+    l,
     n,
-    l
+    i
   );
-}, k = (t, s, o, a2, r, e, n) => {
-  var i, p2;
-  const l = {
-    ...h,
+}, g = (t, s, o, r, a2, e, l, n) => {
+  var p2, c;
+  const i = {
+    ...C,
     ...o,
     redirect: {
       universal: s
     }
   };
   return createAppKit({
-    adapters: e && e.length > 0 ? e : [f],
+    adapters: e && e.length > 0 ? e : [h],
     networks: networkList,
-    defaultNetwork: r,
-    metadata: l,
+    defaultNetwork: a2,
+    metadata: i,
     projectId: t,
-    themeMode: a2 || "light",
+    themeMode: r || "light",
+    siwx: n,
     features: {
       swaps: false,
       onramp: false,
@@ -2108,7 +2136,7 @@ const f = new EthersAdapter(), h = {
         id: "cross_wallet",
         name: "CROSSx Wallet",
         image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: n || ((p2 = (i = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : p2.call(i)) || "https://cross-wallet.crosstoken.io",
+        mobile_link: l || ((c = (p2 = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : c.call(p2)) || "https://cross-wallet.crosstoken.io",
         app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
         play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
         chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
@@ -2125,8 +2153,8 @@ const f = new EthersAdapter(), h = {
 };
 if (typeof window !== "undefined") {
   window.CrossSdkReact = {
-    initCrossSdk: k,
-    initCrossSdkWithParams: A,
+    initCrossSdk: g,
+    initCrossSdkWithParams: S,
     useAppKit,
     useAppKitState,
     useAppKitTheme,
@@ -2166,8 +2194,8 @@ export {
   etherMainnet,
   etherTestnet,
   getUniversalProvider,
-  k as initCrossSdk,
-  A as initCrossSdkWithParams,
+  g as initCrossSdk,
+  S as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
   useAppKit,

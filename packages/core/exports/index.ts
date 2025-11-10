@@ -78,6 +78,8 @@ export { StorageUtil } from '../src/utils/StorageUtil.js'
 export { RouterUtil } from '../src/utils/RouterUtil.js'
 export { OptionsUtil } from '../src/utils/OptionsUtil.js'
 export { SIWXUtil } from '../src/utils/SIWXUtil.js'
+export { createDefaultSIWXConfig } from '../src/utils/SIWXConfigHelper.js'
+export type { CreateSIWXConfigOptions } from '../src/utils/SIWXConfigHelper.js'
 
 export { FetchUtil } from '../src/utils/FetchUtil.js'
 

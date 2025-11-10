@@ -2,13 +2,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable func-style */
 /* eslint-disable init-declarations */
+import { WcHelpersUtil } from '@to-nexus/appkit'
+import type { AppKitOptions } from '@to-nexus/appkit'
+import type { AppKit } from '@to-nexus/appkit'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
+import type { CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
+import { StorageUtil } from '@to-nexus/appkit-core'
+import { type UniversalProvider as UniversalProviderType } from '@to-nexus/universal-provider'
 import {
   ChainNotConfiguredError,
   type Connector,
   ProviderNotFoundError,
   createConnector
 } from '@wagmi/core'
-import { type UniversalProvider as UniversalProviderType } from '@to-nexus/universal-provider'
 import {
   type AddEthereumChainParameter,
   type Address,
@@ -21,13 +27,6 @@ import {
   numberToHex
 } from 'viem'
 
-import { WcHelpersUtil } from '@to-nexus/appkit'
-import type { AppKitOptions } from '@to-nexus/appkit'
-import type { AppKit } from '@to-nexus/appkit'
-import { ConstantsUtil } from '@to-nexus/appkit-common'
-import type { CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
-import { StorageUtil } from '@to-nexus/appkit-core'
-
 type UniversalConnector = Connector & {
   onDisplayUri(uri: string): void
   onSessionDelete(data: { topic: string }): void
@@ -35,6 +34,7 @@ type UniversalConnector = Connector & {
 
 export type AppKitOptionsParams = AppKitOptions & {
   isNewChainsStale?: boolean
+  siwx?: AppKitOptions['siwx']
 }
 
 export function walletConnect(
@@ -42,6 +42,8 @@ export function walletConnect(
   appKit: AppKit,
   caipNetworks: [CaipNetwork, ...CaipNetwork[]]
 ) {
+  // ✅ Extract siwx from parameters
+  const { siwx } = parameters
   const isNewChainsStale = parameters.isNewChainsStale ?? true
   type Provider = Awaited<ReturnType<(typeof UniversalProviderType)['init']>>
   type Properties = {
@@ -77,8 +79,56 @@ export function walletConnect(
     name: 'WalletConnect',
     type: 'walletConnect' as const,
 
+    // ✅ Add authenticate method for SIWX support
+    async authenticate() {
+      const provider = (await this.getProvider()) as any
+      if (!provider) {
+        throw new ProviderNotFoundError()
+      }
+
+      if (siwx) {
+        // Use SIWXUtil for authentication
+        const { SIWXUtil } = await import('@to-nexus/appkit-core')
+        const chains = caipNetworks.map(network => network.caipNetworkId)
+        const OPTIONAL_METHODS = [
+          'eth_accounts',
+          'eth_requestAccounts',
+          'eth_sendRawTransaction',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+          'eth_sendTransaction',
+          'personal_sign',
+          'wallet_switchEthereumChain',
+          'wallet_addEthereumChain',
+          'wallet_getPermissions',
+          'wallet_requestPermissions',
+          'wallet_registerOnboarding',
+          'wallet_watchAsset',
+          'wallet_scanQRCode',
+          'wallet_getCallsStatus',
+          'wallet_sendCalls',
+          'wallet_getCapabilities',
+          'wallet_grantPermissions',
+          'wallet_revokePermissions',
+          'wallet_getAssets'
+        ]
+
+        return SIWXUtil.universalProviderAuthenticate({
+          universalProvider: provider,
+          chains,
+          methods: OPTIONAL_METHODS
+        })
+      }
+
+      // Fallback to regular connect
+      throw new Error('SIWX not configured')
+    },
+
     async setup() {
-      const provider = await this.getProvider().catch(() => null) as any
+      const provider = (await this.getProvider().catch(() => null)) as any
       if (!provider) {
         return
       }
@@ -94,7 +144,7 @@ export function walletConnect(
 
     async connect({ ...rest } = {}) {
       try {
-        const provider = await this.getProvider() as any
+        const provider = (await this.getProvider()) as any
         if (!provider) {
           throw new ProviderNotFoundError()
         }
@@ -162,7 +212,7 @@ export function walletConnect(
       }
     },
     async disconnect() {
-      const provider = await this.getProvider() as any
+      const provider = (await this.getProvider()) as any
       try {
         await provider?.disconnect()
       } catch (error) {
@@ -196,7 +246,7 @@ export function walletConnect(
       }
     },
     async getAccounts() {
-      const provider = await this.getProvider() as any
+      const provider = (await this.getProvider()) as any
 
       if (!provider?.session?.namespaces) {
         return []
@@ -223,7 +273,10 @@ export function walletConnect(
         const storedCaipNetwork = appKitCaipNetworks?.find(n => n.id === storedCaipNetworkId)
 
         if (storedCaipNetwork && storedCaipNetwork.chainNamespace === ConstantsUtil.CHAIN.EVM) {
-          await this.switchChain?.({ chainId: Number(storedCaipNetwork.id), addEthereumChainParameter: undefined })
+          await this.switchChain?.({
+            chainId: Number(storedCaipNetwork.id),
+            addEthereumChainParameter: undefined
+          })
         }
       }
 
@@ -236,7 +289,7 @@ export function walletConnect(
         return chainId as number
       }
 
-      const provider = await this.getProvider() as any
+      const provider = (await this.getProvider()) as any
       const chain = provider.session?.namespaces[ConstantsUtil.CHAIN.EVM]?.chains?.[0]
 
       const network = caipNetworks.find((c: any) => c.id === chain)
@@ -256,7 +309,7 @@ export function walletConnect(
         const isChainsStale = await this.isChainsStale()
         if (isChainsStale && (provider as any).session) {
           // eslint-disable-next-line @typescript-eslint/no-empty-function
-          await (provider as any).disconnect().catch(() => { })
+          await (provider as any).disconnect().catch(() => {})
 
           return false
         }
@@ -266,8 +319,14 @@ export function walletConnect(
         return false
       }
     },
-    async switchChain({ addEthereumChainParameter, chainId }: { addEthereumChainParameter?: any; chainId: number }) {
-      const provider = await this.getProvider() as any
+    async switchChain({
+      addEthereumChainParameter,
+      chainId
+    }: {
+      addEthereumChainParameter?: any
+      chainId: number
+    }) {
+      const provider = (await this.getProvider()) as any
       if (!provider) {
         throw new ProviderNotFoundError()
       }
@@ -358,7 +417,7 @@ export function walletConnect(
       this['setRequestedChainsIds']([])
       config.emitter.emit('disconnect')
 
-      const provider = await this.getProvider() as any
+      const provider = (await this.getProvider()) as any
       if (accountsChanged) {
         provider.removeListener('accountsChanged', accountsChanged)
         accountsChanged = undefined
@@ -424,7 +483,10 @@ export function walletConnect(
 
       const namespaceChains = this['getNamespaceChainsIds']()
 
-      if (namespaceChains.length && !namespaceChains.some((id: number) => connectorChains.includes(id))) {
+      if (
+        namespaceChains.length &&
+        !namespaceChains.some((id: number) => connectorChains.includes(id))
+      ) {
         return false
       }
 

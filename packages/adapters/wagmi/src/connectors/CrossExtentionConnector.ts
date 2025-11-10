@@ -1,13 +1,46 @@
 import type { CreateConnectorFn } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 
+// ✅ Wrap Cross Extension provider to handle unsupported methods
+function wrapCrossProvider(provider: any) {
+  if (!provider?.request) {
+    return provider
+  }
+
+  const originalRequest = provider.request.bind(provider)
+
+  return new Proxy(provider, {
+    get(target, prop) {
+      if (prop === 'request') {
+        return async (args: any) => {
+          /*
+           * Cross Extension doesn't support wallet_requestPermissions (EIP-2255)
+           * Return empty array to satisfy wagmi, which will then use eth_requestAccounts
+           */
+          if (args.method === 'wallet_requestPermissions') {
+            console.warn(
+              '[Wagmi Cross Connector] wallet_requestPermissions not supported, returning empty permissions array'
+            )
+
+            return []
+          }
+
+          return originalRequest(args)
+        }
+      }
+
+      return target[prop]
+    }
+  })
+}
+
 // Cross Extension을 감지하기 위한 헬퍼 함수
 function detectCrossExtensionProvider() {
   if (typeof window !== 'undefined') {
     // 1. window.crossWallet 확인 (Cross Extension의 주요 주입 방식)
     const crossWallet = (window as any).crossWallet
     if (crossWallet) {
-      return crossWallet
+      return wrapCrossProvider(crossWallet)
     }
   }
 
@@ -20,22 +53,24 @@ export function crossExtensionConnector(): CreateConnectorFn {
     target() {
       const crossProvider = detectCrossExtensionProvider()
       if (crossProvider) {
-        // console.log('[Wagmi Cross Connector] ✅ Cross Wallet Desktop provider detected and ready')
+        // Console.log('[Wagmi Cross Connector] ✅ Cross Wallet Desktop provider detected and ready')
         return {
           id: 'nexus.to.crosswallet.desktop',
           name: 'Cross Wallet Desktop',
           provider: crossProvider
         }
       }
-      // console.log('[Wagmi Cross Connector] ⚠️ Cross Wallet Desktop provider not detected, will retry on connect')
-      // 실제 연결 시도 시점에 다시 감지를 시도하는 wrapper provider
+      /*
+       * Console.log('[Wagmi Cross Connector] ⚠️ Cross Wallet Desktop provider not detected, will retry on connect')
+       * 실제 연결 시도 시점에 다시 감지를 시도하는 wrapper provider
+       */
 
       return {
         id: 'nexus.to.crosswallet.desktop',
         name: 'Cross Wallet Desktop',
         provider: {
           request: async (args: any) => {
-            // console.log('[Wagmi Cross Connector] Connection attempt, retrying detection...')
+            // Console.log('[Wagmi Cross Connector] Connection attempt, retrying detection...')
 
             // 연결 시도 시 다시 감지
             const provider = detectCrossExtensionProvider()

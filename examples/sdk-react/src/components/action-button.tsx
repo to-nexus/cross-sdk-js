@@ -1,25 +1,31 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
   AccountController,
+  ChainController,
   ConnectionController,
   ConstantsUtil,
+  CoreHelperUtil,
+  OptionsController,
+  SIWXUtil,
   SendController,
   UniversalProvider,
   bscMainnet,
   bscTestnet,
+  createDefaultSIWXConfig,
   crossMainnet,
   crossTestnet,
   etherMainnet,
   etherTestnet,
   getUniversalProvider,
-  initCrossSdk,
+  initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
   useAppKit,
   useAppKitAccount,
   useAppKitNetwork,
   useAppKitProvider,
+  useAppKitState,
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
@@ -109,18 +115,6 @@ const projectId = import.meta.env['VITE_PROJECT_ID']
 // Redirect URL to return to after wallet app interaction
 const redirectUrl = window.location.href
 
-// Initialize SDK here
-// initCrossSdkWithParams({
-//   projectId,
-//   redirectUrl,
-//   metadata: {
-//     name: 'Cross JS SDK Sample',
-//     description: 'Cross SDK for React',
-//     url: 'https://to.nexus',
-//     icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
-//   },
-//   themeMode: 'light'
-// })
 const metadata = {
   name: 'Cross JS SDK Sample',
   description: 'Cross SDK for React',
@@ -128,15 +122,125 @@ const metadata = {
   icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
 }
 
-initCrossSdk(
+// SDK 초기화 with SIWX (이제 SDK가 기본 구현 제공!)
+initCrossSdkWithParams({
   projectId,
   redirectUrl,
   metadata,
-  'dark',
-  undefined,
-  undefined,
-  ConstantsUtil.getUniversalLink()
-)
+  themeMode: 'dark',
+  mobileLink: ConstantsUtil.getUniversalLink(),
+  // ⚠️ 개발/데모용: 클라이언트에서 랜덤 nonce 생성 (보안 취약!)
+  // siwx: createDefaultSIWXConfig({
+  //   statement: 'Sign in with your wallet to Cross SDK Sample App'
+  // })
+
+  // ✅ 프로덕션 권장: 백엔드에서 nonce 생성 및 서명 검증
+  siwx: createDefaultSIWXConfig({
+    statement: 'Sign in with your wallet to Cross SDK Sample App',
+
+    // 🔐 백엔드에서 nonce 가져오기 (보안 필수!)
+    getNonce: async () => {
+      try {
+        // 실제 프로덕션에서는 백엔드 API를 호출해야 합니다
+        // const response = await fetch('/api/siwe/nonce')
+        // const { nonce } = await response.json()
+        // return nonce
+
+        // 데모용: 임시로 랜덤 생성 (프로덕션에서는 절대 사용 금지!)
+        console.warn(
+          '⚠️ Using client-side nonce generation. Implement backend /api/siwe/nonce for production!'
+        )
+        return (
+          Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+        )
+      } catch (error) {
+        console.error('Failed to get nonce:', error)
+        throw error
+      }
+    },
+
+    // 백엔드에서 서명 검증 및 세션 저장
+    addSession: async session => {
+      try {
+        // 실제 프로덕션에서는 백엔드로 서명 검증 요청
+        // const response = await fetch('/api/siwe/verify', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     message: session.message,
+        //     signature: session.signature,
+        //     nonce: session.data.nonce,
+        //     address: session.data.accountAddress,
+        //     chainId: session.data.chainId
+        //   })
+        // })
+        //
+        // if (!response.ok) {
+        //   throw new Error('Signature verification failed')
+        // }
+
+        // 데모용: localStorage에 저장 (프로덕션에서는 백엔드에 저장!)
+        localStorage.setItem('siwx_session', JSON.stringify(session))
+      } catch (error) {
+        console.error('Failed to verify signature:', error)
+        throw error
+      }
+    },
+
+    // 백엔드에서 세션 조회
+    getSessions: async (chainId, address) => {
+      try {
+        // 실제 프로덕션에서는 백엔드에서 세션 조회
+        // const response = await fetch(
+        //   `/api/siwe/sessions?chain=${chainId}&address=${address}`
+        // )
+        // return response.json()
+
+        // 데모용: localStorage에서 조회 (단수와 복수 키 모두 확인)
+
+        // 1. 먼저 siwx_session (단수) 확인 - Extension + SIWE에서 저장
+        const sessionStr = localStorage.getItem('siwx_session')
+
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr)
+
+          if (
+            session.data.chainId === chainId &&
+            session.data.accountAddress.toLowerCase() === address.toLowerCase()
+          ) {
+            return [session]
+          }
+        }
+
+        // 2. siwx_sessions (복수) 확인 - QR code + SIWE에서 저장
+        const sessionsStr = localStorage.getItem('siwx_sessions')
+
+        if (sessionsStr) {
+          const sessions = JSON.parse(sessionsStr)
+
+          const matchingSessions = sessions.filter(
+            (session: any) =>
+              session.data.chainId === chainId &&
+              session.data.accountAddress.toLowerCase() === address.toLowerCase()
+          )
+
+          if (matchingSessions.length > 0) {
+            return matchingSessions
+          }
+        }
+
+        return []
+      } catch (error) {
+        console.error('Failed to get sessions:', error)
+        return []
+      }
+    }
+
+    // 세션 만료 시간 커스터마이징 (선택사항)
+    // expirationTime: (issuedAt) =>
+    //   new Date(issuedAt.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7일
+  })
+})
 
 // TypeScript용 전역 Caver 타입 선언
 declare global {
@@ -153,8 +257,12 @@ export function ActionButtonList() {
   const { switchNetwork } = useAppKitNetwork()
   const [contractArgs, setContractArgs] = useState<WriteContractArgs | null>(null)
   const { walletProvider } = useAppKitProvider<UniversalProvider>('eip155')
-  const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
-    useAppKitWallet()
+  const {
+    connect,
+    connectCrossExtensionWallet,
+    authenticateCrossExtensionWallet,
+    isInstalledCrossExtensionWallet
+  } = useAppKitWallet()
   const reownAppKit = useReownAppKit()
   const reownAccount = useReownAccount() // 🆕 Reown AppKit 계정 (MetaMask QR)
   const reownNetwork = useReownNetwork() // 🆕 Reown AppKit 네트워크 (MetaMask QR)
@@ -162,8 +270,14 @@ export function ActionButtonList() {
     useReownAppKitProvider<UniversalProvider>('eip155') // 🆕 Reown provider (MetaMask QR)
   const { disconnect: reownDisconnect } = useReownDisconnect() // 🆕 Reown disconnect
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
-  const [isLoading, setIsLoading] = useState(false)
+  const [loadingStates, setLoadingStates] = useState({
+    crossExtension: false,
+    authenticateCrossExtension: false,
+    metamaskExtension: false,
+    authenticateWalletConnect: false
+  })
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
+  const appKitState = useAppKitState()
 
   // 🆕 MetaMask Extension 상태 관리 (Context 사용)
   const {
@@ -219,6 +333,18 @@ export function ActionButtonList() {
     walletProvider,
     network
   ])
+
+  // ✅ 연결 상태 변화 감지 (Cross Wallet QR code 연결)
+  useEffect(() => {
+    if (account?.isConnected && account.address) {
+      const activeWallet = getActiveWallet()
+      if (activeWallet?.type === 'cross') {
+        // Cross Wallet QR code 연결 성공 시 플래그 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
+      }
+    }
+  }, [account?.isConnected, account?.address, getActiveWallet])
 
   // 🆕 Error analysis utility function
   const analyzeAndShowError = useCallback(
@@ -301,6 +427,13 @@ export function ActionButtonList() {
     // contractArgs change tracking
   }, [contractArgs?.args])
 
+  // 모달이 닫힐 때 WalletConnect 인증 로딩 상태 리셋
+  useEffect(() => {
+    if (!appKitState.open && loadingStates.authenticateWalletConnect) {
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
+    }
+  }, [appKitState.open, loadingStates.authenticateWalletConnect])
+
   // Cross Extension Wallet 설치 상태 확인 함수를 메모이제이션
   const checkExtensionInstalled = useCallback(() => {
     try {
@@ -331,23 +464,33 @@ export function ActionButtonList() {
       if (!connectionType) {
         // 세션은 복원되었지만 타입이 저장되지 않았으면 qrcode로 설정
         localStorage.setItem('metamask_connection_type', 'qrcode')
-        console.log('✅ MetaMask QR Code 세션 자동 복원 확인:', reownAccount.address)
       }
     }
   }, [reownAccount?.isConnected, reownAccount?.address])
 
   // MetaMask Extension 자동 재연결 (페이지 로드 시)
+  // MetaMask Extension 스마트 자동 재연결 (명시적으로 disconnect한 경우만 재연결 안함)
   useEffect(() => {
     const autoReconnectMetaMask = async () => {
       try {
-        // QR Code로 연결된 경우 Extension 자동 재연결 건너뛰기
+        // localStorage에서 이전 연결 타입 확인
         const connectionType = localStorage.getItem('metamask_connection_type')
+
+        // QR Code로 연결된 경우 Extension 자동 재연결 건너뛰기
         if (connectionType === 'qrcode') {
-          console.log('⏭️ QR Code 연결 감지, Extension 자동 재연결 건너뛰기')
           return
         }
 
-        if (typeof window.ethereum === 'undefined') return
+        // localStorage에 'extension'이 없으면 사용자가 명시적으로 disconnect했거나 처음 방문
+        if (connectionType !== 'extension') {
+          return
+        }
+
+        // MetaMask가 설치되어 있는지 확인
+        if (typeof window.ethereum === 'undefined') {
+          localStorage.removeItem('metamask_connection_type')
+          return
+        }
 
         // MetaMask provider 찾기
         const findMetaMaskProvider = () => {
@@ -362,56 +505,63 @@ export function ActionButtonList() {
         }
 
         const provider = findMetaMaskProvider()
-        if (!provider) return
+        if (!provider) {
+          localStorage.removeItem('metamask_connection_type')
+          return
+        }
 
         // eth_accounts는 이미 연결된 계정만 반환 (사용자 승인 불필요)
+        // 이 메서드로 실제 MetaMask가 이 dApp과 여전히 연결되어 있는지 확인
         const accounts = await provider.request({ method: 'eth_accounts' })
 
-        if (accounts && accounts.length > 0) {
-          console.log('🔄 MetaMask 자동 재연결 중...')
-
-          // ✅ MetaMask 연결 상태 및 provider 저장
-          setMetamaskProvider(provider)
-          setMetamaskAccount(accounts[0])
-
-          // ethers provider로 네트워크 정보 가져오기
-          const { ethers } = await import('ethers')
-          const ethersProvider = new ethers.BrowserProvider(provider)
-          const networkInfo = await ethersProvider.getNetwork()
-          const chainId = Number(networkInfo.chainId)
-          setMetamaskChainId(chainId)
-
-          // 이벤트 리스너 중복 방지
-          provider.removeAllListeners?.('chainChanged')
-          provider.removeAllListeners?.('accountsChanged')
-
-          // 네트워크 변경 이벤트 리스너
-          provider.on('chainChanged', (newChainId: string) => {
-            const newChainIdNumber = parseInt(newChainId, 16)
-            setMetamaskChainId(newChainIdNumber)
-          })
-
-          // 계정 변경 이벤트 리스너
-          provider.on('accountsChanged', (newAccounts: string[]) => {
-            if (newAccounts.length === 0) {
-              // 연결 해제됨
-              setMetamaskProvider(null)
-              setMetamaskAccount(null)
-              setMetamaskChainId(null)
-              localStorage.removeItem('metamask_connection_type')
-            } else {
-              // 계정 변경됨
-              setMetamaskAccount(newAccounts[0] || null)
-            }
-          })
-
-          // Extension 연결 타입 저장
-          localStorage.setItem('metamask_connection_type', 'extension')
-
-          console.log('✅ MetaMask 자동 재연결 성공:', accounts[0])
+        // 연결이 끊어진 경우 (사용자가 MetaMask에서 연결을 해제했을 수 있음)
+        if (!accounts || accounts.length === 0) {
+          localStorage.removeItem('metamask_connection_type')
+          return
         }
+
+        // 여기까지 도달하면: localStorage에 'extension' 기록 있고, 실제로 연결되어 있음
+        // → 자동 재연결 진행
+
+        // ✅ MetaMask 연결 상태 및 provider 저장
+        setMetamaskProvider(provider)
+        setMetamaskAccount(accounts[0])
+
+        // ethers provider로 네트워크 정보 가져오기
+        const { ethers } = await import('ethers')
+        const ethersProvider = new ethers.BrowserProvider(provider)
+        const networkInfo = await ethersProvider.getNetwork()
+        const chainId = Number(networkInfo.chainId)
+        setMetamaskChainId(chainId)
+
+        // 이벤트 리스너 중복 방지
+        provider.removeAllListeners?.('chainChanged')
+        provider.removeAllListeners?.('accountsChanged')
+
+        // 네트워크 변경 이벤트 리스너
+        provider.on('chainChanged', (newChainId: string) => {
+          const newChainIdNumber = parseInt(newChainId, 16)
+          setMetamaskChainId(newChainIdNumber)
+        })
+
+        // 계정 변경 이벤트 리스너
+        provider.on('accountsChanged', (newAccounts: string[]) => {
+          if (newAccounts.length === 0) {
+            // 연결 해제됨 (사용자가 MetaMask에서 연결 해제)
+            setMetamaskProvider(null)
+            setMetamaskAccount(null)
+            setMetamaskChainId(null)
+            localStorage.removeItem('metamask_connection_type')
+          } else {
+            // 계정 변경됨
+            setMetamaskAccount(newAccounts[0] || null)
+          }
+        })
+
+        // Extension 연결 타입 유지 (이미 localStorage에 있지만 명시적으로 재설정)
+        localStorage.setItem('metamask_connection_type', 'extension')
       } catch (error) {
-        console.log('MetaMask 자동 재연결 실패 (무시):', error)
+        // 자동 재연결 실패는 무시 (사용자가 수동으로 연결할 수 있음)
       }
     }
 
@@ -423,17 +573,13 @@ export function ActionButtonList() {
     const handleVisibilityChange = async () => {
       if (!document.hidden) {
         // 탭 활성화 시: 엔진에 cleanup 포함 강제 점검을 요청
-        const isSessionActive = await checkWalletConnectionStatus(true)
-        // 필요하다면 isSessionActive 결과에 따라 UI/스토어를 업데이트하세요.
-        console.log('📱 [ACTION-BUTTON] isSessionActive:    ' + isSessionActive)
+        await checkWalletConnectionStatus(true)
       }
     }
 
     const handlePageFocus = async () => {
       if (!isOpen) {
-        const isSessionActive = await checkWalletConnectionStatus(true)
-        // isSessionActive를 사용해 재연결 유도, 알림 노출 등 후속 처리 가능
-        console.log('📱 [ACTION-BUTTON] isSessionActive:', isSessionActive)
+        await checkWalletConnectionStatus(true)
       }
     }
 
@@ -483,7 +629,7 @@ export function ActionButtonList() {
 
     // AppKit에서 전달된 세션 끊김 이벤트 구독
     const handleSessionDisconnected = (event: CustomEvent) => {
-      console.log('📱 [ACTION-BUTTON] AppKit session disconnected event received:', event.detail)
+      // 세션 해제 처리
     }
 
     window.addEventListener(
@@ -630,6 +776,164 @@ export function ActionButtonList() {
     connect('cross_wallet')
   }
 
+  // Cross Extension 연결 + SIWE 인증을 한번에 수행 (이제 SDK가 처리!)
+  async function handleAuthenticateCrossExtension() {
+    try {
+      setLoadingStates(prev => ({ ...prev, authenticateCrossExtension: true }))
+
+      // 다른 연결 상태 클리어
+      try {
+        await reownDisconnect()
+      } catch (e) {
+        // 무시
+      }
+      setMetamaskProvider(null)
+      setMetamaskAccount(null)
+      setMetamaskChainId(null)
+
+      // Cross Extension이 설치되어 있는지 확인
+      if (!isInstalledCrossExtensionWallet()) {
+        showError('Cross Extension 미설치', 'Cross Wallet Extension을 먼저 설치해주세요.')
+        return
+      }
+
+      // 🎉 이제 SDK의 authenticateCrossExtensionWallet()가 모든 걸 처리합니다!
+      // - Extension 연결
+      // - SIWE 메시지 생성
+      // - 사용자 서명
+      // - 세션 저장
+      const result = await authenticateCrossExtensionWallet()
+
+      if (result && result.authenticated && result.sessions && result.sessions.length > 0) {
+        const session = result.sessions[0]
+        if (!session) {
+          showError('인증 오류', '세션 정보를 가져올 수 없습니다.')
+          return
+        }
+
+        const signature = session.signature
+        const address = session.data.accountAddress
+        const chainId = session.data.chainId
+        const message = session.message
+        const expiresAt = session.data.expirationTime
+
+        // SIWE 메시지 요약 (첫 줄만)
+        const messageSummary = message.split('\n')[0]
+
+        // ✅ 연결 및 인증 상태 저장 (세션 포함)
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
+        localStorage.setItem('has_siwx_session', 'true')
+
+        showSuccess(
+          '🎉 SIWE 인증 성공!',
+          `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `📍 Address:\n${address}\n\n` +
+            `🔗 Chain ID:\n${chainId}\n\n` +
+            `📝 SIWE Message:\n${messageSummary}...\n\n` +
+            `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
+            `⏰ Expires At:\n${expiresAt}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━`
+        )
+      } else {
+        // ✅ 일반 연결 시에도 상태 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'cross')
+
+        showSuccess('연결 성공', 'Cross Extension이 연결되었습니다.')
+      }
+    } catch (error) {
+      console.error('Authentication error:', error)
+      showError(
+        '인증 오류',
+        error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
+      )
+    } finally {
+      setLoadingStates(prev => ({ ...prev, authenticateCrossExtension: false }))
+    }
+  }
+
+  // WalletConnect (QR Code) 연결 + SIWE 인증을 한번에 수행
+  async function handleAuthenticateWalletConnect() {
+    try {
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: true }))
+
+      // 먼저 Reown AppKit과 MetaMask Extension 상태 클리어
+      try {
+        await reownDisconnect()
+      } catch (e) {
+        // 연결되지 않았을 수 있으므로 에러 무시
+      }
+      setMetamaskProvider(null)
+      setMetamaskAccount(null)
+      setMetamaskChainId(null)
+
+      // 한번에 연결 + SIWE 인증 수행 (일반 연결 후 자동 SIWE)
+      const result = await appKit.authenticateWalletConnect()
+
+      if (result && typeof result === 'object' && 'authenticated' in result) {
+        if (result.authenticated && result.sessions && result.sessions.length > 0) {
+          const session = result.sessions[0]
+          if (!session) {
+            showError('인증 오류', '세션 정보를 가져올 수 없습니다.')
+            return
+          }
+
+          const signature = session.signature
+          const address = session.data.accountAddress
+          const chainId = session.data.chainId
+          const message = session.message
+          const expiresAt = session.data.expirationTime
+
+          // SIWE 메시지 요약 (첫 줄만)
+          const messageSummary = message.split('\n')[0]
+
+          // ✅ 연결 및 인증 상태 저장 (세션 포함)
+          localStorage.setItem('wallet_connected', 'true')
+          localStorage.setItem('wallet_type', 'cross')
+          localStorage.setItem('has_siwx_session', 'true')
+
+          // 서명 정보를 포함한 성공 메시지
+          showSuccess(
+            '🎉 SIWE 인증 성공!',
+            `지갑이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
+              `━━━━━━━━━━━━━━━━━━━━━━\n` +
+              `📍 Address:\n${address}\n\n` +
+              `🔗 Chain ID:\n${chainId}\n\n` +
+              `📝 SIWE Message:\n${messageSummary}...\n\n` +
+              `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
+              `⏰ Expires At:\n${expiresAt}\n` +
+              `━━━━━━━━━━━━━━━━━━━━━━`
+          )
+        } else if (result.authenticated) {
+          // authenticated는 true인데 sessions가 비어있는 경우
+          showSuccess(
+            '✅ 연결 및 인증 완료',
+            '지갑이 연결되고 SIWE 인증이 완료되었습니다!\n세션 정보는 콘솔을 확인하세요.'
+          )
+        } else {
+          showSuccess('연결 성공', '지갑이 연결되었습니다.')
+        }
+      } else if (result) {
+        showSuccess('연결 성공', '지갑이 연결되고 인증이 완료되었습니다! 🎉')
+      } else {
+        showError(
+          '인증 실패',
+          'SIWE 인증이 설정되지 않았거나 지원하지 않는 체인입니다.\n일반 연결을 사용해주세요.'
+        )
+      }
+    } catch (error) {
+      console.error('Authentication error:', error)
+      showError(
+        '인증 오류',
+        error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
+      )
+    } finally {
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
+    }
+  }
+
   // MetaMask QR Code 모달 직접 열기 (WalletConnect via Reown)
   // Extension 감지 없이 무조건 QR Code 모달만 표시
   async function handleConnectMetaMaskQRCode() {
@@ -644,7 +948,7 @@ export function ActionButtonList() {
   // MetaMask Extension 직접 연결
   async function handleConnectMetaMaskExtension() {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, metamaskExtension: true }))
 
       // 먼저 Reown AppKit만 해제
       try {
@@ -703,6 +1007,9 @@ export function ActionButtonList() {
         const chainId = Number(networkInfo.chainId)
         setMetamaskChainId(chainId)
 
+        // ✅ 연결 상태 저장
+        localStorage.setItem('wallet_connected', 'true')
+        localStorage.setItem('wallet_type', 'metamask')
         // Extension 연결 타입 저장 (자동 재연결 시 QR Code와 구분하기 위해)
         localStorage.setItem('metamask_connection_type', 'extension')
 
@@ -746,14 +1053,14 @@ export function ActionButtonList() {
         showError('MetaMask 연결 실패', `오류: ${errorMessage}`)
       }
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, metamaskExtension: false }))
     }
   }
 
   // Cross Extension Wallet 직접 연결
   const handleConnectCrossExtension = async () => {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, crossExtension: true }))
 
       // 먼저 Reown AppKit과 MetaMask Extension 상태 클리어
       try {
@@ -784,6 +1091,10 @@ export function ActionButtonList() {
 
       // 연결 성공 후 상태 즉시 업데이트
       checkExtensionInstalled()
+
+      // ✅ 연결 상태 저장
+      localStorage.setItem('wallet_connected', 'true')
+      localStorage.setItem('wallet_type', 'cross')
 
       showSuccess(
         'Cross Extension Wallet 연결 성공!',
@@ -828,7 +1139,7 @@ export function ActionButtonList() {
       // 연결 실패 후에도 상태 확인
       checkExtensionInstalled()
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, crossExtension: false }))
     }
   }
 
@@ -925,7 +1236,11 @@ export function ActionButtonList() {
       setMetamaskAccount(null)
       setMetamaskChainId(null)
 
-      // 연결 타입 정보 삭제
+      // ✅ 연결 상태 제거 (자동 재연결 방지)
+      localStorage.removeItem('wallet_connected')
+      localStorage.removeItem('wallet_type')
+      localStorage.removeItem('has_siwx_session')
+      localStorage.removeItem('siwx_session')
       localStorage.removeItem('metamask_connection_type')
     } catch (error) {
       console.error('Error during disconnect:', error)
@@ -1775,29 +2090,68 @@ Check console for full details.`
             </button>
             <button
               onClick={handleConnectMetaMaskExtension}
-              disabled={isLoading}
+              disabled={loadingStates.metamaskExtension}
               style={{
                 backgroundColor: '#F6851B',
                 color: 'white',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.6 : 1
+                cursor: loadingStates.metamaskExtension ? 'not-allowed' : 'pointer',
+                opacity: loadingStates.metamaskExtension ? 0.6 : 1
               }}
             >
-              {isLoading ? 'Connecting...' : 'Connect MetaMask Extension'}
+              {loadingStates.metamaskExtension ? 'Connecting...' : 'Connect MetaMask Extension'}
             </button>
             <button onClick={handleConnect}>Connect CROSSx</button>
             <button onClick={handleConnectWallet}>Connect CROSSx (QR Code)</button>
             <button
               onClick={handleConnectCrossExtension}
-              disabled={!isCrossExtensionInstalled || isLoading}
+              disabled={!isCrossExtensionInstalled || loadingStates.crossExtension}
               style={{
                 backgroundColor: isCrossExtensionInstalled ? '#007bff' : '#6c757d',
                 color: 'white',
-                cursor: isCrossExtensionInstalled && !isLoading ? 'pointer' : 'not-allowed',
-                opacity: isCrossExtensionInstalled && !isLoading ? 1 : 0.6
+                cursor:
+                  isCrossExtensionInstalled && !loadingStates.crossExtension
+                    ? 'pointer'
+                    : 'not-allowed',
+                opacity: isCrossExtensionInstalled && !loadingStates.crossExtension ? 1 : 0.6
               }}
             >
-              {isLoading ? 'Connecting...' : 'Connect Cross Extension'}
+              {loadingStates.crossExtension ? 'Connecting...' : 'Connect Cross Extension'}
+            </button>
+            <button
+              onClick={handleAuthenticateCrossExtension}
+              disabled={!isCrossExtensionInstalled || loadingStates.authenticateCrossExtension}
+              style={{
+                backgroundColor: isCrossExtensionInstalled ? '#10b981' : '#6c757d',
+                color: 'white',
+                cursor:
+                  isCrossExtensionInstalled && !loadingStates.authenticateCrossExtension
+                    ? 'pointer'
+                    : 'not-allowed',
+                opacity:
+                  isCrossExtensionInstalled && !loadingStates.authenticateCrossExtension ? 1 : 0.6,
+                fontWeight: 'bold'
+              }}
+              title="Connect Cross Extension + SIWE authentication in one step"
+            >
+              {loadingStates.authenticateCrossExtension
+                ? 'Authenticating...'
+                : '🔐 Connect + Auth (Extension)'}
+            </button>
+            <button
+              onClick={handleAuthenticateWalletConnect}
+              disabled={loadingStates.authenticateWalletConnect}
+              style={{
+                backgroundColor: '#10b981',
+                color: 'white',
+                cursor: loadingStates.authenticateWalletConnect ? 'not-allowed' : 'pointer',
+                opacity: loadingStates.authenticateWalletConnect ? 0.6 : 1,
+                fontWeight: 'bold'
+              }}
+              title="Connect via WalletConnect (QR/Mobile) + SIWE authentication in one step"
+            >
+              {loadingStates.authenticateWalletConnect
+                ? 'Authenticating...'
+                : '🔐 Connect + Auth (QR Code)'}
             </button>
             <button onClick={handleCheckCrossExtension}>
               Check Cross Extension ({isCrossExtensionInstalled ? '✅' : '❌'})
