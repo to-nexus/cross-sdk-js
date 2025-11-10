@@ -180,13 +180,6 @@ initCrossSdkWithParams({
         // }
 
         // 데모용: localStorage에 저장 (프로덕션에서는 백엔드에 저장!)
-        console.log('✅ SIWX Session (save to backend in production):', {
-          address: session.data.accountAddress,
-          chainId: session.data.chainId,
-          nonce: session.data.nonce,
-          signature: session.signature.substring(0, 20) + '...',
-          expiresAt: session.data.expirationTime
-        })
         localStorage.setItem('siwx_session', JSON.stringify(session))
       } catch (error) {
         console.error('Failed to verify signature:', error)
@@ -197,8 +190,6 @@ initCrossSdkWithParams({
     // 백엔드에서 세션 조회
     getSessions: async (chainId, address) => {
       try {
-        console.log('🔍 getSessions called with:', { chainId, address })
-
         // 실제 프로덕션에서는 백엔드에서 세션 조회
         // const response = await fetch(
         //   `/api/siwe/sessions?chain=${chainId}&address=${address}`
@@ -209,35 +200,23 @@ initCrossSdkWithParams({
 
         // 1. 먼저 siwx_session (단수) 확인 - Extension + SIWE에서 저장
         const sessionStr = localStorage.getItem('siwx_session')
-        console.log('📦 localStorage siwx_session:', sessionStr ? 'exists' : 'null')
 
         if (sessionStr) {
           const session = JSON.parse(sessionStr)
-          console.log('🔍 Comparing (single):', {
-            storedChainId: session.data.chainId,
-            requestedChainId: chainId,
-            storedAddress: session.data.accountAddress,
-            requestedAddress: address,
-            chainIdMatch: session.data.chainId === chainId,
-            addressMatch: session.data.accountAddress.toLowerCase() === address.toLowerCase()
-          })
 
           if (
             session.data.chainId === chainId &&
             session.data.accountAddress.toLowerCase() === address.toLowerCase()
           ) {
-            console.log('✅ Session found in siwx_session (single)')
             return [session]
           }
         }
 
         // 2. siwx_sessions (복수) 확인 - QR code + SIWE에서 저장
         const sessionsStr = localStorage.getItem('siwx_sessions')
-        console.log('📦 localStorage siwx_sessions:', sessionsStr ? 'exists' : 'null')
 
         if (sessionsStr) {
           const sessions = JSON.parse(sessionsStr)
-          console.log('🔍 Checking sessions array:', sessions.length)
 
           const matchingSessions = sessions.filter(
             (session: any) =>
@@ -246,12 +225,10 @@ initCrossSdkWithParams({
           )
 
           if (matchingSessions.length > 0) {
-            console.log('✅ Session found in siwx_sessions (plural)', matchingSessions.length)
             return matchingSessions
           }
         }
 
-        console.log('❌ No matching session found in either storage')
         return []
       } catch (error) {
         console.error('Failed to get sessions:', error)
@@ -452,9 +429,7 @@ export function ActionButtonList() {
 
   // 모달이 닫힐 때 WalletConnect 인증 로딩 상태 리셋
   useEffect(() => {
-    // 모달이 닫히고 authenticateWalletConnect가 로딩 중이면 리셋
     if (!appKitState.open && loadingStates.authenticateWalletConnect) {
-      console.log('🔄 Modal closed, resetting authenticateWalletConnect loading state')
       setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
     }
   }, [appKitState.open, loadingStates.authenticateWalletConnect])
@@ -489,7 +464,6 @@ export function ActionButtonList() {
       if (!connectionType) {
         // 세션은 복원되었지만 타입이 저장되지 않았으면 qrcode로 설정
         localStorage.setItem('metamask_connection_type', 'qrcode')
-        console.log('✅ MetaMask QR Code 세션 자동 복원 확인:', reownAccount.address)
       }
     }
   }, [reownAccount?.isConnected, reownAccount?.address])
@@ -504,19 +478,16 @@ export function ActionButtonList() {
 
         // QR Code로 연결된 경우 Extension 자동 재연결 건너뛰기
         if (connectionType === 'qrcode') {
-          console.log('⏭️ QR Code 연결 감지, Extension 자동 재연결 건너뛰기')
           return
         }
 
         // localStorage에 'extension'이 없으면 사용자가 명시적으로 disconnect했거나 처음 방문
         if (connectionType !== 'extension') {
-          console.log('⏭️ 이전 Extension 연결 기록 없음, 자동 재연결 건너뛰기')
           return
         }
 
         // MetaMask가 설치되어 있는지 확인
         if (typeof window.ethereum === 'undefined') {
-          console.log('⚠️ MetaMask 미설치, localStorage 정리')
           localStorage.removeItem('metamask_connection_type')
           return
         }
@@ -535,7 +506,6 @@ export function ActionButtonList() {
 
         const provider = findMetaMaskProvider()
         if (!provider) {
-          console.log('⚠️ MetaMask Provider를 찾을 수 없음, localStorage 정리')
           localStorage.removeItem('metamask_connection_type')
           return
         }
@@ -546,16 +516,12 @@ export function ActionButtonList() {
 
         // 연결이 끊어진 경우 (사용자가 MetaMask에서 연결을 해제했을 수 있음)
         if (!accounts || accounts.length === 0) {
-          console.log(
-            '⚠️ MetaMask 연결이 끊어져 있음 (사용자가 지갑에서 연결 해제), localStorage 정리'
-          )
           localStorage.removeItem('metamask_connection_type')
           return
         }
 
         // 여기까지 도달하면: localStorage에 'extension' 기록 있고, 실제로 연결되어 있음
         // → 자동 재연결 진행
-        console.log('🔄 MetaMask 자동 재연결 중... (이전 세션 복원)')
 
         // ✅ MetaMask 연결 상태 및 provider 저장
         setMetamaskProvider(provider)
@@ -586,20 +552,16 @@ export function ActionButtonList() {
             setMetamaskAccount(null)
             setMetamaskChainId(null)
             localStorage.removeItem('metamask_connection_type')
-            console.log('🔌 MetaMask 연결이 지갑에서 해제되었습니다')
           } else {
             // 계정 변경됨
             setMetamaskAccount(newAccounts[0] || null)
-            console.log('🔄 MetaMask 계정이 변경되었습니다:', newAccounts[0])
           }
         })
 
         // Extension 연결 타입 유지 (이미 localStorage에 있지만 명시적으로 재설정)
         localStorage.setItem('metamask_connection_type', 'extension')
-
-        console.log('✅ MetaMask 자동 재연결 성공 (이전 세션 복원):', accounts[0])
       } catch (error) {
-        console.log('⚠️ MetaMask 자동 재연결 중 오류 발생 (무시):', error)
+        // 자동 재연결 실패는 무시 (사용자가 수동으로 연결할 수 있음)
       }
     }
 
@@ -611,17 +573,13 @@ export function ActionButtonList() {
     const handleVisibilityChange = async () => {
       if (!document.hidden) {
         // 탭 활성화 시: 엔진에 cleanup 포함 강제 점검을 요청
-        const isSessionActive = await checkWalletConnectionStatus(true)
-        // 필요하다면 isSessionActive 결과에 따라 UI/스토어를 업데이트하세요.
-        console.log('📱 [ACTION-BUTTON] isSessionActive:    ' + isSessionActive)
+        await checkWalletConnectionStatus(true)
       }
     }
 
     const handlePageFocus = async () => {
       if (!isOpen) {
-        const isSessionActive = await checkWalletConnectionStatus(true)
-        // isSessionActive를 사용해 재연결 유도, 알림 노출 등 후속 처리 가능
-        console.log('📱 [ACTION-BUTTON] isSessionActive:', isSessionActive)
+        await checkWalletConnectionStatus(true)
       }
     }
 
@@ -671,7 +629,7 @@ export function ActionButtonList() {
 
     // AppKit에서 전달된 세션 끊김 이벤트 구독
     const handleSessionDisconnected = (event: CustomEvent) => {
-      console.log('📱 [ACTION-BUTTON] AppKit session disconnected event received:', event.detail)
+      // 세션 해제 처리
     }
 
     window.addEventListener(

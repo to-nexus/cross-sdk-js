@@ -180,13 +180,6 @@ const crossSdk = initCrossSdkWithParams({
         // }
 
         // 데모용: localStorage에 저장 (프로덕션에서는 백엔드에 저장!)
-        console.log('✅ SIWX Session (save to backend in production):', {
-          address: session.data.accountAddress,
-          chainId: session.data.chainId,
-          nonce: session.data.nonce,
-          signature: session.signature.substring(0, 20) + '...',
-          expiresAt: session.data.expirationTime
-        })
         localStorage.setItem('siwx_session', JSON.stringify(session))
       } catch (error) {
         console.error('Failed to verify signature:', error)
@@ -251,7 +244,7 @@ const metamaskProjectId =
 // WalletConnect Provider 변수 (나중에 초기화)
 let walletConnectProvider = null
 
-console.log('✅ WalletConnect configuration ready for MetaMask QR Code')
+// WalletConnect configuration ready
 
 // 사용 가능한 네트워크 리스트
 const availableNetworks = [
@@ -345,7 +338,7 @@ async function checkWalletConnectionStatus(shouldCleanup = false) {
 
 // 페이지 포커스 관리
 function handlePageFocus() {
-  console.log('📱 [VANILLA] Page focused - checking session status')
+  // Page focused - checking session status
   isPageActive = true
   lastActiveTime = Date.now()
 
@@ -366,7 +359,7 @@ function handlePageFocus() {
 }
 
 function handlePageBlur() {
-  console.log('📱 [VANILLA] Page blurred')
+  // Page blurred
   isPageActive = false
 }
 
@@ -384,7 +377,7 @@ function initializeSessionManagement() {
     window.addEventListener('focus', handlePageFocus)
     window.addEventListener('blur', handlePageBlur)
 
-    console.log('📱 [VANILLA] Session management initialized')
+    // Session management initialized
   }
 }
 
@@ -532,7 +525,7 @@ function setupNetworkModalEvents() {
 }
 
 function showResultModal(title, content, type = 'info') {
-  console.log('showResultModal', title, content, type)
+  // Show result modal
   const modal = document.getElementById('result-modal')
   const container = modal.querySelector('.result-modal-container')
   const iconEl = modal.querySelector('.result-modal-icon')
@@ -566,7 +559,7 @@ function showResultModal(title, content, type = 'info') {
 
   // 모달 표시
   modal.style.display = 'flex'
-  console.log('showResultModal', modal)
+  // Modal displayed
 }
 
 function showSuccess(title, content) {
@@ -733,7 +726,7 @@ async function handleSignTypedDataV4() {
 
     if (activeWallet.type === 'metamask') {
       // MetaMask 사용 - eth_signTypedData_v4 메서드 사용
-      console.log('🦊 Signing with MetaMask...')
+      // MetaMask signing
 
       // EIP-712 형식으로 변환
       const typedData = {
@@ -748,10 +741,10 @@ async function handleSignTypedDataV4() {
         params: [activeWallet.account, JSON.stringify(typedData)]
       })
 
-      console.log('🦊 MetaMask signature result:', signature)
+      // Signature completed
     } else {
       // Cross Wallet 사용 - ConnectionController.signTypedDataV4 사용
-      console.log('⚡ Signing with Cross Wallet...')
+      // Cross Wallet signing
 
       signature = await ConnectionController.signTypedDataV4(paramsData, {
         metadata: apiData
@@ -770,7 +763,7 @@ async function handleSignTypedDataV4() {
             }
       })
 
-      console.log('⚡ Cross Wallet signature result:', signature)
+      // Signature completed
     }
 
     if (!signature) {
@@ -778,7 +771,7 @@ async function handleSignTypedDataV4() {
       return
     }
 
-    console.log('Signature result:', signature)
+    // Signature completed
 
     // Show detailed results
     const walletIcon = activeWallet.type === 'metamask' ? '🦊' : '⚡'
@@ -1558,7 +1551,7 @@ connectCrossExtension.addEventListener('click', async () => {
     localStorage.setItem('wallet_connected', 'true')
     localStorage.setItem('wallet_type', 'cross')
 
-    console.log('Cross Extension Wallet 연결 성공:', result)
+    // Extension connected
     alert('Cross Extension Wallet 연결 성공!')
   } catch (error) {
     console.error('Cross Extension Wallet 연결 실패:', error)
@@ -1598,7 +1591,7 @@ connectCrossExtension.addEventListener('click', async () => {
 const connectMetaMaskQRCode = document.getElementById('connect-metamask-qrcode')
 connectMetaMaskQRCode.addEventListener('click', async () => {
   try {
-    console.log('🦊 MetaMask QR Code 연결 시도')
+    // MetaMask QR Code connection
 
     // WalletConnect Provider 초기화 및 연결
     if (!walletConnectProvider) {
@@ -1649,15 +1642,8 @@ connectMetaMaskQRCode.addEventListener('click', async () => {
       const chainId = await walletConnectProvider.request({ method: 'eth_chainId' })
       metamaskChainId = parseInt(chainId)
 
-      console.log('🔍 [수동연결] chainId:', chainId, '→', metamaskChainId)
-
       // QR Code 연결 타입 저장 (자동 재연결 시 Extension과 구분하기 위해)
       localStorage.setItem('metamask_connection_type', 'qrcode')
-
-      console.log('✅ MetaMask QR Code 연결 성공:', {
-        account: metamaskAccount,
-        chainId: metamaskChainId
-      })
 
       // ethers provider 생성
       const ethersProvider = new ethers.BrowserProvider(walletConnectProvider)
@@ -1688,7 +1674,7 @@ connectMetaMaskQRCode.addEventListener('click', async () => {
       walletConnectProvider.on('chainChanged', newChainId => {
         const newChainIdNumber = parseInt(newChainId)
         metamaskChainId = newChainIdNumber
-        console.log('🦊 MetaMask 네트워크 변경됨:', newChainId, '→', newChainIdNumber)
+        // Network changed
 
         const networkName =
           availableNetworks.find(n => n.network.id === newChainIdNumber)?.name ||
@@ -1707,10 +1693,10 @@ connectMetaMaskQRCode.addEventListener('click', async () => {
           walletConnectProvider = null
           localStorage.removeItem('metamask_connection_type')
           updateButtonVisibility(false)
-          console.log('🦊 MetaMask 연결 해제됨')
+          // Disconnected
         } else {
           metamaskAccount = newAccounts[0]
-          console.log('🦊 MetaMask 계정 변경됨:', metamaskAccount)
+          // Account changed
         }
       })
 
@@ -1771,7 +1757,7 @@ connectMetaMaskExtension.addEventListener('click', async () => {
       return
     }
 
-    console.log('🦊 MetaMask Extension 연결 시도')
+    // MetaMask Extension connection
 
     // MetaMask 연결 요청
     const accounts = await provider.request({
@@ -1779,7 +1765,7 @@ connectMetaMaskExtension.addEventListener('click', async () => {
     })
 
     if (accounts && accounts.length > 0) {
-      console.log('✅ MetaMask Extension 연결 성공:', accounts[0])
+      // Extension connected
 
       // 전역 상태에 MetaMask 정보 저장
       metamaskProvider = provider
@@ -1829,7 +1815,7 @@ connectMetaMaskExtension.addEventListener('click', async () => {
         const newChainIdNumber = parseInt(newChainId, 16)
         metamaskChainId = newChainIdNumber
 
-        console.log('🦊 MetaMask 네트워크 변경됨:', newChainIdNumber)
+        // Network changed
 
         // Switch Network 버튼 텍스트 업데이트
         const networkName =
@@ -1844,7 +1830,7 @@ connectMetaMaskExtension.addEventListener('click', async () => {
       provider.on('accountsChanged', newAccounts => {
         if (newAccounts.length === 0) {
           // 연결 해제됨
-          console.log('🦊 MetaMask 연결 해제됨')
+          // Disconnected
           metamaskProvider = null
           metamaskAccount = null
           metamaskChainId = null
@@ -1852,7 +1838,7 @@ connectMetaMaskExtension.addEventListener('click', async () => {
         } else {
           // 계정 변경됨
           metamaskAccount = newAccounts[0]
-          console.log('🦊 MetaMask 계정 변경됨:', metamaskAccount)
+          // Account changed
         }
       })
 
@@ -1894,7 +1880,7 @@ authenticateCrossExtension.addEventListener('click', async () => {
   authenticateCrossExtension.style.opacity = '0.6'
   authenticateCrossExtension.style.cursor = 'not-allowed'
 
-  console.log('🔐 Starting Cross Extension authentication...')
+  // Cross Extension authentication started
   try {
     // ✅ SDK의 authenticateCrossExtensionWallet() 사용 (플래그 관리 포함!)
     const result = await ConnectorUtil.authenticateCrossExtensionWallet()
@@ -1965,7 +1951,7 @@ authenticateWalletConnect.addEventListener('click', async () => {
   authenticateWalletConnect.style.opacity = '0.6'
   authenticateWalletConnect.style.cursor = 'not-allowed'
 
-  console.log('🔐 Starting WalletConnect authentication...')
+  // WalletConnect authentication started
   try {
     // crossSdk.authenticateWalletConnect() 호출
     const result = await crossSdk.authenticateWalletConnect()
@@ -2045,7 +2031,7 @@ authenticateWalletConnect.addEventListener('click', async () => {
 const checkCrossExtension = document.getElementById('check-cross-extension')
 checkCrossExtension.addEventListener('click', () => {
   const isInstalled = ConnectorUtil.isInstalledCrossExtensionWallet()
-  console.log('Cross Extension Wallet 설치 상태:', isInstalled)
+  // Extension status checked
   alert(`Cross Extension Wallet ${isInstalled ? '설치됨' : '설치되지 않음'}`)
 })
 
@@ -2066,7 +2052,7 @@ document.getElementById('metamask-sign-message')?.addEventListener('click', asyn
       params: [message, metamaskAccount]
     })
 
-    console.log('✅ MetaMask 서명 성공:', signature)
+    // Signature successful
     alert(
       `MetaMask 서명 성공!\n\n` +
         `메시지: ${message}\n` +
@@ -2098,7 +2084,7 @@ document.getElementById('metamask-send-transaction')?.addEventListener('click', 
       ]
     })
 
-    console.log('✅ MetaMask 트랜잭션 전송:', txHash)
+    // Transaction sent
     alert(
       `MetaMask 트랜잭션 전송 성공!\n\n` +
         `Transaction Hash: ${txHash}\n` +
@@ -2132,7 +2118,7 @@ document.getElementById('metamask-get-balance')?.addEventListener('click', async
     const balance = await ethersProvider.getBalance(metamaskAccount)
     const balanceInEther = ethers.formatEther(balance)
 
-    console.log('✅ MetaMask 잔액 조회:', balanceInEther)
+    // Balance retrieved
     alert(
       `MetaMask 잔액 조회 성공!\n\n` +
         `주소: ${metamaskAccount.slice(0, 10)}...${metamaskAccount.slice(-8)}\n` +
@@ -2249,7 +2235,7 @@ disconnectWallet.addEventListener('click', async () => {
 
     if (activeWallet.type === 'metamask') {
       // MetaMask 연결 해제
-      console.log('🦊 MetaMask 연결 해제 중...')
+      // Disconnecting MetaMask
 
       // WalletConnect Provider가 있으면 disconnect 호출
       if (walletConnectProvider) {
@@ -2271,11 +2257,11 @@ disconnectWallet.addEventListener('click', async () => {
       updateWalletIndicator()
       updateButtonVisibility(false)
 
-      console.log('✅ MetaMask 연결 해제 완료')
+      // MetaMask disconnected
       alert('MetaMask 연결이 해제되었습니다.')
     } else {
       // Cross SDK 연결 해제
-      console.log('⚡ Cross Wallet 연결 해제 중...')
+      // Disconnecting Cross Wallet
       await appkitWallet.disconnect()
 
       // ✅ 연결 상태 제거 (자동 재연결 방지)
@@ -2284,7 +2270,7 @@ disconnectWallet.addEventListener('click', async () => {
       localStorage.removeItem('has_siwx_session')
       localStorage.removeItem('siwx_session')
 
-      console.log('✅ Cross Wallet 연결 해제 완료')
+      // Cross Wallet disconnected
     }
   } catch (error) {
     console.error('지갑 연결 해제 실패:', error)
@@ -2369,7 +2355,7 @@ async function autoReconnectMetaMaskQRCode() {
       return // QR Code 연결이 아니면 건너뛰기
     }
 
-    console.log('🔄 MetaMask QR Code 세션 복원 시도...')
+    // Auto-reconnect session restoration attempt
 
     // WalletConnect Provider 초기화 (기존 세션 자동 복원)
     walletConnectProvider = await EthereumProvider.init({
@@ -2410,13 +2396,13 @@ async function autoReconnectMetaMaskQRCode() {
       // chainId는 이미 16진수 문자열 (예: "0x95444")이므로 parseInt()만 사용
       metamaskChainId = parseInt(chainId)
 
-      console.log('🔍 [자동재연결] chainId:', chainId, '→', metamaskChainId)
+      // Auto-reconnect chain verified
 
       // 이벤트 리스너 설정
       walletConnectProvider.on('chainChanged', newChainId => {
         const newChainIdNumber = parseInt(newChainId)
         metamaskChainId = newChainIdNumber
-        console.log('🦊 MetaMask 네트워크 변경됨:', newChainId, '→', newChainIdNumber)
+        // Network changed
 
         const switchNetworkButton = document.getElementById('switch-network')
         const networkName =
@@ -2435,10 +2421,10 @@ async function autoReconnectMetaMaskQRCode() {
           walletConnectProvider = null
           localStorage.removeItem('metamask_connection_type')
           updateButtonVisibility(false)
-          console.log('🦊 MetaMask 연결 해제됨')
+          // Disconnected
         } else {
           metamaskAccount = newAccounts[0]
-          console.log('🦊 MetaMask 계정 변경됨:', metamaskAccount)
+          // Account changed
         }
       })
 
@@ -2462,10 +2448,10 @@ async function autoReconnectMetaMaskQRCode() {
         switchNetworkButton.textContent = networkName
       }
 
-      console.log('✅ MetaMask QR Code 자동 재연결 성공:', metamaskAccount)
+      // Auto-reconnect successful
     }
   } catch (error) {
-    console.log('MetaMask QR Code 자동 재연결 실패 (무시):', error)
+    // Auto-reconnect failed (ignored)
     localStorage.removeItem('metamask_connection_type')
   }
 }
@@ -2514,7 +2500,7 @@ async function autoReconnectMetaMask() {
     const accounts = await provider.request({ method: 'eth_accounts' })
 
     if (accounts && accounts.length > 0) {
-      console.log('🔄 MetaMask 자동 재연결 중...')
+      // Auto-reconnecting extension
 
       // 전역 상태에 MetaMask 정보 저장
       metamaskProvider = provider
@@ -2536,7 +2522,7 @@ async function autoReconnectMetaMask() {
       provider.on('chainChanged', newChainId => {
         const newChainIdNumber = parseInt(newChainId, 16)
         metamaskChainId = newChainIdNumber
-        console.log('🦊 MetaMask 네트워크 변경됨:', newChainIdNumber)
+        // Network changed
 
         // Switch Network 버튼 텍스트 업데이트
         const switchNetworkButton = document.getElementById('switch-network')
@@ -2550,7 +2536,7 @@ async function autoReconnectMetaMask() {
 
       // MetaMask 계정 변경 이벤트 리스너 추가
       provider.on('accountsChanged', newAccounts => {
-        console.log('🦊 MetaMask 계정 변경됨:', newAccounts)
+        // Account changed
         if (newAccounts.length > 0) {
           metamaskAccount = newAccounts[0]
         } else {
@@ -2578,10 +2564,10 @@ async function autoReconnectMetaMask() {
       // Extension 연결 타입 저장
       localStorage.setItem('metamask_connection_type', 'extension')
 
-      console.log('✅ MetaMask 자동 재연결 성공:', metamaskAccount)
+      // Extension auto-reconnect successful
     }
   } catch (error) {
-    console.log('MetaMask 자동 재연결 실패 (무시):', error)
+    // Extension auto-reconnect failed (ignored)
   }
 }
 

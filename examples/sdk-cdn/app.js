@@ -52,9 +52,9 @@ function waitForSDK() {
 // SDK 로딩 후 초기화
 async function initializeApp() {
   try {
-    console.log('Waiting for SDK to load...')
+    // Waiting for SDK to load
     const CrossSdk = await waitForSDK()
-    console.log('SDK loaded successfully:', CrossSdk)
+    // SDK loaded
 
     // CDN SDK에서 필요한 함수들을 import
     const {
@@ -197,13 +197,6 @@ async function initializeApp() {
             // }
 
             // 데모용: localStorage에 저장 (프로덕션에서는 백엔드에 저장!)
-            console.log('✅ SIWX Session (save to backend in production):', {
-              address: session.data.accountAddress,
-              chainId: session.data.chainId,
-              nonce: session.data.nonce,
-              signature: session.signature.substring(0, 20) + '...',
-              expiresAt: session.data.expirationTime
-            })
             localStorage.setItem('siwx_session', JSON.stringify(session))
           } catch (error) {
             console.error('Failed to verify signature:', error)
@@ -480,7 +473,7 @@ async function initializeApp() {
 
     // 페이지 포커스 관리
     function handlePageFocus() {
-      console.log('📱 [CDN] Page focused - checking session status')
+      // Page focused
       isPageActive = true
       lastActiveTime = Date.now()
 
@@ -489,7 +482,7 @@ async function initializeApp() {
         checkWalletConnectionStatus(true)
           .then(isActive => {
             if (!isActive) {
-              console.log('📱 [CDN] Session is no longer active, updating UI')
+              // Session inactive
               // 세션이 끊어진 경우 UI 업데이트를 위해 강제로 상태 갱신
               // 실제 disconnect는 SDK 내부에서 처리됨
             }
@@ -501,7 +494,7 @@ async function initializeApp() {
     }
 
     function handlePageBlur() {
-      console.log('📱 [CDN] Page blurred')
+      // Page blurred
       isPageActive = false
     }
 
@@ -519,7 +512,7 @@ async function initializeApp() {
         window.addEventListener('focus', handlePageFocus)
         window.addEventListener('blur', handlePageBlur)
 
-        console.log('📱 [CDN] Session management initialized')
+        // Session management initialized
       }
     }
 
@@ -1422,14 +1415,13 @@ ${JSON.stringify(status.sessions, null, 2)}`)
     })
 
     // Button event listeners
-    console.log('🔧 Setting up button event listeners...')
+    // Setting up button event listeners
 
     // Cross QR Code 연결
     const connectCrossQRBtn = document.getElementById('connect-cross-qr')
-    console.log('Connect Cross QR button:', connectCrossQRBtn)
 
     connectCrossQRBtn?.addEventListener('click', async () => {
-      console.log('🔘 Connect Cross QR button clicked!')
+      // Connect Cross QR handler
       try {
         await appkitWallet.connect('cross_wallet')
 
@@ -1444,7 +1436,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
 
     // Cross Extension 연결
     document.getElementById('connect-cross-extension')?.addEventListener('click', async () => {
-      console.log('🔘 Connect Cross Extension button clicked!')
+      // Connect Cross Extension handler
       try {
         const result = await window.CrossSdk.ConnectorUtil.connectCrossExtensionWallet()
 
@@ -1487,7 +1479,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
       button.style.opacity = '0.6'
       button.style.cursor = 'not-allowed'
 
-      console.log('🔐 Starting Cross Extension authentication...')
+      // Cross Extension authentication started
       try {
         // ✅ SDK의 authenticateCrossExtensionWallet() 사용 (플래그 관리 포함!)
         const result = await window.CrossSdk.ConnectorUtil.authenticateCrossExtensionWallet()
@@ -1504,7 +1496,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
           localStorage.setItem('wallet_type', 'cross')
           localStorage.setItem('has_siwx_session', 'true')
 
-          console.log('💾 Session saved successfully')
+          // Session saved
 
           // 성공 알림
           alert(
@@ -1559,7 +1551,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
       button.style.opacity = '0.6'
       button.style.cursor = 'not-allowed'
 
-      console.log('🔐 Starting WalletConnect authentication...')
+      // WalletConnect authentication started
       try {
         // crossSdk.authenticateWalletConnect() 호출
         const result = await crossSdk.authenticateWalletConnect()
@@ -1725,13 +1717,13 @@ ${JSON.stringify(status.sessions, null, 2)}`)
         const walletType = localStorage.getItem('wallet_type')
 
         if (!wasConnected || walletType !== 'metamask') {
-          console.log('⏭️ Skipping auto-reconnect - not previously connected as MetaMask')
+          // Skipping auto-reconnect
           return
         }
 
         const provider = findMetaMaskProvider()
         if (!provider) {
-          console.log('⏭️ MetaMask provider not found')
+          // Provider not found
           return
         }
 
@@ -1739,7 +1731,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
         const accounts = await provider.request({ method: 'eth_accounts' })
 
         if (accounts && accounts.length > 0) {
-          console.log('🔄 MetaMask 자동 재연결 중...')
+          // Auto-reconnecting
           metamaskAddress = accounts[0]
           metamaskProvider = provider
 
@@ -1771,10 +1763,10 @@ ${JSON.stringify(status.sessions, null, 2)}`)
 
           updateButtonVisibility()
           updateSwitchNetworkButton()
-          console.log('✅ MetaMask 자동 재연결 성공:', metamaskAddress)
+          // Auto-reconnect successful
         }
       } catch (error) {
-        console.log('MetaMask 자동 재연결 실패 (무시):', error)
+        // Auto-reconnect failed (ignored)
       }
     }
 
