@@ -24,6 +24,7 @@ import {
   useAppKitAccount,
   useAppKitNetwork,
   useAppKitProvider,
+  useAppKitState,
   useAppKitWallet,
   useDisconnect
 } from '@to-nexus/sdk/react'
@@ -285,8 +286,14 @@ export function ActionButtonList() {
     useReownAppKitProvider<UniversalProvider>('eip155') // 🆕 Reown provider (MetaMask QR)
   const { disconnect: reownDisconnect } = useReownDisconnect() // 🆕 Reown disconnect
   const { isOpen, title, content, type, showSuccess, showError, closeModal } = useResultModal()
-  const [isLoading, setIsLoading] = useState(false)
+  const [loadingStates, setLoadingStates] = useState({
+    crossExtension: false,
+    authenticateCrossExtension: false,
+    metamaskExtension: false,
+    authenticateWalletConnect: false
+  })
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
+  const appKitState = useAppKitState()
 
   // 🆕 MetaMask Extension 상태 관리 (Context 사용)
   const {
@@ -423,6 +430,15 @@ export function ActionButtonList() {
   useEffect(() => {
     // contractArgs change tracking
   }, [contractArgs?.args])
+
+  // 모달이 닫힐 때 WalletConnect 인증 로딩 상태 리셋
+  useEffect(() => {
+    // 모달이 닫히고 authenticateWalletConnect가 로딩 중이면 리셋
+    if (!appKitState.open && loadingStates.authenticateWalletConnect) {
+      console.log('🔄 Modal closed, resetting authenticateWalletConnect loading state')
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
+    }
+  }, [appKitState.open, loadingStates.authenticateWalletConnect])
 
   // Cross Extension Wallet 설치 상태 확인 함수를 메모이제이션
   const checkExtensionInstalled = useCallback(() => {
@@ -786,7 +802,7 @@ export function ActionButtonList() {
   // Cross Extension 연결 + SIWE 인증을 한번에 수행
   async function handleAuthenticateCrossExtension() {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, authenticateCrossExtension: true }))
 
       // 다른 연결 상태 클리어
       try {
@@ -873,14 +889,14 @@ export function ActionButtonList() {
         error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
       )
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, authenticateCrossExtension: false }))
     }
   }
 
   // WalletConnect (QR Code) 연결 + SIWE 인증을 한번에 수행
   async function handleAuthenticateWalletConnect() {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: true }))
 
       // 먼저 Reown AppKit과 MetaMask Extension 상태 클리어
       try {
@@ -948,7 +964,7 @@ export function ActionButtonList() {
         error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
       )
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
     }
   }
 
@@ -966,7 +982,7 @@ export function ActionButtonList() {
   // MetaMask Extension 직접 연결
   async function handleConnectMetaMaskExtension() {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, metamaskExtension: true }))
 
       // 먼저 Reown AppKit만 해제
       try {
@@ -1068,14 +1084,14 @@ export function ActionButtonList() {
         showError('MetaMask 연결 실패', `오류: ${errorMessage}`)
       }
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, metamaskExtension: false }))
     }
   }
 
   // Cross Extension Wallet 직접 연결
   const handleConnectCrossExtension = async () => {
     try {
-      setIsLoading(true)
+      setLoadingStates(prev => ({ ...prev, crossExtension: true }))
 
       // 먼저 Reown AppKit과 MetaMask Extension 상태 클리어
       try {
@@ -1150,7 +1166,7 @@ export function ActionButtonList() {
       // 연결 실패 후에도 상태 확인
       checkExtensionInstalled()
     } finally {
-      setIsLoading(false)
+      setLoadingStates(prev => ({ ...prev, crossExtension: false }))
     }
   }
 
@@ -2097,57 +2113,68 @@ Check console for full details.`
             </button>
             <button
               onClick={handleConnectMetaMaskExtension}
-              disabled={isLoading}
+              disabled={loadingStates.metamaskExtension}
               style={{
                 backgroundColor: '#F6851B',
                 color: 'white',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.6 : 1
+                cursor: loadingStates.metamaskExtension ? 'not-allowed' : 'pointer',
+                opacity: loadingStates.metamaskExtension ? 0.6 : 1
               }}
             >
-              {isLoading ? 'Connecting...' : 'Connect MetaMask Extension'}
+              {loadingStates.metamaskExtension ? 'Connecting...' : 'Connect MetaMask Extension'}
             </button>
             <button onClick={handleConnect}>Connect CROSSx</button>
             <button onClick={handleConnectWallet}>Connect CROSSx (QR Code)</button>
             <button
               onClick={handleConnectCrossExtension}
-              disabled={!isCrossExtensionInstalled || isLoading}
+              disabled={!isCrossExtensionInstalled || loadingStates.crossExtension}
               style={{
                 backgroundColor: isCrossExtensionInstalled ? '#007bff' : '#6c757d',
                 color: 'white',
-                cursor: isCrossExtensionInstalled && !isLoading ? 'pointer' : 'not-allowed',
-                opacity: isCrossExtensionInstalled && !isLoading ? 1 : 0.6
+                cursor:
+                  isCrossExtensionInstalled && !loadingStates.crossExtension
+                    ? 'pointer'
+                    : 'not-allowed',
+                opacity: isCrossExtensionInstalled && !loadingStates.crossExtension ? 1 : 0.6
               }}
             >
-              {isLoading ? 'Connecting...' : 'Connect Cross Extension'}
+              {loadingStates.crossExtension ? 'Connecting...' : 'Connect Cross Extension'}
             </button>
             <button
               onClick={handleAuthenticateCrossExtension}
-              disabled={!isCrossExtensionInstalled || isLoading}
+              disabled={!isCrossExtensionInstalled || loadingStates.authenticateCrossExtension}
               style={{
                 backgroundColor: isCrossExtensionInstalled ? '#10b981' : '#6c757d',
                 color: 'white',
-                cursor: isCrossExtensionInstalled && !isLoading ? 'pointer' : 'not-allowed',
-                opacity: isCrossExtensionInstalled && !isLoading ? 1 : 0.6,
+                cursor:
+                  isCrossExtensionInstalled && !loadingStates.authenticateCrossExtension
+                    ? 'pointer'
+                    : 'not-allowed',
+                opacity:
+                  isCrossExtensionInstalled && !loadingStates.authenticateCrossExtension ? 1 : 0.6,
                 fontWeight: 'bold'
               }}
               title="Connect Cross Extension + SIWE authentication in one step"
             >
-              {isLoading ? 'Authenticating...' : '🔐 Connect + Auth (Extension)'}
+              {loadingStates.authenticateCrossExtension
+                ? 'Authenticating...'
+                : '🔐 Connect + Auth (Extension)'}
             </button>
             <button
               onClick={handleAuthenticateWalletConnect}
-              disabled={isLoading}
+              disabled={loadingStates.authenticateWalletConnect}
               style={{
                 backgroundColor: '#10b981',
                 color: 'white',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.6 : 1,
+                cursor: loadingStates.authenticateWalletConnect ? 'not-allowed' : 'pointer',
+                opacity: loadingStates.authenticateWalletConnect ? 0.6 : 1,
                 fontWeight: 'bold'
               }}
               title="Connect via WalletConnect (QR/Mobile) + SIWE authentication in one step"
             >
-              {isLoading ? 'Authenticating...' : '🔐 Connect + Auth (QR Code)'}
+              {loadingStates.authenticateWalletConnect
+                ? 'Authenticating...'
+                : '🔐 Connect + Auth (QR Code)'}
             </button>
             <button onClick={handleCheckCrossExtension}>
               Check Cross Extension ({isCrossExtensionInstalled ? '✅' : '❌'})
