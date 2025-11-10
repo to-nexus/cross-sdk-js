@@ -1,46 +1,46 @@
-# WalletConnect + SIWE 통합 인증 (Connect + Auth)
+# WalletConnect + SIWE Integrated Authentication (Connect + Auth)
 
-> [English Version](./authenticate-wallet-connect-en.md)
+> [한글 버전](./authenticate-wallet-connect.md)
 
-## 개요
+## Overview
 
-일반적인 지갑 연결 플로우에서는 사용자가 다음과 같은 2단계 과정을 거쳐야 합니다:
+In typical wallet connection flows, users must go through a 2-step process:
 
-1. **Connect**: 지갑 연결 승인
-2. **SIWE Sign**: Sign-In with Ethereum 서명 승인
+1. **Connect**: Approve wallet connection
+2. **SIWE Sign**: Approve Sign-In with Ethereum signature
 
-모바일 환경에서 이는 dApp과 지갑 앱 사이를 2번 왕복해야 하는 불편한 UX를 만듭니다.
+In mobile environments, this creates an inconvenient UX where users must switch between the dApp and wallet app twice.
 
-Cross SDK는 이 두 단계를 하나로 통합하여, **단 한 번의 승인으로 연결과 인증을 동시에 처리**하는 두 가지 방법을 제공합니다:
+Cross SDK consolidates these two steps into one, providing **single approval for both connection and authentication** through two methods:
 
-- **QR Code 연결**: `authenticateWalletConnect()` - WalletConnect 프로토콜 활용
-- **Extension 연결**: `authenticateCrossExtensionWallet()` - 브라우저 확장 프로그램 지갑 연결
+- **QR Code Connection**: `authenticateWalletConnect()` - Utilizes WalletConnect protocol
+- **Extension Connection**: `authenticateCrossExtensionWallet()` - Browser extension wallet connection
 
-## 목차
+## Table of Contents
 
-- [QR Code + SIWE 통합 인증](#qr-code--siwe-통합-인증)
-- [Extension + SIWE 통합 인증](#extension--siwe-통합-인증)
-- [SIWX 설정 간소화 (createDefaultSIWXConfig)](#siwx-설정-간소화)
-- [플랫폼별 구현 예제](#플랫폼별-구현-예제)
-- [보안 권장사항](#보안-권장사항)
-- [버튼 상태 관리](#버튼-상태-관리)
-- [자동 재연결](#자동-재연결)
+- [QR Code + SIWE Integrated Authentication](#qr-code--siwe-integrated-authentication)
+- [Extension + SIWE Integrated Authentication](#extension--siwe-integrated-authentication)
+- [Simplified SIWX Configuration (createDefaultSIWXConfig)](#simplified-siwx-configuration)
+- [Platform-Specific Implementation Examples](#platform-specific-implementation-examples)
+- [Security Recommendations](#security-recommendations)
+- [Button State Management](#button-state-management)
+- [Auto-Reconnection](#auto-reconnection)
 - [API Reference](#api-reference)
 
 ---
 
-## QR Code + SIWE 통합 인증
+## QR Code + SIWE Integrated Authentication
 
-### 작동 원리
+### How It Works
 
-WalletConnect의 `wc_sessionAuthenticate` RPC 메서드를 활용합니다:
+Utilizes WalletConnect's `wc_sessionAuthenticate` RPC method:
 
-1. SIWX 메시지를 생성합니다
-2. WalletConnect authenticate 요청을 보냅니다
-3. 지갑에서 한 번의 승인으로 연결 + 서명이 처리됩니다
-4. 세션과 SIWX 인증 정보가 자동으로 저장됩니다
+1. Generates a SIWX message
+2. Sends a WalletConnect authenticate request
+3. Wallet handles connection + signature in a single approval
+4. Session and SIWX authentication information are automatically saved
 
-### 사용 방법
+### Usage
 
 #### React
 
@@ -56,7 +56,7 @@ function ConnectButton() {
     try {
       setIsLoading(true)
       const result = await authenticateWalletConnect()
-
+      
       if (result && result.authenticated && result.sessions?.length > 0) {
         console.log('✅ Connected and authenticated!', result.sessions[0])
       }
@@ -106,9 +106,9 @@ function ConnectButton() {
     try {
       setIsLoading(true)
       const result = await crossAppKit.authenticateWalletConnect()
-
+      
       if (result?.authenticated && result?.sessions?.length > 0) {
-        alert('🎉 SIWE 인증 성공!')
+        alert('🎉 SIWE Authentication successful!')
       }
     } catch (error) {
       console.error('Authentication failed:', error)
@@ -127,19 +127,19 @@ function ConnectButton() {
 
 ---
 
-## Extension + SIWE 통합 인증
+## Extension + SIWE Integrated Authentication
 
-브라우저 확장 프로그램 지갑(예: Cross Extension, MetaMask Extension)에서도 연결과 SIWE 인증을 한 번에 처리할 수 있습니다.
+Browser extension wallets (e.g., Cross Extension, MetaMask Extension) can also handle connection and SIWE authentication in a single step.
 
-### 작동 원리
+### How It Works
 
-1. 확장 프로그램 지갑에 연결 요청
-2. 연결 완료 후 SIWX 메시지 자동 생성
-3. `signMessage`로 서명 요청
-4. 세션 저장 및 검증
-5. 중복 모달 방지 플래그 관리
+1. Request connection to extension wallet
+2. Automatically generate SIWX message after connection
+3. Request signature via `signMessage`
+4. Save and verify session
+5. Manage duplicate modal prevention flag
 
-### 사용 방법
+### Usage
 
 #### React
 
@@ -153,14 +153,14 @@ function ConnectExtensionButton() {
 
   const handleConnect = async () => {
     if (!isInstalledCrossExtensionWallet()) {
-      alert('Cross Extension을 먼저 설치해주세요.')
+      alert('Please install Cross Extension first.')
       return
     }
 
     try {
       setIsLoading(true)
       const result = await authenticateCrossExtensionWallet()
-
+      
       if (result?.authenticated && result?.sessions?.length > 0) {
         console.log('✅ Extension connected and authenticated!', result.sessions[0])
       }
@@ -172,8 +172,8 @@ function ConnectExtensionButton() {
   }
 
   return (
-    <button
-      onClick={handleConnect}
+    <button 
+      onClick={handleConnect} 
       disabled={isLoading || !isInstalledCrossExtensionWallet()}
     >
       {isLoading ? 'Authenticating...' : 'Connect + Auth (Extension)'}
@@ -189,23 +189,23 @@ const { ConnectorUtil, isInstalledCrossExtensionWallet } = window.CrossSdk
 
 button.addEventListener('click', async () => {
   if (!ConnectorUtil.isInstalledCrossExtensionWallet()) {
-    alert('Cross Extension을 먼저 설치해주세요.')
+    alert('Please install Cross Extension first.')
     return
   }
 
   try {
     button.disabled = true
     button.textContent = 'Authenticating...'
-
+    
     const result = await ConnectorUtil.authenticateCrossExtensionWallet()
-
+    
     if (result?.authenticated && result?.sessions?.length > 0) {
       console.log('✅ Connected and authenticated!')
-      alert('인증 성공!')
+      alert('Authentication successful!')
     }
   } catch (error) {
     console.error('Authentication failed:', error)
-    alert('인증 실패: ' + error.message)
+    alert('Authentication failed: ' + error.message)
   } finally {
     button.disabled = false
     button.textContent = 'Connect + Auth (Extension)'
@@ -225,9 +225,9 @@ function ConnectExtensionButton() {
     try {
       setIsLoading(true)
       const result = await sdkWagmiAdapter.authenticateCrossExtensionWallet()
-
+      
       if (result?.authenticated && result?.sessions?.length > 0) {
-        alert('🎉 Extension 인증 성공!')
+        alert('🎉 Extension authentication successful!')
       }
     } catch (error) {
       console.error('Authentication failed:', error)
@@ -246,78 +246,76 @@ function ConnectExtensionButton() {
 
 ---
 
-## SIWX 설정 간소화
+## Simplified SIWX Configuration
 
-### `createDefaultSIWXConfig()` 유틸리티
+### `createDefaultSIWXConfig()` Utility
 
-모든 DApp이 동일한 SIWX 설정 보일러플레이트를 반복 작성하는 것을 방지하기 위해, SDK는 표준 SIWX 설정을 간편하게 생성하는 유틸리티 함수를 제공합니다.
+To prevent all DApps from repeatedly writing the same SIWX configuration boilerplate, the SDK provides a utility function to easily create standard SIWX configurations.
 
-### 기본 사용법
+### Basic Usage
 
 ```typescript
 import { createDefaultSIWXConfig } from '@to-nexus/sdk/react'
 
 const siwxConfig = createDefaultSIWXConfig({
-  // === 자주 커스터마이즈하는 옵션 ===
+  // === Frequently customized options ===
   statement: 'Sign in to My DApp',
-
+  
   getNonce: async () => {
-    // ⚠️ 프로덕션에서는 반드시 백엔드에서 nonce를 가져와야 합니다!
+    // ⚠️ In production, you MUST fetch nonce from backend!
     const response = await fetch('/api/siwe/nonce')
     return response.text()
   },
-
-  addSession: async session => {
-    // 세션을 저장하는 로직 (localStorage, 백엔드 등)
+  
+  addSession: async (session) => {
+    // Logic to save session (localStorage, backend, etc.)
     localStorage.setItem('siwx_session', JSON.stringify(session))
   },
-
+  
   getSessions: async (chainId, address) => {
-    // 저장된 세션을 가져오는 로직
+    // Logic to retrieve saved session
     const sessionStr = localStorage.getItem('siwx_session')
     if (sessionStr) {
       const session = JSON.parse(sessionStr)
-      if (
-        session.data.chainId === chainId &&
-        session.data.accountAddress.toLowerCase() === address.toLowerCase()
-      ) {
+      if (session.data.chainId === chainId && 
+          session.data.accountAddress.toLowerCase() === address.toLowerCase()) {
         return [session]
       }
     }
     return []
   },
-
-  // === 선택적 커스터마이즈 옵션 ===
-  domain: window.location.host, // 기본값: window.location.host
-  uri: window.location.origin, // 기본값: window.location.origin
-  expirationTime: '2024-12-31T23:59:59Z' // 또는 함수로 동적 생성
+  
+  // === Optional customization options ===
+  domain: window.location.host, // Default: window.location.host
+  uri: window.location.origin,  // Default: window.location.origin
+  expirationTime: '2024-12-31T23:59:59Z', // Or function for dynamic generation
 })
 
-// SDK 초기화 시 사용
+// Use in SDK initialization
 initCrossSdk(projectId, redirectUrl, metadata, 'dark', network, adapters, mobileLink, siwxConfig)
 ```
 
-### 프로덕션 환경 예제
+### Production Environment Example
 
-**⚠️ 보안 경고**: 클라이언트 사이드에서 nonce를 생성하면 재사용 공격에 취약합니다. 반드시 백엔드에서 생성해야 합니다!
+**⚠️ Security Warning**: Generating nonce client-side is vulnerable to replay attacks. It MUST be generated by the backend!
 
 ```typescript
 const siwxConfig = createDefaultSIWXConfig({
   statement: 'Sign in with your wallet to Cross SDK Sample App',
-
-  // ✅ 백엔드에서 nonce 가져오기 (권장)
+  
+  // ✅ Fetch nonce from backend (recommended)
   getNonce: async () => {
     const response = await fetch('https://your-api.com/api/siwe/nonce', {
-      credentials: 'include' // 쿠키 포함
+      credentials: 'include' // Include cookies
     })
     if (!response.ok) {
       throw new Error('Failed to get nonce')
     }
     return response.text()
   },
-
-  // ✅ 백엔드에 세션 저장 (권장)
-  addSession: async session => {
+  
+  // ✅ Save session to backend (recommended)
+  addSession: async (session) => {
     const response = await fetch('https://your-api.com/api/siwe/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -328,80 +326,78 @@ const siwxConfig = createDefaultSIWXConfig({
         data: session.data
       })
     })
-
+    
     if (!response.ok) {
       throw new Error('Failed to save session')
     }
-
-    // 로컬에도 플래그 저장 (재연결 시 확인용)
+    
+    // Also save flag locally (for reconnection check)
     localStorage.setItem('has_siwx_session', 'true')
   },
-
-  // ✅ 백엔드에서 세션 조회 (권장)
+  
+  // ✅ Retrieve session from backend (recommended)
   getSessions: async (chainId, address) => {
     const response = await fetch(
       `https://your-api.com/api/siwe/session?chainId=${chainId}&address=${address}`,
       { credentials: 'include' }
     )
-
+    
     if (!response.ok) {
       return []
     }
-
+    
     const session = await response.json()
     return session ? [session] : []
   }
 })
 ```
 
-### 옵션 설명
+### Option Descriptions
 
-#### 자주 커스터마이즈하는 옵션
+#### Frequently Customized Options
 
-- **`statement`**: SIWE 메시지에 표시될 문구
-- **`getNonce`**: 백엔드에서 nonce를 가져오는 함수 (필수!)
-- **`addSession`**: 세션을 저장하는 함수
-- **`getSessions`**: 세션을 조회하는 함수
+- **`statement`**: Text displayed in SIWE message
+- **`getNonce`**: Function to fetch nonce from backend (required!)
+- **`addSession`**: Function to save session
+- **`getSessions`**: Function to retrieve session
 
-#### 선택적 옵션
+#### Optional Options
 
-- **`domain`**: SIWE 메시지의 도메인 (기본값: `window.location.host`)
-- **`uri`**: SIWE 메시지의 URI (기본값: `window.location.origin`)
-- **`expirationTime`**: 세션 만료 시간 (문자열 또는 함수)
+- **`domain`**: Domain in SIWE message (default: `window.location.host`)
+- **`uri`**: URI in SIWE message (default: `window.location.origin`)
+- **`expirationTime`**: Session expiration time (string or function)
 
-#### 고급 옵션 (거의 수정 안 함)
+#### Advanced Options (rarely modified)
 
-- **`revokeSession`**: 세션을 취소하는 함수
-- **`setSessions`**: 여러 세션을 한 번에 저장하는 함수
-- **`getRequired`**: SIWE가 필수인지 여부를 반환하는 함수
+- **`revokeSession`**: Function to revoke session
+- **`setSessions`**: Function to save multiple sessions at once
+- **`getRequired`**: Function returning whether SIWE is required
 
 ---
 
-## 플랫폼별 구현 예제
+## Platform-Specific Implementation Examples
 
 ### React SDK
 
 ```typescript
-import { createDefaultSIWXConfig, initCrossSdk } from '@to-nexus/sdk/react'
+import { initCrossSdk, createDefaultSIWXConfig } from '@to-nexus/sdk/react'
 
-// SIWX 설정
+// SIWX configuration
 const siwxConfig = createDefaultSIWXConfig({
   statement: 'Sign in to My App',
   getNonce: async () => {
     const response = await fetch('/api/nonce')
     return response.text()
   },
-  addSession: async session => {
+  addSession: async (session) => {
     localStorage.setItem('siwx_session', JSON.stringify(session))
   },
   getSessions: async (chainId, address) => {
     const sessionStr = localStorage.getItem('siwx_session')
     if (sessionStr) {
       const session = JSON.parse(sessionStr)
-      if (
-        session.data.chainId === chainId &&
-        session.data.accountAddress.toLowerCase() === address.toLowerCase()
-      ) {
+      if (session.data.chainId === chainId && 
+          session.data.accountAddress.toLowerCase() === address.toLowerCase()) {
         return [session]
       }
     }
@@ -409,7 +405,7 @@ const siwxConfig = createDefaultSIWXConfig({
   }
 })
 
-// SDK 초기화
+// SDK initialization
 initCrossSdk(
   projectId,
   redirectUrl,
@@ -418,33 +414,34 @@ initCrossSdk(
   defaultNetwork,
   adapters,
   mobileLink,
-  siwxConfig // SIWX 설정 추가
+  siwxConfig // Add SIWX configuration
 )
 ```
 
 ### Vanilla JS SDK
 
 ```javascript
-import { createDefaultSIWXConfig, initCrossSdkWithParams } from '@to-nexus/sdk'
+import { 
+  initCrossSdkWithParams, 
+  createDefaultSIWXConfig 
+} from '@to-nexus/sdk'
 
-// SIWX 설정
+// SIWX configuration
 const siwxConfig = createDefaultSIWXConfig({
   statement: 'Sign in to My App',
   getNonce: async () => {
     console.warn('⚠️ Using client-side nonce. Use backend nonce for production!')
     return Math.random().toString(36).substring(2, 15)
   },
-  addSession: async session => {
+  addSession: async (session) => {
     localStorage.setItem('siwx_session', JSON.stringify(session))
   },
   getSessions: async (chainId, address) => {
     const sessionStr = localStorage.getItem('siwx_session')
     if (sessionStr) {
       const session = JSON.parse(sessionStr)
-      if (
-        session.data.chainId === chainId &&
-        session.data.accountAddress.toLowerCase() === address.toLowerCase()
-      ) {
+      if (session.data.chainId === chainId && 
+          session.data.accountAddress.toLowerCase() === address.toLowerCase()) {
         return [session]
       }
     }
@@ -452,7 +449,7 @@ const siwxConfig = createDefaultSIWXConfig({
   }
 })
 
-// SDK 초기화
+// SDK initialization
 const crossSdk = initCrossSdkWithParams({
   projectId,
   redirectUrl,
@@ -461,31 +458,29 @@ const crossSdk = initCrossSdkWithParams({
   defaultNetwork,
   adapters,
   mobileLink,
-  siwx: siwxConfig // SIWX 설정 추가
+  siwx: siwxConfig // Add SIWX configuration
 })
 ```
 
 ### CDN
 
 ```javascript
-// SIWX 설정
+// SIWX configuration
 const siwxConfig = window.CrossSdk.createDefaultSIWXConfig({
   statement: 'Sign in to My App',
   getNonce: async () => {
     console.warn('⚠️ Using client-side nonce. Use backend nonce for production!')
     return Math.random().toString(36).substring(2, 15)
   },
-  addSession: async session => {
+  addSession: async (session) => {
     localStorage.setItem('siwx_session', JSON.stringify(session))
   },
   getSessions: async (chainId, address) => {
     const sessionStr = localStorage.getItem('siwx_session')
     if (sessionStr) {
       const session = JSON.parse(sessionStr)
-      if (
-        session.data.chainId === chainId &&
-        session.data.accountAddress.toLowerCase() === address.toLowerCase()
-      ) {
+      if (session.data.chainId === chainId && 
+          session.data.accountAddress.toLowerCase() === address.toLowerCase()) {
         return [session]
       }
     }
@@ -493,7 +488,7 @@ const siwxConfig = window.CrossSdk.createDefaultSIWXConfig({
   }
 })
 
-// SDK 초기화
+// SDK initialization
 const crossSdk = window.CrossSdk.initCrossSdkWithParams({
   projectId: '0979fd7c92ec3dbd8e78f433c3e5a523',
   redirectUrl: window.location.origin,
@@ -507,50 +502,48 @@ const crossSdk = window.CrossSdk.initCrossSdkWithParams({
   defaultNetwork: window.CrossSdk.crossMainnet,
   adapters: [],
   mobileLink: 'https://cross-wallet.crosstoken.io',
-  siwx: siwxConfig // SIWX 설정 추가
+  siwx: siwxConfig // Add SIWX configuration
 })
 ```
 
 ### Wagmi
 
 ```typescript
-import { ToNexusWagmiAdapter } from '@to-nexus/appkit-adapter-wagmi'
 import { createDefaultSIWXConfig } from '@to-nexus/appkit/react'
+import { ToNexusWagmiAdapter } from '@to-nexus/appkit-adapter-wagmi'
 
-// SIWX 설정
+// SIWX configuration
 export const siwxConfig = createDefaultSIWXConfig({
   statement: 'Sign in to My Wagmi App',
   getNonce: async () => {
     const response = await fetch('/api/nonce')
     return response.text()
   },
-  addSession: async session => {
+  addSession: async (session) => {
     localStorage.setItem('siwx_session', JSON.stringify(session))
   },
   getSessions: async (chainId, address) => {
     const sessionStr = localStorage.getItem('siwx_session')
     if (sessionStr) {
       const session = JSON.parse(sessionStr)
-      if (
-        session.data.chainId === chainId &&
-        session.data.accountAddress.toLowerCase() === address.toLowerCase()
-      ) {
+      if (session.data.chainId === chainId && 
+          session.data.accountAddress.toLowerCase() === address.toLowerCase()) {
         return [session]
       }
     }
     return []
   },
-  getRequired: () => false // 자동 SIWE 모달 비활성화 (Connect + Auth 버튼 사용 시)
+  getRequired: () => false // Disable auto SIWE modal (when using Connect + Auth buttons)
 })
 
-// Wagmi Adapter 생성
+// Create Wagmi Adapter
 export const sdkWagmiAdapter = new ToNexusWagmiAdapter({
   projectId,
   networks,
-  siwx: siwxConfig // SIWX 설정 추가
+  siwx: siwxConfig // Add SIWX configuration
 })
 
-// Cross SDK 초기화 (Cross Wallet용)
+// Initialize Cross SDK (for Cross Wallet)
 initCrossSdk(
   projectId,
   redirectUrl,
@@ -559,68 +552,66 @@ initCrossSdk(
   defaultNetwork,
   [sdkWagmiAdapter],
   mobileLink,
-  siwxConfig // SIWX 설정 추가
+  siwxConfig // Add SIWX configuration
 )
 ```
 
 ---
 
-## 보안 권장사항
+## Security Recommendations
 
-### 1. Nonce 생성
+### 1. Nonce Generation
 
-**❌ 절대 하지 말아야 할 것:**
+**❌ What NOT to do:**
 
 ```typescript
-// 클라이언트에서 nonce 생성 (재사용 공격 취약!)
+// Generating nonce on client (vulnerable to replay attacks!)
 getNonce: async () => {
   return Math.random().toString(36).substring(2, 15)
 }
 ```
 
-**✅ 반드시 해야 할 것:**
+**✅ What you MUST do:**
 
 ```typescript
-// 백엔드에서 nonce 생성 및 검증
+// Generate and verify nonce on backend
 getNonce: async () => {
   const response = await fetch('https://your-api.com/api/siwe/nonce', {
-    credentials: 'include' // 세션 쿠키 포함
+    credentials: 'include' // Include session cookies
   })
   return response.text()
 }
 ```
 
-**백엔드 구현 예시 (Node.js + Express):**
+**Backend Implementation Example (Node.js + Express):**
 
 ```javascript
 const express = require('express')
 const session = require('express-session')
 const { generateNonce } = require('siwe')
 
-app.use(
-  session({
-    secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: true, httpOnly: true, sameSite: 'strict' }
-  })
-)
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: true, httpOnly: true, sameSite: 'strict' }
+}))
 
-// Nonce 생성 엔드포인트
+// Nonce generation endpoint
 app.get('/api/siwe/nonce', (req, res) => {
   req.session.nonce = generateNonce()
   res.send(req.session.nonce)
 })
 
-// 서명 검증 엔드포인트
+// Signature verification endpoint
 app.post('/api/siwe/verify', async (req, res) => {
   const { message, signature } = req.body
   const siweMessage = new SiweMessage(message)
-
+  
   try {
     await siweMessage.verify({ signature, nonce: req.session.nonce })
     req.session.siwe = { address: siweMessage.address, chainId: siweMessage.chainId }
-    req.session.nonce = null // nonce 무효화
+    req.session.nonce = null // Invalidate nonce
     res.json({ success: true })
   } catch (error) {
     res.status(400).json({ success: false, error: error.message })
@@ -628,51 +619,51 @@ app.post('/api/siwe/verify', async (req, res) => {
 })
 ```
 
-### 2. 세션 저장
+### 2. Session Storage
 
-**로컬 개발용 (localStorage):**
+**For local development (localStorage):**
 
 ```typescript
-addSession: async session => {
+addSession: async (session) => {
   localStorage.setItem('siwx_session', JSON.stringify(session))
 }
 ```
 
-**프로덕션용 (백엔드 저장):**
+**For production (backend storage):**
 
 ```typescript
-addSession: async session => {
+addSession: async (session) => {
   await fetch('https://your-api.com/api/siwe/session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(session)
   })
-  localStorage.setItem('has_siwx_session', 'true') // 플래그만 저장
+  localStorage.setItem('has_siwx_session', 'true') // Only save flag
 }
 ```
 
-### 3. HTTPS 사용
+### 3. Use HTTPS
 
-프로덕션 환경에서는 반드시 HTTPS를 사용하여 중간자 공격을 방지해야 합니다.
+In production environments, you must use HTTPS to prevent man-in-the-middle attacks.
 
-### 4. 도메인 검증
+### 4. Domain Verification
 
-백엔드에서 SIWE 메시지의 `domain` 필드가 현재 요청의 도메인과 일치하는지 확인해야 합니다.
+The backend should verify that the SIWE message's `domain` field matches the current request's domain.
 
 ---
 
-## 버튼 상태 관리
+## Button State Management
 
-여러 버튼이 있을 때 개별 loading 상태를 관리하는 패턴입니다.
+Pattern for managing individual loading states when you have multiple buttons.
 
-### React 예제
+### React Example
 
 ```typescript
 import { useState } from 'react'
 
 function WalletButtons() {
-  // ✅ 개별 버튼별 loading state 관리
+  // ✅ Manage loading state for each button individually
   const [loadingStates, setLoadingStates] = useState({
     connectQR: false,
     connectExtension: false,
@@ -680,14 +671,14 @@ function WalletButtons() {
     authenticateExtension: false
   })
 
-  // 전체 loading 여부 계산
+  // Calculate if any button is loading
   const isAnyLoading = Object.values(loadingStates).some(state => state)
 
   const handleAuthenticateQR = async () => {
     try {
       setLoadingStates(prev => ({ ...prev, authenticateQR: true }))
       const result = await authenticateWalletConnect()
-      // 처리 로직
+      // Handle result
     } catch (error) {
       console.error(error)
     } finally {
@@ -699,7 +690,7 @@ function WalletButtons() {
     try {
       setLoadingStates(prev => ({ ...prev, authenticateExtension: true }))
       const result = await authenticateCrossExtensionWallet()
-      // 처리 로직
+      // Handle result
     } catch (error) {
       console.error(error)
     } finally {
@@ -709,15 +700,15 @@ function WalletButtons() {
 
   return (
     <div>
-      <button
-        onClick={handleAuthenticateQR}
+      <button 
+        onClick={handleAuthenticateQR} 
         disabled={isAnyLoading}
       >
         {loadingStates.authenticateQR ? 'Authenticating...' : 'Connect + Auth (QR)'}
       </button>
-
-      <button
-        onClick={handleAuthenticateExtension}
+      
+      <button 
+        onClick={handleAuthenticateExtension} 
         disabled={isAnyLoading}
       >
         {loadingStates.authenticateExtension ? 'Authenticating...' : 'Connect + Auth (Extension)'}
@@ -727,33 +718,32 @@ function WalletButtons() {
 }
 ```
 
-### 모달 취소 시 상태 복구 (React)
+### Restore State on Modal Cancel (React)
 
-AppKit 모달을 취소했을 때 loading 상태를 복구하는 패턴:
+Pattern to restore loading state when AppKit modal is canceled:
 
 ```typescript
+import { useAppKitState } from '@to-nexus/sdk/react'
 import { useEffect } from 'react'
 
-import { useAppKitState } from '@to-nexus/sdk/react'
-
 function WalletButtons() {
-  const appKitState = useAppKitState() // 모달 상태 구독
+  const appKitState = useAppKitState() // Subscribe to modal state
   const [loadingStates, setLoadingStates] = useState({
     authenticateQR: false
   })
 
-  // ✅ 모달이 닫힐 때 authenticateQR loading state 리셋
+  // ✅ Reset authenticateQR loading state when modal closes
   useEffect(() => {
     if (!appKitState.open && loadingStates.authenticateQR) {
       setLoadingStates(prev => ({ ...prev, authenticateQR: false }))
     }
   }, [appKitState.open, loadingStates.authenticateQR])
 
-  // ... 버튼 핸들러
+  // ... button handlers
 }
 ```
 
-### Vanilla JS / CDN 예제
+### Vanilla JS / CDN Example
 
 ```javascript
 const buttons = {
@@ -773,9 +763,9 @@ buttons.authenticateQR.addEventListener('click', async () => {
   try {
     setButtonLoading('authenticateQR', true)
     buttons.authenticateQR.textContent = 'Authenticating...'
-
+    
     const result = await crossSdk.authenticateWalletConnect()
-    // 처리 로직
+    // Handle result
   } catch (error) {
     console.error(error)
   } finally {
@@ -789,9 +779,9 @@ buttons.authenticateExtension.addEventListener('click', async () => {
   try {
     setButtonLoading('authenticateExtension', true)
     buttons.authenticateExtension.textContent = 'Authenticating...'
-
+    
     const result = await ConnectorUtil.authenticateCrossExtensionWallet()
-    // 처리 로직
+    // Handle result
   } catch (error) {
     console.error(error)
   } finally {
@@ -803,69 +793,69 @@ buttons.authenticateExtension.addEventListener('click', async () => {
 
 ---
 
-## 자동 재연결
+## Auto-Reconnection
 
-페이지 새로고침 시 이전 연결을 복원하는 로직입니다.
+Logic to restore previous connection on page refresh.
 
-### localStorage 플래그 관리
+### localStorage Flag Management
 
 ```typescript
-// 연결 성공 시
+// On successful connection
 localStorage.setItem('wallet_connected', 'true')
-localStorage.setItem('wallet_type', 'cross') // 또는 'metamask'
-localStorage.setItem('has_siwx_session', 'true') // SIWE 인증 완료 시
+localStorage.setItem('wallet_type', 'cross') // or 'metamask'
+localStorage.setItem('has_siwx_session', 'true') // When SIWE authentication is complete
 
-// 연결 해제 시
+// On disconnection
 localStorage.removeItem('wallet_connected')
 localStorage.removeItem('wallet_type')
 localStorage.removeItem('has_siwx_session')
 localStorage.removeItem('siwx_session')
 ```
 
-### 자동 재연결 조건
+### Auto-Reconnection Conditions
 
 ```typescript
-// Cross Wallet의 경우 SDK가 자동으로 재연결을 처리합니다.
-// 다음 조건을 모두 만족할 때 자동 재연결:
+// For Cross Wallet, the SDK handles auto-reconnection automatically.
+// Auto-reconnect when ALL conditions are met:
 // 1. wallet_connected === 'true'
-// 2. WalletConnect 세션이 유효함
-// 3. SIWX 세션이 있으면 getSessions()로 조회 가능
+// 2. WalletConnect session is valid
+// 3. If SIWX session exists, it's retrievable via getSessions()
 ```
 
-### MetaMask Extension 자동 재연결 (예제)
+### MetaMask Extension Auto-Reconnect (Example)
 
 ```typescript
 async function autoReconnectMetaMask() {
   try {
     const wasConnected = localStorage.getItem('wallet_connected') === 'true'
     const walletType = localStorage.getItem('wallet_type')
-
+    
     if (!wasConnected || walletType !== 'metamask') {
-      return // 이전에 연결된 적 없음
+      return // Not previously connected
     }
-
+    
     const provider = findMetaMaskProvider()
     if (!provider) {
       localStorage.removeItem('wallet_connected')
       return
     }
-
-    // eth_accounts는 이미 연결된 계정만 반환 (사용자 승인 불필요)
+    
+    // eth_accounts only returns already connected accounts (no user approval needed)
     const accounts = await provider.request({ method: 'eth_accounts' })
-
+    
     if (accounts && accounts.length > 0) {
-      // 연결 복원
+      // Restore connection
       metamaskProvider = provider
       metamaskAccount = accounts[0]
-
-      // 네트워크 정보 가져오기
+      
+      // Get network info
       const chainIdHex = await provider.request({ method: 'eth_chainId' })
       metamaskChainId = parseInt(chainIdHex, 16)
-
-      // 이벤트 리스너 재설정
+      
+      // Re-setup event listeners
       provider.on('chainChanged', handleChainChanged)
       provider.on('accountsChanged', handleAccountsChanged)
-
+      
       console.log('✅ Auto-reconnected to MetaMask')
     } else {
       localStorage.removeItem('wallet_connected')
@@ -876,35 +866,35 @@ async function autoReconnectMetaMask() {
   }
 }
 
-// 페이지 로드 시 실행
+// Execute on page load
 autoReconnectMetaMask()
 ```
 
 ---
 
-## 일반 connect와의 비교
+## Comparison with Regular Connect
 
-### 기존 방식 (2단계)
+### Traditional Approach (2 steps)
 
 ```typescript
 const { connect } = useAppKit()
 
-// 1단계: 연결
-await connect() // 지갑으로 이동 → 승인 → dApp으로 복귀
+// Step 1: Connect
+await connect() // Switch to wallet → approve → return to dApp
 
-// 2단계: SIWE 서명 (자동으로 모달 표시)
-// 지갑으로 이동 → 서명 → dApp으로 복귀
+// Step 2: SIWE Sign (modal appears automatically)
+// Switch to wallet → sign → return to dApp
 ```
 
-### 새로운 방식 (1단계)
+### New Approach (1 step)
 
 #### QR Code
 
 ```typescript
 const { authenticateWalletConnect } = useAppKit()
 
-// 한번에 처리
-await authenticateWalletConnect() // 지갑으로 이동 → 승인 → dApp으로 복귀 (끝!)
+// Single step
+await authenticateWalletConnect() // Switch to wallet → approve → return to dApp (done!)
 ```
 
 #### Extension
@@ -912,38 +902,38 @@ await authenticateWalletConnect() // 지갑으로 이동 → 승인 → dApp으�
 ```typescript
 const { authenticateCrossExtensionWallet } = useAppKitWallet()
 
-// 한번에 처리
-await authenticateCrossExtensionWallet() // Extension에서 연결 + 서명 한 번에!
+// Single step
+await authenticateCrossExtensionWallet() // Connect + sign in extension at once!
 ```
 
 ---
 
-## 모바일 UX 개선 효과
+## Mobile UX Improvement
 
-### Before (기존 방식)
-
-```
-1. dApp에서 "Connect" 버튼 클릭
-2. 지갑 앱으로 이동
-3. 연결 승인
-4. dApp으로 복귀
-5. SIWE 서명 모달 표시
-6. "Sign" 버튼 클릭
-7. 지갑 앱으로 이동
-8. 서명 승인
-9. dApp으로 복귀
-```
-
-### After (통합 인증)
+### Before (Traditional Approach)
 
 ```
-1. dApp에서 "Connect + Auth" 버튼 클릭
-2. 지갑 앱으로 이동
-3. 연결 + 서명 한번에 승인
-4. dApp으로 복귀
+1. Click "Connect" button on dApp
+2. Switch to wallet app
+3. Approve connection
+4. Return to dApp
+5. SIWE sign modal appears
+6. Click "Sign" button
+7. Switch to wallet app
+8. Approve signature
+9. Return to dApp
 ```
 
-**약 50% 단계 감소! 🚀**
+### After (Integrated Authentication)
+
+```
+1. Click "Connect + Auth" button on dApp
+2. Switch to wallet app
+3. Approve connection + signature at once
+4. Return to dApp
+```
+
+**Approximately 50% reduction in steps! 🚀**
 
 ---
 
@@ -951,18 +941,18 @@ await authenticateCrossExtensionWallet() // Extension에서 연결 + 서명 한 
 
 ### `authenticateWalletConnect()`
 
-WalletConnect를 통해 연결과 SIWE 인증을 동시에 수행합니다.
+Performs connection and SIWE authentication simultaneously via WalletConnect.
 
 **Returns**: `Promise<{ authenticated: boolean; sessions: SIWXSession[] }>`
 
-- `authenticated`: 인증 성공 여부
-- `sessions`: SIWX 세션 배열
+- `authenticated`: Whether authentication was successful
+- `sessions`: Array of SIWX sessions
 
 **Throws**:
 
-- 연결 실패
-- 인증 실패
-- SIWX 미설정
+- Connection failure
+- Authentication failure
+- SIWX not configured
 
 **Usage**:
 
@@ -974,25 +964,25 @@ const result = await authenticateWalletConnect()
 // AppKit Instance
 await modal.authenticateWalletConnect()
 
-// ConnectionController (고급 사용)
+// ConnectionController (advanced usage)
 await ConnectionController.authenticateWalletConnect()
 ```
 
 ### `authenticateCrossExtensionWallet()`
 
-브라우저 확장 프로그램 지갑을 통해 연결과 SIWE 인증을 동시에 수행합니다.
+Performs connection and SIWE authentication simultaneously via browser extension wallet.
 
 **Returns**: `Promise<{ authenticated: boolean; sessions: SIWXSession[] }>`
 
-- `authenticated`: 인증 성공 여부
-- `sessions`: SIWX 세션 배열
+- `authenticated`: Whether authentication was successful
+- `sessions`: Array of SIWX sessions
 
 **Throws**:
 
-- 확장 프로그램 미설치
-- 연결 실패
-- 인증 실패
-- SIWX 미설정
+- Extension not installed
+- Connection failure
+- Authentication failure
+- SIWX not configured
 
 **Usage**:
 
@@ -1010,24 +1000,24 @@ const result = await sdkWagmiAdapter.authenticateCrossExtensionWallet()
 
 ### `createDefaultSIWXConfig(options)`
 
-표준 SIWX 설정을 생성합니다.
+Creates a standard SIWX configuration.
 
 **Parameters**:
 
 ```typescript
 interface CreateSIWXConfigOptions {
-  // === 자주 커스터마이즈하는 옵션 ===
+  // === Frequently customized options ===
   statement?: string
   getNonce?: () => Promise<string>
   addSession?: (session: SIWXSession) => Promise<void>
   getSessions?: (chainId: string, address: string) => Promise<SIWXSession[]>
-
-  // === 선택적 옵션 ===
+  
+  // === Optional options ===
   domain?: string
   uri?: string
   expirationTime?: string | ((issuedAt: Date) => string)
-
-  // === 고급 옵션 ===
+  
+  // === Advanced options ===
   revokeSession?: (chainId: string, address: string) => Promise<void>
   setSessions?: (sessions: SIWXSession[]) => Promise<void>
   getRequired?: () => boolean
@@ -1052,65 +1042,63 @@ const siwxConfig = createDefaultSIWXConfig({
 
 ---
 
-## 제한사항
+## Limitations
 
-1. **EIP-155 체인만 지원**: Solana 등 다른 체인에서는 작동하지 않습니다
-2. **SIWX 필수**: SIWX가 설정되지 않으면 에러가 발생합니다
-3. **`authenticateWalletConnect`는 WalletConnect 전용**: 브라우저 확장 프로그램에서는 `authenticateCrossExtensionWallet`을 사용하세요
+1. **EIP-155 chains only**: Does not work on other chains like Solana
+2. **SIWX required**: Error will occur if SIWX is not configured
+3. **`authenticateWalletConnect` is WalletConnect-only**: For browser extensions, use `authenticateCrossExtensionWallet`
 
 ---
 
-## 문제 해결
+## Troubleshooting
 
-### 중복 SIWE 모달이 표시됨
+### Duplicate SIWE modal appears
 
-SDK는 연결 후 자동으로 SIWE 모달을 표시하려고 시도합니다. `authenticateWalletConnect()` 또는 `authenticateCrossExtensionWallet()`을 사용하면 이미 인증이 완료되었으므로 중복 모달을 방지하는 내부 플래그(`_isAuthenticating`)가 관리됩니다.
+The SDK tries to automatically show SIWE modal after connection. When using `authenticateWalletConnect()` or `authenticateCrossExtensionWallet()`, authentication is already complete, so an internal flag (`_isAuthenticating`) prevents duplicate modals.
 
-**해결책**: SDK가 제공하는 통합 인증 메서드를 사용하면 자동으로 처리됩니다.
+**Solution**: Use the integrated authentication methods provided by the SDK, and it will be handled automatically.
 
-### 새로고침 시 SIWE 모달이 다시 표시됨
+### SIWE modal appears again after refresh
 
-`getSessions()` 함수가 올바르게 구현되지 않았을 수 있습니다.
+Your `getSessions()` function may not be implemented correctly.
 
-**해결책**:
+**Solution**:
 
 ```typescript
 getSessions: async (chainId, address) => {
-  // localStorage.getItem('siwx_session') 확인
+  // Check localStorage.getItem('siwx_session')
   const sessionStr = localStorage.getItem('siwx_session')
   if (sessionStr) {
     const session = JSON.parse(sessionStr)
-    if (
-      session.data.chainId === chainId &&
-      session.data.accountAddress.toLowerCase() === address.toLowerCase()
-    ) {
+    if (session.data.chainId === chainId && 
+        session.data.accountAddress.toLowerCase() === address.toLowerCase()) {
       return [session]
     }
   }
-
-  // localStorage.getItem('siwx_sessions') 확인 (QR Code 인증 시)
+  
+  // Check localStorage.getItem('siwx_sessions') (for QR Code authentication)
   const sessionsStr = localStorage.getItem('siwx_sessions')
   if (sessionsStr) {
     const sessions = JSON.parse(sessionsStr)
     return sessions.filter(
-      (s: any) =>
-        s.data.chainId === chainId && s.data.accountAddress.toLowerCase() === address.toLowerCase()
+      (s: any) => s.data.chainId === chainId && 
+                  s.data.accountAddress.toLowerCase() === address.toLowerCase()
     )
   }
-
+  
   return []
 }
 ```
 
-### 버튼이 loading 상태에서 멈춤
+### Button stuck in loading state
 
-모달을 취소했을 때 loading 상태가 복구되지 않았을 수 있습니다.
+Loading state may not have been restored when modal was canceled.
 
-**해결책**: [버튼 상태 관리](#버튼-상태-관리) 섹션의 "모달 취소 시 상태 복구" 패턴을 참고하세요.
+**Solution**: Refer to the "Restore State on Modal Cancel" pattern in the [Button State Management](#button-state-management) section.
 
 ---
 
-## 관련 문서
+## Related Documentation
 
 - [Cross SDK Documentation](https://cross.readme.io/update/docs/js/)
 - [SIWE Specification](https://eips.ethereum.org/EIPS/eip-4361)
@@ -1118,11 +1106,12 @@ getSessions: async (chainId, address) => {
 
 ---
 
-## 예제 코드
+## Example Code
 
-전체 예제는 다음 디렉토리에서 확인하실 수 있습니다:
+Full examples are available in the following directories:
 
 - [React Example](../examples/sdk-react/)
 - [Vanilla JS Example](../examples/sdk-vanilla/)
 - [CDN Example](../examples/sdk-cdn/)
 - [Wagmi Example](../examples/sdk-wagmi/)
+

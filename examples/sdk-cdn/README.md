@@ -2,6 +2,22 @@
 
 # CROSS SDK - CDN example
 
+## Features
+
+This example demonstrates:
+
+- **Cross Wallet** connection (QR Code & Extension via Cross SDK modal)
+- **Cross Extension** - Browser extension wallet
+- **MetaMask Extension** - Browser extension wallet
+- **Connect + Auth** - One-click connection with SIWE authentication
+  - 📖 For detailed usage and implementation guide, see [Authentication Guide](../../docs/authenticate-wallet-connect.md) ([English](../../docs/authenticate-wallet-connect-en.md))
+
+> ⚠️ **Note**: MetaMask QR Code is not supported in CDN mode due to Node.js module dependencies (`events` module). Use `sdk-vanilla` example for full MetaMask QR Code support.
+
+---
+
+## Setup
+
 1.  Prerequisites
 
     - Node.js ^20.18.0
