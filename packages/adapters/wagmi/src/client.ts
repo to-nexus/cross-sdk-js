@@ -7,7 +7,12 @@ import {
   NetworkUtil,
   isReownName
 } from '@to-nexus/appkit-common'
-import { CoreHelperUtil, StorageUtil } from '@to-nexus/appkit-core'
+import {
+  CoreHelperUtil,
+  OptionsController,
+  type SIWXSession,
+  StorageUtil
+} from '@to-nexus/appkit-core'
 import {
   type ConnectorType,
   ConstantsUtil as CoreConstantsUtil,
@@ -75,12 +80,14 @@ export class WagmiAdapter extends AdapterBlueprint {
   private pendingTransactionsFilter: PendingTransactionsFilter
   private unwatchPendingTransactions: (() => void) | undefined
   private balancePromises: Record<string, Promise<AdapterBlueprint.GetBalanceResult>> = {}
+  private siwx?: AppKitOptions['siwx']
 
   constructor(
     configParams: Partial<CreateConfigParameters> & {
       networks: AppKitNetwork[]
       pendingTransactionsFilter?: PendingTransactionsFilter
       projectId: string
+      siwx?: AppKitOptions['siwx']
     }
   ) {
     super({
@@ -97,6 +104,14 @@ export class WagmiAdapter extends AdapterBlueprint {
     this.pendingTransactionsFilter = {
       ...DEFAULT_PENDING_TRANSACTIONS_FILTER,
       ...(configParams.pendingTransactionsFilter ?? {})
+    }
+
+    // ✅ SIWX 설정 저장
+    this.siwx = configParams.siwx
+
+    // ✅ OptionsController에 SIWX 설정 등록 (SIWXUtil이 사용하기 위해)
+    if (this.siwx) {
+      OptionsController.setSIWX(this.siwx)
     }
 
     this.namespace = CommonConstantsUtil.CHAIN.EVM
@@ -289,8 +304,10 @@ export class WagmiAdapter extends AdapterBlueprint {
     const customConnectors: CreateConnectorFn[] = []
 
     if (options.enableWalletConnect !== false) {
+      // ✅ SIWX 설정을 options에 추가
+      const optionsWithSIWX = { ...options, siwx: this.siwx }
       customConnectors.push(
-        walletConnect(options, appKit, this.caipNetworks as [CaipNetwork, ...CaipNetwork[]])
+        walletConnect(optionsWithSIWX, appKit, this.caipNetworks as [CaipNetwork, ...CaipNetwork[]])
       )
     }
 
@@ -550,8 +567,27 @@ export class WagmiAdapter extends AdapterBlueprint {
       this.wagmiConfig.connectors.map(connector => this.addWagmiConnector(connector, options))
     )
 
-    // Add wagmi connectors
+    // ✅ Add wagmi connectors FIRST to create the walletConnect connector
     this.addWagmiConnectors(options, appKit)
+
+    /*
+     * ✅ WalletConnect provider를 가져와서 WalletConnectConnector 인스턴스 생성
+     * Wait a bit for connector to be fully initialized
+     */
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const walletConnectWagmiConnector = this.getWagmiConnector('walletConnect')
+    if (walletConnectWagmiConnector) {
+      try {
+        const universalProvider =
+          (await walletConnectWagmiConnector.getProvider()) as UniversalProvider
+        if (universalProvider) {
+          this.setUniversalProvider(universalProvider)
+        }
+      } catch (error) {
+        console.warn('Failed to get WalletConnect provider:', error)
+      }
+    }
 
     // Add third party connectors
     await this.addThirdPartyConnectors(options)
@@ -567,8 +603,8 @@ export class WagmiAdapter extends AdapterBlueprint {
     let provider: Provider | undefined = undefined
     try {
       provider = (await connector?.getProvider()) as Provider
-    } catch (error) {
-      console.log('error', error)
+    } catch {
+      // Provider may not be available immediately
     }
     // Emit accountChanged event after syncing connection
     if (connection?.accounts[0]) {
@@ -603,28 +639,159 @@ export class WagmiAdapter extends AdapterBlueprint {
     return { clientId: await walletConnectConnector.provider.client.core.crypto.getClientId() }
   }
 
-  public override async authenticateWalletConnect(chainId?: number | string): Promise<boolean> {
-    // wc_sessionAuthenticate 방식: 연결 + SIWE 한 번에
-    const walletConnectConnector = this.getWalletConnectConnector()
-    const isAuthenticated = await walletConnectConnector.authenticate()
+  public override async authenticateWalletConnect(
+    chainId?: number | string
+  ): Promise<{ authenticated: boolean; sessions: SIWXSession[] }> {
+    // WC_sessionAuthenticate 방식: 연결 + SIWE 한 번에
+    const wagmiConnector = this.getWagmiConnector('walletConnect') as any
 
-    if (isAuthenticated) {
-      const wagmiConnector = this.getWagmiConnector('walletConnect')
-      if (wagmiConnector) {
+    if (!wagmiConnector) {
+      throw new Error('WagmiAdapter:authenticateWalletConnect - connector not found')
+    }
+
+    // ✅ Use Wagmi connector's authenticate method (added in UniversalConnector)
+    if (typeof wagmiConnector.authenticate === 'function') {
+      const result = await wagmiConnector.authenticate()
+
+      if (result.authenticated && result.sessions.length > 0) {
         await connect(this.wagmiConfig, {
           connector: wagmiConnector,
           chainId: chainId ? Number(chainId) : undefined
         })
       }
+
+      return result
     }
 
-    return isAuthenticated
+    // Fallback to WalletConnectConnector (should not happen)
+    const walletConnectConnector = this.getWalletConnectConnector()
+    const result = await walletConnectConnector.authenticate()
+
+    if (result.authenticated && result.sessions.length > 0) {
+      await connect(this.wagmiConfig, {
+        connector: wagmiConnector,
+        chainId: chainId ? Number(chainId) : undefined
+      })
+    }
+
+    return result
+  }
+
+  // ✅ Cross Extension 연결 + SIWE 인증 통합 (Wagmi adapter용)
+  public async authenticateCrossExtensionWallet(): Promise<{
+    authenticated: boolean
+    sessions: SIWXSession[]
+  }> {
+    console.log('🔐 WagmiAdapter.authenticateCrossExtensionWallet() called')
+    console.log('📋 SIWX config exists:', Boolean(this.siwx))
+    console.log('📋 OptionsController SIWX:', Boolean(OptionsController.state.siwx))
+
+    if (!this.siwx) {
+      throw new Error('SIWX not configured')
+    }
+
+    try {
+      /*
+       * Import SIWXUtil
+       * @ts-ignore - Dynamic import
+       */
+      const { SIWXUtil, ChainController, CoreHelperUtil } = await import('@to-nexus/appkit-core')
+      console.log('✅ Core modules imported')
+
+      // Set flag to prevent auto SIWE modal
+      console.log('🚀 Setting _isAuthenticating = true')
+      SIWXUtil._isAuthenticating = true
+
+      // 1. Connect using Wagmi
+      console.log('🔌 Connecting via Wagmi...')
+      const crossConnector = this.getWagmiConnector('nexus.to.crosswallet.desktop')
+
+      if (!crossConnector) {
+        SIWXUtil._isAuthenticating = false
+        throw new Error('Cross Extension connector not found')
+      }
+
+      const connectResult = await connect(this.wagmiConfig, { connector: crossConnector })
+      console.log('✅ Wagmi connected:', connectResult.accounts[0])
+
+      // 2. Wait for ChainController to sync
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      const caipAddress = ChainController.getActiveCaipAddress()
+      console.log('📍 caipAddress:', caipAddress)
+
+      if (!caipAddress) {
+        SIWXUtil._isAuthenticating = false
+        throw new Error('Failed to get CAIP address')
+      }
+
+      // 3. Get address and network
+      const address = CoreHelperUtil.getPlainAddress(caipAddress as any)
+      const network = ChainController.getActiveCaipNetwork()
+      console.log('📍 Plain address:', address, 'Network:', network?.caipNetworkId)
+
+      if (!address || !network) {
+        SIWXUtil._isAuthenticating = false
+        throw new Error('Failed to get address or network')
+      }
+
+      // 4. Create SIWE message
+      console.log('📝 Creating SIWE message...')
+      const siwxMessage = await this.siwx.createMessage({
+        chainId: network.caipNetworkId,
+        accountAddress: address
+      })
+      const message = siwxMessage.toString()
+      console.log('✅ SIWE message created')
+
+      // 5. Sign message
+      console.log('✍️ Signing message...')
+      const signature = await signMessage(this.wagmiConfig, { message })
+      console.log('✅ Signature received:', `${signature.substring(0, 20)}...`)
+
+      // 6. Create session
+      const session: SIWXSession = {
+        data: siwxMessage,
+        message,
+        signature,
+        cacao: undefined
+      }
+
+      await this.siwx.addSession(session)
+      console.log('💾 Session saved')
+
+      // Verify session
+      let savedSessions = await this.siwx.getSessions(network.caipNetworkId, address)
+      if (savedSessions.length === 0) {
+        console.warn('⚠️ Retrying session check...')
+        await new Promise(resolve => setTimeout(resolve, 100))
+        savedSessions = await this.siwx.getSessions(network.caipNetworkId, address)
+      }
+      console.log('✅ Sessions verified:', savedSessions.length)
+
+      // Clear flag after delay
+      setTimeout(() => {
+        console.log('🏁 Clearing _isAuthenticating flag')
+        SIWXUtil._isAuthenticating = false
+      }, 200)
+
+      return { authenticated: true, sessions: [session] }
+    } catch (error) {
+      console.error('❌ Error:', error)
+      try {
+        const { SIWXUtil } = await import('@to-nexus/appkit-core')
+        SIWXUtil._isAuthenticating = false
+      } catch {
+        // Ignore if SIWXUtil import fails
+      }
+      throw error
+    }
   }
 
   public async connect(
     params: AdapterBlueprint.ConnectParams
   ): Promise<AdapterBlueprint.ConnectResult> {
-    const { id, provider, type, info, chainId } = params
+    const { id, provider, type, chainId } = params
     const connector = this.getWagmiConnector(id)
 
     if (!connector) {
@@ -649,8 +816,7 @@ export class WagmiAdapter extends AdapterBlueprint {
         type: type as ConnectorType,
         id
       }
-    } catch (error) {
-      console.log('error', error)
+    } catch {
       throw new Error('WagmiAdapter:connect - error connecting')
     }
   }

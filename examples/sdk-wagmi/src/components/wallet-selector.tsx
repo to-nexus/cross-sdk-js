@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { useAppKit as useReownAppKit } from '@reown/appkit/react'
+import { useAppKit } from '@to-nexus/appkit/react'
 import { useAppKitWallet } from '@to-nexus/appkit/react'
+import { useAccount } from 'wagmi'
+
+import { useAppKit as useReownAppKit } from '@reown/appkit/react'
 
 import { useWallet } from '../providers/WalletProvider'
-import { useAccount } from 'wagmi'
+import { sdkWagmiAdapter } from '../utils/wagmi-utils'
 
 export function WalletSelector() {
   const { currentWallet, handleConnect, handleDisconnect } = useWallet()
@@ -16,6 +19,7 @@ export function WalletSelector() {
   // Cross SDK hooks
   const { connect, connectCrossExtensionWallet, isInstalledCrossExtensionWallet } =
     useAppKitWallet()
+  const crossAppKit = useAppKit()
 
   // Reown AppKit hook
   const reownAppKit = useReownAppKit()
@@ -53,7 +57,7 @@ export function WalletSelector() {
       console.error('Cross Extension 설치 상태 확인 중 오류:', error)
       setIsCrossExtensionInstalled(false)
     }
-  }, [isInstalledCrossExtensionWallet])
+  }, [])
 
   // MetaMask Extension 설치 확인
   const checkMetaMaskExtension = useCallback(() => {
@@ -85,7 +89,7 @@ export function WalletSelector() {
     try {
       setIsLoading(true)
       console.log('🦊 MetaMask QR Code 연결 시도')
-      
+
       // 이미 MetaMask로 설정되어 있으면 바로 모달 열기
       if (currentWallet === 'metamask') {
         console.log('✅ 이미 MetaMask로 설정됨, 모달 열기')
@@ -94,10 +98,10 @@ export function WalletSelector() {
         // CrossWallet에서 전환 필요
         console.log('🔄 MetaMask로 전환 중...')
         await handleConnect('metamask')
-        
+
         // 지갑 전환 완료 대기 (리마운트 시간)
         await new Promise(resolve => setTimeout(resolve, 1000))
-        
+
         console.log('✅ MetaMask로 전환 완료, 모달 열기')
         reownAppKit.open()
       }
@@ -122,10 +126,10 @@ export function WalletSelector() {
         console.log('❌ MetaMask not found')
         alert(
           'MetaMask Extension이 설치되어 있지 않습니다.\n\n' +
-          'MetaMask를 설치하시거나, 이미 설치되어 있다면:\n' +
-          '1. MetaMask Extension을 활성화해주세요\n' +
-          '2. 다른 지갑 Extension을 비활성화하고 새로고침해주세요\n' +
-          '3. MetaMask (QR Code) 버튼을 사용해 모바일로 연결하세요'
+            'MetaMask를 설치하시거나, 이미 설치되어 있다면:\n' +
+            '1. MetaMask Extension을 활성화해주세요\n' +
+            '2. 다른 지갑 Extension을 비활성화하고 새로고침해주세요\n' +
+            '3. MetaMask (QR Code) 버튼을 사용해 모바일로 연결하세요'
         )
         return
       }
@@ -135,7 +139,7 @@ export function WalletSelector() {
       // 이미 MetaMask로 설정되어 있으면 바로 연결
       if (currentWallet === 'metamask') {
         console.log('✅ 이미 MetaMask로 설정됨, Extension 연결')
-        
+
         const accounts = await metamaskProvider.request({
           method: 'eth_requestAccounts'
         })
@@ -147,12 +151,12 @@ export function WalletSelector() {
         // CrossWallet에서 전환 필요
         console.log('🔄 MetaMask로 전환 중...')
         await handleConnect('metamask')
-        
+
         // 지갑 전환 완료 대기 (리마운트 시간 + 추가)
         await new Promise(resolve => setTimeout(resolve, 1200))
 
         console.log('✅ MetaMask로 전환 완료, Extension 연결')
-        
+
         const accounts = await metamaskProvider.request({
           method: 'eth_requestAccounts'
         })
@@ -183,10 +187,10 @@ export function WalletSelector() {
         // MetaMask에서 전환 필요
         console.log('🔄 CrossWallet으로 전환 중...')
         await handleConnect('cross_wallet')
-        
+
         // 지갑 전환 완료 대기 (리마운트 시간)
         await new Promise(resolve => setTimeout(resolve, 1000))
-        
+
         console.log('✅ CrossWallet으로 전환 완료, QR Code 모달 열기')
         connect('cross_wallet')
       }
@@ -207,7 +211,7 @@ export function WalletSelector() {
       // 이미 CrossWallet으로 설정되어 있으면 바로 연결
       if (currentWallet === 'cross_wallet') {
         console.log('✅ 이미 CrossWallet으로 설정됨, Extension 연결')
-        
+
         const result = await connectCrossExtensionWallet()
         console.log('✅ Cross Extension 연결 완료:', result)
       } else {
@@ -219,13 +223,145 @@ export function WalletSelector() {
         await new Promise(resolve => setTimeout(resolve, 1200))
 
         console.log('✅ CrossWallet으로 전환 완료, Extension 연결')
-        
+
         const result = await connectCrossExtensionWallet()
         console.log('✅ Cross Extension 연결 완료:', result)
       }
     } catch (error) {
       console.error('Error connecting Cross Extension:', error)
       alert(`연결 실패: ${(error as Error).message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // ✅ Cross Extension 연결 + SIWE 인증 통합
+  const handleAuthenticateCrossExtension = async () => {
+    try {
+      setIsLoading(true)
+      console.log('🔐 Cross Extension + SIWE 인증 시작')
+
+      // 이미 CrossWallet으로 설정되어 있으면 바로 인증
+      if (currentWallet === 'cross_wallet') {
+        console.log('✅ 이미 CrossWallet으로 설정됨, Extension 인증')
+
+        // ✅ Wagmi adapter의 authenticateCrossExtensionWallet 메서드 사용
+        const result = await sdkWagmiAdapter.authenticateCrossExtensionWallet()
+        console.log('✅ Cross Extension 인증 완료:', result)
+
+        if (result && result.authenticated && result.sessions && result.sessions.length > 0) {
+          const session = result.sessions[0]
+          if (session) {
+            alert(
+              `🎉 SIWE 인증 성공!\n\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `📍 Address:\n${session.data.accountAddress}\n\n` +
+                `🔗 Chain ID:\n${session.data.chainId}\n\n` +
+                `✍️ Signature:\n${session.signature.substring(0, 20)}...${session.signature.substring(session.signature.length - 20)}\n\n` +
+                `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━`
+            )
+          }
+        }
+      } else {
+        // MetaMask에서 전환 필요
+        console.log('🔄 CrossWallet으로 전환 중...')
+        await handleConnect('cross_wallet')
+
+        // 지갑 전환 완료 대기
+        await new Promise(resolve => setTimeout(resolve, 1200))
+
+        console.log('✅ CrossWallet으로 전환 완료, Extension 인증')
+
+        // ✅ Wagmi adapter의 authenticateCrossExtensionWallet 메서드 사용
+        const result = await sdkWagmiAdapter.authenticateCrossExtensionWallet()
+        console.log('✅ Cross Extension 인증 완료:', result)
+
+        if (result && result.authenticated && result.sessions && result.sessions.length > 0) {
+          const session = result.sessions[0]
+          if (session) {
+            alert(
+              `🎉 SIWE 인증 성공!\n\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `📍 Address:\n${session.data.accountAddress}\n\n` +
+                `🔗 Chain ID:\n${session.data.chainId}\n\n` +
+                `✍️ Signature:\n${session.signature.substring(0, 20)}...${session.signature.substring(session.signature.length - 20)}\n\n` +
+                `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━`
+            )
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error authenticating Cross Extension:', error)
+      alert(`인증 실패: ${(error as Error).message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // ✅ QR Code 연결 + SIWE 인증 통합
+  const handleAuthenticateWalletConnect = async () => {
+    try {
+      setIsLoading(true)
+      console.log('🔐 QR Code + SIWE 인증 시작')
+
+      // 이미 CrossWallet으로 설정되어 있으면 바로 인증
+      if (currentWallet === 'cross_wallet') {
+        console.log('✅ 이미 CrossWallet으로 설정됨, QR Code 인증')
+
+        const result = await crossAppKit.authenticateWalletConnect()
+        console.log('✅ QR Code 인증 완료:', result)
+
+        if (result && typeof result === 'object' && 'authenticated' in result) {
+          if (result.authenticated && result.sessions && result.sessions.length > 0) {
+            const session = result.sessions[0]
+            if (session) {
+              alert(
+                `🎉 SIWE 인증 성공!\n\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                  `📍 Address:\n${session.data.accountAddress}\n\n` +
+                  `🔗 Chain ID:\n${session.data.chainId}\n\n` +
+                  `✍️ Signature:\n${session.signature.substring(0, 20)}...${session.signature.substring(session.signature.length - 20)}\n\n` +
+                  `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━━`
+              )
+            }
+          }
+        }
+      } else {
+        // MetaMask에서 전환 필요
+        console.log('🔄 CrossWallet으로 전환 중...')
+        await handleConnect('cross_wallet')
+
+        // 지갑 전환 완료 대기
+        await new Promise(resolve => setTimeout(resolve, 1200))
+
+        console.log('✅ CrossWallet으로 전환 완료, QR Code 인증')
+
+        const result = await crossAppKit.authenticateWalletConnect()
+        console.log('✅ QR Code 인증 완료:', result)
+
+        if (result && typeof result === 'object' && 'authenticated' in result) {
+          if (result.authenticated && result.sessions && result.sessions.length > 0) {
+            const session = result.sessions[0]
+            if (session) {
+              alert(
+                `🎉 SIWE 인증 성공!\n\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                  `📍 Address:\n${session.data.accountAddress}\n\n` +
+                  `🔗 Chain ID:\n${session.data.chainId}\n\n` +
+                  `✍️ Signature:\n${session.signature.substring(0, 20)}...${session.signature.substring(session.signature.length - 20)}\n\n` +
+                  `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━━`
+              )
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error authenticating WalletConnect:', error)
+      alert(`인증 실패: ${(error as Error).message}`)
     } finally {
       setIsLoading(false)
     }
@@ -244,14 +380,13 @@ export function WalletSelector() {
         marginBottom: '24px'
       }}
     >
-      <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>
-        🔐 지갑 선택 및 연결
-      </h2>
+      <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>🔐 지갑 선택 및 연결</h2>
 
       {/* 현재 상태 표시 */}
       <div style={{ padding: '12px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '8px' }}>
         <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--text-secondary)' }}>
-          현재 지갑: <strong>{currentWallet === 'cross_wallet' ? 'CrossWallet' : 'MetaMask'}</strong>
+          현재 지갑:{' '}
+          <strong>{currentWallet === 'cross_wallet' ? 'CrossWallet' : 'MetaMask'}</strong>
         </p>
         {isConnected && (
           <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>
@@ -320,6 +455,8 @@ export function WalletSelector() {
             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#00D5AA' }}>
               ⚡ CrossWallet
             </h3>
+
+            {/* 일반 연결 버튼 */}
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button
                 onClick={handleConnectCrossWalletQRCode}
@@ -360,6 +497,54 @@ export function WalletSelector() {
                 {isLoading
                   ? 'Connecting...'
                   : `Connect Cross Extension ${isCrossExtensionInstalled ? '✅' : '❌'}`}
+              </button>
+            </div>
+
+            {/* ✅ Connect + Auth (SIWE) 버튼 */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
+              <button
+                onClick={handleAuthenticateWalletConnect}
+                disabled={isLoading}
+                style={{
+                  flex: 1,
+                  minWidth: '200px',
+                  padding: '12px 24px',
+                  backgroundColor: '#8B5CF6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  opacity: isLoading ? 0.6 : 1,
+                  boxShadow: '0 4px 6px rgba(139, 92, 246, 0.3)'
+                }}
+              >
+                {isLoading ? 'Authenticating...' : '🔐 Connect + Auth (QR Code)'}
+              </button>
+              <button
+                onClick={handleAuthenticateCrossExtension}
+                disabled={!isCrossExtensionInstalled || isLoading}
+                style={{
+                  flex: 1,
+                  minWidth: '200px',
+                  padding: '12px 24px',
+                  backgroundColor: isCrossExtensionInstalled ? '#6366F1' : '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: isCrossExtensionInstalled && !isLoading ? 'pointer' : 'not-allowed',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  opacity: isCrossExtensionInstalled && !isLoading ? 1 : 0.6,
+                  boxShadow: isCrossExtensionInstalled
+                    ? '0 4px 6px rgba(99, 102, 241, 0.3)'
+                    : 'none'
+                }}
+              >
+                {isLoading
+                  ? 'Authenticating...'
+                  : `🔐 Connect + Auth (Extension) ${isCrossExtensionInstalled ? '✅' : '❌'}`}
               </button>
             </div>
           </div>

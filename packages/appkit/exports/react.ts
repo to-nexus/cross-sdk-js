@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import {
   AccountController,
   CoreHelperUtil,
+  createDefaultSIWXConfig,
   type UseAppKitNetworkReturn
 } from '@to-nexus/appkit-core'
 import { useAppKitNetworkCore } from '@to-nexus/appkit-core/react'
@@ -23,7 +24,8 @@ export * from '../src/library/react/index.js'
 export * from '../src/utils/index.js'
 export type * from '@to-nexus/appkit-core'
 export type { CaipNetwork, CaipAddress, CaipNetworkId } from '@to-nexus/appkit-common'
-export { CoreHelperUtil, AccountController } from '@to-nexus/appkit-core'
+export { CoreHelperUtil, AccountController, createDefaultSIWXConfig } from '@to-nexus/appkit-core'
+export type { CreateSIWXConfigOptions } from '@to-nexus/appkit-core'
 
 export let modal: AppKit | undefined = undefined
 
