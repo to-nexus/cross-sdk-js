@@ -153,9 +153,10 @@ npx serve -p 3001 .
 Docker/Nginx 배포 시 다음 경로로 접근 가능:
 
 - `/react/` - React 예제
+- `/wagmi/` - Wagmi 예제
 - `/vanilla/` - Vanilla JS 예제
 - `/cdn/` - CDN 예제
-- `/cocos/` - Cocos Creator 예제 (새로 추가됨)
+- `/cocos/` - Cocos Creator 예제
 - `/` - 랜딩 페이지
 
 ### Cocos Creator 프로젝트 재빌드
@@ -183,6 +184,130 @@ registry=https://registry.npmjs.org/
 //<host>/:_authToken=<NEXUS_NPM_TOKEN>
 always-auth=true
 ```
+
+## 새로운 Example 추가하기
+
+새로운 example (예: `sdk-nextjs`)을 배포 파이프라인에 추가하려면 다음 4개 파일을 수정해야 합니다:
+
+### 1. Vite 설정 (production base path)
+
+**파일**: `examples/<example-name>/vite.config.js`
+
+```javascript
+export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? '/<example-name>/' : '/'
+  // ... 기타 설정
+})
+```
+
+**예시**: wagmi example의 경우
+
+```javascript
+base: process.env.NODE_ENV === 'production' ? '/wagmi/' : '/',
+```
+
+### 2. Nginx 라우팅 설정
+
+**파일**: `nginx.conf`
+
+React, Vanilla, CDN 섹션 사이에 새로운 location 블록을 추가합니다:
+
+```nginx
+# <Example Name> 앱 서빙
+location /<example-name> {
+    alias /usr/share/nginx/html/<example-name>;
+    try_files $uri $uri/ /<example-name>/index.html;
+
+    # 캐시 설정
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
+**예시**: wagmi example의 경우 (83-93번 줄 참고)
+
+### 3. 배포 문서 업데이트
+
+**파일**: `deploy.md`
+
+"배포 경로 구성" 섹션의 리스트에 추가:
+
+```markdown
+- `/react/` - React 예제
+- `/wagmi/` - Wagmi 예제
+- `/<example-name>/` - <Example Description> ← 추가
+- `/vanilla/` - Vanilla JS 예제
+- `/cdn/` - CDN 예제
+- `/cocos/` - Cocos Creator 예제
+- `/` - 랜딩 페이지
+```
+
+### 4. 랜딩 페이지 카드 추가
+
+**파일**: `examples/index.html`
+
+`examples-grid` div 안에 새로운 카드를 추가:
+
+```html
+<a href="/<example-name>/" class="example-card">
+  <div class="example-icon">🔌</div>
+  <div class="example-title"><Example Title></div>
+  <div class="example-description">
+    짧은 설명 첫 줄<br />
+    짧은 설명 둘째 줄
+  </div>
+</a>
+```
+
+**예시**: wagmi example의 경우 (124-131번 줄 참고)
+
+```html
+<a href="/wagmi/" class="example-card">
+  <div class="example-icon">🔌</div>
+  <div class="example-title">Wagmi Example</div>
+  <div class="example-description">
+    Wagmi + React로 구현한<br />
+    타입 세이프한 이더리움 앱 예제
+  </div>
+</a>
+```
+
+### 5. Dockerfile 확인 (이미 구성됨)
+
+**파일**: `Dockerfile`
+
+Dockerfile의 92번 줄 근처에 새로운 example 빌드 및 복사 로직을 추가해야 합니다:
+
+```dockerfile
+# Build <example-name>
+WORKDIR $WORKDIR/examples/<example-name>
+RUN echo "VITE_PROJECT_ID=$VITE_PROJECT_ID" > .env && \
+    echo "VITE_UNIVERSAL_LINK=$VITE_UNIVERSAL_LINK" >> .env && \
+    echo "VITE_ENV_MODE=$VITE_ENV_MODE" >> .env && \
+    echo "VITE_METAMASK_PROJECT_ID=$VITE_METAMASK_PROJECT_ID" >> .env
+RUN NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm i
+RUN pnpm run build
+
+# ... (runner stage에서)
+COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/<example-name>/dist /usr/share/nginx/html/<example-name>
+```
+
+**참고**: wagmi example은 이미 Dockerfile 60-67, 92번 줄에 포함되어 있습니다.
+
+### 테스트
+
+로컬 빌드 후 확인:
+
+```bash
+cd examples/<example-name>
+NODE_ENV=production pnpm run build
+cd dist
+npx serve -p 3000
+```
+
+브라우저에서 `http://localhost:3000` 접속하여 `/wagmi/` 경로로 시작하는 asset들이 제대로 로드되는지 확인합니다.
 
 ## 문제 해결
 

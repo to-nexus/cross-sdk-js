@@ -799,6 +799,22 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
 
     try {
+      // ✅ Cross Extension 연결 시 매번 계정 선택 팝업을 표시하기 위해 먼저 disconnect 호출 (React example처럼)
+      if (
+        id === 'nexus.to.crosswallet.desktop' &&
+        (type === 'ANNOUNCED' || type === 'INJECTED' || type === 'EXTERNAL')
+      ) {
+        console.log('🔐 WagmiAdapter: Cross Extension detected, disconnecting first')
+
+        // React example처럼 먼저 disconnect를 호출하여 Extension의 승인 상태 초기화
+        try {
+          await this.disconnect()
+          console.log('✅ Disconnected successfully')
+        } catch (disconnectError) {
+          console.log('Disconnect failed (continuing anyway):', disconnectError)
+        }
+      }
+
       const res = await connect(this.wagmiConfig, {
         connector,
         chainId: chainId ? Number(chainId) : undefined
@@ -907,15 +923,69 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   public async disconnect() {
     const connections = getConnections(this.wagmiConfig)
+
     await Promise.all(
       connections.map(async connection => {
         const connector = this.getWagmiConnector(connection.connector.id)
 
         if (connector) {
+          /*
+           * Cross Extension의 경우 wallet_getPermissions 호출로 Extension 상태 초기화 필수
+           * (재연결 시 user interaction이 정상 작동하려면 필요)
+           */
+          if (connector.id === 'nexus.to.crosswallet.desktop') {
+            try {
+              const provider = (await connector.getProvider()) as Provider | undefined
+              if (provider && typeof provider.request === 'function') {
+                await this.revokeProviderPermissions(provider)
+              }
+            } catch (error) {
+              console.warn('[WagmiAdapter] disconnect - 상태 초기화 실패:', error)
+            }
+          }
+
           await wagmiDisconnect(this.wagmiConfig, { connector })
         }
       })
     )
+  }
+
+  private async revokeProviderPermissions(provider: Provider) {
+    try {
+      const permissions: any = await provider.request({
+        method: 'wallet_getPermissions'
+      })
+
+      // Extension이 이미 disconnected 상태임을 명시적으로 처리
+      if (permissions?.disconnected === true) {
+        console.debug('[WagmiAdapter] Extension already disconnected')
+
+        return
+      }
+
+      if (!Array.isArray(permissions)) {
+        console.debug('[WagmiAdapter] permissions is not an array, skipping')
+
+        return
+      }
+
+      const ethAccountsPermission = permissions.find(
+        permission => permission.parentCapability === 'eth_accounts'
+      )
+
+      if (ethAccountsPermission) {
+        try {
+          await provider.request({
+            method: 'wallet_revokePermissions',
+            params: [{ eth_accounts: {} }]
+          })
+        } catch (revokeError) {
+          console.debug('[WagmiAdapter] wallet_revokePermissions not supported:', revokeError)
+        }
+      }
+    } catch (error) {
+      console.debug('[WagmiAdapter] wallet_getPermissions error (state initialized):', error)
+    }
   }
 
   public override async switchNetwork(params: AdapterBlueprint.SwitchNetworkParams) {

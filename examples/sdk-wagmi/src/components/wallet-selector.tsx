@@ -18,9 +18,13 @@ export function WalletSelector() {
     metamaskQR: false,
     metamaskExtension: false,
     crossQR: false,
+<<<<<<< HEAD
     crossExtension: false,
     authenticateCrossExtension: false,
     authenticateWalletConnect: false
+=======
+    crossExtension: false
+>>>>>>> develop
   })
 
   const [isCrossExtensionInstalled, setIsCrossExtensionInstalled] = useState(false)
@@ -105,25 +109,37 @@ export function WalletSelector() {
         metamaskQR: false,
         metamaskExtension: false,
         crossQR: false,
+<<<<<<< HEAD
         crossExtension: false,
         authenticateCrossExtension: false,
         authenticateWalletConnect: false
+=======
+        crossExtension: false
+>>>>>>> develop
       })
     }
   }, [isConnected])
 
   // ✅ 모달이 닫힐 때 WalletConnect 인증 로딩 상태 리셋
   useEffect(() => {
+<<<<<<< HEAD
     if (!appKitState.open && loadingStates.authenticateWalletConnect) {
       setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
     }
   }, [appKitState.open, loadingStates.authenticateWalletConnect])
+=======
+    if (!appKitState.open) {
+      setLoadingStates(prev => ({ ...prev, crossExtension: false }))
+    }
+  }, [appKitState.open, loadingStates.crossExtension])
+>>>>>>> develop
 
   // MetaMask QR Code 연결
   const handleConnectMetaMaskQRCode = async () => {
     // ✅ MetaMask 연결 시 Cross SDK의 자동 SIWE 모달 방지
     let SIWXUtil: any = null
     try {
+<<<<<<< HEAD
       const core = await import('@to-nexus/appkit-core')
       SIWXUtil = core.SIWXUtil
       if (SIWXUtil) {
@@ -134,13 +150,19 @@ export function WalletSelector() {
     }
 
     try {
+=======
+>>>>>>> develop
       setLoadingStates(prev => ({ ...prev, metamaskQR: true }))
 
       if (currentWallet === 'metamask') {
         reownAppKit.open()
       } else {
+<<<<<<< HEAD
         await handleConnect('metamask', { autoConnect: false })
         await new Promise(resolve => setTimeout(resolve, 500))
+=======
+        await handleConnect('metamask')
+>>>>>>> develop
         reownAppKit.open()
       }
     } catch (error) {
@@ -148,11 +170,14 @@ export function WalletSelector() {
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
       setLoadingStates(prev => ({ ...prev, metamaskQR: false }))
+<<<<<<< HEAD
       if (SIWXUtil) {
         setTimeout(() => {
           SIWXUtil._isAuthenticating = false
         }, 1000)
       }
+=======
+>>>>>>> develop
     }
   }
 
@@ -161,6 +186,7 @@ export function WalletSelector() {
     // ✅ MetaMask 연결 시 Cross SDK의 자동 SIWE 모달 방지
     let SIWXUtil: any = null
     try {
+<<<<<<< HEAD
       const core = await import('@to-nexus/appkit-core')
       SIWXUtil = core.SIWXUtil
       if (SIWXUtil) {
@@ -171,6 +197,8 @@ export function WalletSelector() {
     }
 
     try {
+=======
+>>>>>>> develop
       setLoadingStates(prev => ({ ...prev, metamaskExtension: true }))
 
       const metamaskProvider = findMetaMaskProvider()
@@ -178,10 +206,10 @@ export function WalletSelector() {
       if (!metamaskProvider) {
         alert(
           'MetaMask Extension이 설치되어 있지 않습니다.\n\n' +
-          'MetaMask를 설치하시거나, 이미 설치되어 있다면:\n' +
-          '1. MetaMask Extension을 활성화해주세요\n' +
-          '2. 다른 지갑 Extension을 비활성화하고 새로고침해주세요\n' +
-          '3. MetaMask (QR Code) 버튼을 사용해 모바일로 연결하세요'
+            'MetaMask를 설치하시거나, 이미 설치되어 있다면:\n' +
+            '1. MetaMask Extension을 활성화해주세요\n' +
+            '2. 다른 지갑 Extension을 비활성화하고 새로고침해주세요\n' +
+            '3. MetaMask (QR Code) 버튼을 사용해 모바일로 연결하세요'
         )
         return
       }
@@ -191,7 +219,11 @@ export function WalletSelector() {
           method: 'eth_requestAccounts'
         })
       } else {
+<<<<<<< HEAD
         await handleConnect('metamask', { autoConnect: false })
+=======
+        await handleConnect('metamask')
+>>>>>>> develop
         await new Promise(resolve => setTimeout(resolve, 500))
         await metamaskProvider.request({
           method: 'eth_requestAccounts'
@@ -202,11 +234,14 @@ export function WalletSelector() {
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
       setLoadingStates(prev => ({ ...prev, metamaskExtension: false }))
+<<<<<<< HEAD
       if (SIWXUtil) {
         setTimeout(() => {
           SIWXUtil._isAuthenticating = false
         }, 1000)
       }
+=======
+>>>>>>> develop
     }
   }
 
@@ -216,11 +251,19 @@ export function WalletSelector() {
       setLoadingStates(prev => ({ ...prev, crossQR: true }))
 
       if (currentWallet === 'cross_wallet') {
+<<<<<<< HEAD
         connect('cross_wallet')
       } else {
         await handleConnect('cross_wallet')
         await new Promise(resolve => setTimeout(resolve, 1000))
         connect('cross_wallet')
+=======
+        // 이미 Cross Wallet 환경이면 바로 QR Code 모달 열기
+        await crossAppKit.connect()
+      } else {
+        // MetaMask에서 Cross Wallet로 전환 (autoConnect: true로 자동으로 QR Code 모달 열림)
+        await handleConnect('cross_wallet')
+>>>>>>> develop
       }
     } catch (error) {
       console.error('Error connecting CrossWallet QR Code:', error)
@@ -236,10 +279,19 @@ export function WalletSelector() {
       setLoadingStates(prev => ({ ...prev, crossExtension: true }))
 
       if (currentWallet === 'cross_wallet') {
+<<<<<<< HEAD
         await connectCrossExtensionWallet()
       } else {
         await handleConnect('cross_wallet')
         await new Promise(resolve => setTimeout(resolve, 1200))
+=======
+        // 이미 Cross Wallet 환경이면 바로 Extension 연결
+        await connectCrossExtensionWallet()
+      } else {
+        // MetaMask에서 Cross Wallet로 전환 (autoConnect: false로 모달 열지 않음)
+        await handleConnect('cross_wallet')
+        await new Promise(resolve => setTimeout(resolve, 500))
+>>>>>>> develop
         await connectCrossExtensionWallet()
       }
     } catch (error) {
@@ -247,6 +299,7 @@ export function WalletSelector() {
       alert(`연결 실패: ${(error as Error).message}`)
     } finally {
       setLoadingStates(prev => ({ ...prev, crossExtension: false }))
+<<<<<<< HEAD
     }
   }
 
@@ -353,6 +406,8 @@ export function WalletSelector() {
       alert(`인증 실패: ${(error as Error).message}`)
     } finally {
       setLoadingStates(prev => ({ ...prev, authenticateWalletConnect: false }))
+=======
+>>>>>>> develop
     }
   }
 

@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/react/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/wagmi/' : '/',
   define: {
     'import.meta.env.VITE_NODE_ENV': JSON.stringify(process.env.VITE_NODE_ENV || 'development')
   },
