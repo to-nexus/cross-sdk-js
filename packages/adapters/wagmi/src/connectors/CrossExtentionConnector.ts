@@ -1,26 +1,13 @@
 import type { CreateConnectorFn } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 
-// ✅ Wrap Cross Extension provider to allow wallet_requestPermissions for account selection popup
-function wrapCrossProvider(provider: any) {
-  if (!provider?.request) {
-    return provider
-  }
-
-  /*
-   * ✅ Return original provider directly to allow wallet_requestPermissions
-   * This ensures the account selection popup appears every time
-   */
-  return provider
-}
-
 // Cross Extension을 감지하기 위한 헬퍼 함수
 function detectCrossExtensionProvider() {
   if (typeof window !== 'undefined') {
     // 1. window.crossWallet 확인 (Cross Extension의 주요 주입 방식)
     const crossWallet = (window as any).crossWallet
     if (crossWallet) {
-      return wrapCrossProvider(crossWallet)
+      return crossWallet
     }
   }
 
