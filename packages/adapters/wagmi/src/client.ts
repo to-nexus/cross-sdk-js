@@ -7,7 +7,7 @@ import {
   NetworkUtil,
   isReownName
 } from '@to-nexus/appkit-common'
-import { CoreHelperUtil, StorageUtil } from '@to-nexus/appkit-core'
+import { CoreHelperUtil, OptionsController, StorageUtil } from '@to-nexus/appkit-core'
 import {
   type ConnectorType,
   ConstantsUtil as CoreConstantsUtil,
@@ -550,8 +550,27 @@ export class WagmiAdapter extends AdapterBlueprint {
       this.wagmiConfig.connectors.map(connector => this.addWagmiConnector(connector, options))
     )
 
-    // Add wagmi connectors
+    // ✅ Add wagmi connectors FIRST to create the walletConnect connector
     this.addWagmiConnectors(options, appKit)
+
+    /*
+     * ✅ WalletConnect provider를 가져와서 WalletConnectConnector 인스턴스 생성
+     * Wait a bit for connector to be fully initialized
+     */
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const walletConnectWagmiConnector = this.getWagmiConnector('walletConnect')
+    if (walletConnectWagmiConnector) {
+      try {
+        const universalProvider =
+          (await walletConnectWagmiConnector.getProvider()) as UniversalProvider
+        if (universalProvider) {
+          this.setUniversalProvider(universalProvider)
+        }
+      } catch (error) {
+        console.warn('Failed to get WalletConnect provider:', error)
+      }
+    }
 
     // Add third party connectors
     await this.addThirdPartyConnectors(options)
@@ -567,8 +586,8 @@ export class WagmiAdapter extends AdapterBlueprint {
     let provider: Provider | undefined = undefined
     try {
       provider = (await connector?.getProvider()) as Provider
-    } catch (error) {
-      console.log('error', error)
+    } catch {
+      // Provider may not be available immediately
     }
     // Emit accountChanged event after syncing connection
     if (connection?.accounts[0]) {
@@ -587,15 +606,8 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public override async connectWalletConnect(chainId?: number | string) {
-    // Attempt one click auth first, if authenticated, still connect with wagmi to store the session
+    // Normal WalletConnect connection WITHOUT authentication
     const walletConnectConnector = this.getWalletConnectConnector()
-
-    try {
-      await walletConnectConnector.authenticate()
-    } catch (error) {
-      // Continue with regular connection even if auth fails
-    }
-
     const wagmiConnector = this.getWagmiConnector('walletConnect')
 
     if (!wagmiConnector) {
@@ -613,7 +625,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   public async connect(
     params: AdapterBlueprint.ConnectParams
   ): Promise<AdapterBlueprint.ConnectResult> {
-    const { id, provider, type, info, chainId } = params
+    const { id, provider, type, chainId } = params
     const connector = this.getWagmiConnector(id)
 
     if (!connector) {
@@ -621,6 +633,22 @@ export class WagmiAdapter extends AdapterBlueprint {
     }
 
     try {
+      // ✅ Cross Extension 연결 시 매번 계정 선택 팝업을 표시하기 위해 먼저 disconnect 호출 (React example처럼)
+      if (
+        id === 'nexus.to.crosswallet.desktop' &&
+        (type === 'ANNOUNCED' || type === 'INJECTED' || type === 'EXTERNAL')
+      ) {
+        console.log('🔐 WagmiAdapter: Cross Extension detected, disconnecting first')
+
+        // React example처럼 먼저 disconnect를 호출하여 Extension의 승인 상태 초기화
+        try {
+          await this.disconnect()
+          console.log('✅ Disconnected successfully')
+        } catch (disconnectError) {
+          console.log('Disconnect failed (continuing anyway):', disconnectError)
+        }
+      }
+
       const res = await connect(this.wagmiConfig, {
         connector,
         chainId: chainId ? Number(chainId) : undefined
@@ -638,8 +666,7 @@ export class WagmiAdapter extends AdapterBlueprint {
         type: type as ConnectorType,
         id
       }
-    } catch (error) {
-      console.log('error', error)
+    } catch {
       throw new Error('WagmiAdapter:connect - error connecting')
     }
   }
@@ -730,15 +757,65 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   public async disconnect() {
     const connections = getConnections(this.wagmiConfig)
+
     await Promise.all(
       connections.map(async connection => {
         const connector = this.getWagmiConnector(connection.connector.id)
 
         if (connector) {
+          // Cross Extension의 경우 wallet_getPermissions 호출로 Extension 상태 초기화 필수
+          // (재연결 시 user interaction이 정상 작동하려면 필요)
+          if (connector.id === 'nexus.to.crosswallet.desktop') {
+            try {
+              const provider = (await connector.getProvider()) as Provider | undefined
+              if (provider && typeof provider.request === 'function') {
+                await this.revokeProviderPermissions(provider)
+              }
+            } catch (error) {
+              console.warn('[WagmiAdapter] disconnect - 상태 초기화 실패:', error)
+            }
+          }
+
           await wagmiDisconnect(this.wagmiConfig, { connector })
         }
       })
     )
+  }
+
+  private async revokeProviderPermissions(provider: Provider) {
+    try {
+      const permissions: any = await provider.request({
+        method: 'wallet_getPermissions'
+      })
+
+      // Extension이 이미 disconnected 상태임을 명시적으로 처리
+      if (permissions?.disconnected === true) {
+        console.debug('[WagmiAdapter] Extension already disconnected')
+        return
+      }
+
+      if (!Array.isArray(permissions)) {
+        console.debug('[WagmiAdapter] permissions is not an array, skipping')
+        return
+      }
+
+      const ethAccountsPermission = permissions.find(
+        permission => permission.parentCapability === 'eth_accounts'
+      )
+
+      if (ethAccountsPermission) {
+        try {
+          await provider.request({
+            method: 'wallet_revokePermissions',
+            params: [{ eth_accounts: {} }]
+          })
+        } catch (revokeError) {
+          console.debug('[WagmiAdapter] wallet_revokePermissions not supported:', revokeError)
+        }
+      }
+    } catch (error) {
+      console.debug('[WagmiAdapter] wallet_getPermissions error (state initialized):', error)
+    }
   }
 
   public override async switchNetwork(params: AdapterBlueprint.SwitchNetworkParams) {
