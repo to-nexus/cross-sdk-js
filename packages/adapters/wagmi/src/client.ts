@@ -757,12 +757,14 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   public async disconnect() {
     const connections = getConnections(this.wagmiConfig)
+
     await Promise.all(
       connections.map(async connection => {
         const connector = this.getWagmiConnector(connection.connector.id)
 
         if (connector) {
-          // Cross Extension의 경우 React example처럼 wallet_revokePermissions 호출
+          // Cross Extension의 경우 wallet_getPermissions 호출로 Extension 상태 초기화 필수
+          // (재연결 시 user interaction이 정상 작동하려면 필요)
           if (connector.id === 'nexus.to.crosswallet.desktop') {
             try {
               const provider = (await connector.getProvider()) as Provider | undefined
@@ -770,7 +772,7 @@ export class WagmiAdapter extends AdapterBlueprint {
                 await this.revokeProviderPermissions(provider)
               }
             } catch (error) {
-              console.log('Failed to revoke permissions:', error)
+              console.warn('[WagmiAdapter] disconnect - 상태 초기화 실패:', error)
             }
           }
 
@@ -782,26 +784,37 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   private async revokeProviderPermissions(provider: Provider) {
     try {
-      const permissions: { parentCapability: string }[] = await provider.request({
+      const permissions: any = await provider.request({
         method: 'wallet_getPermissions'
       })
+
+      // Extension이 이미 disconnected 상태임을 명시적으로 처리
+      if (permissions?.disconnected === true) {
+        console.debug('[WagmiAdapter] Extension already disconnected')
+        return
+      }
+
+      if (!Array.isArray(permissions)) {
+        console.debug('[WagmiAdapter] permissions is not an array, skipping')
+        return
+      }
+
       const ethAccountsPermission = permissions.find(
         permission => permission.parentCapability === 'eth_accounts'
       )
 
       if (ethAccountsPermission) {
-        await provider.request({
-          method: 'wallet_revokePermissions',
-          params: [{ eth_accounts: {} }]
-        })
-        console.log('✅ Permissions revoked successfully')
+        try {
+          await provider.request({
+            method: 'wallet_revokePermissions',
+            params: [{ eth_accounts: {} }]
+          })
+        } catch (revokeError) {
+          console.debug('[WagmiAdapter] wallet_revokePermissions not supported:', revokeError)
+        }
       }
     } catch (error) {
-      /*
-       * Wallet_getPermissions 호출 자체가 Extension 상태를 초기화하는 효과가 있음
-       * 에러가 발생해도 정상 동작 (React example과 동일)
-       */
-      // Console.warn('Could not revoke permissions from wallet. Disconnecting...', error)
+      console.debug('[WagmiAdapter] wallet_getPermissions error (state initialized):', error)
     }
   }
 
