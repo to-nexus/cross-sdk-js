@@ -69,11 +69,14 @@ export class WalletConnectConnector<Namespace extends ChainNamespace = ChainName
 
   async authenticate(): Promise<{ authenticated: boolean; sessions: SIWXSession[] }> {
     const chains = this.chains.map(network => network.caipNetworkId)
+    // 🔑 핵심 수정: rpcMap을 포함한 optionalNamespaces 생성
+    const optionalNamespaces = WcHelpersUtil.createNamespaces(this.caipNetworks)
 
     return SIWXUtil.universalProviderAuthenticate({
       universalProvider: this.provider,
       chains,
-      methods: OPTIONAL_METHODS
+      methods: OPTIONAL_METHODS,
+      optionalNamespaces
     })
   }
 }

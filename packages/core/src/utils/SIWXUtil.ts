@@ -221,11 +221,13 @@ export const SIWXUtil = {
   async universalProviderAuthenticate({
     universalProvider,
     chains,
-    methods
+    methods,
+    optionalNamespaces
   }: {
     universalProvider: UniversalProvider
     chains: CaipNetworkId[]
     methods: string[]
+    optionalNamespaces?: any
   }) {
     const siwx = SIWXUtil.getSIWX()
 
@@ -247,6 +249,28 @@ export const SIWXUtil = {
     // URI 이벤트 리스너 등록 (QR 코드 표시용)
     universalProvider.once('display_uri', (uri: string) => {
       ConnectionController.setUri(uri)
+
+      /*
+       * ✅ authenticate() 사용 시에도 deep link 저장 (트랜잭션/서명 시 지갑 자동 열기용)
+       * Cross Wallet의 mobile_link 정보 가져오기
+       */
+      const { customWallets } = OptionsController.state
+      const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')
+
+      if (crossWallet?.mobile_link && uri) {
+        const { mobile_link, name } = crossWallet
+
+        // 🔑 핵심: base URL만 저장 (WalletConnect Engine이 각 요청마다 동적으로 URI 생성)
+        const baseUrl = mobile_link.endsWith('/') ? mobile_link : `${mobile_link}/`
+
+        ConnectionController.setWcLinking({ name: name || 'CROSSx Wallet', href: baseUrl })
+
+        // ✅ base URL만 localStorage에 저장 (WalletConnect Engine이 동적 URL 생성)
+        StorageUtil.setWalletConnectDeepLink({ name: name || 'CROSSx Wallet', href: baseUrl })
+
+        // 저장된 값 확인
+        const saved = localStorage.getItem('WALLETCONNECT_DEEPLINK_CHOICE')
+      }
     })
 
     SnackController.showLoading('Authenticating...', { autoClose: false })
@@ -265,7 +289,9 @@ export const SIWXUtil = {
       chainId: siwxMessage.chainId,
       methods,
       // The first chainId is what is used for universal provider to build the message
-      chains: [siwxMessage.chainId, ...chains.filter(chain => chain !== siwxMessage.chainId)]
+      chains: [siwxMessage.chainId, ...chains.filter(chain => chain !== siwxMessage.chainId)],
+      // 🔑 핵심 수정: optionalNamespaces에 rpcMap을 포함하여 httpProviders가 올바른 RPC URL로 생성되도록 함
+      ...(optionalNamespaces && { optionalNamespaces })
     })
 
     AccountController.setConnectedWalletInfo(

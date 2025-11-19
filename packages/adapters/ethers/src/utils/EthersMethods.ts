@@ -342,6 +342,7 @@ export const EthersMethods = {
     chainId: number
   ) => {
     console.log('writeContract', data, provider, address, chainId)
+
     if (!provider) {
       throw new Error('writeContract - provider is undefined')
     }
@@ -366,45 +367,96 @@ export const EthersMethods = {
     const method = contract[data.method]
     if (method) {
       console.log('writeContract', signer, contract, data.method, data.args)
-      const txContract = await method.populateTransaction(...data.args)
-      const gasLimit =
-        data.gas ??
-        (await browserProvider.estimateGas({
-          ...txContract,
-          from: await signer.getAddress()
-        }))
-      const from = await signer.getAddress()
-      let txToSign = { ...txContract, from, gasLimit }
 
-      if (data.type === ConstantsUtil.TRANSACTION_TYPE.LEGACY) {
-        const gasPrice =
-          data.gasPrice ?? (await browserProvider.getFeeData()).gasPrice ?? BigInt(2000000000)
-        txToSign = {
-          ...txToSign,
-          gasPrice
+      try {
+        const txContract = await method.populateTransaction(...data.args)
+
+        let gasLimit
+        if (data.gas) {
+          gasLimit = data.gas
+        } else {
+          try {
+            // 🔑 핵심: timeout 추가 (5초)
+            const estimatePromise = browserProvider.estimateGas({
+              ...txContract,
+              from: await signer.getAddress()
+            })
+
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('estimateGas timeout')), 5000)
+            )
+
+            gasLimit = (await Promise.race([estimatePromise, timeoutPromise])) as bigint
+          } catch (error) {
+            // EstimateGas 실패 시 기본값 사용
+            gasLimit = BigInt(3000000)
+            console.warn('estimateGas failed, using default:', error)
+          }
         }
-      } else if (data.type === ConstantsUtil.TRANSACTION_TYPE.DYNAMIC) {
-        const maxFee =
-          data.maxFee ?? (await browserProvider.getFeeData()).maxFeePerGas ?? BigInt(3200000000)
-        const maxPriorityFee =
-          data.maxPriorityFee ??
-          (await browserProvider.getFeeData()).maxPriorityFeePerGas ??
-          BigInt(2000000000)
-        txToSign = {
-          ...txToSign,
-          maxFeePerGas: maxFee,
-          maxPriorityFeePerGas: maxPriorityFee
+
+        const from = await signer.getAddress()
+        let txToSign = { ...txContract, from, gasLimit }
+
+        if (data.type === ConstantsUtil.TRANSACTION_TYPE.LEGACY) {
+          let gasPrice
+          if (data.gasPrice) {
+            gasPrice = data.gasPrice
+          } else {
+            try {
+              const feePromise = browserProvider.getFeeData()
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('getFeeData timeout')), 5000)
+              )
+              const feeData = (await Promise.race([feePromise, timeoutPromise])) as any
+              gasPrice = feeData.gasPrice ?? BigInt(2000000000)
+            } catch (error) {
+              gasPrice = BigInt(2000000000)
+              console.warn('getFeeData failed, using default:', error)
+            }
+          }
+          txToSign = {
+            ...txToSign,
+            gasPrice
+          }
+        } else if (data.type === ConstantsUtil.TRANSACTION_TYPE.DYNAMIC) {
+          let maxFee = data.maxFee
+          let maxPriorityFee = data.maxPriorityFee
+
+          if (!maxFee || !maxPriorityFee) {
+            try {
+              const feePromise = browserProvider.getFeeData()
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('getFeeData timeout')), 5000)
+              )
+              const feeData = (await Promise.race([feePromise, timeoutPromise])) as any
+              maxFee ??= feeData.maxFeePerGas ?? BigInt(3200000000)
+              maxPriorityFee ??= feeData.maxPriorityFeePerGas ?? BigInt(2000000000)
+            } catch (error) {
+              maxFee ??= BigInt(3200000000)
+              maxPriorityFee ??= BigInt(2000000000)
+              console.warn('getFeeData failed, using default:', error)
+            }
+          }
+
+          txToSign = {
+            ...txToSign,
+            maxFeePerGas: maxFee,
+            maxPriorityFeePerGas: maxPriorityFee
+          }
         }
+
+        const hexSign = browserProvider.getRpcTransaction(txToSign)
+
+        const hash = await provider.request({
+          method: 'eth_sendTransaction',
+          params: [hexSign, data.customData]
+        })
+
+        return await pollingTx(hash as `0x${string}`, signer)
+      } catch (error) {
+        console.error('writeContract error:', error)
+        throw error
       }
-
-      const hexSign = browserProvider.getRpcTransaction(txToSign)
-
-      const hash = await provider.request({
-        method: 'eth_sendTransaction',
-        params: [hexSign, data.customData]
-      })
-
-      return await pollingTx(hash as `0x${string}`, signer)
     }
     throw new Error('Contract method is undefined')
   },
