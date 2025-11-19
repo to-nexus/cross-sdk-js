@@ -923,7 +923,6 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   public async disconnect() {
     const connections = getConnections(this.wagmiConfig)
-
     await Promise.all(
       connections.map(async connection => {
         const connector = this.getWagmiConnector(connection.connector.id)
@@ -933,6 +932,7 @@ export class WagmiAdapter extends AdapterBlueprint {
            * Cross Extension의 경우 wallet_getPermissions 호출로 Extension 상태 초기화 필수
            * (재연결 시 user interaction이 정상 작동하려면 필요)
            */
+
           if (connector.id === 'nexus.to.crosswallet.desktop') {
             try {
               const provider = (await connector.getProvider()) as Provider | undefined
