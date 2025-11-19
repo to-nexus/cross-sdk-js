@@ -1349,6 +1349,7 @@ export class AppKit {
         if (!caipNetwork) {
           return
         }
+
         if (
           AccountController.state.address &&
           caipNetwork.chainNamespace === ChainController.state.activeChain
@@ -1389,6 +1390,16 @@ export class AppKit {
               })
             }
           } else if (providerType === 'WALLET_CONNECT') {
+            // 다른 체인으로 변경 시에도 실제 지갑에 네트워크 변경 요청을 보내야 함
+            const adapter = this.getAdapter(caipNetwork.chainNamespace as ChainNamespace)
+            const provider = ProviderUtil.getProvider(
+              ChainController.state.activeChain as ChainNamespace
+            )
+            await adapter?.switchNetwork({
+              caipNetwork,
+              provider,
+              providerType: 'WALLET_CONNECT'
+            })
             this.setCaipNetwork(caipNetwork)
             this.syncWalletConnectAccount()
           } else {

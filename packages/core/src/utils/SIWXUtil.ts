@@ -60,7 +60,15 @@ export const SIWXUtil = {
         return
       }
 
-      console.log('🚨 Opening SIWE modal - no session found')
+      // Check if SIWE is required (getRequired defaults to false - optional)
+      const required = siwx.getRequired?.() ?? false
+      if (!required) {
+        console.log('⏭️ SIWE is optional (getRequired=false), skipping auto modal')
+
+        return
+      }
+
+      console.log('🚨 Opening SIWE modal - no session found and SIWE is required')
       await ModalController.open({
         view: 'SIWXSignMessage'
       })
@@ -223,24 +231,7 @@ export const SIWXUtil = {
 
     const namespaces = new Set(chains.map(chain => chain.split(':')[0] as ChainNamespace))
 
-    // Debug logging to identify why sessionAuthenticate is not being used
-    console.log('🔍 SIWX Debug:', {
-      hasSIWX: Boolean(siwx),
-      namespaceSize: namespaces.size,
-      namespaces: Array.from(namespaces),
-      hasEIP155: namespaces.has('eip155'),
-      chains
-    })
-
     if (!siwx || namespaces.size !== 1 || !namespaces.has('eip155')) {
-      console.warn('⚠️ Falling back to regular connect (not using sessionAuthenticate)', {
-        reason: !siwx
-          ? 'No SIWX config'
-          : namespaces.size !== 1
-            ? 'Multiple namespaces'
-            : 'Not EIP155'
-      })
-
       return { authenticated: false, sessions: [] }
     }
 

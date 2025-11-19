@@ -178,10 +178,10 @@ export function WalletSelector() {
       if (!metamaskProvider) {
         alert(
           'MetaMask Extension이 설치되어 있지 않습니다.\n\n' +
-            'MetaMask를 설치하시거나, 이미 설치되어 있다면:\n' +
-            '1. MetaMask Extension을 활성화해주세요\n' +
-            '2. 다른 지갑 Extension을 비활성화하고 새로고침해주세요\n' +
-            '3. MetaMask (QR Code) 버튼을 사용해 모바일로 연결하세요'
+          'MetaMask를 설치하시거나, 이미 설치되어 있다면:\n' +
+          '1. MetaMask Extension을 활성화해주세요\n' +
+          '2. 다른 지갑 Extension을 비활성화하고 새로고침해주세요\n' +
+          '3. MetaMask (QR Code) 버튼을 사용해 모바일로 연결하세요'
         )
         return
       }

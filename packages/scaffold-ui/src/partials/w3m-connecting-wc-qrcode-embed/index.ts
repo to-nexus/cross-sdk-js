@@ -1,4 +1,9 @@
-import { ConnectionController, EventsController, ThemeController } from '@to-nexus/appkit-core'
+import {
+  ConnectionController,
+  CoreHelperUtil,
+  EventsController,
+  ThemeController
+} from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
 import { html } from 'lit'
@@ -61,7 +66,16 @@ export class W3mConnectingWcQrcodeEmbed extends W3mConnectingWidget {
       size = 200
     }
     const alt = this.wallet ? this.wallet.name : 'CROSSx Wallet'
-    ConnectionController.setWcLinking(undefined)
+
+    // ✅ QR Code 연결에서도 deep link 정보 저장 (모바일 지갑 자동 열기용)
+    if (this.wallet?.mobile_link && this.uri) {
+      const { mobile_link, name } = this.wallet
+      const { href } = CoreHelperUtil.formatNativeUrl(mobile_link, this.uri)
+      ConnectionController.setWcLinking({ name, href })
+    } else {
+      ConnectionController.setWcLinking(undefined)
+    }
+
     ConnectionController.setRecentWallet(this.wallet)
 
     return html` <cross-wui-qr-code

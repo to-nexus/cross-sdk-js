@@ -138,6 +138,9 @@ initCrossSdkWithParams({
   siwx: createDefaultSIWXConfig({
     statement: 'Sign in with your wallet to Cross SDK Sample App',
 
+    // 🔐 SIWE를 선택적으로 만들기 (기본 연결 시 SIWE 모달 안 뜸!)
+    getRequired: () => false, // false = SIWE 선택 사항, true = SIWE 필수
+
     // 🔐 백엔드에서 nonce 가져오기 (보안 필수!)
     getNonce: async () => {
       try {
@@ -164,7 +167,7 @@ initCrossSdkWithParams({
       try {
         // 실제 프로덕션에서는 백엔드로 서명 검증 요청
         // const response = await fetch('/api/siwe/verify', {
-        //   method: 'POST',
+      //   method: 'POST',
         //   headers: { 'Content-Type': 'application/json' },
         //   body: JSON.stringify({
         //     message: session.message,
@@ -179,8 +182,27 @@ initCrossSdkWithParams({
         //   throw new Error('Signature verification failed')
         // }
 
-        // 데모용: localStorage에 저장 (프로덕션에서는 백엔드에 저장!)
-        localStorage.setItem('siwx_session', JSON.stringify(session))
+        // 데모용: localStorage에 다중 체인 세션 저장 (프로덕션에서는 백엔드에 저장!)
+        const sessionsKey = 'siwx_multi_chain_sessions'
+        const existingSessionsStr = localStorage.getItem(sessionsKey)
+        let sessions: any[] = existingSessionsStr ? JSON.parse(existingSessionsStr) : []
+
+        // 동일한 chainId + address 조합이 있으면 제거 (갱신)
+        sessions = sessions.filter(
+          s =>
+            !(
+              s.data.chainId === session.data.chainId &&
+              s.data.accountAddress.toLowerCase() === session.data.accountAddress.toLowerCase()
+            )
+        )
+
+        // 새 세션 추가
+        sessions.push(session)
+
+        localStorage.setItem(sessionsKey, JSON.stringify(sessions))
+        console.log(
+          `✅ SIWE 세션 저장됨 (chainId: ${session.data.chainId}, address: ${session.data.accountAddress})`
+        )
       } catch (error) {
         console.error('Failed to verify signature:', error)
         throw error
@@ -196,43 +218,78 @@ initCrossSdkWithParams({
         // )
         // return response.json()
 
-        // 데모용: localStorage에서 조회 (단수와 복수 키 모두 확인)
+        // 데모용: localStorage에서 다중 체인 세션 조회
+        const sessionsKey = 'siwx_multi_chain_sessions'
+        const sessionsStr = localStorage.getItem(sessionsKey)
 
-        // 1. 먼저 siwx_session (단수) 확인 - Extension + SIWE에서 저장
-        const sessionStr = localStorage.getItem('siwx_session')
-
-        if (sessionStr) {
-          const session = JSON.parse(sessionStr)
-
-          if (
-            session.data.chainId === chainId &&
-            session.data.accountAddress.toLowerCase() === address.toLowerCase()
-          ) {
-            return [session]
-          }
+        if (!sessionsStr) {
+          console.log(`⏭️ 저장된 세션 없음`)
+          return []
         }
 
-        // 2. siwx_sessions (복수) 확인 - QR code + SIWE에서 저장
-        const sessionsStr = localStorage.getItem('siwx_sessions')
+        const sessions = JSON.parse(sessionsStr)
 
-        if (sessionsStr) {
-          const sessions = JSON.parse(sessionsStr)
+        // 해당 chainId + address 조합으로 필터링
+        const matchingSessions = sessions.filter(
+          (session: any) =>
+          session.data.chainId === chainId &&
+          session.data.accountAddress.toLowerCase() === address.toLowerCase()
+        )
 
-          const matchingSessions = sessions.filter(
-            (session: any) =>
-              session.data.chainId === chainId &&
-              session.data.accountAddress.toLowerCase() === address.toLowerCase()
+        if (matchingSessions.length > 0) {
+          console.log(
+            `✅ 세션 찾음 (chainId: ${chainId}, address: ${address}, count: ${matchingSessions.length})`
           )
-
-          if (matchingSessions.length > 0) {
-            return matchingSessions
-          }
+        } else {
+          console.log(
+            `⏭️ 해당 네트워크에 대한 세션 없음 (chainId: ${chainId}, address: ${address})`
+          )
         }
 
-        return []
+        return matchingSessions
       } catch (error) {
         console.error('Failed to get sessions:', error)
-        return []
+      return []
+      }
+    },
+
+    // ✅ setSessions도 커스텀 구현 (Connect + Auth에서 사용됨!)
+    setSessions: async sessions => {
+      try {
+        const sessionsKey = 'siwx_multi_chain_sessions'
+
+        if (sessions.length === 0) {
+          localStorage.removeItem(sessionsKey)
+          console.log('🗑️ 모든 세션 제거됨')
+          return
+}
+
+        // 기존 세션 로드
+        const existingSessionsStr = localStorage.getItem(sessionsKey)
+        let allSessions: any[] = existingSessionsStr ? JSON.parse(existingSessionsStr) : []
+
+        // 새 세션들을 추가/갱신
+        sessions.forEach(newSession => {
+          // 동일한 chainId + address 조합의 기존 세션 제거
+          allSessions = allSessions.filter(
+            s =>
+              !(
+                s.data.chainId === newSession.data.chainId &&
+                s.data.accountAddress.toLowerCase() === newSession.data.accountAddress.toLowerCase()
+              )
+          )
+          // 새 세션 추가
+          allSessions.push(newSession)
+        })
+
+        localStorage.setItem(sessionsKey, JSON.stringify(allSessions))
+        console.log(
+          `✅ 세션 저장됨 (총 ${allSessions.length}개):`,
+          allSessions.map(s => `${s.data.chainId}:${s.data.accountAddress.slice(0, 6)}...`)
+        )
+      } catch (error) {
+        console.error('Failed to set sessions:', error)
+        throw error
       }
     }
 
@@ -806,42 +863,42 @@ export function ActionButtonList() {
 
       if (result && result.authenticated && result.sessions && result.sessions.length > 0) {
         const session = result.sessions[0]
-        if (!session) {
-          showError('인증 오류', '세션 정보를 가져올 수 없습니다.')
-          return
-        }
+              if (!session) {
+                showError('인증 오류', '세션 정보를 가져올 수 없습니다.')
+                return
+              }
 
-        const signature = session.signature
+              const signature = session.signature
         const address = session.data.accountAddress
         const chainId = session.data.chainId
-        const message = session.message
-        const expiresAt = session.data.expirationTime
+              const message = session.message
+              const expiresAt = session.data.expirationTime
 
-        // SIWE 메시지 요약 (첫 줄만)
-        const messageSummary = message.split('\n')[0]
+              // SIWE 메시지 요약 (첫 줄만)
+              const messageSummary = message.split('\n')[0]
 
         // ✅ 연결 및 인증 상태 저장 (세션 포함)
         localStorage.setItem('wallet_connected', 'true')
         localStorage.setItem('wallet_type', 'cross')
         localStorage.setItem('has_siwx_session', 'true')
 
-        showSuccess(
-          '🎉 SIWE 인증 성공!',
-          `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📍 Address:\n${address}\n\n` +
+              showSuccess(
+                '🎉 SIWE 인증 성공!',
+                `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                  `📍 Address:\n${address}\n\n` +
             `🔗 Chain ID:\n${chainId}\n\n` +
-            `📝 SIWE Message:\n${messageSummary}...\n\n` +
-            `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
-            `⏰ Expires At:\n${expiresAt}\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━`
-        )
+                  `📝 SIWE Message:\n${messageSummary}...\n\n` +
+                  `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
+                  `⏰ Expires At:\n${expiresAt}\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━━`
+              )
       } else {
         // ✅ 일반 연결 시에도 상태 저장
         localStorage.setItem('wallet_connected', 'true')
         localStorage.setItem('wallet_type', 'cross')
 
-        showSuccess('연결 성공', 'Cross Extension이 연결되었습니다.')
+      showSuccess('연결 성공', 'Cross Extension이 연결되었습니다.')
       }
     } catch (error) {
       console.error('Authentication error:', error)
@@ -1248,32 +1305,60 @@ export function ActionButtonList() {
     }
   }
 
-  function handleSwitchNetwork() {
+  async function handleSwitchNetwork() {
     const targetNetwork =
       import.meta.env['VITE_NODE_ENV'] === 'production' ? crossMainnet : crossTestnet
-    switchNetwork(targetNetwork)
+
+    try {
+      await switchNetwork(targetNetwork)
     showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        showError('Switch Network Failed', error.message)
+      }
+    }
   }
 
-  function handleSwitchNetworkBsc() {
+  async function handleSwitchNetworkBsc() {
     const targetNetwork =
       import.meta.env['VITE_NODE_ENV'] === 'production' ? bscMainnet : bscTestnet
 
-    switchNetwork(targetNetwork)
+    try {
+      await switchNetwork(targetNetwork)
     showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        showError('Switch Network Failed', error.message)
+      }
+    }
   }
 
-  function handleSwitchNetworkKaia() {
+  async function handleSwitchNetworkKaia() {
     const targetNetwork =
       import.meta.env['VITE_NODE_ENV'] === 'production' ? kaiaMainnet : kaiaTestnet
-    switchNetwork(targetNetwork)
+
+    try {
+      await switchNetwork(targetNetwork)
     showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        showError('Switch Network Failed', error.message)
   }
-  function handleSwitchNetworkEther() {
+    }
+  }
+
+  async function handleSwitchNetworkEther() {
     const targetNetwork =
       import.meta.env['VITE_NODE_ENV'] === 'production' ? etherMainnet : etherTestnet
-    switchNetwork(targetNetwork)
+
+    try {
+      await switchNetwork(targetNetwork)
     showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        showError('Switch Network Failed', error.message)
+      }
+    }
   }
   // used for provider request
   async function handleProviderRequest() {

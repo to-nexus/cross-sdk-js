@@ -102,7 +102,16 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
 
     const size = this.getBoundingClientRect().width - 40
     const alt = this.wallet ? this.wallet.name : 'CROSSx Wallet'
-    ConnectionController.setWcLinking(undefined)
+    
+    // ✅ QR Code 연결에서도 deep link 정보 저장 (모바일 지갑 자동 열기용)
+    if (this.wallet?.mobile_link && this.uri) {
+      const { mobile_link, name } = this.wallet
+      const { href } = CoreHelperUtil.formatNativeUrl(mobile_link, this.uri)
+      ConnectionController.setWcLinking({ name, href })
+    } else {
+      ConnectionController.setWcLinking(undefined)
+    }
+    
     ConnectionController.setRecentWallet(this.wallet)
 
     return html` <cross-wui-qr-code
