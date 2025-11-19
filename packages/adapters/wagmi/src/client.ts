@@ -801,7 +801,7 @@ export class WagmiAdapter extends AdapterBlueprint {
        * Wallet_getPermissions 호출 자체가 Extension 상태를 초기화하는 효과가 있음
        * 에러가 발생해도 정상 동작 (React example과 동일)
        */
-      console.info('Could not revoke permissions from wallet. Disconnecting...', error)
+      // Console.warn('Could not revoke permissions from wallet. Disconnecting...', error)
     }
   }
 
