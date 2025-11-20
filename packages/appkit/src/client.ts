@@ -1847,6 +1847,25 @@ export class AppKit {
           chainId,
           chainNamespace
         })
+
+        // 🔧 wagmi reconnect 호출하여 useAccount() 훅이 reload 후에도 정상 작동하도록
+        if (chainNamespace === ConstantsUtil.CHAIN.EVM) {
+          try {
+            const wagmiAdapter = this.getAdapter(ConstantsUtil.CHAIN.EVM)
+            if (wagmiAdapter && typeof wagmiAdapter.reconnect === 'function') {
+              await wagmiAdapter.reconnect({
+                id: 'walletConnect',
+                chainId,
+                provider: this.universalProvider,
+                type: UtilConstantsUtil.CONNECTOR_TYPE_WALLET_CONNECT as ConnectorType,
+                address
+              } as any)
+              console.log(`✅ wagmi reconnect 완료`)
+            }
+          } catch (error) {
+            console.debug('wagmi reconnect 실패 (계속 진행함):', error)
+          }
+        }
       } else if (sessionNamespaces.includes(chainNamespace)) {
         this.setStatus('disconnected', chainNamespace)
       } else if (sessionNamespaces.length === 0) {
