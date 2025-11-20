@@ -23,7 +23,7 @@ import { config, crossSdkConfig } from '../utils/wagmi-utils'
 interface WalletContextType {
   currentWallet: WalletType
   setCurrentWallet: (wallet: WalletType) => void
-  handleConnect: (wallet: WalletType) => Promise<void>
+  handleConnect: (wallet: WalletType, options?: { autoConnect?: boolean }) => Promise<void>
   handleDisconnect: () => Promise<void>
   isReady: boolean
 }
@@ -88,8 +88,9 @@ export default function WalletProvider({ children, currentWalletCookie }: Wallet
 
   // 지갑 연결 처리
   const handleConnect = useCallback(
-    async (wallet: WalletType) => {
-      console.log('handleConnect called with:', wallet)
+    async (wallet: WalletType, options?: { autoConnect?: boolean }) => {
+      const { autoConnect = true } = options || {}
+      console.log('handleConnect called with:', wallet, 'autoConnect:', autoConnect)
 
       // 지갑 변경 시: 리마운트 필요
       if (wallet !== currentWallet) {
@@ -101,6 +102,12 @@ export default function WalletProvider({ children, currentWalletCookie }: Wallet
         // WagmiProvider 리마운트 대기 (key 변경으로 인한 리렌더링)
         await wait(300)
         setIsTransitioning(false)
+
+        // ✅ autoConnect가 false이면 여기서 중단 (단순 wallet 전환만)
+        if (!autoConnect) {
+          console.log('Wallet switched without auto-connect')
+          return
+        }
 
         // 리마운트 완료 후 connect 호출
         try {
@@ -114,6 +121,12 @@ export default function WalletProvider({ children, currentWalletCookie }: Wallet
         } catch (error) {
           console.error('Error connecting to wallet:', error)
         }
+        return
+      }
+
+      // ✅ autoConnect가 false이면 아무것도 하지 않음
+      if (!autoConnect) {
+        console.log('Already on correct wallet, no action needed')
         return
       }
 

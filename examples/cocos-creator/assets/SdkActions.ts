@@ -55,6 +55,7 @@ const contractData = {
 @ccclass('SdkActions')
 export class SdkActions extends Component {
   @property(Label) connectButtonLabel: Label = null!
+  @property(Label) connectWithAuthButtonLabel: Label = null!
   @property(Label) addressLabel: Label = null!
   @property(Label) chainIdLabel: Label = null!
   @property(Label) nativeBalanceLabel: Label = null!
@@ -72,6 +73,54 @@ export class SdkActions extends Component {
       await this.refreshBalances()
     } catch {}
     await this.updateSummaryLabels()
+  }
+
+  // 🔐 Connect + SIWE Authentication (QR Code)
+  async onClickConnectWithAuth() {
+    if (!window.CrossSdk) {
+      alert('SDK not loaded')
+      return
+    }
+
+    try {
+      if (this.isConnected()) {
+        // 연결되어 있으면 disconnect
+        await window.CrossSdk.ConnectionController.disconnect()
+      }
+
+      // WalletConnect (QR Code) 연결 + SIWE 인증 통합
+      const result = await window.CrossSdkInstance.authenticateWalletConnect()
+
+      if (result && typeof result === 'object' && 'authenticated' in result) {
+        if (result.authenticated && result.sessions && result.sessions.length > 0) {
+          const session = result.sessions[0]
+          if (session) {
+            alert(
+              `🎉 SIWE 인증 성공!\n\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `📍 Address:\n${session.data.accountAddress}\n\n` +
+                `🔗 Chain ID:\n${session.data.chainId}\n\n` +
+                `✍️ Signature:\n${session.signature.substring(0, 20)}...${session.signature.substring(session.signature.length - 20)}\n\n` +
+                `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━`
+            )
+          }
+        } else {
+          alert('⚠️ 인증이 취소되었거나 실패했습니다.')
+          return
+        }
+      }
+
+      // 연결 완료 후 UI 갱신
+      this.updateConnectButtonLabel()
+      try {
+        await this.refreshBalances()
+      } catch {}
+      await this.updateSummaryLabels()
+    } catch (error) {
+      console.error('Error in Connect + Auth:', error)
+      alert(`인증 실패: ${(error as Error).message}`)
+    }
   }
 
   async onClickDisconnect() {
@@ -373,11 +422,17 @@ export class SdkActions extends Component {
     if (!this.connectButtonLabel) return
     const status = (window as any).CrossSdk?.AccountController?.state?.status
     const address = (window as any).CrossSdk?.AccountController?.state?.address
-    console.log('status:', status)
-    console.log('address:', address)
     const connected = status === 'connected' && Boolean(address)
-    console.log('connected:', connected)
+
+    // Connect 버튼
     this.connectButtonLabel.string = connected ? `Cross\nConnected` : `Cross\nConnect`
+
+    // Connect + Auth 버튼
+    if (this.connectWithAuthButtonLabel) {
+      this.connectWithAuthButtonLabel.string = connected
+        ? `Cross\nConnected\n(With SIWE)`
+        : `Cross\nConnect\n(With SIWE)`
+    }
   }
 
   // 요약 라벨 갱신: address / chainId / native balance
@@ -431,7 +486,7 @@ export class SdkActions extends Component {
     let chainId: number | undefined
 
     // 연결 상태 확인
-    const isConnected = window.CrossSdk?.AccountController?.state?.status === 'connected'
+    const isConnected = this.isConnected()
     const hasNoSession = !up?.session
     const isExtensionProvider = hasNoSession && isConnected
 
@@ -597,18 +652,64 @@ export class SdkActions extends Component {
   }
 
   async start() {
+    // SDK 초기화 with SIWX (SIWE 인증 지원을 위해 필수!)
+    if (window.CrossSdk && !window.CrossSdkInstance) {
+      try {
+        const projectId = '0979fd7c92ec3dbd8e78f433c3e5a523'
+        const redirectUrl = window.location.href
+
+        // SIWX 설정 생성
+        const siwxConfig = window.CrossSdk.createDefaultSIWXConfig({
+          statement: 'Sign in with your wallet to Cross SDK Cocos Creator Example',
+          getNonce: async () => {
+            // 데모용: 랜덤 nonce 생성 (프로덕션에서는 백엔드에서 가져와야 함)
+            return (
+              Math.random().toString(36).substring(2, 15) +
+              Math.random().toString(36).substring(2, 15)
+            )
+          },
+          verifyMessage: async ({ message, signature }: { message: any; signature: string }) => {
+            // 데모용: 자동 승인 (프로덕션에서는 백엔드에서 검증해야 함)
+            console.log('SIWX verifyMessage called')
+            return true
+          }
+        })
+
+        // SDK 인스턴스 생성 (싱글톤 패턴으로 자동 중복 방지)
+        const mobileLinkValue = window.CrossSdk.ConstantsUtil?.getUniversalLink?.()
+
+        window.CrossSdkInstance = window.CrossSdk.initCrossSdkWithParams({
+          projectId,
+          redirectUrl,
+          metadata: {
+            name: 'Cross SDK - Cocos Creator',
+            description: 'Cross SDK integration with Cocos Creator',
+            url: 'https://to.nexus',
+            icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
+          },
+          themeMode: 'light',
+          mobileLink: mobileLinkValue,
+          siwx: siwxConfig
+        })
+      } catch (error) {
+        console.error('Failed to initialize SDK:', error)
+        alert(`SDK 초기화 실패: ${(error as Error).message}`)
+      }
+    }
+
     // 1) SDK 준비 후 provider 워밍업
     try {
       await this.warmupProviderIfAny()
     } catch {}
 
     // 2) 최초 연결 여부 판단 → 버튼 라벨 즉시 반영
-    const active = await this.checkInitialSessionActive()
+    await this.checkInitialSessionActive()
     this.updateConnectButtonLabel()
     await this.updateSummaryLabels()
 
-    // 3) 상태 변화 구독(이미 추가했다면 중복 X)
-    if (window.CrossSdk?.AccountController?.subscribeKey) {
+    // 3) 상태 변화 구독 (중복 방지)
+    if (window.CrossSdk?.AccountController?.subscribeKey && !(this as any)._subsRegistered) {
+      ;(this as any)._subsRegistered = true
       ;(this as any)._unsubs ||= []
       ;(this as any)._unsubs.push(
         window.CrossSdk.AccountController.subscribeKey('status', () => {
@@ -628,17 +729,20 @@ export class SdkActions extends Component {
       )
     }
 
-    // 4) 포커스 복귀 시 재점검(모바일 딥링크/탭 전환 대응)
-    window.addEventListener(
-      'focus',
-      () =>
-        setTimeout(() => {
-          this.updateConnectButtonLabel()
-          this.updateSummaryLabels()
-        }, 300),
-      {
-        passive: true
-      }
-    )
+    // 4) 포커스 복귀 시 재점검 (모바일 딥링크/탭 전환 대응, 중복 방지)
+    if (!(this as any)._focusListenerRegistered) {
+      ;(this as any)._focusListenerRegistered = true
+      window.addEventListener(
+        'focus',
+        () =>
+          setTimeout(() => {
+            this.updateConnectButtonLabel()
+            this.updateSummaryLabels()
+          }, 300),
+        {
+          passive: true
+        }
+      )
+    }
   }
 }

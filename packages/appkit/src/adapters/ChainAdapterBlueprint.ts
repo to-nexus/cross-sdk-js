@@ -432,6 +432,16 @@ export abstract class AdapterBlueprint<
 
     return connector
   }
+
+  public async authenticateWalletConnect(): Promise<{
+    authenticated: boolean
+    sessions: import('@to-nexus/appkit-core').SIWXSession[]
+  }> {
+    const connector = this.getWalletConnectConnector()
+    const result = await connector.authenticateWalletConnect()
+
+    return result
+  }
 }
 
 export namespace AdapterBlueprint {

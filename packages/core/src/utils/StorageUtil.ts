@@ -49,7 +49,17 @@ export const StorageUtil = {
 
   setWalletConnectDeepLink({ name, href }: { href: string; name: string }) {
     try {
-      SafeLocalStorage.setItem(SafeLocalStorageKeys.DEEPLINK_CHOICE, JSON.stringify({ href, name }))
+      /*
+       * 🔑 핵심: Universal Link를 Custom URL Scheme으로 변환
+       * Universal Link는 비동기 작업 후 사용자 인터랙션 컨텍스트가 상실되면 fallback URL로 리다이렉트됨
+       * Custom URL Scheme (deep link)는 비동기 작업 후에도 앱을 열 수 있음
+       */
+      const deepLinkHref = href.replace('https://stg-cross-wallet.crosstoken.io/', 'crossx://')
+
+      SafeLocalStorage.setItem(
+        SafeLocalStorageKeys.DEEPLINK_CHOICE,
+        JSON.stringify({ href: deepLinkHref, name })
+      )
     } catch {
       console.info('Unable to set WalletConnect deep link')
     }
@@ -87,18 +97,22 @@ export const StorageUtil = {
   setActiveCaipNetworkId(caipNetworkId: CaipNetworkId) {
     try {
       console.log(`setActiveCaipNetworkId - caipNetworkId: ${caipNetworkId} now storing in storage`)
-      
+
       // 이전 네트워크 ID 가져오기
-      const previousNetworkId = SafeLocalStorage.getItem(SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID)
-      
+      const previousNetworkId = SafeLocalStorage.getItem(
+        SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID
+      )
+
       // 네트워크가 실제로 바뀌었는지 확인
       if (previousNetworkId && previousNetworkId !== caipNetworkId) {
-        console.log(`Network changed from ${previousNetworkId} to ${caipNetworkId}, clearing all storage for previous network`)
-        
+        console.log(
+          `Network changed from ${previousNetworkId} to ${caipNetworkId}, clearing all storage for previous network`
+        )
+
         // 이전 네트워크의 모든 스토리지 제거
         StorageUtil.clearAddressCache()
       }
-      
+
       SafeLocalStorage.setItem(SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID, caipNetworkId)
       StorageUtil.setActiveNamespace(caipNetworkId.split(':')[0] as ChainNamespace)
     } catch {
@@ -352,11 +366,7 @@ export const StorageUtil = {
 
     return undefined
   },
-  updateBalanceCache(params: {
-    caipAddress: string
-    balance: Balance[]
-    timestamp: number
-  }) {
+  updateBalanceCache(params: { caipAddress: string; balance: Balance[]; timestamp: number }) {
     try {
       const cache = StorageUtil.getBalanceCache()
       const { caipAddress, balance, timestamp } = params

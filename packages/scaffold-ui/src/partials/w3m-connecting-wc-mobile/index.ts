@@ -2,7 +2,8 @@ import {
   ConnectionController,
   ConstantsUtil,
   CoreHelperUtil,
-  EventsController
+  EventsController,
+  StorageUtil
 } from '@to-nexus/appkit-core'
 import { customElement } from '@to-nexus/appkit-ui'
 
@@ -90,7 +91,15 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
         this.error = false
         const { mobile_link, name } = this.wallet
         const { redirect, href } = CoreHelperUtil.formatNativeUrl(mobile_link, this.uri)
-        ConnectionController.setWcLinking({ name, href })
+        
+        // 🔑 핵심: href는 base URL만 저장 (WalletConnect Engine이 각 요청마다 동적으로 URI 생성)
+        const baseUrl = mobile_link.endsWith('/') ? mobile_link : `${mobile_link}/`
+        
+        ConnectionController.setWcLinking({ name, href: baseUrl })
+        
+        // ✅ base URL만 localStorage에 저장 (WalletConnect Engine이 동적 URL 생성)
+        StorageUtil.setWalletConnectDeepLink({ name, href: baseUrl })
+        
         ConnectionController.setRecentWallet(this.wallet)
         const target = CoreHelperUtil.isIframe() ? '_top' : '_self'
         CoreHelperUtil.openHref(redirect, target)

@@ -828,6 +828,8 @@ export class EthersAdapter extends AdapterBlueprint {
         providerType === 'INJECTED'
       ) {
         throw new Error('Chain is not supported')
+      } else {
+        throw switchError
       }
     }
   }

@@ -5,10 +5,15 @@ import {
   AccountController,
   ApiController,
   type ChainAdapter,
+  ChainController,
   ConnectionController,
   ConstantsUtil,
+  CoreHelperUtil,
+  OptionsController,
+  type SIWXConfig,
   SendController,
-  type ThemeMode
+  type ThemeMode,
+  createDefaultSIWXConfig
 } from '@to-nexus/appkit-core'
 import type { CustomWallet } from '@to-nexus/appkit-core'
 import { ConnectorUtil, createAppKitWalletButton } from '@to-nexus/appkit-wallet-button'
@@ -36,7 +41,11 @@ export type {
   TypedDataDomain,
   TypedDataTypes,
   TypedDataField,
-  ChainAdapter
+  ChainAdapter,
+  CreateSIWXConfigOptions,
+  SIWXConfig,
+  SIWXMessage,
+  SIWXSession
 } from '@to-nexus/appkit-core'
 
 const ethersAdapter = new EthersAdapter()
@@ -76,12 +85,48 @@ export type CrossSdkParams = {
   themeMode?: ThemeMode
   defaultNetwork?: SupportedNetworks
   adapters?: ChainAdapter[]
+  mobileLink?: string
+  siwx?: SIWXConfig
 }
 
-const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters } = params
+// 싱글톤 인스턴스 및 초기화 파라미터 저장
+let sdkInstance: ReturnType<typeof createAppKit> | null = null
+let cachedMobileLink: string | undefined = undefined
+let cachedSiwx: SIWXConfig | undefined = undefined
 
-  return initCrossSdk(projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters)
+const initCrossSdkWithParams = (params: CrossSdkParams) => {
+  // 이미 초기화된 경우 기존 인스턴스 반환
+  if (sdkInstance) {
+    return sdkInstance
+  }
+
+  const {
+    projectId,
+    redirectUrl,
+    metadata,
+    themeMode,
+    defaultNetwork,
+    adapters,
+    mobileLink,
+    siwx
+  } = params
+
+  // 파라미터 캐시 저장
+  cachedMobileLink = mobileLink
+  cachedSiwx = siwx
+
+  sdkInstance = initCrossSdk(
+    projectId,
+    redirectUrl,
+    metadata,
+    themeMode,
+    defaultNetwork,
+    adapters,
+    mobileLink,
+    siwx
+  )
+
+  return sdkInstance
 }
 
 // Create modal
@@ -91,7 +136,9 @@ const initCrossSdk = (
   metadata?: Metadata,
   themeMode?: ThemeMode,
   defaultNetwork?: SupportedNetworks,
-  adapters?: ChainAdapter[]
+  adapters?: ChainAdapter[],
+  mobileLink?: string,
+  siwx?: SIWXConfig
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -101,6 +148,16 @@ const initCrossSdk = (
     }
   }
 
+  // Mobile_link를 미리 계산 (한 번만 평가)
+  const resolvedMobileLink =
+    mobileLink ||
+    cachedMobileLink ||
+    (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
+    CROSS_WALLET_WEBAPP_LINK
+
+  // SIWX 설정도 캐시에서 복원
+  const resolvedSiwx = siwx || cachedSiwx
+
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
     networks: networkList,
@@ -108,6 +165,7 @@ const initCrossSdk = (
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
+    siwx: resolvedSiwx,
     features: {
       swaps: false,
       onramp: false,
@@ -126,7 +184,7 @@ const initCrossSdk = (
         id: 'cross_wallet',
         name: 'CROSSx Wallet',
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
-        mobile_link: CROSS_WALLET_WEBAPP_LINK,
+        mobile_link: resolvedMobileLink,
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
         play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
         chrome_store:
@@ -158,6 +216,10 @@ export {
   SendController,
   AccountController,
   ApiController,
+  ChainController,
+  CoreHelperUtil,
+  createDefaultSIWXConfig,
+  OptionsController,
   crossMainnet,
   crossTestnet,
   bscMainnet,

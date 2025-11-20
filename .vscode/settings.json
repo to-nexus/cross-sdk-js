@@ -19,5 +19,6 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.updateImportsOnFileMove.enabled": "always",
   "css.lint.unknownAtRules": "ignore",
-  "css.validate": true
+  "css.validate": true,
+  "cSpell.words": ["siwx", "siwe", "SIWX", "SIWE"]
 }

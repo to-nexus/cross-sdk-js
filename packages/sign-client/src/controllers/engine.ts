@@ -557,14 +557,21 @@ export class Engine extends IEngine {
   }
 
   public request: IEngine['request'] = async <T>(params: EngineTypes.RequestParams) => {
-    this.isInitialized()
+    try {
+      this.isInitialized()
+    } catch (error) {
+      throw error
+    }
+
     try {
       await this.isValidRequest(params)
     } catch (error) {
       this.client.logger.error('request() -> isValidRequest() failed')
       throw error
     }
+
     const { chainId, request, topic, expiry = ENGINE_RPC_OPTS.wc_sessionRequest.req.ttl } = params
+
     const session = this.client.session.get(topic)
 
     if (session?.transportType === TRANSPORT_TYPES.relay) {
@@ -588,6 +595,7 @@ export class Engine extends IEngine {
     )
     const protocolMethod = 'wc_sessionRequest'
     const appLink = this.getAppLinkIfEnabled(session.peer.metadata, session.transportType)
+
     if (appLink) {
       await this.sendRequest({
         clientRpcId,
@@ -648,14 +656,15 @@ export class Engine extends IEngine {
         resolve()
       }),
       new Promise<void>(async resolve => {
-        // Only attempt to handle deeplinks if they are not explicitly disabled in the session config
         if (!session.sessionConfig?.disableDeepLink) {
           const wcDeepLink = (await getDeepLink(
             this.client.core.storage,
             WALLETCONNECT_DEEPLINK_CHOICE
           )) as string
+
           await handleDeeplinkRedirect({ id: clientRpcId, topic, wcDeepLink })
         }
+
         resolve()
       }),
       done()

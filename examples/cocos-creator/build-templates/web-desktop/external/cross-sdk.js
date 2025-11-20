@@ -1,4 +1,106 @@
-import { s as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, u as ApiController, v as ConnectionController, w as ConstantsUtil, y as ConnectorUtil, z as WalletUtil, B as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, D as networkList, F as ConstantsUtil$2, Z, G as etherTestnet, I as etherMainnet, J as kaiaTestnet, K as kaiaMainnet, L as bscTestnet, N as bscMainnet, Q as crossTestnet, V as crossMainnet, X as AccountController, Y as SendController } from "./index.es-DIcT9sP3.js";
+import { s as AccountController, u as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, v as ApiController, w as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as etherTestnet, J as etherMainnet, K as kaiaTestnet, L as kaiaMainnet, N as bscTestnet, Q as bscMainnet, V as crossTestnet, X as crossMainnet, C as ChainController, Y as SendController } from "./index.es-CVx6Eg70.js";
+function createDefaultSIWXConfig(options = {}) {
+  let currentChainId = void 0;
+  AccountController.subscribeKey("caipAddress", (caipAddress) => {
+    if (caipAddress) {
+      const parts = caipAddress.split(":");
+      if (parts.length >= 2) {
+        currentChainId = `${parts[0]}:${parts[1]}`;
+      }
+    }
+  });
+  return {
+    /**
+     * Creates a SIWE message with standard fields
+     */
+    createMessage: async (input) => {
+      const chainId = currentChainId || input.chainId;
+      const issuedAt = /* @__PURE__ */ new Date();
+      const expirationTime = typeof options.expirationTime === "function" ? options.expirationTime(issuedAt) : options.expirationTime || new Date(Date.now() + 24 * 60 * 60 * 1e3).toISOString();
+      const nonce = options.getNonce ? await options.getNonce() : Math.random().toString(36).substring(2, 15);
+      const message = {
+        ...input,
+        chainId,
+        domain: options.domain || window.location.host,
+        uri: options.uri || window.location.origin,
+        version: "1",
+        nonce,
+        issuedAt: issuedAt.toISOString(),
+        expirationTime,
+        statement: options.statement || "Sign in with your wallet",
+        toString: () => [
+          `${message.domain} wants you to sign in with your account:`,
+          message.accountAddress,
+          "",
+          message.statement || "",
+          "",
+          `URI: ${message.uri}`,
+          `Version: ${message.version}`,
+          `Chain ID: ${message.chainId}`,
+          `Nonce: ${message.nonce}`,
+          `Issued At: ${message.issuedAt}`,
+          message.expirationTime ? `Expiration Time: ${message.expirationTime}` : ""
+        ].filter(Boolean).join("\n")
+      };
+      return message;
+    },
+    /**
+     * Stores a SIWX session (defaults to localStorage)
+     */
+    addSession: options.addSession || (async (session) => {
+      console.log("✅ SIWX Session added:", session);
+      localStorage.setItem("siwx_session", JSON.stringify(session));
+    }),
+    /**
+     * Revokes a SIWX session (defaults to localStorage removal)
+     */
+    revokeSession: options.revokeSession || (async (chainId, address) => {
+      console.log("🗑️ SIWX Session revoked:", { chainId, address });
+      localStorage.removeItem("siwx_session");
+    }),
+    /**
+     * Sets multiple SIWX sessions (defaults to localStorage)
+     */
+    setSessions: options.setSessions || (async (sessions) => {
+      console.log("📝 SIWX Sessions set:", sessions);
+      if (sessions.length > 0) {
+        localStorage.setItem("siwx_sessions", JSON.stringify(sessions));
+      } else {
+        localStorage.removeItem("siwx_sessions");
+      }
+    }),
+    /**
+     * Retrieves SIWX sessions for a given chain and address (defaults to localStorage)
+     */
+    getSessions: options.getSessions || (async (chainId, address) => {
+      const sessionStr = localStorage.getItem("siwx_session");
+      if (sessionStr) {
+        try {
+          const session = JSON.parse(sessionStr);
+          if (session.data.chainId === chainId && session.data.accountAddress.toLowerCase() === address.toLowerCase()) {
+            return [session];
+          }
+        } catch (error) {
+          console.error("Error parsing siwx_session:", error);
+        }
+      }
+      const sessionsStr = localStorage.getItem("siwx_sessions");
+      if (sessionsStr) {
+        try {
+          const sessions = JSON.parse(sessionsStr);
+          return sessions.filter((s) => s.data.chainId === chainId && s.data.accountAddress.toLowerCase() === address.toLowerCase());
+        } catch (error) {
+          console.error("Error parsing siwx_sessions:", error);
+        }
+      }
+      return [];
+    }),
+    /**
+     * Whether SIWX authentication is required (defaults to false - optional)
+     */
+    getRequired: options.getRequired || (() => false)
+  };
+}
 function createAppKit(options) {
   return new AppKit({
     ...options,
@@ -74,32 +176,56 @@ function createAppKitWalletButton() {
   }
   return walletButton;
 }
-const d = new EthersAdapter(), f = (() => {
-  var e, t;
-  return ((t = (e = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : t.call(e)) || "https://cross-wallet.crosstoken.io/wc";
-})(), h = {
+const K = new EthersAdapter(), W = (() => {
+  var e, o;
+  return ((o = (e = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : o.call(e)) || "https://cross-wallet.crosstoken.io/wc";
+})(), D = {
   name: "Cross SDK",
   description: "Cross SDK for HTML",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
-}, _ = (e) => {
-  const { projectId: t, redirectUrl: o, metadata: a, themeMode: r, defaultNetwork: s, adapters: n } = e;
-  return u(t, o, a, r, s, n);
-}, u = (e, t, o, a, r, s) => {
+};
+let r = null, p, m;
+const R = (e) => {
+  if (r)
+    return console.warn("[Cross SDK] Already initialized. Returning existing instance."), r;
+  const {
+    projectId: o,
+    redirectUrl: a,
+    metadata: i,
+    themeMode: c,
+    defaultNetwork: s,
+    adapters: l,
+    mobileLink: t,
+    siwx: n
+  } = e;
+  return console.log("[Cross SDK] Initializing with mobileLink:", t), console.log("[Cross SDK] Initializing with siwx:", n ? "configured" : "undefined"), p = t, m = n, r = _(
+    o,
+    a,
+    i,
+    c,
+    s,
+    l,
+    t,
+    n
+  ), r;
+}, _ = (e, o, a, i, c, s, l, t) => {
+  var C, u, h, k;
   const n = {
-    ...h,
-    ...o,
+    ...D,
+    ...a,
     redirect: {
-      universal: t
+      universal: o
     }
-  };
-  return createAppKit({
-    adapters: s && s.length > 0 ? s : [d],
+  }, f = l || p || ((u = (C = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : u.call(C)) || W, g = t || m;
+  return console.log("[Cross SDK] Resolved mobile_link:", f), console.log("[Cross SDK] - mobileLink param:", l), console.log("[Cross SDK] - cachedMobileLink:", p), console.log("[Cross SDK] - fallback:", (k = (h = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : k.call(h)), console.log("[Cross SDK] Resolved siwx:", g ? "configured" : "undefined"), console.log("[Cross SDK] - siwx param:", t ? "configured" : "undefined"), console.log("[Cross SDK] - cachedSiwx:", m ? "configured" : "undefined"), createAppKit({
+    adapters: s && s.length > 0 ? s : [K],
     networks: networkList,
-    defaultNetwork: r,
+    defaultNetwork: c,
     metadata: n,
     projectId: e,
-    themeMode: a || "light",
+    themeMode: i || "light",
+    siwx: g,
     features: {
       swaps: false,
       onramp: false,
@@ -132,16 +258,20 @@ const d = new EthersAdapter(), f = (() => {
     ],
     allWallets: "HIDE"
   });
-}, b = () => createAppKitWalletButton(), S = "1.18.1-beta.0";
+}, T = () => createAppKitWalletButton(), U = "1.18.2-beta.1";
 if (typeof window !== "undefined") {
   window.CrossSdk = {
-    initCrossSdk: u,
-    initCrossSdkWithParams: _,
-    useAppKitWallet: b,
+    initCrossSdk: _,
+    initCrossSdkWithParams: R,
+    useAppKitWallet: T,
+    createDefaultSIWXConfig,
     ConnectionController,
     ConnectorUtil,
     SendController,
     AccountController,
+    ChainController,
+    CoreHelperUtil,
+    OptionsController,
     crossMainnet,
     crossTestnet,
     bscMainnet,
@@ -152,27 +282,31 @@ if (typeof window !== "undefined") {
     etherTestnet,
     UniversalProvider: Z,
     ConstantsUtil: ConstantsUtil$2,
-    sdkVersion: S
+    sdkVersion: U
   };
 }
 export {
   AccountController,
+  ChainController,
   ConnectionController,
   ConnectorUtil,
   ConstantsUtil$2 as ConstantsUtil,
+  CoreHelperUtil,
+  OptionsController,
   SendController,
   Z as UniversalProvider,
   bscMainnet,
   bscTestnet,
+  createDefaultSIWXConfig,
   crossMainnet,
   crossTestnet,
   etherMainnet,
   etherTestnet,
-  u as initCrossSdk,
-  _ as initCrossSdkWithParams,
+  _ as initCrossSdk,
+  R as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
-  S as sdkVersion,
-  b as useAppKitWallet
+  U as sdkVersion,
+  T as useAppKitWallet
 };
 //# sourceMappingURL=cross-sdk.js.map

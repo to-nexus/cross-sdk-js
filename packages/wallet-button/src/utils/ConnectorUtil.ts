@@ -11,6 +11,8 @@ import {
   ModalController,
   OptionsController,
   RouterController,
+  SIWXUtil,
+  type SIWXSession,
   StorageUtil,
   type WcWallet
 } from '@to-nexus/appkit-core'
@@ -331,6 +333,146 @@ export const ConnectorUtil = {
         reject(err)
       }
     })
+  },
+
+  /**
+   * Connect Cross Extension Wallet and perform SIWE authentication in one step.
+   * Similar to authenticateWalletConnect() but for extension connections.
+   * 
+   * @returns Promise with authentication result including sessions
+   */
+  async authenticateCrossExtensionWallet(): Promise<{
+    authenticated: boolean
+    sessions: SIWXSession[]
+  }> {
+    const siwx = OptionsController.state.siwx
+
+    if (!siwx) {
+      // If SIWX is not configured, just connect without authentication
+      await ConnectorUtil.connectCrossExtensionWallet()
+      return { authenticated: false, sessions: [] }
+    }
+
+    // Set flag to prevent auto SIWE modal during manual authentication
+    console.log('🚀 Setting _isAuthenticating = true before connecting extension')
+    SIWXUtil._isAuthenticating = true
+
+    try {
+      // 1. Connect the extension wallet
+      console.log('🔌 Starting extension connection...')
+      await ConnectorUtil.connectCrossExtensionWallet()
+      console.log('✅ Extension connected')
+
+      // 2. Wait for connection to be established
+      const caipAddress = await new Promise<string>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          unsubscribe()
+          reject(new Error('Connection timeout waiting for address'))
+        }, 10000)
+
+        const unsubscribe = AccountController.subscribeKey('address', address => {
+          if (address) {
+            clearTimeout(timeout)
+            unsubscribe()
+            resolve(ChainController.getActiveCaipAddress() || '')
+          }
+        })
+
+        // Check if already connected
+        const currentAddress = AccountController.state.address
+        if (currentAddress) {
+          clearTimeout(timeout)
+          unsubscribe()
+          resolve(ChainController.getActiveCaipAddress() || '')
+        }
+      })
+
+      if (!caipAddress) {
+        throw new Error('Failed to get CAIP address after connection')
+      }
+
+      // 3. Get address and network info
+      const address = CoreHelperUtil.getPlainAddress(caipAddress as any)
+      const network = ChainController.getActiveCaipNetwork()
+
+      if (!address || !network) {
+        throw new Error('Failed to get address or network information')
+      }
+
+      // 4. Create SIWE message
+      const siwxMessage = await siwx.createMessage({
+        chainId: network.caipNetworkId,
+        accountAddress: address
+      })
+
+      const message = siwxMessage.toString()
+
+      // 5. Sign the message directly using the connection client
+      const client = ConnectionController._getClient()
+      if (!client) {
+        throw new Error('No connection client available')
+      }
+
+      const signature = await client.signMessage({ message })
+
+      if (!signature) {
+        throw new Error('Failed to get signature')
+      }
+
+      // 6. Create and store session
+      // Use the siwxMessage directly as it already contains all required Data fields
+      const session: SIWXSession = {
+        data: {
+          accountAddress: siwxMessage.accountAddress,
+          chainId: siwxMessage.chainId,
+          domain: siwxMessage.domain,
+          uri: siwxMessage.uri,
+          version: siwxMessage.version,
+          nonce: siwxMessage.nonce,
+          issuedAt: siwxMessage.issuedAt,
+          expirationTime: siwxMessage.expirationTime,
+          statement: siwxMessage.statement,
+          requestId: siwxMessage.requestId,
+          resources: siwxMessage.resources,
+          notBefore: siwxMessage.notBefore
+        },
+        message,
+        signature,
+        cacao: undefined
+      }
+
+      await siwx.addSession(session)
+
+      // Verify session was saved before SDK's auto initializeIfEnabled() runs
+      // This prevents duplicate SIWE modal from appearing
+      let savedSessions = await siwx.getSessions(network.caipNetworkId, address)
+      if (savedSessions.length === 0) {
+        console.warn('⚠️ Session not found immediately after saving, waiting...')
+        // Give a small delay for session to be fully persisted
+        await new Promise(resolve => setTimeout(resolve, 100))
+        // Re-check after delay
+        savedSessions = await siwx.getSessions(network.caipNetworkId, address)
+        console.log('🔄 Re-checked sessions after delay:', savedSessions.length)
+      }
+
+      // Delay flag clearing to ensure initializeIfEnabled sees the flag
+      // Use setTimeout to clear flag after current call stack
+      setTimeout(() => {
+        console.log('🏁 Clearing _isAuthenticating flag (delayed)')
+        SIWXUtil._isAuthenticating = false
+      }, 200)
+
+      return {
+        authenticated: true,
+        sessions: [session]
+      }
+    } catch (error) {
+      console.error('❌ Authentication failed:', error)
+      // Clear flag after failed authentication
+      SIWXUtil._isAuthenticating = false
+      // Re-throw to let caller handle the error
+      throw error
+    }
   },
 
   isInstalledCrossExtensionWallet(): boolean {
