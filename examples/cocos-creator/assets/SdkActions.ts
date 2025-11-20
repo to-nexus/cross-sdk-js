@@ -6,7 +6,6 @@ declare global {
   interface Window {
     CrossSdk: any
     CrossSdkInstance?: any
-    _crossSdkInitialized?: boolean // 중복 초기화 방지 플래그
   }
 }
 
@@ -84,39 +83,9 @@ export class SdkActions extends Component {
     }
 
     try {
-      // 🔧 Clear cached deep link to ensure Universal Link is used
-      localStorage.removeItem('WALLETCONNECT_DEEPLINK_CHOICE')
-      console.log('🔧 Cleared cached deep link')
-
-      // 🔍 Debug: Check what's stored in localStorage
-      console.log(
-        '🔍 WALLETCONNECT_DEEPLINK_CHOICE:',
-        localStorage.getItem('WALLETCONNECT_DEEPLINK_CHOICE')
-      )
-
-      // 🔍 Debug: Check customWallets configuration
-      const customWallets = window.CrossSdk.OptionsController?.state?.customWallets
-      const crossWallet = customWallets?.find((w: any) => w.id === 'cross_wallet')
-      console.log('🔍 Cross Wallet mobile_link:', crossWallet?.mobile_link)
-
-      // 🔍 Debug: Listen for display_uri event to check the actual URI
-      const providers = window.CrossSdkInstance.getProviders?.()
-      const universalProvider = providers?.walletProvider
-      if (universalProvider) {
-        universalProvider.once('display_uri', (uri: string) => {
-          console.log('🔍 WalletConnect URI:', uri)
-
-          // Check if the URI contains the universal link
-          const uriWithLink = `${crossWallet?.mobile_link}wc?uri=${encodeURIComponent(uri)}`
-          console.log('🔍 Expected URI with Universal Link:', uriWithLink)
-
-          // Check what's actually being used
-          const deepLinkChoice = localStorage.getItem('WALLETCONNECT_DEEPLINK_CHOICE')
-          if (deepLinkChoice) {
-            const parsed = JSON.parse(deepLinkChoice)
-            console.log('🔍 Stored deep link:', parsed)
-          }
-        })
+      if (this.isConnected()) {
+        // 연결되어 있으면 disconnect
+        await window.CrossSdk.ConnectionController.disconnect()
       }
 
       // WalletConnect (QR Code) 연결 + SIWE 인증 통합
@@ -453,10 +422,7 @@ export class SdkActions extends Component {
     if (!this.connectButtonLabel) return
     const status = (window as any).CrossSdk?.AccountController?.state?.status
     const address = (window as any).CrossSdk?.AccountController?.state?.address
-    console.log('status:', status)
-    console.log('address:', address)
     const connected = status === 'connected' && Boolean(address)
-    console.log('connected:', connected)
 
     // Connect 버튼
     this.connectButtonLabel.string = connected ? `Cross\nConnected` : `Cross\nConnect`
@@ -520,7 +486,7 @@ export class SdkActions extends Component {
     let chainId: number | undefined
 
     // 연결 상태 확인
-    const isConnected = window.CrossSdk?.AccountController?.state?.status === 'connected'
+    const isConnected = this.isConnected()
     const hasNoSession = !up?.session
     const isExtensionProvider = hasNoSession && isConnected
 
@@ -686,49 +652,8 @@ export class SdkActions extends Component {
   }
 
   async start() {
-    // 0) SDK 초기화 with SIWX (SIWE 인증 지원을 위해 필수!)
-
-    // 중복 초기화 방지
-    if (window._crossSdkInitialized) {
-      console.log('SDK already initialized, skipping re-initialization')
-
-      // 기존 초기화 로직 실행 (provider warmup, 구독 등)
-      try {
-        await this.warmupProviderIfAny()
-      } catch {}
-
-      const active = await this.checkInitialSessionActive()
-      this.updateConnectButtonLabel()
-      await this.updateSummaryLabels()
-
-      if (window.CrossSdk?.AccountController?.subscribeKey && !(this as any)._subsRegistered) {
-        ;(this as any)._subsRegistered = true
-        ;(this as any)._unsubs ||= []
-        ;(this as any)._unsubs.push(
-          window.CrossSdk.AccountController.subscribeKey('status', () => {
-            this.updateConnectButtonLabel()
-            this.updateSummaryLabels()
-          }),
-          window.CrossSdk.AccountController.subscribeKey('address', () => {
-            this.updateConnectButtonLabel()
-            this.updateSummaryLabels()
-          }),
-          window.CrossSdk.AccountController.subscribeKey('balance', () => {
-            this.updateSummaryLabels()
-          }),
-          window.CrossSdk.AccountController.subscribeKey('balanceSymbol', () => {
-            this.updateSummaryLabels()
-          })
-        )
-      }
-
-      return
-    }
-
-    // 초기화 플래그 설정
-    window._crossSdkInitialized = true
-
-    if (window.CrossSdk) {
+    // SDK 초기화 with SIWX (SIWE 인증 지원을 위해 필수!)
+    if (window.CrossSdk && !window.CrossSdkInstance) {
       try {
         const projectId = '0979fd7c92ec3dbd8e78f433c3e5a523'
         const redirectUrl = window.location.href
@@ -750,47 +675,10 @@ export class SdkActions extends Component {
           }
         })
 
-        // OptionsController.setSIWX 보호 (SIWX 덮어쓰기 방지)
-        const originalSetSIWX = window.CrossSdk.OptionsController.setSIWX
-        let siwxLocked = false
-        window.CrossSdk.OptionsController.setSIWX = (siwx: any) => {
-          if (siwxLocked && siwx !== siwxConfig) {
-            console.warn('Attempted to overwrite SIWX config, blocked.')
-            return
-          }
-          if (siwx === siwxConfig) {
-            siwxLocked = true
-          }
-          return originalSetSIWX.call(window.CrossSdk.OptionsController, siwx)
-        }
-
-        // initCrossSdkWithParams 래핑 (중복 호출 방지 + mobileLink 강제 주입)
-        const originalInit = window.CrossSdk.initCrossSdkWithParams
-        const universalLink = window.CrossSdk.ConstantsUtil?.getUniversalLink?.()
-
-        const wrappedInit = (params: any) => {
-          if (window.CrossSdkInstance) {
-            console.warn('SDK already initialized, returning existing instance')
-            return window.CrossSdkInstance
-          }
-
-          // 🔒 항상 Universal Link를 mobileLink로 강제 주입
-          const enhancedParams = {
-            ...params,
-            mobileLink: params.mobileLink || universalLink
-          }
-
-          console.log('🔧 Enhanced params with mobileLink:', enhancedParams.mobileLink)
-
-          return originalInit.call(window.CrossSdk, enhancedParams)
-        }
-        window.CrossSdk.initCrossSdkWithParams = wrappedInit
-
-        // SDK 인스턴스 생성
+        // SDK 인스턴스 생성 (싱글톤 패턴으로 자동 중복 방지)
         const mobileLinkValue = window.CrossSdk.ConstantsUtil?.getUniversalLink?.()
-        console.log('🔍 mobileLink value being passed to SDK:', mobileLinkValue)
 
-        window.CrossSdkInstance = wrappedInit({
+        window.CrossSdkInstance = window.CrossSdk.initCrossSdkWithParams({
           projectId,
           redirectUrl,
           metadata: {
@@ -803,49 +691,6 @@ export class SdkActions extends Component {
           mobileLink: mobileLinkValue,
           siwx: siwxConfig
         })
-
-        // 초기화 후 customWallets 강제 수정
-        setTimeout(() => {
-          const customWallets = window.CrossSdk.OptionsController?.state?.customWallets
-          if (customWallets) {
-            const crossWalletIndex = customWallets.findIndex((w: any) => w.id === 'cross_wallet')
-            if (crossWalletIndex !== -1) {
-              const crossWallet = customWallets[crossWalletIndex]
-              console.log('🔍 Before fix - Cross Wallet mobile_link:', crossWallet?.mobile_link)
-
-              // 🔒 Deep Link인 경우 Universal Link로 강제 교체
-              if (crossWallet.mobile_link?.startsWith('crossx://')) {
-                crossWallet.mobile_link = universalLink
-                console.log('🔧 Fixed mobile_link to:', universalLink)
-              }
-
-              console.log('🔍 After fix - Cross Wallet mobile_link:', crossWallet.mobile_link)
-            }
-          }
-        }, 200)
-
-        // OptionsController.setCustomWallets도 보호
-        const originalSetCustomWallets = window.CrossSdk.OptionsController.setCustomWallets
-        if (originalSetCustomWallets) {
-          window.CrossSdk.OptionsController.setCustomWallets = (wallets: any) => {
-            if (wallets && Array.isArray(wallets)) {
-              const modifiedWallets = wallets.map((w: any) => {
-                if (w.id === 'cross_wallet' && w.mobile_link?.startsWith('crossx://')) {
-                  console.log('🔧 Intercepted setCustomWallets, fixing mobile_link')
-                  return { ...w, mobile_link: universalLink }
-                }
-                return w
-              })
-              return originalSetCustomWallets.call(
-                window.CrossSdk.OptionsController,
-                modifiedWallets
-              )
-            }
-            return originalSetCustomWallets.call(window.CrossSdk.OptionsController, wallets)
-          }
-        }
-
-        console.log('SDK initialized successfully')
       } catch (error) {
         console.error('Failed to initialize SDK:', error)
         alert(`SDK 초기화 실패: ${(error as Error).message}`)
@@ -858,11 +703,11 @@ export class SdkActions extends Component {
     } catch {}
 
     // 2) 최초 연결 여부 판단 → 버튼 라벨 즉시 반영
-    const active = await this.checkInitialSessionActive()
+    await this.checkInitialSessionActive()
     this.updateConnectButtonLabel()
     await this.updateSummaryLabels()
 
-    // 3) 상태 변화 구독(이미 추가했다면 중복 X)
+    // 3) 상태 변화 구독 (중복 방지)
     if (window.CrossSdk?.AccountController?.subscribeKey && !(this as any)._subsRegistered) {
       ;(this as any)._subsRegistered = true
       ;(this as any)._unsubs ||= []
@@ -884,7 +729,7 @@ export class SdkActions extends Component {
       )
     }
 
-    // 4) 포커스 복귀 시 재점검(모바일 딥링크/탭 전환 대응) - 중복 방지
+    // 4) 포커스 복귀 시 재점검 (모바일 딥링크/탭 전환 대응, 중복 방지)
     if (!(this as any)._focusListenerRegistered) {
       ;(this as any)._focusListenerRegistered = true
       window.addEventListener(
