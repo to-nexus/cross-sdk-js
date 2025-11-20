@@ -222,6 +222,7 @@ export function WalletSelector() {
       setLoadingStates(prev => ({ ...prev, crossQR: true }))
 
       if (currentWallet === 'cross_wallet') {
+        // connect('cross_wallet')
         // 이미 Cross Wallet 환경이면 바로 QR Code 모달 열기
         await crossAppKit.connect()
       } else {

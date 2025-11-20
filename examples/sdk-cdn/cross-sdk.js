@@ -1,4 +1,4 @@
-import { s as AccountController, u as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, v as ApiController, w as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as etherTestnet, J as etherMainnet, K as kaiaTestnet, L as kaiaMainnet, N as bscTestnet, Q as bscMainnet, V as crossTestnet, X as crossMainnet, C as ChainController, Y as SendController } from "./index.es-DuX4IOPH.js";
+import { s as AccountController, u as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, v as ApiController, w as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as etherTestnet, J as etherMainnet, K as kaiaTestnet, L as kaiaMainnet, N as bscTestnet, Q as bscMainnet, V as crossTestnet, X as crossMainnet, C as ChainController, Y as SendController } from "./index.es-CVx6Eg70.js";
 function createDefaultSIWXConfig(options = {}) {
   let currentChainId = void 0;
   AccountController.subscribeKey("caipAddress", (caipAddress) => {
@@ -191,8 +191,8 @@ const u = new EthersAdapter(), k = (() => {
     metadata: r,
     themeMode: a,
     defaultNetwork: o,
-    adapters: l,
-    mobileLink: n,
+    adapters: n,
+    mobileLink: l,
     siwx: i
   } = e;
   return w(
@@ -201,12 +201,12 @@ const u = new EthersAdapter(), k = (() => {
     r,
     a,
     o,
-    l,
     n,
+    l,
     i
   );
-}, w = (e, t, s, r, a, o, l, n) => {
-  var p, c;
+}, w = (e, t, s, r, a, o, n, l) => {
+  var c, p;
   const i = {
     ...g,
     ...s,
@@ -221,7 +221,7 @@ const u = new EthersAdapter(), k = (() => {
     metadata: i,
     projectId: e,
     themeMode: r || "light",
-    siwx: n,
+    siwx: l,
     features: {
       swaps: false,
       onramp: false,
@@ -240,7 +240,7 @@ const u = new EthersAdapter(), k = (() => {
         id: "cross_wallet",
         name: "CROSSx Wallet",
         image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: l || ((c = (p = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : c.call(p)) || k,
+        mobile_link: n || ((p = (c = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : p.call(c)) || k,
         app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
         play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
         chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
@@ -254,7 +254,7 @@ const u = new EthersAdapter(), k = (() => {
     ],
     allWallets: "HIDE"
   });
-}, M = () => createAppKitWalletButton(), L = "1.18.2-alpha.0";
+}, M = () => createAppKitWalletButton(), L = "1.18.2-beta.1";
 if (typeof window !== "undefined") {
   window.CrossSdk = {
     initCrossSdk: w,

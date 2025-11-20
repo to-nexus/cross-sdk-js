@@ -145,6 +145,7 @@ async function initializeApp() {
       metadata,
       themeMode: 'light',
       defaultNetwork: crossTestnet,
+      mobileLink: ConstantsUtil.getUniversalLink(),
       // ⚠️ 개발/데모용: 클라이언트에서 랜덤 nonce 생성 (보안 취약!)
       // siwx: window.CrossSdk.createDefaultSIWXConfig({
       //   statement: 'Sign in with your wallet to Cross SDK Sample App'
