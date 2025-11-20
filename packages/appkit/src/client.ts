@@ -1795,7 +1795,8 @@ export class AppKit {
     const sessionNamespaces = Object.keys(this.universalProvider?.session?.namespaces || {})
     const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
-    this.chainNamespaces.forEach(async chainNamespace => {
+    // 🔧 forEach 대신 for...of 사용하여 비동기 작업 완료 대기
+    for (const chainNamespace of this.chainNamespaces) {
       const namespaceAccounts =
         this.universalProvider?.session?.namespaces?.[chainNamespace]?.accounts || []
 
@@ -1853,7 +1854,7 @@ export class AppKit {
       } else {
         this.setStatus('disconnected', chainNamespace)
       }
-    })
+    }
 
     await ChainController.setApprovedCaipNetworksData(
       ChainController.state.activeChain as ChainNamespace
