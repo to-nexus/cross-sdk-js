@@ -66,6 +66,14 @@ interface PendingTransactionsFilter {
   pollingInterval?: number
 }
 
+// --- Types for Session Restore Events ---------------------------- //
+export interface ReconnectFailedEvent {
+  code: 'SESSION_RESTORE_FAILED'
+  message: string
+  attempts: number
+  error: Error
+}
+
 // --- Constants ---------------------------------------------------- //
 const DEFAULT_PENDING_TRANSACTIONS_FILTER = {
   enable: false,
@@ -81,6 +89,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   private unwatchPendingTransactions: (() => void) | undefined
   private balancePromises: Record<string, Promise<AdapterBlueprint.GetBalanceResult>> = {}
   private siwx?: AppKitOptions['siwx']
+  private reconnectFailedListeners = new Set<(event: ReconnectFailedEvent) => void>()
 
   constructor(
     configParams: Partial<CreateConfigParameters> & {
@@ -130,6 +139,114 @@ export class WagmiAdapter extends AdapterBlueprint {
     })
 
     this.setupWatchers()
+
+    // 자동 세션 복원 시도 (SSR 환경이 아닐 때만)
+    if (typeof window !== 'undefined') {
+      this.attemptAutoReconnectWithRetry()
+    }
+  }
+
+  /**
+   * 자동 세션 복원을 재시도 로직과 함께 실행
+   * - 점진적으로 증가하는 대기 시간으로 다양한 디바이스/네트워크 환경 커버
+   * - 1차: 300ms 후 시도 (빠른 디바이스)
+   * - 2차: +200ms 후 재시도 (총 500ms, 평균적인 디바이스)
+   * - 3차: +300ms 후 재시도 (총 800ms, 느린 디바이스)
+   * - 4차: +400ms 후 최종 시도 (총 1200ms, 매우 느린 디바이스/네트워크)
+   * - 각 시도마다 2초 timeout 적용 (stuck 방지)
+   * - 실패 시: 'reconnect_failed' 이벤트 emit
+   */
+  private async attemptAutoReconnectWithRetry() {
+    const retryDelays = [300, 200, 300, 400] // 점진적 증가: 빠른 디바이스부터 느린 디바이스까지 커버
+    const reconnectTimeout = 2000 // 각 reconnect() 호출마다 2초 timeout
+    let lastError: Error | null = null
+
+    for (let attempt = 0; attempt < retryDelays.length; attempt++) {
+      // 초기 대기
+      await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]))
+
+      try {
+        // Reconnect()를 timeout과 함께 실행
+        const result = await Promise.race([
+          reconnect(this.wagmiConfig),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('RECONNECT_TIMEOUT')), reconnectTimeout)
+          )
+        ])
+
+        // 세션 복원 성공
+        if (result && result.length > 0) {
+          return
+        }
+
+        /*
+         * ✅ result.length === 0이면 다음 재시도로
+         * (provider가 아직 준비 안됨)
+         */
+        if (attempt < retryDelays.length - 1) {
+          continue
+        }
+
+        // 마지막 시도에서도 연결 없음
+        lastError = new Error('SESSION_RESTORE_NO_CONNECTIONS')
+      } catch (error) {
+        lastError = error as Error
+
+        // 에러 발생 시에도 재시도
+        if (attempt < retryDelays.length - 1) {
+          continue
+        }
+      }
+    }
+
+    // 모든 시도 실패 - 에러 이벤트 emit
+    if (lastError) {
+      this.emitReconnectFailed({
+        code: 'SESSION_RESTORE_FAILED',
+        message:
+          'Failed to restore wallet session after multiple attempts. Please reconnect your wallet manually.',
+        attempts: retryDelays.length,
+        error: lastError
+      })
+    }
+  }
+
+  /**
+   * Listen to session reconnect failure events
+   * @param callback - Callback function to handle the reconnect failure event
+   * @example
+   * ```typescript
+   * adapter.onReconnectFailed((event) => {
+   *   console.error('Session restore failed:', event.message)
+   *   // Show custom UI to user
+   *   showNotification(event.message)
+   * })
+   * ```
+   */
+  public onReconnectFailed(callback: (event: ReconnectFailedEvent) => void) {
+    this.reconnectFailedListeners.add(callback)
+  }
+
+  /**
+   * Remove a reconnect failed event listener
+   * @param callback - The callback function to remove
+   */
+  public offReconnectFailed(callback: (event: ReconnectFailedEvent) => void) {
+    this.reconnectFailedListeners.delete(callback)
+  }
+
+  /**
+   * Emit reconnect failed event to all listeners
+   * @private
+   */
+  private emitReconnectFailed(event: ReconnectFailedEvent) {
+    this.reconnectFailedListeners.forEach(callback => {
+      try {
+        callback(event)
+      } catch (error) {
+        console.error('Error in reconnect failed listener:', error)
+      }
+    })
   }
 
   override async getAccounts(
@@ -203,7 +320,8 @@ export class WagmiAdapter extends AdapterBlueprint {
       ...configParams,
       chains: this.wagmiChains as any, // Type assertion for viem compatibility
       transports,
-      connectors: [...connectors]
+      connectors: [...connectors],
+      ssr: false // 세션 복원을 위해 SSR 비활성화
     })
   }
 
