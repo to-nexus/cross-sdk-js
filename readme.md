@@ -56,6 +56,12 @@ This monorepo contains the following packages:
 
 ## 🚀 Quick Start
 
+### Registry
+Add next script to the .npmrc in the project root
+```
+@to-nexus:registry=https://package.cross-nexus.com/repository/cross-sdk-js
+```
+
 ### Installation
 
 ```bash
