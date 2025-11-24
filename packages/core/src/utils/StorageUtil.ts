@@ -8,6 +8,7 @@ import {
   getSafeConnectorIdKey
 } from '@to-nexus/appkit-common'
 
+import { CoreHelperUtil } from './CoreHelperUtil.js'
 import type {
   BlockchainApiIdentityResponse,
   BlockchainApiLookupEnsName,
@@ -50,15 +51,27 @@ export const StorageUtil = {
   setWalletConnectDeepLink({ name, href }: { href: string; name: string }) {
     try {
       /*
-       * 🔑 핵심: Universal Link를 Custom URL Scheme으로 변환
-       * Universal Link는 비동기 작업 후 사용자 인터랙션 컨텍스트가 상실되면 fallback URL로 리다이렉트됨
-       * Custom URL Scheme (deep link)는 비동기 작업 후에도 앱을 열 수 있음
+       * 🔑 핵심: iOS만 Universal Link를 Custom URL Scheme으로 변환
+       *
+       * iOS:
+       * - Universal Link는 비동기 작업 후 사용자 인터랙션 컨텍스트가 상실되면 fallback URL로 리다이렉트됨
+       * - Custom URL Scheme (deep link)는 비동기 작업 후에도 앱을 열 수 있음
+       * - 따라서 서명 요청 등에서는 Deep Link 사용 필요
+       *
+       * Android:
+       * - 프로그래밍 방식으로 Universal Link를 열 수 있음
+       * - Universal Link 사용 시 앱 미설치 시 웹으로 fallback 가능 (더 나은 UX)
+       * - 사용자 인터랙션 컨텍스트 제약이 iOS보다 덜 엄격
        */
-      const deepLinkHref = href.replace('https://stg-cross-wallet.crosstoken.io/', 'crossx://')
+      const isIos = CoreHelperUtil.isIos()
+      // Android는 Universal Link 그대로 유지
+      const finalHref = isIos
+        ? href.replace('https://stg-cross-wallet.crosstoken.io/', 'crossx://')
+        : href
 
       SafeLocalStorage.setItem(
         SafeLocalStorageKeys.DEEPLINK_CHOICE,
-        JSON.stringify({ href: deepLinkHref, name })
+        JSON.stringify({ href: finalHref, name })
       )
     } catch {
       console.info('Unable to set WalletConnect deep link')
