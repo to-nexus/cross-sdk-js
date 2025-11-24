@@ -26,7 +26,9 @@ import {
   etherTestnet,
   kaiaMainnet,
   kaiaTestnet,
-  networkList
+  networkList,
+  roninMainnet,
+  roninTestnet
 } from '@to-nexus/appkit/networks'
 import UniversalProvider from '@to-nexus/universal-provider'
 
@@ -70,6 +72,7 @@ type SupportedNetworks =
   | typeof kaiaTestnet
   | typeof etherMainnet
   | typeof etherTestnet
+  | typeof roninMainnet
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -228,6 +231,8 @@ export {
   kaiaTestnet,
   etherMainnet,
   etherTestnet,
+  roninMainnet,
+  roninTestnet,
   UniversalProvider,
   ConstantsUtil,
   ConnectorUtil

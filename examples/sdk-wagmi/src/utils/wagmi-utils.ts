@@ -7,7 +7,9 @@ import {
   etherMainnet,
   etherTestnet,
   kaiaMainnet,
-  kaiaTestnet
+  kaiaTestnet,
+  roninMainnet,
+  roninTestnet
 } from '@to-nexus/appkit/networks'
 import type { AppKitNetwork } from '@to-nexus/appkit/networks'
 import { createDefaultSIWXConfig } from '@to-nexus/appkit/react'
@@ -31,7 +33,9 @@ export const networks = [
   crossTestnet,
   crossMainnet,
   kaiaMainnet,
-  kaiaTestnet
+  kaiaTestnet,
+  roninMainnet,
+  roninTestnet
 ]
 
 // MetaMask용 Reown AppKit Adapter
@@ -50,9 +54,7 @@ export const siwxConfig = createDefaultSIWXConfig({
     console.warn(
       '⚠️ Using client-side nonce generation. Implement backend /api/siwe/nonce for production!'
     )
-    return (
-      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-    )
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
   },
 
   // 백엔드에서 서명 검증 및 세션 저장

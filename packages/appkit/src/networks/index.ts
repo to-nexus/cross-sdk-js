@@ -8,6 +8,7 @@ export * from './cross/index.js'
 export * from './bsc/index.js'
 export * from './kaia/index.js'
 export * from './ethereum/index.js'
+export * from './ronin/index.js'
 // -- Utils ------------------------------------------------------------------
 export * from './utils.js'
 

@@ -10,6 +10,8 @@ import {
   initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
+  roninMainnet,
+  roninTestnet,
   useAppKitWallet
 } from '@to-nexus/sdk'
 import {
@@ -107,6 +109,18 @@ const contractData = {
     erc20: '',
     erc721: '',
     network: etherTestnet
+  },
+  2020: {
+    coin: 'RON',
+    erc20: '',
+    erc721: '',
+    network: roninMainnet
+  },
+  2021: {
+    coin: 'tRON',
+    erc20: '',
+    erc721: '',
+    network: roninTestnet
   }
 }
 
@@ -255,7 +269,9 @@ const availableNetworks = [
   { id: 'kaia-mainnet', name: 'Kaia Mainnet', network: kaiaMainnet },
   { id: 'kaia-testnet', name: 'Kaia Testnet', network: kaiaTestnet },
   { id: 'ethereum-mainnet', name: 'Ethereum Mainnet', network: etherMainnet },
-  { id: 'ethereum-testnet', name: 'Ethereum Testnet', network: etherTestnet }
+  { id: 'ethereum-testnet', name: 'Ethereum Testnet', network: etherTestnet },
+  { id: 'ronin-mainnet', name: 'Ronin Mainnet', network: roninMainnet },
+  { id: 'ronin-testnet', name: 'Ronin Testnet', network: roninTestnet }
 ]
 
 // Contract addresses and constants

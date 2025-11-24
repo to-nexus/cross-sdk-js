@@ -9,6 +9,8 @@ import { etherMainnet } from './ethereum/etherMainnet.js'
 import { etherTestnet } from './ethereum/etherTestnet.js'
 import { kaiaMainnet } from './kaia/kaiaMainnet.js'
 import { kaiaTestnet } from './kaia/kaiaTestnet.js'
+import { roninMainnet } from './ronin/roninMainnet.js'
+import { roninTestnet } from './ronin/roninTestnet.js'
 
 export function defineChain<
   formatters extends ChainFormatters,
@@ -30,5 +32,7 @@ export const networkList: [AppKitNetwork, ...AppKitNetwork[]] = [
   kaiaTestnet,
   kaiaMainnet,
   etherTestnet,
-  etherMainnet
+  etherMainnet,
+  roninMainnet,
+  roninTestnet
 ]

@@ -8,7 +8,9 @@ import {
   etherMainnet,
   etherTestnet,
   kaiaMainnet,
-  kaiaTestnet
+  kaiaTestnet,
+  roninMainnet,
+  roninTestnet
 } from '@to-nexus/appkit/networks'
 import { v4 as uuidv4 } from 'uuid'
 import { parseEther, parseUnits } from 'viem'
@@ -77,6 +79,18 @@ const contractData = {
     erc20: '',
     erc721: '',
     network: etherTestnet
+  },
+  2020: {
+    coin: 'RON',
+    erc20: '',
+    erc721: '',
+    network: roninMainnet
+  },
+  2021: {
+    coin: 'tRON',
+    erc20: '',
+    erc721: '',
+    network: roninTestnet
   }
 }
 

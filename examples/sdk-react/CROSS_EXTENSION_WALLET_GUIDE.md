@@ -62,30 +62,12 @@ const handleConnectCrossExtension = async () => {
   try {
     setIsLoading(true)
 
-    // Save current connection state before connecting
-    const wasConnectedBefore = account?.isConnected
-    const addressBefore = account?.address
-
     console.log('🚀 Starting Cross Extension Wallet connection attempt')
-    console.log('State before connection:', { wasConnectedBefore, addressBefore })
 
-    // Execute Extension connection
-    const result = await connectCrossExtensionWallet()
+    // Execute Extension connection (if completed without error = connection successful)
+    await connectCrossExtensionWallet()
 
-    console.log('🎉 connectCrossExtensionWallet completed:', result)
-
-    // After successful connection, verify if a new connection was actually made
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const isNowConnected = account?.isConnected
-    const addressAfter = account?.address
-
-    console.log('State after connection:', { isNowConnected, addressAfter })
-
-    // Verify if connection state actually changed
-    if (!isNowConnected || (wasConnectedBefore && addressBefore === addressAfter)) {
-      throw new Error('Connection verification failed - no state change detected')
-    }
+    console.log('🎉 connectCrossExtensionWallet completed')
 
     // Immediately update state after successful connection
     checkExtensionInstalled()

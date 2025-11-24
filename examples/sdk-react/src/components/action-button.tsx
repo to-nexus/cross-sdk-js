@@ -21,6 +21,8 @@ import {
   initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
+  roninMainnet,
+  roninTestnet,
   useAppKit,
   useAppKitAccount,
   useAppKitNetwork,
@@ -95,6 +97,18 @@ const contractData = {
     erc20: '',
     erc721: '',
     network: etherTestnet
+  },
+  2020: {
+    coin: 'RON',
+    erc20: '',
+    erc721: '',
+    network: roninMainnet
+  },
+  2021: {
+    coin: 'tRON',
+    erc20: '',
+    erc721: '',
+    network: roninTestnet
   }
 }
 
@@ -167,7 +181,7 @@ initCrossSdkWithParams({
       try {
         // 실제 프로덕션에서는 백엔드로 서명 검증 요청
         // const response = await fetch('/api/siwe/verify', {
-      //   method: 'POST',
+        //   method: 'POST',
         //   headers: { 'Content-Type': 'application/json' },
         //   body: JSON.stringify({
         //     message: session.message,
@@ -232,8 +246,8 @@ initCrossSdkWithParams({
         // 해당 chainId + address 조합으로 필터링
         const matchingSessions = sessions.filter(
           (session: any) =>
-          session.data.chainId === chainId &&
-          session.data.accountAddress.toLowerCase() === address.toLowerCase()
+            session.data.chainId === chainId &&
+            session.data.accountAddress.toLowerCase() === address.toLowerCase()
         )
 
         if (matchingSessions.length > 0) {
@@ -249,7 +263,7 @@ initCrossSdkWithParams({
         return matchingSessions
       } catch (error) {
         console.error('Failed to get sessions:', error)
-      return []
+        return []
       }
     },
 
@@ -262,7 +276,7 @@ initCrossSdkWithParams({
           localStorage.removeItem(sessionsKey)
           console.log('🗑️ 모든 세션 제거됨')
           return
-}
+        }
 
         // 기존 세션 로드
         const existingSessionsStr = localStorage.getItem(sessionsKey)
@@ -863,42 +877,42 @@ export function ActionButtonList() {
 
       if (result && result.authenticated && result.sessions && result.sessions.length > 0) {
         const session = result.sessions[0]
-              if (!session) {
-                showError('인증 오류', '세션 정보를 가져올 수 없습니다.')
-                return
-              }
+        if (!session) {
+          showError('인증 오류', '세션 정보를 가져올 수 없습니다.')
+          return
+        }
 
-              const signature = session.signature
+        const signature = session.signature
         const address = session.data.accountAddress
         const chainId = session.data.chainId
-              const message = session.message
-              const expiresAt = session.data.expirationTime
+        const message = session.message
+        const expiresAt = session.data.expirationTime
 
-              // SIWE 메시지 요약 (첫 줄만)
-              const messageSummary = message.split('\n')[0]
+        // SIWE 메시지 요약 (첫 줄만)
+        const messageSummary = message.split('\n')[0]
 
         // ✅ 연결 및 인증 상태 저장 (세션 포함)
         localStorage.setItem('wallet_connected', 'true')
         localStorage.setItem('wallet_type', 'cross')
         localStorage.setItem('has_siwx_session', 'true')
 
-              showSuccess(
-                '🎉 SIWE 인증 성공!',
-                `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
-                  `📍 Address:\n${address}\n\n` +
+        showSuccess(
+          '🎉 SIWE 인증 성공!',
+          `Cross Extension이 연결되고 SIWE 인증이 완료되었습니다!\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `📍 Address:\n${address}\n\n` +
             `🔗 Chain ID:\n${chainId}\n\n` +
-                  `📝 SIWE Message:\n${messageSummary}...\n\n` +
-                  `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
-                  `⏰ Expires At:\n${expiresAt}\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━`
-              )
+            `📝 SIWE Message:\n${messageSummary}...\n\n` +
+            `✍️ Signature:\n${signature.substring(0, 20)}...${signature.substring(signature.length - 20)}\n\n` +
+            `⏰ Expires At:\n${expiresAt}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━`
+        )
       } else {
         // ✅ 일반 연결 시에도 상태 저장
         localStorage.setItem('wallet_connected', 'true')
         localStorage.setItem('wallet_type', 'cross')
 
-      showSuccess('연결 성공', 'Cross Extension이 연결되었습니다.')
+        showSuccess('연결 성공', 'Cross Extension이 연결되었습니다.')
       }
     } catch (error) {
       console.error('Authentication error:', error)
@@ -1129,22 +1143,8 @@ export function ActionButtonList() {
       setMetamaskAccount(null)
       setMetamaskChainId(null)
 
-      // 연결 시작 전 현재 연결 상태 저장
-      const wasConnectedBefore = account?.isConnected
-      const addressBefore = account?.address
-
-      const result = await connectCrossExtensionWallet()
-
-      // 연결 성공 후 실제로 새로운 연결이 이루어졌는지 확인
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      const isNowConnected = account?.isConnected
-      const addressAfter = account?.address
-
-      // 실제로 연결 상태가 변경되었는지 확인
-      if (!isNowConnected || (wasConnectedBefore && addressBefore === addressAfter)) {
-        throw new Error('Connection verification failed - no state change detected')
-      }
+      // Extension 연결 실행 (에러 없이 완료되면 = 연결 성공)
+      await connectCrossExtensionWallet()
 
       // 연결 성공 후 상태 즉시 업데이트
       checkExtensionInstalled()
@@ -1311,7 +1311,7 @@ export function ActionButtonList() {
 
     try {
       await switchNetwork(targetNetwork)
-    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+      showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
     } catch (error: unknown) {
       if (error instanceof Error) {
         showError('Switch Network Failed', error.message)
@@ -1325,7 +1325,7 @@ export function ActionButtonList() {
 
     try {
       await switchNetwork(targetNetwork)
-    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+      showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
     } catch (error: unknown) {
       if (error instanceof Error) {
         showError('Switch Network Failed', error.message)
@@ -1339,11 +1339,11 @@ export function ActionButtonList() {
 
     try {
       await switchNetwork(targetNetwork)
-    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+      showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
     } catch (error: unknown) {
       if (error instanceof Error) {
         showError('Switch Network Failed', error.message)
-  }
+      }
     }
   }
 
@@ -1353,7 +1353,7 @@ export function ActionButtonList() {
 
     try {
       await switchNetwork(targetNetwork)
-    showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
+      showSuccess('Switch Network Successful!', `Current network: ${targetNetwork.caipNetworkId}`)
     } catch (error: unknown) {
       if (error instanceof Error) {
         showError('Switch Network Failed', error.message)

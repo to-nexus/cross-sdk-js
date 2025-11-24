@@ -9,12 +9,12 @@ import {
   ConnectionController,
   ConstantsUtil,
   CoreHelperUtil,
-  createDefaultSIWXConfig,
   OptionsController,
   type SIWXConfig,
   SIWXUtil,
   SendController,
-  type ThemeMode
+  type ThemeMode,
+  createDefaultSIWXConfig
 } from '@to-nexus/appkit-core'
 import type { CustomWallet } from '@to-nexus/appkit-core'
 import {
@@ -26,7 +26,9 @@ import {
   etherTestnet,
   kaiaMainnet,
   kaiaTestnet,
-  networkList
+  networkList,
+  roninMainnet,
+  roninTestnet
 } from '@to-nexus/appkit/networks'
 import {
   createAppKit,
@@ -79,6 +81,7 @@ type SupportedNetworks =
   | typeof kaiaTestnet
   | typeof etherMainnet
   | typeof etherTestnet
+  | typeof roninMainnet
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -218,6 +221,8 @@ export {
   kaiaTestnet,
   etherMainnet,
   etherTestnet,
+  roninMainnet,
+  roninTestnet,
   UniversalProvider,
   getUniversalProvider,
   ConstantsUtil
