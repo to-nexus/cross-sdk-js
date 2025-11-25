@@ -215,25 +215,32 @@ export function createDefaultSIWXConfig(options: CreateSIWXConfigOptions = {}): 
         uri: options.uri || window.location.origin,
         version: '1',
         nonce,
-        issuedAt: issuedAt.toISOString(),
+        issuedAt: issuedAt.toISOString().replace(/\.\d{3}Z$/, 'Z'), // Remove milliseconds for SIWE compatibility
         expirationTime,
         statement: options.statement || 'Sign in with your wallet',
-        toString: () =>
-          [
-            `${message.domain} wants you to sign in with your account:`,
+        toString: () => {
+          // Build message parts - always maintain 2 blank lines (with optional statement in between)
+          const parts = [
+            `${message.domain} wants you to sign in with your Ethereum account:`,
             message.accountAddress,
-            '',
-            message.statement || '',
-            '',
+            '', // First blank line
+            message.statement || undefined, // Statement (optional)
+            '', // Second blank line
             `URI: ${message.uri}`,
             `Version: ${message.version}`,
             `Chain ID: ${message.chainId}`,
             `Nonce: ${message.nonce}`,
-            `Issued At: ${message.issuedAt}`,
-            message.expirationTime ? `Expiration Time: ${message.expirationTime}` : ''
+            `Issued At: ${message.issuedAt}`
           ]
-            .filter(Boolean)
-            .join('\n')
+          
+          // Add optional fields
+          if (message.expirationTime) {
+            parts.push(`Expiration Time: ${message.expirationTime}`)
+          }
+          
+          // Filter out undefined values only (keep empty strings for blank lines)
+          return parts.filter(part => part !== undefined).join('\n')
+        }
       }
 
       return message
