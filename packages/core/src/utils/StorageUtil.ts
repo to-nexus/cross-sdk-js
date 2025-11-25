@@ -3,6 +3,7 @@ import {
   type Balance,
   type CaipNetworkId,
   type ChainNamespace,
+  ConstantsUtil as CommonConstantsUtil,
   SafeLocalStorage,
   SafeLocalStorageKeys,
   getSafeConnectorIdKey
@@ -64,10 +65,37 @@ export const StorageUtil = {
        * - 사용자 인터랙션 컨텍스트 제약이 iOS보다 덜 엄격
        */
       const isIos = CoreHelperUtil.isIos()
-      // Android는 Universal Link 그대로 유지
-      const finalHref = isIos
-        ? href.replace('https://stg-cross-wallet.crosstoken.io/', 'crossx://')
-        : href
+      let finalHref = href
+
+      // IOS에서만 Universal Link를 Deep Link로 변환
+      if (isIos && href.startsWith('https://')) {
+        // ConstantsUtil에서 정의된 모든 Universal Link 도메인들을 가져와서 Deep Link로 변환
+        const crossWalletDomains = Object.values(CommonConstantsUtil.UNIVERSAL_LINK)
+
+        for (const domain of crossWalletDomains) {
+          if (href.startsWith(domain)) {
+            /*
+             * ⚠️ 중요: 슬래시 개수에 주의!
+             *
+             * domain: "https://cross-wallet.crosstoken.io"   (끝에 / 없음)
+             * href:   "https://cross-wallet.crosstoken.io/"  (끝에 / 있음 - 다른 코드에서 추가됨)
+             *
+             * replace(domain, 'crossx:/') 사용 이유:
+             * - 'crossx://' (슬래시 2개)를 사용하면 → "crossx:///" (슬래시 3개) 결과 ❌
+             * - 'crossx:/'  (슬래시 1개)를 사용하면 → "crossx://"  (슬래시 2개) 결과 ✅
+             *
+             * 예시:
+             * "https://cross-wallet.crosstoken.io/".replace("https://cross-wallet.crosstoken.io", "crossx:/")
+             * → "crossx://"
+             *
+             * "https://cross-wallet.crosstoken.io/wc?uri=xxx".replace("https://cross-wallet.crosstoken.io", "crossx:/")
+             * → "crossx://wc?uri=xxx"
+             */
+            finalHref = href.replace(domain, 'crossx:/')
+            break
+          }
+        }
+      }
 
       SafeLocalStorage.setItem(
         SafeLocalStorageKeys.DEEPLINK_CHOICE,
