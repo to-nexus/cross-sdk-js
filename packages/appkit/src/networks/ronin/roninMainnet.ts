@@ -7,7 +7,7 @@ export const roninMainnet = defineChain({
   network: 'ronin-mainnet',
   rpcUrls: {
     default: {
-      http: ['https://ronin-testnet.cross-api.in:8545']
+      http: ['https://ronin-mainnet.cross-api.in:8545']
     }
   },
   blockExplorers: {
