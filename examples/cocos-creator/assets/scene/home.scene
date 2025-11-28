@@ -26719,7 +26719,7 @@
     },
     "component": "",
     "_componentId": "e01344R1NJF7oi2iboePouo",
-    "handler": "onClickSwitchToCross",
+    "handler": "onClickSwitchNetwork",
     "customEventData": ""
   },
   {

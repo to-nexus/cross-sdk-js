@@ -25,6 +25,8 @@ import {
   initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
+  roninMainnet,
+  roninTestnet,
   sdkVersion,
   useAppKitWallet
 } from '@to-nexus/sdk'
@@ -50,6 +52,8 @@ export {
   kaiaTestnet,
   etherMainnet,
   etherTestnet,
+  roninMainnet,
+  roninTestnet,
   UniversalProvider,
   ConstantsUtil,
   sdkVersion
@@ -80,6 +84,8 @@ declare global {
       kaiaTestnet: typeof kaiaTestnet
       etherMainnet: typeof etherMainnet
       etherTestnet: typeof etherTestnet
+      roninMainnet: typeof roninMainnet
+      roninTestnet: typeof roninTestnet
       UniversalProvider: typeof UniversalProvider
       ConstantsUtil: typeof ConstantsUtil
       sdkVersion: typeof sdkVersion
@@ -109,6 +115,8 @@ if (typeof window !== 'undefined') {
     kaiaTestnet,
     etherMainnet,
     etherTestnet,
+    roninMainnet,
+    roninTestnet,
     UniversalProvider,
     ConstantsUtil,
     sdkVersion

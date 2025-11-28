@@ -1,4 +1,4 @@
-import { s as AccountController, u as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, v as ApiController, w as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as etherTestnet, J as etherMainnet, K as kaiaTestnet, L as kaiaMainnet, N as bscTestnet, Q as bscMainnet, V as crossTestnet, X as crossMainnet, C as ChainController, Y as SendController } from "./index.es-CVx6Eg70.js";
+import { s as AccountController, u as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, v as ApiController, w as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as roninTestnet, J as roninMainnet, K as etherTestnet, L as etherMainnet, N as kaiaTestnet, Q as kaiaMainnet, V as bscTestnet, X as bscMainnet, Y as crossTestnet, _ as crossMainnet, C as ChainController, $ as SendController } from "./index.es-BHEXD4wz.js";
 function createDefaultSIWXConfig(options = {}) {
   let currentChainId = void 0;
   AccountController.subscribeKey("caipAddress", (caipAddress) => {
@@ -25,22 +25,31 @@ function createDefaultSIWXConfig(options = {}) {
         uri: options.uri || window.location.origin,
         version: "1",
         nonce,
-        issuedAt: issuedAt.toISOString(),
+        issuedAt: issuedAt.toISOString().replace(/\.\d{3}Z$/, "Z"),
+        // Remove milliseconds for SIWE compatibility
         expirationTime,
         statement: options.statement || "Sign in with your wallet",
-        toString: () => [
-          `${message.domain} wants you to sign in with your account:`,
-          message.accountAddress,
-          "",
-          message.statement || "",
-          "",
-          `URI: ${message.uri}`,
-          `Version: ${message.version}`,
-          `Chain ID: ${message.chainId}`,
-          `Nonce: ${message.nonce}`,
-          `Issued At: ${message.issuedAt}`,
-          message.expirationTime ? `Expiration Time: ${message.expirationTime}` : ""
-        ].filter(Boolean).join("\n")
+        toString: () => {
+          const parts = [
+            `${message.domain} wants you to sign in with your Ethereum account:`,
+            message.accountAddress,
+            "",
+            // First blank line
+            message.statement || void 0,
+            // Statement (optional)
+            "",
+            // Second blank line
+            `URI: ${message.uri}`,
+            `Version: ${message.version}`,
+            `Chain ID: ${message.chainId}`,
+            `Nonce: ${message.nonce}`,
+            `Issued At: ${message.issuedAt}`
+          ];
+          if (message.expirationTime) {
+            parts.push(`Expiration Time: ${message.expirationTime}`);
+          }
+          return parts.filter((part) => part !== void 0).join("\n");
+        }
       };
       return message;
     },
@@ -176,56 +185,56 @@ function createAppKitWalletButton() {
   }
   return walletButton;
 }
-const K = new EthersAdapter(), W = (() => {
-  var e, o;
-  return ((o = (e = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : o.call(e)) || "https://cross-wallet.crosstoken.io/wc";
-})(), D = {
+const b = new EthersAdapter(), S = (() => {
+  var e, t;
+  return ((t = (e = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : t.call(e)) || "https://cross-wallet.crosstoken.io/wc";
+})(), W = {
   name: "Cross SDK",
   description: "Cross SDK for HTML",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
 };
-let r = null, p, m;
-const R = (e) => {
+let r = null, f, h;
+const K = (e) => {
   if (r)
-    return console.warn("[Cross SDK] Already initialized. Returning existing instance."), r;
+    return r;
   const {
-    projectId: o,
+    projectId: t,
     redirectUrl: a,
-    metadata: i,
-    themeMode: c,
-    defaultNetwork: s,
-    adapters: l,
-    mobileLink: t,
+    metadata: l,
+    themeMode: i,
+    defaultNetwork: o,
+    adapters: c,
+    mobileLink: s,
     siwx: n
   } = e;
-  return console.log("[Cross SDK] Initializing with mobileLink:", t), console.log("[Cross SDK] Initializing with siwx:", n ? "configured" : "undefined"), p = t, m = n, r = _(
-    o,
+  return f = s, h = n, r = _(
+    t,
     a,
+    l,
     i,
+    o,
     c,
     s,
-    l,
-    t,
     n
   ), r;
-}, _ = (e, o, a, i, c, s, l, t) => {
-  var C, u, h, k;
+}, _ = (e, t, a, l, i, o, c, s) => {
+  var p, d;
   const n = {
-    ...D,
+    ...W,
     ...a,
     redirect: {
-      universal: o
+      universal: t
     }
-  }, f = l || p || ((u = (C = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : u.call(C)) || W, g = t || m;
-  return console.log("[Cross SDK] Resolved mobile_link:", f), console.log("[Cross SDK] - mobileLink param:", l), console.log("[Cross SDK] - cachedMobileLink:", p), console.log("[Cross SDK] - fallback:", (k = (h = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : k.call(h)), console.log("[Cross SDK] Resolved siwx:", g ? "configured" : "undefined"), console.log("[Cross SDK] - siwx param:", t ? "configured" : "undefined"), console.log("[Cross SDK] - cachedSiwx:", m ? "configured" : "undefined"), createAppKit({
-    adapters: s && s.length > 0 ? s : [K],
+  }, u = c || f || ((d = (p = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : d.call(p)) || S, C = s || h;
+  return createAppKit({
+    adapters: o && o.length > 0 ? o : [b],
     networks: networkList,
-    defaultNetwork: c,
+    defaultNetwork: i,
     metadata: n,
     projectId: e,
-    themeMode: i || "light",
-    siwx: g,
+    themeMode: l || "light",
+    siwx: C,
     features: {
       swaps: false,
       onramp: false,
@@ -244,7 +253,7 @@ const R = (e) => {
         id: "cross_wallet",
         name: "CROSSx Wallet",
         image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: f,
+        mobile_link: u,
         app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
         play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
         chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
@@ -258,12 +267,12 @@ const R = (e) => {
     ],
     allWallets: "HIDE"
   });
-}, T = () => createAppKitWalletButton(), U = "1.18.2-beta.1";
+}, U = () => createAppKitWalletButton(), I = "1.18.3-beta.4";
 if (typeof window !== "undefined") {
   window.CrossSdk = {
     initCrossSdk: _,
-    initCrossSdkWithParams: R,
-    useAppKitWallet: T,
+    initCrossSdkWithParams: K,
+    useAppKitWallet: U,
     createDefaultSIWXConfig,
     ConnectionController,
     ConnectorUtil,
@@ -280,9 +289,11 @@ if (typeof window !== "undefined") {
     kaiaTestnet,
     etherMainnet,
     etherTestnet,
+    roninMainnet,
+    roninTestnet,
     UniversalProvider: Z,
     ConstantsUtil: ConstantsUtil$2,
-    sdkVersion: U
+    sdkVersion: I
   };
 }
 export {
@@ -303,10 +314,12 @@ export {
   etherMainnet,
   etherTestnet,
   _ as initCrossSdk,
-  R as initCrossSdkWithParams,
+  K as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
-  U as sdkVersion,
-  T as useAppKitWallet
+  roninMainnet,
+  roninTestnet,
+  I as sdkVersion,
+  U as useAppKitWallet
 };
 //# sourceMappingURL=cross-sdk.js.map

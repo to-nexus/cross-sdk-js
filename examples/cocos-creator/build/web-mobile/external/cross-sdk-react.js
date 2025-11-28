@@ -1,4 +1,4 @@
-import { a2 as process$1, a3 as getDefaultExportFromCjs, a4 as subscribe, a5 as snapshot, a6 as p, a7 as a, a8 as w, C as ChainController, D as ConnectorController, c as CoreHelperUtil, w as ConnectionController, a9 as ProviderUtil, W as WalletButtonController, v as ApiController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, O as OptionsController, s as AccountController, u as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as etherTestnet, J as etherMainnet, K as kaiaTestnet, L as kaiaMainnet, N as bscTestnet, Q as bscMainnet, V as crossTestnet, X as crossMainnet, Y as SendController } from "./index.es-CVx6Eg70.js";
+import { a4 as process$1, a5 as getDefaultExportFromCjs, a6 as subscribe, a7 as snapshot, a8 as p, a9 as a, aa as w, C as ChainController, D as ConnectorController, c as CoreHelperUtil, w as ConnectionController, ab as ProviderUtil, W as WalletButtonController, v as ApiController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, O as OptionsController, s as AccountController, u as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, K as etherTestnet, L as etherMainnet, N as kaiaTestnet, Q as kaiaMainnet, V as bscTestnet, X as bscMainnet, Y as crossTestnet, _ as crossMainnet, $ as SendController } from "./index.es-BHEXD4wz.js";
 var react = { exports: {} };
 var react_production = {};
 var hasRequiredReact_production;
@@ -2087,8 +2087,8 @@ const h = new EthersAdapter(), C = {
     metadata: r,
     themeMode: a2,
     defaultNetwork: e,
-    adapters: l,
-    mobileLink: n,
+    adapters: n,
+    mobileLink: l,
     siwx: i
   } = t;
   return g(
@@ -2097,11 +2097,11 @@ const h = new EthersAdapter(), C = {
     r,
     a2,
     e,
-    l,
     n,
+    l,
     i
   );
-}, g = (t, s, o, r, a2, e, l, n) => {
+}, g = (t, s, o, r, a2, e, n, l) => {
   var p2, c;
   const i = {
     ...C,
@@ -2117,7 +2117,7 @@ const h = new EthersAdapter(), C = {
     metadata: i,
     projectId: t,
     themeMode: r || "light",
-    siwx: n,
+    siwx: l,
     features: {
       swaps: false,
       onramp: false,
@@ -2136,7 +2136,7 @@ const h = new EthersAdapter(), C = {
         id: "cross_wallet",
         name: "CROSSx Wallet",
         image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: l || ((c = (p2 = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : c.call(p2)) || "https://cross-wallet.crosstoken.io",
+        mobile_link: n || ((c = (p2 = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : c.call(p2)) || "https://cross-wallet.crosstoken.io",
         app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
         play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
         chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
