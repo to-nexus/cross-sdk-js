@@ -101,7 +101,19 @@ export type CrossSdkParams = {
   siwx?: SIWXConfig
 }
 
+// 싱글톤 인스턴스 및 초기화 파라미터 저장
+let sdkInstance: ReturnType<typeof createAppKit> | null = null
+let cachedMobileLink: string | undefined = undefined
+let cachedSiwx: SIWXConfig | undefined = undefined
+
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
+  // 이미 초기화된 경우 기존 인스턴스 반환
+  if (sdkInstance) {
+    console.log('✅ Cross SDK already initialized, reusing existing instance')
+
+    return sdkInstance
+  }
+
   const {
     projectId,
     redirectUrl,
@@ -113,7 +125,11 @@ const initCrossSdkWithParams = (params: CrossSdkParams) => {
     siwx
   } = params
 
-  return initCrossSdk(
+  // 파라미터 캐시 저장
+  cachedMobileLink = mobileLink
+  cachedSiwx = siwx
+
+  sdkInstance = initCrossSdk(
     projectId,
     redirectUrl,
     metadata,
@@ -123,6 +139,10 @@ const initCrossSdkWithParams = (params: CrossSdkParams) => {
     mobileLink,
     siwx
   )
+
+  console.log('✅ Cross SDK initialized successfully')
+
+  return sdkInstance
 }
 
 // Create modal
@@ -144,6 +164,16 @@ const initCrossSdk = (
     }
   }
 
+  // Mobile_link를 미리 계산 (한 번만 평가)
+  const resolvedMobileLink =
+    mobileLink ||
+    cachedMobileLink ||
+    (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
+    'https://cross-wallet.crosstoken.io'
+
+  // SIWX 설정도 캐시에서 복원
+  const resolvedSiwx = siwx || cachedSiwx
+
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
     networks: networkList,
@@ -151,7 +181,7 @@ const initCrossSdk = (
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
-    siwx,
+    siwx: resolvedSiwx,
     features: {
       swaps: false,
       onramp: false,
@@ -170,15 +200,11 @@ const initCrossSdk = (
         id: 'cross_wallet',
         name: 'CROSSx Wallet',
         image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
-        mobile_link:
-          mobileLink ||
-          (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
-          'https://cross-wallet.crosstoken.io',
+        mobile_link: resolvedMobileLink,
         app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
         play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
         chrome_store:
           'https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg',
-
         rdns: 'nexus.to.crosswallet.desktop',
         injected: [
           {

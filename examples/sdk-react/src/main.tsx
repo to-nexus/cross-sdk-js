@@ -40,7 +40,7 @@ const wagmiAdapter = new WagmiAdapter({
   projectId: metamaskProjectId
 })
 
-// MetaMask용 AppKit 생성 (고유 instanceId로 Cross SDK와 격리)
+// MetaMask용 AppKit 생성 (고유 customStoragePrefix로 Cross SDK와 격리)
 createAppKit({
   adapters: [wagmiAdapter],
   networks: allNetworks as any,
@@ -55,10 +55,8 @@ createAppKit({
   featuredWalletIds: [
     'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96' // MetaMask
   ],
-  // @ts-ignore - instanceId는 @reown/appkit에서 공식 지원하지 않지만 내부적으로 작동
-  instanceId: 'reown-metamask-appkit',
-  // @ts-ignore - modalZIndex도 추가
-  modalZIndex: 9000
+  // @ts-ignore - customStoragePrefix로 Cross SDK와 localStorage 격리
+  customStoragePrefix: 'reown-metamask-'
 })
 
 // QueryClient 생성 (Wagmi를 위해 필요)
