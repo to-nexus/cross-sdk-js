@@ -502,9 +502,9 @@ export class WagmiAdapter extends AdapterBlueprint {
             coinbaseWallet({
               appName: options.metadata?.name ?? 'Unknown',
               appLogoUrl: options.metadata?.icons[0] ?? 'Unknown',
-              preference: {
-                options: options.coinbasePreference ?? 'all'
-              }
+              preference: options.coinbasePreference
+                ? { options: options.coinbasePreference }
+                : { options: 'all' }
             })
           )
         }
