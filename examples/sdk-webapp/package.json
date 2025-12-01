@@ -1,0 +1,20 @@
+{
+  "name": "@examples/sdk-webapp",
+  "version": "1.18.3-alpha.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@to-nexus/webapp": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.0",
+    "typescript": "5.7.3",
+    "vite": "5.4.12"
+  }
+}
+

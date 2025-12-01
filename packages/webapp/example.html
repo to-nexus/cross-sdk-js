@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CROSSx WebApp SDK Example</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 100%;
+        padding: 40px;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      .info-box {
+        background: #f5f5f5;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        margin-bottom: 25px;
+        border-radius: 4px;
+      }
+
+      .info-box label {
+        display: block;
+        color: #666;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+      }
+
+      .info-box value {
+        display: block;
+        color: #333;
+        font-size: 16px;
+        font-weight: 600;
+        font-family: 'Monaco', 'Courier New', monospace;
+      }
+
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button.secondary {
+        background: #f0f0f0;
+        color: #333;
+      }
+
+      button.secondary:hover {
+        background: #e0e0e0;
+        box-shadow: none;
+      }
+
+      .event-log {
+        background: #1e1e1e;
+        color: #00ff00;
+        border-radius: 6px;
+        padding: 15px;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 20px;
+      }
+
+      .event-log-title {
+        color: #666;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+      }
+
+      .event-line {
+        line-height: 1.5;
+        opacity: 0.9;
+      }
+
+      .event-line.info {
+        color: #00ff00;
+      }
+
+      .event-line.warn {
+        color: #ffaa00;
+      }
+
+      .event-line.error {
+        color: #ff4444;
+      }
+
+      .badge {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 8px;
+      }
+
+      .badge.crossx {
+        background: #10b981;
+      }
+
+      .badge.mock {
+        background: #f59e0b;
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          padding: 25px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        button {
+          padding: 10px 16px;
+          font-size: 13px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>
+        CROSSx WebApp SDK
+        <span class="badge" id="envBadge">...</span>
+      </h1>
+      <p class="subtitle">Test the WebApp SDK functionality</p>
+
+      <div class="info-box">
+        <label>SDK Version</label>
+        <value id="versionValue">Loading...</value>
+      </div>
+
+      <div class="button-group">
+        <button id="readyBtn">Signal Ready</button>
+        <button id="fullscreenBtn">Request Full Screen</button>
+        <button class="secondary" id="simulateCloseBtn">Simulate Close Event</button>
+        <button class="secondary" id="simulateBackgroundBtn">Simulate Background Event</button>
+      </div>
+
+      <div class="event-log">
+        <div class="event-log-title">Event Log</div>
+        <div id="eventLog"></div>
+      </div>
+    </div>
+
+    <script>
+      let eventCount = 0;
+
+      function log(message, type = 'info') {
+        const logElement = document.getElementById('eventLog');
+        const line = document.createElement('div');
+        line.className = `event-line ${type}`;
+        line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logElement.appendChild(line);
+        logElement.scrollTop = logElement.scrollHeight;
+
+        if (++eventCount > 50) {
+          logElement.removeChild(logElement.firstChild);
+        }
+      }
+
+      function updateEnvironment() {
+        const envBadge = document.getElementById('envBadge');
+        if (typeof CROSSx !== 'undefined' && CROSSx.WebApp._simulateClose) {
+          envBadge.textContent = 'MOCK MODE';
+          envBadge.className = 'badge mock';
+          log('🟠 Running in MOCK mode (Browser)', 'warn');
+        } else {
+          envBadge.textContent = 'CROSSX';
+          envBadge.className = 'badge crossx';
+          log('🟢 Running in CROSSx environment', 'info');
+        }
+      }
+
+      function initializeUI() {
+        // Display version
+        if (typeof CROSSx !== 'undefined') {
+          document.getElementById('versionValue').textContent = CROSSx.WebApp.version;
+          log(`SDK Version: ${CROSSx.WebApp.version}`, 'info');
+
+          // Setup event listeners
+          CROSSx.WebApp.on('viewClosed', () => {
+            log('📴 viewClosed event received', 'warn');
+          });
+
+          CROSSx.WebApp.on('viewBackgrounded', () => {
+            log('🔽 viewBackgrounded event received', 'warn');
+          });
+
+          // Setup buttons
+          document.getElementById('readyBtn').addEventListener('click', () => {
+            CROSSx.WebApp.ready();
+            log('✅ ready() called', 'info');
+          });
+
+          document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            CROSSx.WebApp.requestFullScreen();
+            log('🖥️ requestFullScreen() called', 'info');
+          });
+
+          // Simulation buttons (only in mock mode)
+          const simulateCloseBtn = document.getElementById('simulateCloseBtn');
+          const simulateBackgroundBtn = document.getElementById('simulateBackgroundBtn');
+
+          if (CROSSx.WebApp._simulateClose) {
+            simulateCloseBtn.addEventListener('click', () => {
+              CROSSx.WebApp._simulateClose();
+              log('🔀 Simulated viewClosed event', 'warn');
+            });
+
+            simulateBackgroundBtn.addEventListener('click', () => {
+              CROSSx.WebApp._simulateBackgrounded();
+              log('🔀 Simulated viewBackgrounded event', 'warn');
+            });
+          } else {
+            simulateCloseBtn.disabled = true;
+            simulateBackgroundBtn.disabled = true;
+            simulateCloseBtn.style.opacity = '0.5';
+            simulateBackgroundBtn.style.opacity = '0.5';
+          }
+
+          updateEnvironment();
+        } else {
+          log('❌ CROSSx.WebApp not available', 'error');
+        }
+      }
+
+      // Wait for SDK to load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeUI);
+      } else {
+        initializeUI();
+      }
+
+      // Log when script loads
+      log('🚀 Example page loaded', 'info');
+    </script>
+  </body>
+</html>
+
