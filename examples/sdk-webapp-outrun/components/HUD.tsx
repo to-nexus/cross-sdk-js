@@ -1,20 +1,34 @@
-
 import React from 'react';
 import { Battery, Zap } from 'lucide-react';
+
+interface SafeAreaInsets {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
 
 interface HUDProps {
   energy: number;
   score: number;
+  safeAreaInsets?: SafeAreaInsets;
 }
 
-const HUD: React.FC<HUDProps> = ({ energy, score }) => {
+const HUD: React.FC<HUDProps> = ({ energy, score, safeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 } }) => {
   // Color calculation for health bar
   let barColor = 'bg-cyan-500';
   if (energy < 50) barColor = 'bg-yellow-500';
   if (energy < 25) barColor = 'bg-red-500';
 
   return (
-    <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10">
+    <div 
+      className="absolute left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10"
+      style={{ 
+        top: `${safeAreaInsets.top + 50}px`,
+        paddingLeft: `${safeAreaInsets.left}px`,
+        paddingRight: `${safeAreaInsets.right}px`
+      }}
+    >
       
       {/* Energy Gauge */}
       <div className="flex flex-col gap-1 w-1/3 max-w-[200px]">
@@ -32,13 +46,13 @@ const HUD: React.FC<HUDProps> = ({ energy, score }) => {
         <div className="text-right text-xs text-slate-400 font-mono">{energy}/100</div>
       </div>
 
-      {/* Score / Odometer */}
+      {/* Score / Timer */}
       <div className="flex flex-col items-end">
         <div className="text-pink-500 font-bold uppercase tracking-wider text-sm neon-text-red mb-1">
-          Distance
+          Survival Time
         </div>
         <div className="text-4xl font-mono text-white font-black italic">
-          {(score / 1000).toFixed(2)}<span className="text-lg opacity-50 not-italic">km</span>
+          {score.toFixed(2)}<span className="text-lg opacity-50 not-italic">s</span>
         </div>
       </div>
     </div>
