@@ -1,18 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Neon Outrun</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- CROSS SDK WebApp Script -->
-    <script src="https://cdn.jsdelivr.net/npm/@to-nexus/webapp@latest/dist/index.umd.js"></script>
-
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
       body {
@@ -22,33 +15,26 @@
         touch-action: none; /* Prevent browser gestures */
       }
       .neon-text {
-        text-shadow:
-          0 0 5px #0ff,
-          0 0 10px #0ff,
-          0 0 20px #0ff;
+        text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
       }
       .neon-text-red {
-        text-shadow:
-          0 0 5px #f00,
-          0 0 10px #f00,
-          0 0 20px #f00;
+        text-shadow: 0 0 5px #f00, 0 0 10px #f00, 0 0 20px #f00;
       }
     </style>
-    <script type="importmap">
-      {
-        "imports": {
-          "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-          "react": "https://aistudiocdn.com/react@^19.2.0",
-          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-          "react/": "https://aistudiocdn.com/react@^19.2.0/",
-          "@to-nexus/webapp": "https://cdn.jsdelivr.net/npm/@to-nexus/webapp@latest/dist/index.esm.js"
-        }
-      }
-    </script>
-    <link rel="stylesheet" href="/index.css" />
-  </head>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

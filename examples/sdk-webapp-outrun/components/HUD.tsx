@@ -1,34 +1,26 @@
-import React from 'react';
-import { Battery, Zap } from 'lucide-react';
 
-interface SafeAreaInsets {
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-}
+import React from 'react';
+import { Battery, Zap, Gauge } from 'lucide-react';
 
 interface HUDProps {
   energy: number;
   score: number;
-  safeAreaInsets?: SafeAreaInsets;
+  speed: number;
 }
 
-const HUD: React.FC<HUDProps> = ({ energy, score, safeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 } }) => {
+const HUD: React.FC<HUDProps> = ({ energy, score, speed }) => {
   // Color calculation for health bar
   let barColor = 'bg-cyan-500';
   if (energy < 50) barColor = 'bg-yellow-500';
   if (energy < 25) barColor = 'bg-red-500';
 
+  // Speed color calculation
+  let speedColor = 'text-green-400';
+  if (speed > 400) speedColor = 'text-yellow-400';
+  if (speed > 600) speedColor = 'text-red-400';
+
   return (
-    <div 
-      className="absolute left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10"
-      style={{ 
-        top: `${safeAreaInsets.top + 50}px`,
-        paddingLeft: `${safeAreaInsets.left}px`,
-        paddingRight: `${safeAreaInsets.right}px`
-      }}
-    >
+    <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10">
       
       {/* Energy Gauge */}
       <div className="flex flex-col gap-1 w-1/3 max-w-[200px]">
@@ -46,13 +38,25 @@ const HUD: React.FC<HUDProps> = ({ energy, score, safeAreaInsets = { top: 0, bot
         <div className="text-right text-xs text-slate-400 font-mono">{energy}/100</div>
       </div>
 
-      {/* Score / Timer */}
+      {/* Score / Odometer */}
       <div className="flex flex-col items-end">
+        {/* Speed Gauge */}
+        <div className="mb-4 flex items-center gap-2">
+          <Gauge className={`w-5 h-5 ${speedColor}`} />
+          <div className="flex flex-col items-end">
+            <div className="text-xs text-slate-400 uppercase tracking-wider">Speed</div>
+            <div className={`text-3xl font-mono font-black italic ${speedColor} transition-colors duration-200`}>
+              {Math.round(speed)}<span className="text-sm opacity-50 not-italic ml-1">km/h</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Distance */}
         <div className="text-pink-500 font-bold uppercase tracking-wider text-sm neon-text-red mb-1">
-          Survival Time
+          Distance
         </div>
         <div className="text-4xl font-mono text-white font-black italic">
-          {score.toFixed(2)}<span className="text-lg opacity-50 not-italic">s</span>
+          {(score / 1000).toFixed(2)}<span className="text-lg opacity-50 not-italic">km</span>
         </div>
       </div>
     </div>
