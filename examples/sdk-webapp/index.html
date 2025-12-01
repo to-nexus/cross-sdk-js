@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CROSSx WebApp Example</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        font-weight: 700;
+      }
+
+      .header p {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 40px 30px;
+      }
+
+      .section {
+        margin-bottom: 35px;
+      }
+
+      .section h2 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section h2 span {
+        font-size: 24px;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .info-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        border-left: 4px solid #667eea;
+      }
+
+      .info-card label {
+        display: block;
+        color: #666;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+
+      .info-card value {
+        display: block;
+        color: #333;
+        font-size: 16px;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+        word-break: break-all;
+      }
+
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      button.primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      button.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      button.secondary {
+        background: #f0f0f0;
+        color: #333;
+      }
+
+      button.secondary:hover {
+        background: #e0e0e0;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      button.success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+      }
+
+      button.success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 8px;
+      }
+
+      .badge.crossx {
+        background: #10b981;
+        color: white;
+      }
+
+      .badge.mock {
+        background: #f59e0b;
+        color: white;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 15px;
+        background: #f0fdf4;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #10b981;
+      }
+
+      .status.mock {
+        background: #fefce8;
+        border-left-color: #f59e0b;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #10b981;
+      }
+
+      .status.mock .status-dot {
+        background: #f59e0b;
+      }
+
+      .status-text {
+        font-size: 13px;
+        font-weight: 500;
+        color: #059669;
+      }
+
+      .status.mock .status-text {
+        color: #b45309;
+      }
+
+      .event-log {
+        background: #1e1e1e;
+        color: #00ff00;
+        border-radius: 8px;
+        padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        max-height: 200px;
+        overflow-y: auto;
+        line-height: 1.6;
+      }
+
+      .event-line {
+        opacity: 0.9;
+        margin-bottom: 4px;
+      }
+
+      .event-line.info {
+        color: #00ff00;
+      }
+
+      .event-line.warn {
+        color: #ffaa00;
+      }
+
+      .event-line.error {
+        color: #ff4444;
+      }
+
+      .divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 30px 0;
+      }
+
+      .game-example {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        border: 2px dashed #667eea;
+      }
+
+      .game-example h3 {
+        color: #333;
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
+
+      .game-example code {
+        display: block;
+        background: #fff;
+        border-radius: 4px;
+        padding: 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        color: #667eea;
+        overflow-x: auto;
+        margin: 10px 0;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          border-radius: 0;
+        }
+
+        .header {
+          padding: 30px 20px;
+        }
+
+        .header h1 {
+          font-size: 24px;
+        }
+
+        .content {
+          padding: 25px 20px;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+
+        button {
+          padding: 10px 16px;
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎮 CROSSx WebApp SDK</h1>
+        <p>Interactive Example & Testing</p>
+      </div>
+
+      <div class="content">
+        <!-- Environment Status -->
+        <div class="section">
+          <h2><span>📊</span> Environment Status</h2>
+          <div id="statusContainer"></div>
+        </div>
+
+        <!-- SDK Information -->
+        <div class="section">
+          <h2><span>ℹ️</span> SDK Information</h2>
+          <div class="info-grid">
+            <div class="info-card">
+              <label>SDK Version</label>
+              <value id="versionValue">Loading...</value>
+            </div>
+            <div class="info-card">
+              <label>Environment</label>
+              <value id="envValue">Detecting...</value>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lifecycle Controls -->
+        <div class="section">
+          <h2><span>🔄</span> Lifecycle Controls</h2>
+          <div class="button-group">
+            <button class="primary" id="readyBtn">Signal Ready</button>
+            <button class="success" id="fullscreenBtn">Request Full Screen</button>
+          </div>
+        </div>
+
+        <!-- Event Simulation (Mock only) -->
+        <div class="section" id="simulationSection" style="display: none;">
+          <h2><span>🔀</span> Event Simulation (Mock Mode)</h2>
+          <div class="button-group">
+            <button class="secondary" id="simulateCloseBtn">Simulate View Closed</button>
+            <button class="secondary" id="simulateBackgroundBtn">Simulate View Backgrounded</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Event Log -->
+        <div class="section">
+          <h2><span>📝</span> Event Log</h2>
+          <div class="event-log" id="eventLog"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Usage Example -->
+        <div class="section">
+          <h2><span>💡</span> Usage Example</h2>
+          <div class="game-example">
+            <h3>Game Integration</h3>
+            <code>
+import { CROSSxWebApp } from '@to-nexus/webapp';<br/>
+<br/>
+// Initialize<br/>
+CROSSxWebApp.ready();<br/>
+<br/>
+// Handle lifecycle<br/>
+CROSSxWebApp.on('viewClosed', () => {<br/>
+&nbsp;&nbsp;saveGameProgress();<br/>
+});<br/>
+<br/>
+// Request fullscreen for better experience<br/>
+CROSSxWebApp.requestFullScreen();
+            </code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { CROSSxWebApp, isCROSSxEnvironment, getEnvironmentType } from '@to-nexus/webapp';
+
+      let eventCount = 0;
+      const MAX_EVENTS = 50;
+
+      // Logger
+      function log(message, type = 'info') {
+        const logElement = document.getElementById('eventLog');
+        const line = document.createElement('div');
+        line.className = `event-line ${type}`;
+        const time = new Date().toLocaleTimeString();
+        line.textContent = `[${time}] ${message}`;
+        logElement.appendChild(line);
+        logElement.scrollTop = logElement.scrollHeight;
+
+        if (++eventCount > MAX_EVENTS) {
+          logElement.removeChild(logElement.firstChild);
+        }
+      }
+
+      // Initialize
+      function init() {
+        log('🚀 Example page loaded', 'info');
+
+        // Update environment status
+        const isCrossxEnv = isCROSSxEnvironment();
+        const envType = getEnvironmentType();
+        updateEnvironmentStatus(isCrossxEnv, envType);
+
+        // Display version
+        const versionValue = document.getElementById('versionValue');
+        versionValue.textContent = CROSSxWebApp.version;
+        log(`✅ SDK Version: ${CROSSxWebApp.version}`, 'info');
+
+        // Setup lifecycle listeners
+        CROSSxWebApp.on('viewClosed', () => {
+          log('📴 EVENT: viewClosed received', 'warn');
+          showNotification('App Closed', 'Save your progress!');
+        });
+
+        CROSSxWebApp.on('viewBackgrounded', () => {
+          log('🔽 EVENT: viewBackgrounded received', 'warn');
+          showNotification('App Backgrounded', 'Game paused');
+        });
+
+        // Setup buttons
+        setupButtons(isCrossxEnv);
+
+        log('✨ SDK initialized and ready', 'info');
+      }
+
+      function updateEnvironmentStatus(isCrossxEnv, envType) {
+        const statusContainer = document.getElementById('statusContainer');
+        const envValue = document.getElementById('envValue');
+
+        if (isCrossxEnv) {
+          statusContainer.innerHTML = `
+            <div class="status">
+              <div class="status-dot"></div>
+              <div class="status-text">🟢 Running in CROSSx Environment</div>
+            </div>
+          `;
+          envValue.textContent = 'CROSSx App';
+          document.getElementById('simulationSection').style.display = 'none';
+        } else {
+          statusContainer.innerHTML = `
+            <div class="status mock">
+              <div class="status-dot"></div>
+              <div class="status-text">🟠 Running in Mock Mode (Browser)</div>
+            </div>
+          `;
+          envValue.textContent = 'Browser (Mock)';
+          document.getElementById('simulationSection').style.display = 'block';
+        }
+      }
+
+      function setupButtons(isCrossxEnv) {
+        // Ready button
+        document.getElementById('readyBtn').addEventListener('click', () => {
+          CROSSxWebApp.ready();
+          log('✅ ready() called', 'info');
+        });
+
+        // Fullscreen button
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+          CROSSxWebApp.requestFullScreen();
+          log('🖥️ requestFullScreen() called', 'info');
+        });
+
+        // Simulation buttons (only in mock mode)
+        if (!isCrossxEnv) {
+          document.getElementById('simulateCloseBtn').addEventListener('click', () => {
+            if (CROSSxWebApp._simulateClose) {
+              CROSSxWebApp._simulateClose();
+              log('🔀 Simulated: viewClosed event', 'warn');
+            }
+          });
+
+          document.getElementById('simulateBackgroundBtn').addEventListener('click', () => {
+            if (CROSSxWebApp._simulateBackgrounded) {
+              CROSSxWebApp._simulateBackgrounded();
+              log('🔀 Simulated: viewBackgrounded event', 'warn');
+            }
+          });
+        }
+      }
+
+      function showNotification(title, message) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, { body: message });
+        }
+      }
+
+      // Start on load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      // Log unhandled errors
+      window.addEventListener('error', (event) => {
+        log(`❌ Error: ${event.message}`, 'error');
+      });
+
+      // Log unhandled promise rejections
+      window.addEventListener('unhandledrejection', (event) => {
+        log(`❌ Unhandled Promise Rejection: ${event.reason}`, 'error');
+      });
+    </script>
+  </body>
+</html>
+
