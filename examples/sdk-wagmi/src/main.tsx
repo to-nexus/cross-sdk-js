@@ -49,7 +49,11 @@ createAppKit({
   },
   enableWalletConnect: true,
   enableInjected: true,
-  enableCoinbase: false
+  enableCoinbase: false,
+  // @ts-ignore - instanceId로 Cross SDK와 Reown AppKit 격리 (React 예제와 동일)
+  instanceId: 'reown-metamask-appkit',
+  // @ts-ignore - modalZIndex도 추가
+  modalZIndex: 9000
 })
 
 console.log('✅ Reown AppKit initialized for MetaMask')
