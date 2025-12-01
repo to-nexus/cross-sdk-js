@@ -1,808 +1,1148 @@
-import React, { useEffect, useRef } from 'react'
 
-import type { IWebApp } from '@to-nexus/webapp'
-import { Haptics } from '@to-nexus/webapp'
-
-import { GameState, Obstacle, ObstacleType, Player } from '../types'
+import React, { useRef, useEffect } from 'react';
+import { GameState, Obstacle, ObstacleType, Player } from '../types';
 
 interface GameCanvasProps {
-  gameState: GameState
-  setEnergy: (energy: number) => void
-  setScore: (score: number) => void
-  onGameOver: () => void
-  webApp?: IWebApp
+  gameState: GameState;
+  setEnergy: (energy: number) => void;
+  setScore: (score: number) => void;
+  setSpeed: (speed: number) => void;
+  onGameOver: () => void;
 }
 
 interface SceneryObject {
-  id: number
-  type: 'PALM_TREE'
-  x: number
-  z: number
-  scaleVar: number
-  flip: boolean
+  id: number;
+  type: 'PALM_TREE';
+  x: number;
+  z: number;
+  scaleVar: number;
+  flip: boolean;
 }
 
-type Renderable =
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  color: string;
+  size: number;
+  gravity: number;
+  grow: boolean;
+}
+
+type Renderable = 
   | { type: 'OBSTACLE'; data: Obstacle; z: number }
-  | { type: 'SCENERY'; data: SceneryObject; z: number }
+  | { type: 'SCENERY'; data: SceneryObject; z: number };
 
-const GameCanvas: React.FC<GameCanvasProps> = ({
-  gameState,
-  setEnergy,
-  setScore,
-  onGameOver,
-  webApp
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-
+const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore, setSpeed, onGameOver }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
   // Game Configuration Constants
-  const SEGMENT_LENGTH = 200
-  const RENDER_DISTANCE = 80
-  const BASE_SPEED = 1500 // 증가: 1200 -> 1500
-  const OBSTACLE_SPAWN_RATE_MS = 600 // 감소: 800 -> 600 (더 자주 등장)
-  const SCENERY_SPAWN_RATE_MS = 100 // 감소: 150 -> 100
-  // 3 distinct lanes: Left, Center, Right.
-  // Coordinates are roughly -0.7, 0, 0.7 to fit trucks without overlap
-  const LANES = [-0.7, 0, 0.7]
-
+  const SEGMENT_LENGTH = 200;
+  const RENDER_DISTANCE = 80; 
+  const OBSTACLE_SPAWN_RATE_MS = 800;
+  const BOOST_DISTANCE_THRESHOLD = 1000; // Boost every 1km without collision
+  
+  // 3 equal lanes
+  const LANES = [-2/3, 0, 2/3]; 
+  
   // Refs
-  const playerRef = useRef<Player>({ x: 0, lane: 1, speed: 0, maxSpeed: 1500, energy: 100 })
-  const obstaclesRef = useRef<Obstacle[]>([])
-  const sceneryRef = useRef<SceneryObject[]>([])
+  const playerRef = useRef<Player>({ x: 0, lane: 1, speed: 0, maxSpeed: 9000, energy: 100 });
+  const obstaclesRef = useRef<Obstacle[]>([]);
+  const sceneryRef = useRef<SceneryObject[]>([]);
+  const particlesRef = useRef<Particle[]>([]); // Particles for explosion/smoke
+  
+  const lastTimeRef = useRef<number>(0);
+  const totalDistanceRef = useRef<number>(0); 
+  const distanceSinceLastCollisionRef = useRef<number>(0); // New tracker for boost
+  const roadOffsetRef = useRef<number>(0);
+  const lastSpawnTimeRef = useRef<number>(0);
+  const lastScenerySpawnTimeRef = useRef<number>(0);
+  const requestRef = useRef<number>(0);
+  const isGameOverRef = useRef<boolean>(false);
+  const prevGameStateRef = useRef<GameState>(GameState.MENU);
+  
+  // Level / Boost System
+  const levelRef = useRef<number>(1);
+  const warpEffectTimerRef = useRef<number>(0);
 
-  const lastTimeRef = useRef<number>(0)
-  const totalTimeRef = useRef<number>(0)
-  const roadOffsetRef = useRef<number>(0)
-  const lastSpawnTimeRef = useRef<number>(0)
-  const lastScenerySpawnTimeRef = useRef<number>(0)
-  const requestRef = useRef<number>(0)
-  const isGameOverRef = useRef<boolean>(false)
-  const prevGameStateRef = useRef<GameState>(GameState.MENU)
+  // Shake Effect Ref (duration in seconds)
+  const shakeTimeRef = useRef<number>(0);
+
+  // Dying State (Smoke effect before game over)
+  const isDyingRef = useRef<boolean>(false);
+  const dyingTimerRef = useRef<number>(0);
 
   // Input State
-  // We use this to prevent holding down the key from cycling lanes too fast
-  const keyStateRef = useRef<{ [key: string]: boolean }>({})
+  const keyStateRef = useRef<{ [key: string]: boolean }>({});
+  
+  // Clean reset when going back to menu
+  useEffect(() => {
+    if (gameState === GameState.MENU) {
+      prevGameStateRef.current = GameState.MENU;
+      // Clear scene for a clean title screen
+      obstaclesRef.current = [];
+      sceneryRef.current = [];
+      particlesRef.current = [];
+      playerRef.current.x = 0;
+      playerRef.current.lane = 1;
+      playerRef.current.speed = 3000; // Idle speed for visual (Fast start)
+      totalDistanceRef.current = 0;
+      distanceSinceLastCollisionRef.current = 0;
+      levelRef.current = 1;
+      warpEffectTimerRef.current = 0;
+      shakeTimeRef.current = 0;
+      isDyingRef.current = false;
+      dyingTimerRef.current = 0;
+    }
+  }, [gameState]);
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false })
-    if (!ctx) return
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) return;
 
     // --- HELPER FUNCTIONS ---
 
-    const spawnObstacle = () => {
-      // Pick a random lane: 0, 1, or 2
-      const laneIndex = Math.floor(Math.random() * 3)
-      const laneX = LANES[laneIndex]
+    const createSceneryAtZ = (z: number) => {
+      const side = Math.random() > 0.5 ? 1 : -1;
+      // Position: Close to road (1.1 ~ 1.5)
+      const x = side * (1.1 + Math.random() * 0.4); 
+      
+      const tree: SceneryObject = {
+        id: Date.now() + Math.random(),
+        type: 'PALM_TREE',
+        x: x,
+        z: z,
+        // Reduced scale: 1.5 to 2.1
+        scaleVar: 1.5 + Math.random() * 0.6,
+        flip: Math.random() > 0.5
+      };
+      
+      sceneryRef.current.push(tree);
+    };
 
-      const r = Math.random()
-      let type = ObstacleType.TRUCK
-      let width = 170 // Narrower truck to fit in lane
-      let height = 180
-      let damage = 20
+    const createExplosion = (x: number, y: number) => {
+      const particleCount = 40;
+      for (let i = 0; i < particleCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 10 + 2;
+        const color = Math.random() > 0.5 ? '#ef4444' : '#facc15'; // Red or Yellow
+        
+        particlesRef.current.push({
+          id: Date.now() + Math.random(),
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 5, // Slight upward bias
+          life: 1.0,
+          maxLife: 1.0,
+          color: color,
+          size: Math.random() * 6 + 2,
+          gravity: 0.5,
+          grow: false
+        });
+      }
+    };
+
+    const createSmoke = (x: number, y: number) => {
+      const count = 2; // Particles per frame
+      for (let i = 0; i < count; i++) {
+        particlesRef.current.push({
+          id: Date.now() + Math.random(),
+          x: x + (Math.random() - 0.5) * 40,
+          y: y,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -Math.random() * 3 - 1, // Float up
+          life: 1.0 + Math.random() * 0.5,
+          maxLife: 1.5,
+          color: Math.random() > 0.5 ? '#334155' : '#1e293b', // Dark Slate / Gray
+          size: Math.random() * 10 + 5,
+          gravity: -0.05, // Buoyancy
+          grow: true
+        });
+      }
+    };
+
+    const spawnObstacle = () => {
+      const laneIndex = Math.floor(Math.random() * 3);
+      const laneX = LANES[laneIndex];
+
+      const r = Math.random();
+      let type = ObstacleType.TRUCK;
+      let width = 200; 
+      let height = 220;
+      let damage = 20;
 
       if (r > 0.7) {
-        type = ObstacleType.JAYWALKER
-        width = 60
-        height = 130
-        damage = 35
+        type = ObstacleType.JAYWALKER;
+        width = 60;
+        height = 130;
+        damage = 35;
       } else if (r > 0.4) {
-        type = ObstacleType.CACTUS
-        width = 80
-        height = 100
-        damage = 30
+        type = ObstacleType.CACTUS;
+        width = 80;
+        height = 100;
+        damage = 30;
       }
 
       const obstacle: Obstacle = {
         id: Date.now() + Math.random(),
         type,
         x: laneX,
-        z: RENDER_DISTANCE * SEGMENT_LENGTH, // Start far away
+        z: RENDER_DISTANCE * SEGMENT_LENGTH, 
         width,
         height,
         damage,
-        hit: false
-      }
+        hit: false,
+      };
 
-      obstaclesRef.current.push(obstacle)
-    }
+      obstaclesRef.current.push(obstacle);
+    };
 
     const spawnScenery = () => {
-      // Spawn palm trees on the far left or right
-      const side = Math.random() > 0.5 ? 1 : -1
-      // Position them well outside the road (road is -1 to 1, so go +/- 2.5 or more)
-      const x = side * (2.5 + Math.random() * 2)
+      createSceneryAtZ(RENDER_DISTANCE * SEGMENT_LENGTH);
+    };
 
-      const tree: SceneryObject = {
-        id: Date.now() + Math.random(),
-        type: 'PALM_TREE',
-        x: x,
-        z: RENDER_DISTANCE * SEGMENT_LENGTH,
-        scaleVar: 0.9 + Math.random() * 0.2, // Slight size variation
-        flip: Math.random() > 0.5
-      }
+    const checkCollisions = (width: number, height: number) => {
+      if (playerRef.current.energy <= 0 && !isDyingRef.current) return;
 
-      sceneryRef.current.push(tree)
-    }
-
-    const checkCollisions = () => {
-      if (playerRef.current.energy <= 0) return
-
-      // Player is at z=0 (camera position basically)
-      // We check obstacles that are very close to z=0
-      const playerLane = playerRef.current.lane
-      const playerLaneX = LANES[playerLane]
-
+      const playerLane = playerRef.current.lane;
+      
       // Hitbox tolerance
-      const hitZDepth = 200
-      const laneTolerance = 0.3 // Strict lane checking
+      const hitZDepth = 200; 
+      const laneTolerance = 0.3; 
 
       obstaclesRef.current.forEach(obs => {
         if (!obs.hit && obs.z < hitZDepth && obs.z > -100) {
-          // Check if obstacle is in the same lane roughly
-          const distX = Math.abs(obs.x - playerRef.current.x)
-
-          // Collision happens if we are close in X (same lane) and close in Z
+          const distX = Math.abs(obs.x - playerRef.current.x);
+          
           if (distX < laneTolerance) {
-            obs.hit = true
-            const newEnergy = Math.max(0, playerRef.current.energy - obs.damage)
-            playerRef.current.energy = newEnergy // Update internal ref
-            setEnergy(newEnergy) // Update UI
-
-            // Haptic feedback on collision
-            if (webApp) {
-              if (newEnergy <= 0) {
-                // Heavy impact for game over
-                webApp.hapticFeedback(Haptics.impactHeavy)
-              } else if (newEnergy < 25) {
-                // Warning impact for low energy
-                webApp.hapticFeedback(Haptics.notificationWarning)
-              } else {
-                // Medium impact for normal collision
-                webApp.hapticFeedback(Haptics.impactMedium)
-              }
+            obs.hit = true;
+            
+            // Apply Damage Multiplier if in Boost Mode (Warping)
+            let finalDamage = obs.damage;
+            if (warpEffectTimerRef.current > 0) {
+              finalDamage = Math.floor(obs.damage * 1.2);
             }
 
-            // Screen shake or flash could go here
-            if (newEnergy <= 0) {
-              isGameOverRef.current = true
-              onGameOver()
+            const newEnergy = Math.max(0, playerRef.current.energy - finalDamage);
+            playerRef.current.energy = newEnergy; 
+            setEnergy(newEnergy); 
+            
+            // CRASH PENALTY & RESET LEVEL
+            playerRef.current.speed = 3000;
+            playerRef.current.maxSpeed = 9000; // Reset to base max speed
+            levelRef.current = 1; // Reset Level
+            warpEffectTimerRef.current = 0; // Cancel boost immediately
+            distanceSinceLastCollisionRef.current = 0; // Reset safe distance tracker
+            
+            // Trigger Shake
+            shakeTimeRef.current = 0.5; // Shake for 0.5 seconds
+
+            // Calculate impact position for explosion
+            const maxRoadWidth = Math.min(width * 0.9, 800);
+            const roadCenterX = width / 2;
+            const carX = roadCenterX + (playerRef.current.x * (maxRoadWidth / 2));
+            const carY = height - 80;
+            createExplosion(carX, carY);
+
+            if (newEnergy <= 0 && !isDyingRef.current) {
+              // Initiate Dying Sequence
+              isDyingRef.current = true;
+              dyingTimerRef.current = 2.0; // 2 seconds of smoke
+              playerRef.current.speed = 0; // Stop car
             }
           }
         }
-      })
-    }
+      });
+    };
 
     const handleInput = (key: string) => {
-      if (gameState !== GameState.PLAYING) return
+      if (gameState !== GameState.PLAYING || isDyingRef.current) return;
 
-      const player = playerRef.current
-
+      const player = playerRef.current;
+      
       if (key === 'ArrowLeft' || key === 'a') {
-        if (player.lane > 0) player.lane--
+        if (player.lane > 0) player.lane--;
       } else if (key === 'ArrowRight' || key === 'd') {
-        if (player.lane < 2) player.lane++
+        if (player.lane < 2) player.lane++;
       }
-    }
+    };
 
     // --- DRAWING FUNCTIONS ---
 
     const drawSun = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-      const sunY = height * 0.35 // Position on horizon
-      const sunRadius = Math.min(width, height) * 0.25
+      const sunY = height * 0.35; 
+      const sunRadius = Math.min(width, height) * 0.25;
 
-      // Sun Gradient
-      const gradient = ctx.createLinearGradient(0, sunY - sunRadius, 0, sunY + sunRadius)
-      gradient.addColorStop(0, '#ffff00') // Yellow top
-      gradient.addColorStop(0.5, '#ff00ff') // Pink middle
-      gradient.addColorStop(1, '#9900ff') // Purple bottom
+      const gradient = ctx.createLinearGradient(0, sunY - sunRadius, 0, sunY + sunRadius);
+      gradient.addColorStop(0, '#ffff00'); 
+      gradient.addColorStop(0.5, '#ff00ff'); 
+      gradient.addColorStop(1, '#9900ff'); 
 
-      ctx.save()
-      ctx.fillStyle = gradient
+      ctx.save();
+      ctx.fillStyle = gradient;
+      
+      ctx.beginPath();
+      ctx.arc(width / 2, sunY, sunRadius, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Draw Sun with "Blinds" effect
-      ctx.beginPath()
-      ctx.arc(width / 2, sunY, sunRadius, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Horizontal cuts for synthwave style
-      ctx.fillStyle = '#0f172a' // Match background color
-      const segmentHeight = sunRadius * 0.15
+      ctx.fillStyle = '#0f172a'; 
+      const segmentHeight = sunRadius * 0.15;
       for (let i = 0; i < 6; i++) {
-        const y = sunY + i * segmentHeight * 1.5 - sunRadius * 0.2
-        const h = segmentHeight * (0.3 + i * 0.1) // Cuts get thicker towards bottom
-        if (y > sunY + sunRadius) break
-        ctx.fillRect(width / 2 - sunRadius, y, sunRadius * 2, h)
+        const y = sunY + (i * segmentHeight * 1.5) - (sunRadius * 0.2);
+        const h = segmentHeight * (0.3 + (i * 0.1)); 
+        if (y > sunY + sunRadius) break;
+        ctx.fillRect(width / 2 - sunRadius, y, sunRadius * 2, h);
       }
+      
+      ctx.shadowBlur = 40;
+      ctx.shadowColor = '#ff00ff';
+      ctx.stroke(); 
+      ctx.restore();
+    };
 
-      // Glow
-      ctx.shadowBlur = 40
-      ctx.shadowColor = '#ff00ff'
-      ctx.stroke() // trigger shadow
-      ctx.restore()
-    }
+    const drawRoad = (ctx: CanvasRenderingContext2D, width: number, height: number, offset: number, isWarping: boolean) => {
+      const horizonY = height * 0.4;
+      const maxRoadWidth = Math.min(width * 0.9, 800); 
+      
+      ctx.save();
+      
+      // Grid Floor
+      ctx.fillStyle = '#1a0b2e'; 
+      ctx.fillRect(0, horizonY, width, height - horizonY);
 
-    const drawRoad = (
-      ctx: CanvasRenderingContext2D,
-      width: number,
-      height: number,
-      offset: number
-    ) => {
-      const horizonY = height * 0.4
-
-      // Determine max visible road width
-      // On mobile (narrow screen), we want the road to fill more of the width
-      // On desktop (wide screen), we want the road to be centered with scenery on sides
-      const maxRoadWidth = Math.min(width * 0.9, 800)
-
-      ctx.save()
-
-      // Draw Grid Floor (Landscape)
-      ctx.fillStyle = '#1a0b2e' // Darker purple ground
-      ctx.fillRect(0, horizonY, width, height - horizonY)
-
-      // Moving vertical grid lines for landscape sensation
-      ctx.strokeStyle = 'rgba(255, 0, 255, 0.2)'
-      ctx.lineWidth = 1
-      const gridSpacing = width / 12
-      const moveOffset = (offset * width) % gridSpacing
-
-      ctx.beginPath()
-      // Floor Grid - Horizontal lines
+      // Warping makes grid bright cyan/white
+      const gridColor = isWarping ? 'rgba(200, 255, 255, 0.6)' : 'rgba(255, 0, 255, 0.2)';
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = isWarping ? 2 : 1;
+      const gridSpacing = width / 12;
+      
+      ctx.beginPath();
       for (let i = 0; i < 20; i++) {
-        const y = horizonY + Math.pow(i / 20, 2) * (height - horizonY)
-        ctx.moveTo(0, y)
-        ctx.lineTo(width, y)
+        const y = horizonY + Math.pow(i / 20, 2) * (height - horizonY);
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
       }
-      // Floor Grid - Vertical lines (Perspective)
-      const vanishingPointX = width / 2
+      const vanishingPointX = width / 2;
       for (let i = -10; i <= 10; i++) {
-        const x = vanishingPointX + i * gridSpacing * 2
-        ctx.moveTo(vanishingPointX, horizonY)
-        ctx.lineTo(x, height)
+         const x = vanishingPointX + (i * gridSpacing * 2);
+         ctx.moveTo(vanishingPointX, horizonY);
+         ctx.lineTo(x, height);
       }
-      ctx.stroke()
+      ctx.stroke();
 
-      // --- MAIN ROAD ---
-      // We project the road as a trapezoid
-      const roadBottomW = maxRoadWidth
-      const roadTopW = 10 // Converges to point
-      const roadCenterX = width / 2
+      // Main Road
+      const roadBottomW = maxRoadWidth;
+      const roadTopW = 10; 
+      const roadCenterX = width / 2;
 
-      // Clip road area
-      ctx.beginPath()
-      ctx.moveTo(roadCenterX - roadTopW, horizonY)
-      ctx.lineTo(roadCenterX + roadTopW, horizonY)
-      ctx.lineTo(roadCenterX + roadBottomW / 2, height)
-      ctx.lineTo(roadCenterX - roadBottomW / 2, height)
-      ctx.closePath()
-      ctx.fillStyle = '#000000' // Road color
-      ctx.fill()
-      ctx.clip() // Only draw road markings inside this area
+      ctx.beginPath();
+      ctx.moveTo(roadCenterX - roadTopW, horizonY);
+      ctx.lineTo(roadCenterX + roadTopW, horizonY);
+      ctx.lineTo(roadCenterX + roadBottomW / 2, height);
+      ctx.lineTo(roadCenterX - roadBottomW / 2, height);
+      ctx.closePath();
+      
+      ctx.fillStyle = isWarping ? '#2a3340' : '#1e293b'; 
+      ctx.fill();
+      ctx.clip(); 
 
-      // Moving Horizontal Strips (Speed sensation)
-      const stripHeight = (height - horizonY) / 20
-      const speedOffset = (totalTimeRef.current * 8) % 1 // 0 to 1
+      // Moving Strips
+      const speedOffset = (offset * 2) % 1; 
 
       for (let i = 0; i < 30; i++) {
-        // Perspective distribution: closer lines are further apart
-        const perspective = Math.pow((i + speedOffset) / 30, 3)
-        const y = horizonY + perspective * (height - horizonY)
-        const nextY = horizonY + Math.pow((i + 1 + speedOffset) / 30, 3) * (height - horizonY)
-        const h = Math.max(1, nextY - y)
+        const perspective = Math.pow((i + speedOffset) / 30, 3); 
+        const y = horizonY + perspective * (height - horizonY);
+        const nextY = horizonY + Math.pow((i + 1 + speedOffset) / 30, 3) * (height - horizonY);
+        const h = Math.max(1, nextY - y);
 
-        // Draw darker strip every other segment
         if (i % 2 === 0) {
-          ctx.fillStyle = 'rgba(40, 40, 60, 0.5)'
-          ctx.fillRect(0, y, width, h)
+          // Brighter strips during warp
+          ctx.fillStyle = isWarping ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)'; 
+          ctx.fillRect(0, y, width, h);
         }
       }
 
       // Lane Markers
-      // We have 3 lanes, so we need dividing lines between them.
-      // Lanes are roughly at -0.67, 0, 0.67
-      // Dividers should be at -0.33 and 0.33 roughly
-      const laneDividers = [-0.35, 0.35]
+      const laneDividers = [-1/3, 1/3]; 
 
-      ctx.lineWidth = 2 // Solid lines
-      ctx.strokeStyle = '#00ffff' // Cyan lines
+      ctx.lineWidth = 2; 
+      ctx.strokeStyle = isWarping ? '#ffffff' : '#22d3ee'; 
 
       laneDividers.forEach(laneX => {
-        // Project line from horizon to bottom
-        // x coordinate -1 to 1 mapped to screen
-        const x1 = roadCenterX + laneX * roadTopW // Top x
-        const y1 = horizonY
-        const x2 = roadCenterX + laneX * (roadBottomW / 2) // Bottom x
-        const y2 = height
+        const x1 = roadCenterX + (laneX * roadTopW); 
+        const y1 = horizonY;
+        const x2 = roadCenterX + (laneX * (roadBottomW / 2)); 
+        const y2 = height;
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      });
 
-        ctx.beginPath()
-        ctx.moveTo(x1, y1)
-        ctx.lineTo(x2, y2)
-        ctx.stroke()
-      })
+      // Side rails
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = isWarping ? '#ff00aa' : '#d946ef'; 
+      ctx.beginPath();
+      ctx.moveTo(roadCenterX - roadTopW, horizonY);
+      ctx.lineTo(roadCenterX - roadBottomW / 2, height);
+      ctx.stroke();
 
-      // Side rails (Neon borders)
-      ctx.lineWidth = 4
-      ctx.strokeStyle = '#ff00ff' // Magenta rails
-      ctx.beginPath()
-      ctx.moveTo(roadCenterX - roadTopW, horizonY)
-      ctx.lineTo(roadCenterX - roadBottomW / 2, height)
-      ctx.stroke()
+      ctx.beginPath();
+      ctx.moveTo(roadCenterX + roadTopW, horizonY);
+      ctx.lineTo(roadCenterX + roadBottomW / 2, height);
+      ctx.stroke();
 
-      ctx.beginPath()
-      ctx.moveTo(roadCenterX + roadTopW, horizonY)
-      ctx.lineTo(roadCenterX + roadBottomW / 2, height)
-      ctx.stroke()
+      ctx.restore();
+    };
 
-      ctx.restore()
-    }
+    const drawWarpLines = (ctx: CanvasRenderingContext2D, width: number, height: number, intensity: number) => {
+      const cx = width / 2;
+      const cy = height * 0.4; // Horizon
+      const count = 20;
 
-    const drawPlayerCar = (
-      ctx: CanvasRenderingContext2D,
-      width: number,
-      height: number,
-      lanePos: number
-    ) => {
-      // lanePos is -1 to 1
-      const maxRoadWidth = Math.min(width * 0.9, 800)
-      const roadCenterX = width / 2
+      ctx.save();
+      ctx.strokeStyle = `rgba(255, 255, 255, ${intensity * 0.5})`;
+      ctx.lineWidth = 2;
+      
+      for(let i=0; i<count; i++) {
+        const angle = (Date.now() / 200 + i * (Math.PI * 2 / count)) % (Math.PI * 2);
+        const len = Math.max(width, height);
+        
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(angle) * 50, cy + Math.sin(angle) * 20); // Start a bit off center
+        ctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
 
-      // Calculate Car Position
-      // Car stays at bottom 15% of screen
-      const carY = height - 100
-      // Map lanePos (-1 to 1) to screen X within road width
-      const carX = roadCenterX + lanePos * (maxRoadWidth / 2)
-      const carScale = 1.0
+    const drawLevelUpText = (ctx: CanvasRenderingContext2D, width: number, height: number, level: number, timer: number) => {
+      if (timer <= 0) return;
+      
+      ctx.save();
+      // Zoom in effect
+      const scale = 1 + (2 - timer) * 0.5; // Starts at 1, grows
+      const opacity = Math.min(1, timer); // Fades out at end
+      
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(scale, scale);
+      
+      // Smaller text size to not obstruct view
+      ctx.font = 'italic 900 36px Orbitron, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Shadow/Glow
+      ctx.shadowColor = '#00ffff';
+      ctx.shadowBlur = 20;
+      
+      ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+      ctx.fillText(`SPEED UP!`, 0, -40);
+      
+      ctx.font = 'italic 700 24px Orbitron, sans-serif';
+      ctx.fillStyle = `rgba(255, 255, 0, ${opacity})`;
+      ctx.fillText(`LEVEL ${level}`, 0, 10);
+      
+      ctx.restore();
+    };
 
-      ctx.save()
-      ctx.translate(carX, carY)
-      ctx.scale(carScale, carScale)
+    const drawPlayerCar = (ctx: CanvasRenderingContext2D, width: number, height: number, lanePos: number) => {
+      const maxRoadWidth = Math.min(width * 0.9, 800);
+      const roadCenterX = width / 2;
+      
+      const laneWidth = maxRoadWidth / 3;
+      const targetCarWidth = laneWidth * 0.55;
+      
+      const baseModelWidth = 160;
+      const carScale = targetCarWidth / baseModelWidth;
 
-      // F40-inspired Retro Car
+      const carY = height - 80; 
+      const carX = roadCenterX + (lanePos * (maxRoadWidth / 2));
+      
+      ctx.save();
+      ctx.translate(carX, carY);
+      ctx.scale(carScale, carScale);
+
       // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.5)'
-      ctx.beginPath()
-      ctx.ellipse(0, 30, 60, 20, 0, 0, Math.PI * 2)
-      ctx.fill()
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.beginPath();
+      ctx.ellipse(0, 30, 80, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Main Body Red
-      ctx.fillStyle = '#d00'
-      ctx.fillRect(-50, -20, 100, 40)
+      // Tires
+      ctx.fillStyle = '#0f0f0f';
+      ctx.fillRect(-80, 0, 40, 35);
+      ctx.fillRect(40, 0, 40, 35);
 
-      // Top (Cabin)
-      ctx.fillStyle = '#900'
-      ctx.fillRect(-35, -45, 70, 25)
-
-      // Windshield
-      ctx.fillStyle = '#111'
-      ctx.fillRect(-32, -42, 64, 20)
-
-      // Rear Wing (Spoiler) - Iconic F40 feature
-      ctx.fillStyle = '#d00'
-      ctx.fillRect(-52, -25, 104, 10) // Wing supports
-      ctx.fillRect(-52, -35, 104, 8) // Top of wing
-
-      // Tail Lights (4 circles)
-      ctx.fillStyle = '#ff3333'
-      ctx.shadowColor = '#ff0000'
-      ctx.shadowBlur = 10
-      ;[-30, -15, 15, 30].forEach(x => {
-        ctx.beginPath()
-        ctx.arc(x, -5, 5, 0, Math.PI * 2)
-        ctx.fill()
-      })
-
-      // Exhaust glow
-      ctx.fillStyle = '#ffaa00'
-      ctx.shadowColor = '#ffaa00'
-      ctx.shadowBlur = 5
-      ctx.fillRect(-10, 15, 5, 5)
-      ctx.fillRect(5, 15, 5, 5)
-
-      ctx.restore()
-    }
-
-    const drawTruck = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) => {
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.scale(scale, scale)
-
-      // Truck Body
-      ctx.fillStyle = '#334155' // Slate 700
-      ctx.fillRect(-70, -140, 140, 140)
-
-      // Truck Border
-      ctx.strokeStyle = '#94a3b8'
-      ctx.lineWidth = 2
-      ctx.strokeRect(-70, -140, 140, 140)
-
-      // Rear Door Line
-      ctx.beginPath()
-      ctx.moveTo(0, -140)
-      ctx.lineTo(0, 0)
-      ctx.stroke()
-
-      // Tail Lights
-      ctx.shadowBlur = 10
-      ctx.shadowColor = '#ff0000'
-      ctx.fillStyle = '#ef4444' // Red
-      ctx.fillRect(-60, -20, 20, 10)
-      ctx.fillRect(40, -20, 20, 10)
-
-      // License Plate
-      ctx.shadowBlur = 0
-      ctx.fillStyle = '#facc15' // Yellow
-      ctx.fillRect(-20, -15, 40, 10)
-
-      // Wheels
-      ctx.fillStyle = '#000'
-      ctx.fillRect(-75, -20, 10, 25)
-      ctx.fillRect(65, -20, 10, 25)
-
-      ctx.restore()
-    }
-
-    const drawCactus = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) => {
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.scale(scale, scale)
-
-      ctx.fillStyle = '#22c55e' // Green
-      ctx.strokeStyle = '#052e16'
-      ctx.lineWidth = 2
-
-      // Main trunk
-      ctx.fillRect(-10, -80, 20, 80)
-      ctx.strokeRect(-10, -80, 20, 80)
-
-      // Left arm
-      ctx.fillRect(-30, -50, 20, 15)
-      ctx.strokeRect(-30, -50, 20, 15)
-      ctx.fillRect(-30, -70, 15, 20)
-      ctx.strokeRect(-30, -70, 15, 20)
-
-      // Right arm
-      ctx.fillRect(10, -40, 20, 15)
-      ctx.strokeRect(10, -40, 20, 15)
-      ctx.fillRect(15, -60, 15, 20)
-      ctx.strokeRect(15, -60, 15, 20)
-
-      ctx.restore()
-    }
-
-    const drawJaywalker = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) => {
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.scale(scale, scale)
-
-      // Stick figure style but neon
-      ctx.strokeStyle = '#f472b6' // Pink
-      ctx.lineWidth = 4
-      ctx.shadowColor = '#f472b6'
-      ctx.shadowBlur = 5
-
-      // Head
-      ctx.beginPath()
-      ctx.arc(0, -60, 10, 0, Math.PI * 2)
-      ctx.stroke()
+      // Diffuser
+      ctx.fillStyle = '#18181b';
+      ctx.beginPath();
+      ctx.moveTo(-75, 25);
+      ctx.lineTo(75, 25);
+      ctx.lineTo(70, 40);
+      ctx.lineTo(-70, 40);
+      ctx.fill();
+      
+      // Exhaust
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.ellipse(0, 30, 18, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#525252';
+      ctx.beginPath(); ctx.arc(0, 30, 4, 0, Math.PI*2); ctx.fill(); 
+      ctx.beginPath(); ctx.arc(-10, 30, 3, 0, Math.PI*2); ctx.fill(); 
+      ctx.beginPath(); ctx.arc(10, 30, 3, 0, Math.PI*2); ctx.fill(); 
+      
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.arc(0, 30, 2, 0, Math.PI*2); ctx.fill(); 
+      ctx.beginPath(); ctx.arc(-10, 30, 1.5, 0, Math.PI*2); ctx.fill(); 
+      ctx.beginPath(); ctx.arc(10, 30, 1.5, 0, Math.PI*2); ctx.fill(); 
 
       // Body
-      ctx.beginPath()
-      ctx.moveTo(0, -50)
-      ctx.lineTo(0, -20)
-      ctx.stroke()
+      const bodyGrad = ctx.createLinearGradient(0, -60, 0, 30);
+      bodyGrad.addColorStop(0, '#dc2626'); 
+      bodyGrad.addColorStop(1, '#991b1b'); 
 
-      // Arms (Waving)
-      const time = Date.now() / 100
-      ctx.beginPath()
-      ctx.moveTo(0, -40)
-      ctx.lineTo(-15, -30 + Math.sin(time) * 10)
-      ctx.moveTo(0, -40)
-      ctx.lineTo(15, -30 - Math.sin(time) * 10)
-      ctx.stroke()
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.moveTo(-80, 5); 
+      ctx.lineTo(-80, -35); 
+      ctx.lineTo(80, -35); 
+      ctx.lineTo(80, 5); 
+      ctx.fill();
 
-      // Legs (Walking)
-      ctx.beginPath()
-      ctx.moveTo(0, -20)
-      ctx.lineTo(-10, 0 + Math.cos(time) * 10)
-      ctx.moveTo(0, -20)
-      ctx.lineTo(10, 0 - Math.cos(time) * 10)
-      ctx.stroke()
+      // Grille
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(-78, -25, 156, 25);
+      
+      ctx.fillStyle = '#262626';
+      for(let i=0; i<156; i+=4) {
+        for(let j=0; j<25; j+=4) {
+             if((i+j)%2===0) ctx.fillRect(-78+i, -25+j, 1, 1);
+        }
+      }
 
-      ctx.restore()
-    }
+      // Lights
+      const drawF40Light = (lx: number, ly: number) => {
+        ctx.fillStyle = '#7f1d1d';
+        ctx.beginPath();
+        ctx.arc(lx, ly, 7, 0, Math.PI*2);
+        ctx.fill();
+        
+        const grad = ctx.createRadialGradient(lx-2, ly-2, 1, lx, ly, 6);
+        grad.addColorStop(0, '#ff9999');
+        grad.addColorStop(0.5, '#ef4444');
+        grad.addColorStop(1, '#991b1b');
+        ctx.fillStyle = grad;
+        ctx.shadowColor = '#ff0000';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(lx, ly, 5.5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      };
 
-    const drawPalmTree = (
-      ctx: CanvasRenderingContext2D,
-      x: number,
-      y: number,
-      scale: number,
-      flip: boolean
-    ) => {
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.scale(scale * (flip ? -1 : 1), scale)
+      drawF40Light(-55, -12);
+      drawF40Light(-35, -12);
+      drawF40Light(35, -12);
+      drawF40Light(55, -12);
 
-      // Trunk
-      ctx.strokeStyle = '#a855f7' // Purple trunk
-      ctx.lineWidth = 4
-      ctx.shadowColor = '#a855f7'
-      ctx.shadowBlur = 5
+      // Plate
+      ctx.fillStyle = '#fbbf24'; 
+      ctx.fillRect(-18, 5, 36, 12);
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 9px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('F40', 0, 11);
 
-      ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.quadraticCurveTo(20, -50, 0, -150)
-      ctx.stroke()
+      // Cabin
+      ctx.fillStyle = '#1c1917'; 
+      ctx.beginPath();
+      ctx.moveTo(-45, -35);
+      ctx.lineTo(45, -35);
+      ctx.lineTo(35, -65);
+      ctx.lineTo(-35, -65);
+      ctx.fill();
 
-      // Leaves
-      ctx.strokeStyle = '#22d3ee' // Cyan leaves
-      ctx.lineWidth = 3
-      ctx.shadowColor = '#22d3ee'
-      ;[-20, 0, 20].forEach(angleOffset => {
-        ctx.beginPath()
-        ctx.moveTo(0, -150)
-        ctx.quadraticCurveTo(angleOffset * 2, -180, angleOffset * 4, -130)
-        ctx.stroke()
-      })
+      // Louvers
+      ctx.fillStyle = 'rgba(220, 38, 38, 0.2)'; 
+      ctx.beginPath();
+      ctx.moveTo(-40, -35);
+      ctx.lineTo(40, -35);
+      ctx.lineTo(32, -60);
+      ctx.lineTo(-32, -60);
+      ctx.fill();
 
-      ctx.restore()
-    }
+      ctx.strokeStyle = '#7f1d1d'; 
+      ctx.lineWidth = 1.5;
+      for (let y = -55; y < -35; y += 4) {
+        ctx.beginPath();
+        ctx.moveTo(-32 + (y + 55) * 0.3, y);
+        ctx.lineTo(32 - (y + 55) * 0.3, y);
+        ctx.stroke();
+      }
+
+      // Wing
+      const wingColor = '#dc2626';
+      ctx.fillStyle = wingColor;
+      
+      ctx.beginPath();
+      ctx.moveTo(-80, -35);
+      ctx.lineTo(-80, -60);
+      ctx.lineTo(-70, -60);
+      ctx.lineTo(-65, -35);
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(80, -35);
+      ctx.lineTo(80, -60);
+      ctx.lineTo(70, -60);
+      ctx.lineTo(65, -35);
+      ctx.fill();
+
+      const foilGrad = ctx.createLinearGradient(0, -65, 0, -55);
+      foilGrad.addColorStop(0, '#ef4444');
+      foilGrad.addColorStop(1, '#b91c1c');
+      ctx.fillStyle = foilGrad;
+      ctx.beginPath();
+      ctx.roundRect(-82, -62, 164, 12, 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(-82, -62, 3, 12);
+      ctx.fillRect(79, -62, 3, 12);
+
+      // Highlights
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      
+      ctx.beginPath();
+      ctx.moveTo(-82, -62);
+      ctx.lineTo(82, -62);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(-80, -35);
+      ctx.lineTo(-78, -25);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(80, -35);
+      ctx.lineTo(78, -25);
+      ctx.stroke();
+
+      ctx.restore();
+    };
+
+    const drawTruck = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, roadCenterX: number, horizonY: number) => {
+      const w = 200 * scale;
+      const h = 220 * scale;
+      const halfW = w / 2;
+      
+      const rearL = x - halfW;
+      const rearR = x + halfW;
+      const rearB = y;
+      const rearT = y - h;
+
+      const depth = 0.2; 
+      
+      const frontL = rearL + (roadCenterX - rearL) * depth;
+      const frontR = rearR + (roadCenterX - rearR) * depth;
+      const frontT = rearT + (horizonY - rearT) * depth;
+      const frontB = rearB + (horizonY - rearB) * depth;
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#0f172a'; 
+
+      // Roof
+      ctx.fillStyle = '#64748b'; 
+      ctx.beginPath();
+      ctx.moveTo(rearL, rearT);
+      ctx.lineTo(rearR, rearT);
+      ctx.lineTo(frontR, frontT);
+      ctx.lineTo(frontL, frontT);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Side
+      ctx.fillStyle = '#334155'; 
+      
+      if (x < roadCenterX) {
+         ctx.beginPath();
+         ctx.moveTo(rearR, rearT);
+         ctx.lineTo(frontR, frontT);
+         ctx.lineTo(frontR, frontB);
+         ctx.lineTo(rearR, rearB);
+         ctx.closePath();
+         ctx.fill();
+         ctx.stroke();
+      } else if (x > roadCenterX) {
+         ctx.beginPath();
+         ctx.moveTo(rearL, rearT);
+         ctx.lineTo(frontL, frontT);
+         ctx.lineTo(frontL, frontB);
+         ctx.lineTo(rearL, rearB);
+         ctx.closePath();
+         ctx.fill();
+         ctx.stroke();
+      }
+
+      // Rear Face
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      ctx.fillStyle = '#475569'; 
+      ctx.fillRect(-100, -220, 200, 220); 
+      
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-100, -220, 200, 220);
+
+      ctx.beginPath();
+      ctx.moveTo(0, -220);
+      ctx.lineTo(0, 0);
+      ctx.stroke();
+
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#ff0000';
+      ctx.fillStyle = '#ef4444'; 
+      ctx.fillRect(-85, -30, 30, 15);
+      ctx.fillRect(55, -30, 30, 15);
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#facc15'; 
+      ctx.fillRect(-30, -25, 60, 15);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-105, -30, 15, 35);
+      ctx.fillRect(90, -30, 15, 35);
+
+      ctx.restore();
+    };
+
+    const drawCactus = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      ctx.fillStyle = '#22c55e'; 
+      ctx.strokeStyle = '#052e16';
+      ctx.lineWidth = 2;
+
+      ctx.fillRect(-10, -80, 20, 80);
+      ctx.strokeRect(-10, -80, 20, 80);
+
+      ctx.fillRect(-30, -50, 20, 15);
+      ctx.strokeRect(-30, -50, 20, 15);
+      ctx.fillRect(-30, -70, 15, 20);
+      ctx.strokeRect(-30, -70, 15, 20);
+
+      ctx.fillRect(10, -40, 20, 15);
+      ctx.strokeRect(10, -40, 20, 15);
+      ctx.fillRect(15, -60, 15, 20);
+      ctx.strokeRect(15, -60, 15, 20);
+
+      ctx.restore();
+    };
+
+    const drawJaywalker = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      ctx.strokeStyle = '#f472b6'; 
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#f472b6';
+      ctx.shadowBlur = 5;
+
+      ctx.beginPath();
+      ctx.arc(0, -60, 10, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, -50);
+      ctx.lineTo(0, -20);
+      ctx.stroke();
+
+      const time = Date.now() / 100;
+      ctx.beginPath();
+      ctx.moveTo(0, -40);
+      ctx.lineTo(-15, -30 + Math.sin(time) * 10);
+      ctx.moveTo(0, -40);
+      ctx.lineTo(15, -30 - Math.sin(time) * 10);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, -20);
+      ctx.lineTo(-10, 0 + Math.cos(time) * 10);
+      ctx.moveTo(0, -20);
+      ctx.lineTo(10, 0 - Math.cos(time) * 10);
+      ctx.stroke();
+
+      ctx.restore();
+    };
+
+    const drawPalmTree = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, flip: boolean) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale * (flip ? -1 : 1), scale);
+
+      ctx.strokeStyle = '#a855f7'; 
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#a855f7';
+      ctx.shadowBlur = 5;
+      
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(20, -50, 0, -150);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#22d3ee'; 
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#22d3ee';
+      
+      [-20, 0, 20].forEach(angleOffset => {
+        ctx.beginPath();
+        ctx.moveTo(0, -150);
+        ctx.quadraticCurveTo(angleOffset * 2, -180, angleOffset * 4, -130);
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    };
+
+    const drawParticles = (ctx: CanvasRenderingContext2D, deltaTime: number) => {
+      particlesRef.current.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity; // Variable gravity (positive for debris, negative for smoke)
+        p.life -= deltaTime;
+        
+        if (p.grow) {
+          p.size += deltaTime * 20; // Smoke grows
+        }
+
+        if (p.life > 0) {
+          ctx.save();
+          ctx.globalAlpha = p.life / p.maxLife;
+          ctx.fillStyle = p.color;
+          // Smoke is blurry, sparks are sharp
+          if (p.grow) {
+             ctx.filter = 'blur(4px)';
+          } else {
+             ctx.shadowBlur = 10;
+             ctx.shadowColor = p.color;
+          }
+          
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+      // Cleanup dead particles
+      particlesRef.current = particlesRef.current.filter(p => p.life > 0);
+    };
 
     // --- GAME LOOP ---
 
     const render = (time: number) => {
-      // Calculate delta time
-      if (!lastTimeRef.current) lastTimeRef.current = time
-      // Cap delta time to avoid huge jumps (max 50ms)
-      const deltaTime = Math.min((time - lastTimeRef.current) / 1000, 0.05)
-      lastTimeRef.current = time
+      if (!lastTimeRef.current) lastTimeRef.current = time;
+      const deltaTime = Math.min((time - lastTimeRef.current) / 1000, 0.05); 
+      lastTimeRef.current = time;
 
-      // If paused, just request next frame but don't update/draw
       if (gameState === GameState.PAUSED) {
-        requestRef.current = requestAnimationFrame(render)
-        return
+        requestRef.current = requestAnimationFrame(render);
+        return;
       }
-      // If Game Over, stop loop but keep rendering
-      if (gameState === GameState.GAME_OVER) {
-        // Still render the game frozen state
-        requestRef.current = requestAnimationFrame(render)
-        return
-      }
+      if (gameState === GameState.GAME_OVER) return;
 
-      // Handle Game Reset if transition from menu or from game over
-      if (
-        gameState === GameState.PLAYING &&
-        (prevGameStateRef.current === GameState.MENU ||
-          prevGameStateRef.current === GameState.GAME_OVER)
-      ) {
+      if (gameState === GameState.PLAYING && prevGameStateRef.current === GameState.MENU) {
         // Reset Logic
-        obstaclesRef.current = []
-        sceneryRef.current = []
-        playerRef.current = { x: 0, lane: 1, speed: 0, maxSpeed: 1500, energy: 100 }
-        totalTimeRef.current = 0
-        setScore(0)
-        setEnergy(100)
-        isGameOverRef.current = false
-        lastTimeRef.current = 0 // Reset delta time
-        prevGameStateRef.current = GameState.PLAYING
+        obstaclesRef.current = [];
+        sceneryRef.current = [];
+        particlesRef.current = [];
+        playerRef.current = { x: 0, lane: 1, speed: 3000, maxSpeed: 9000, energy: 100 };
+        totalDistanceRef.current = 0; 
+        distanceSinceLastCollisionRef.current = 0; // Reset safe distance
+        levelRef.current = 1; 
+        warpEffectTimerRef.current = 0;
+        shakeTimeRef.current = 0;
+        setScore(0);
+        setEnergy(100);
+        isGameOverRef.current = false;
+        isDyingRef.current = false;
+        dyingTimerRef.current = 0;
+        prevGameStateRef.current = GameState.PLAYING;
+
+        for(let z = 0; z < RENDER_DISTANCE * SEGMENT_LENGTH; z += 1000) {
+            if(Math.random() > 0.3) createSceneryAtZ(z);
+            if(Math.random() > 0.3) createSceneryAtZ(z); 
+        }
+      }
+      
+      const width = canvas.width;
+      const height = canvas.height;
+
+      // Handle Shake Decay
+      if (shakeTimeRef.current > 0) {
+        shakeTimeRef.current -= deltaTime;
       }
 
+      // Handle Warp Effect Timer
+      if (warpEffectTimerRef.current > 0) {
+        warpEffectTimerRef.current -= deltaTime;
+      }
+
+      // Logic Branch
       if (gameState === GameState.PLAYING) {
-        totalTimeRef.current += deltaTime
-        setScore(totalTimeRef.current)
+        if (isDyingRef.current) {
+          // --- DYING SEQUENCE LOGIC ---
+          dyingTimerRef.current -= deltaTime;
+          
+          // Generate Smoke from Engine
+          const maxRoadWidth = Math.min(width * 0.9, 800);
+          const roadCenterX = width / 2;
+          const carX = roadCenterX + (playerRef.current.x * (maxRoadWidth / 2));
+          const carY = height - 80;
+          createSmoke(carX, carY - 40); // Engine deck height
 
-        // --- UPDATES ---
+          if (dyingTimerRef.current <= 0) {
+             isGameOverRef.current = true;
+             onGameOver();
+             // Stop loop until restart
+             return; 
+          }
+        } else {
+          // --- NORMAL GAMEPLAY LOGIC ---
+          // Add distance based on speed (approximate m/s)
+          // Speed 3000 ~ 9000. Let's say 100 units = 1 meter.
+          const distanceIncrement = (playerRef.current.speed / 100) * deltaTime;
+          totalDistanceRef.current += distanceIncrement;
+          distanceSinceLastCollisionRef.current += distanceIncrement; // Track safe distance
+          setScore(Math.floor(totalDistanceRef.current));
+          
+          // Update speed display (convert game speed to km/h for display)
+          // Game speed is ~3000-9000, convert to ~200-600 km/h for realistic display
+          const displaySpeed = (playerRef.current.speed / 15);
+          setSpeed(displaySpeed);
+          
+          // Check for Boost Trigger (Every 1km without collision)
+          // Check if distanceSinceLastCollision exceeded the threshold
+          if (distanceSinceLastCollisionRef.current >= BOOST_DISTANCE_THRESHOLD) {
+            levelRef.current++;
+            // Boost Max Speed significantly
+            playerRef.current.maxSpeed += 1500;
+            // Immediate Speed Kick
+            playerRef.current.speed += 500; 
+            // Trigger Visuals
+            warpEffectTimerRef.current = 2.0; 
+            shakeTimeRef.current = 0.5; // Slight rumble
+            
+            // Reset safe distance tracker to require another 1km for next boost
+            distanceSinceLastCollisionRef.current = 0;
+          }
 
-        // Smoothly interpolate actual X to target lane X
-        const targetX = LANES[playerRef.current.lane]
-        const lerpSpeed = 15 // Speed of lane changing
-        playerRef.current.x += (targetX - playerRef.current.x) * lerpSpeed * deltaTime
+          const targetX = LANES[playerRef.current.lane];
+          const lerpSpeed = 15; 
+          playerRef.current.x += (targetX - playerRef.current.x) * lerpSpeed * deltaTime;
 
-        // Speed increases over time (더 빠르게 가속)
-        playerRef.current.speed = Math.min(
-          playerRef.current.maxSpeed + totalTimeRef.current * 20,
-          2500
-        )
+          const acceleration = 800;
+          playerRef.current.speed += acceleration * deltaTime;
 
-        // Move Obstacles
-        const moveDist = playerRef.current.speed * deltaTime
-        obstaclesRef.current.forEach(obs => {
-          obs.z -= moveDist
-        })
-        // Remove passed obstacles
-        obstaclesRef.current = obstaclesRef.current.filter(obs => obs.z > -200)
+          if (playerRef.current.speed > playerRef.current.maxSpeed) {
+            playerRef.current.speed = playerRef.current.maxSpeed;
+          }
 
-        // Move Scenery
-        sceneryRef.current.forEach(item => {
-          item.z -= moveDist
-        })
-        sceneryRef.current = sceneryRef.current.filter(item => item.z > -200)
+          const moveDist = playerRef.current.speed * deltaTime;
+          obstaclesRef.current.forEach(obs => {
+            obs.z -= moveDist;
+          });
+          obstaclesRef.current = obstaclesRef.current.filter(obs => obs.z > -200);
 
-        // Spawn Obstacles
-        if (time - lastSpawnTimeRef.current > OBSTACLE_SPAWN_RATE_MS) {
-          spawnObstacle()
-          lastSpawnTimeRef.current = time
+          sceneryRef.current.forEach(item => {
+            item.z -= moveDist;
+          });
+          sceneryRef.current = sceneryRef.current.filter(item => item.z > -200);
+
+          // Spawn rate adjusted for speed
+          const spawnRate = Math.max(300, 3000000 / playerRef.current.speed);
+
+          if (time - lastSpawnTimeRef.current > spawnRate) {
+            spawnObstacle();
+            lastSpawnTimeRef.current = time;
+          }
+
+          const sceneryRate = Math.max(30, 200000 / playerRef.current.speed);
+          if (time - lastScenerySpawnTimeRef.current > sceneryRate) {
+            spawnScenery();
+            lastScenerySpawnTimeRef.current = time;
+          }
+
+          checkCollisions(width, height);
+
+          roadOffsetRef.current += (playerRef.current.speed / 1000) * deltaTime;
         }
-
-        // Spawn Scenery
-        if (time - lastScenerySpawnTimeRef.current > SCENERY_SPAWN_RATE_MS) {
-          spawnScenery()
-          lastScenerySpawnTimeRef.current = time
-        }
-
-        checkCollisions()
-
-        // Update Road Offset for curve illusion (optional, keeping it straight for now but moving grid)
-        roadOffsetRef.current += (playerRef.current.speed / 1000) * deltaTime
       }
 
-      // --- RENDER ---
+      // --- RENDER START ---
+      ctx.save(); // Save default context
 
-      const width = canvas.width
-      const height = canvas.height
+      // Clear Screen
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, width, height);
 
-      // Clear
-      ctx.fillStyle = '#0f172a'
-      ctx.fillRect(0, 0, width, height)
+      // Apply Shake
+      if (shakeTimeRef.current > 0) {
+        const shakeIntensity = 20 * (shakeTimeRef.current / 0.5); // 0.5 is max duration
+        const dx = (Math.random() - 0.5) * shakeIntensity;
+        const dy = (Math.random() - 0.5) * shakeIntensity;
+        ctx.translate(dx, dy);
+
+        // Impact Flash (Red overlay) or Warp Flash (Cyan overlay)
+        if (warpEffectTimerRef.current > 0) {
+           // White flash at start of warp, then fade
+           const opacity = Math.min(0.5, warpEffectTimerRef.current * 0.5);
+           ctx.fillStyle = `rgba(200, 255, 255, ${opacity})`;
+           ctx.fillRect(-dx, -dy, width, height);
+        } else {
+           ctx.fillStyle = `rgba(239, 68, 68, ${shakeTimeRef.current})`; 
+           ctx.fillRect(-dx, -dy, width, height);
+        }
+      }
 
       // Sky / Sun
-      drawSun(ctx, width, height)
+      drawSun(ctx, width, height);
 
-      // Road
-      drawRoad(ctx, width, height, roadOffsetRef.current)
+      // Road (Pass warp status)
+      drawRoad(ctx, width, height, roadOffsetRef.current, warpEffectTimerRef.current > 0);
 
-      // Render Queue (Painter's Algorithm: Draw furthest first)
+      // Render Queue
       const renderQueue: Renderable[] = [
         ...obstaclesRef.current.map(o => ({ type: 'OBSTACLE' as const, data: o, z: o.z })),
         ...sceneryRef.current.map(s => ({ type: 'SCENERY' as const, data: s, z: s.z }))
-      ]
+      ];
 
-      renderQueue.sort((a, b) => b.z - a.z)
+      renderQueue.sort((a, b) => b.z - a.z);
 
-      const maxRoadWidth = Math.min(width * 0.9, 800)
-      const roadCenterX = width / 2
-      const roadTopW = 10
-      const roadBottomW = maxRoadWidth
-      const horizonY = height * 0.4
-      const roadHeight = height - horizonY
+      const maxRoadWidth = Math.min(width * 0.9, 800);
+      const laneWidth = maxRoadWidth / 3;
+
+      const truckScaleFactor = (laneWidth * 0.9) / 200; 
+      const cactusScaleFactor = (laneWidth * 0.4) / 60;
+      const jaywalkerScaleFactor = (laneWidth * 0.3) / 40;
+
+      const roadCenterX = width / 2;
+      const roadBottomW = maxRoadWidth;
+      const horizonY = height * 0.4;
 
       renderQueue.forEach(item => {
-        // Perspective Projection
-        // Scale = 1 / z (simplified)
-        // We need to map Z (distance) to scale and Y position
-        // Z=0 is at camera (bottom of screen), Z=Far is at horizon
-        // Actually in this setup: Z decreases as it comes to player.
-        // Let's assume Z goes from RENDER_DISTANCE * SEGMENT_LENGTH down to 0.
+        const projScale = 20000 / (item.z + 2000); 
+        const renderY = (horizonY) + ((height - horizonY) / (item.z / 2000 + 1));
+        const renderScale = 1 / (item.z / 2000 + 1);
 
-        // Standard pseudo-3D projection:
-        // scale = camera_height / (z - camera_z)
-        const camHeight = 1000
-        const scale = camHeight / (item.z + camHeight) // Simple projection
+        const currentRoadHalfWidth = (roadBottomW / 2) * renderScale; 
+        
+        let renderX = roadCenterX + (item.data.x * currentRoadHalfWidth);
 
-        const projectedY = horizonY + scale * roadHeight * 0.15 // Adjust multiplier to place on road
-        // Wait, simpler approach for "flat" road:
-        // Y is proportional to Z.
-        // 0 -> bottom (height), Max -> Horizon (horizonY)
-        // Actually, Scale is the key.
-        // ScreenY = HorizonY + Scale * (CameraHeight)
-
-        // Let's use a linear mapping for Z to Y for the "ground" plane effect combined with scale
-        // Z is large -> Scale small -> Close to horizon
-        // Z is small -> Scale large -> Close to bottom
-
-        // Fix projection math for flat pseudo-3D
-        // scale = 1 / (z_factor)
-        const projScale = 20000 / (item.z + 2000) // Tweak these magic numbers for FOV
-
-        const itemScreenY = horizonY + projScale * (height - horizonY) * 0.1
-        // This math is tricky without a full engine.
-        // Let's use the standard "Track" math:
-        // y = height - (z / maxZ) * (height - horizon) -> No, that's linear.
-        // y should condense near horizon.
-
-        // Recalculate based on simple perspective:
-        // y = (y_world / z) + center_y.
-        // Here ground is y_world = constant relative to camera.
-
-        const groundY = height
-        const renderY = horizonY + (groundY - horizonY) / (item.z / 2000 + 1)
-        const renderScale = 1 / (item.z / 2000 + 1)
-
-        // Calculate X
-        // object x is -1 to 1 relative to road width at that Z
-        // Road width at that Z is determined by projection
-        const currentRoadHalfWidth = (roadBottomW / 2) * renderScale
-
-        let renderX = roadCenterX + item.data.x * currentRoadHalfWidth
-
-        // Scenery is placed outside road
         if (item.type === 'SCENERY') {
-          // Scenery X is absolute relative to road center, scaled
-          // item.data.x is e.g. 2.0 (2x road width from center)
-          renderX = roadCenterX + item.data.x * (roadBottomW / 2) * renderScale
+          renderX = roadCenterX + (item.data.x * (roadBottomW/2)) * renderScale;
         }
 
         if (item.type === 'OBSTACLE') {
-          const obs = item.data as Obstacle
-          if (obs.hit) return // Don't draw hit obstacles? or draw them flashing?
-
+          const obs = item.data as Obstacle;
+          if (obs.hit) return; 
+          
           if (obs.type === ObstacleType.TRUCK) {
-            drawTruck(ctx, renderX, renderY, renderScale)
+            drawTruck(ctx, renderX, renderY, renderScale * truckScaleFactor, roadCenterX, horizonY);
           } else if (obs.type === ObstacleType.CACTUS) {
-            drawCactus(ctx, renderX, renderY, renderScale)
+            drawCactus(ctx, renderX, renderY, renderScale * cactusScaleFactor);
           } else if (obs.type === ObstacleType.JAYWALKER) {
-            drawJaywalker(ctx, renderX, renderY, renderScale)
+            drawJaywalker(ctx, renderX, renderY, renderScale * jaywalkerScaleFactor);
           }
         } else {
-          const scenery = item.data as SceneryObject
-          drawPalmTree(ctx, renderX, renderY, renderScale, scenery.flip)
+          const scenery = item.data as SceneryObject;
+          drawPalmTree(ctx, renderX, renderY, renderScale * scenery.scaleVar, scenery.flip);
         }
-      })
+      });
 
       // Player
-      // We render player "on top" visually, but mathematically they are at Z=0
-      drawPlayerCar(ctx, width, height, playerRef.current.x)
+      drawPlayerCar(ctx, width, height, playerRef.current.x);
 
-      // Update previous game state for next frame
-      prevGameStateRef.current = gameState
+      // Draw Particles
+      drawParticles(ctx, deltaTime);
 
-      requestRef.current = requestAnimationFrame(render)
-    }
+      // Draw Warp Lines (Overlay)
+      if (warpEffectTimerRef.current > 0) {
+        drawWarpLines(ctx, width, height, warpEffectTimerRef.current);
+        drawLevelUpText(ctx, width, height, levelRef.current, warpEffectTimerRef.current);
+      }
+
+      ctx.restore(); // Restore context (removes shake translation)
+      
+      requestRef.current = requestAnimationFrame(render);
+    };
 
     // Listeners
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent holding key to scroll lanes rapidly
-      if (keyStateRef.current[e.key]) return
-
-      keyStateRef.current[e.key] = true
-      handleInput(e.key)
-    }
-
+      if (keyStateRef.current[e.key]) return;
+      keyStateRef.current[e.key] = true;
+      handleInput(e.key);
+    };
+    
     const handleKeyUp = (e: KeyboardEvent) => {
-      keyStateRef.current[e.key] = false
-    }
+      keyStateRef.current[e.key] = false;
+    };
 
     const handleTouchStart = (e: TouchEvent) => {
-      const touchX = e.touches[0].clientX
-      const screenHalf = window.innerWidth / 2
-
+      const touchX = e.touches[0].clientX;
+      const screenHalf = window.innerWidth / 2;
       if (touchX < screenHalf) {
-        handleInput('ArrowLeft')
+        handleInput('ArrowLeft');
       } else {
-        handleInput('ArrowRight')
+        handleInput('ArrowRight');
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('keyup', handleKeyUp)
-    canvas.addEventListener('touchstart', handleTouchStart)
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    canvas.addEventListener('touchstart', handleTouchStart);
 
-    requestRef.current = requestAnimationFrame(render)
+    requestRef.current = requestAnimationFrame(render);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('keyup', handleKeyUp)
-      canvas.removeEventListener('touchstart', handleTouchStart)
-      cancelAnimationFrame(requestRef.current)
-    }
-  }, [gameState, setEnergy, setScore, onGameOver])
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      cancelAnimationFrame(requestRef.current);
+    };
+  }, [gameState, setEnergy, setScore, onGameOver]);
 
-  // Adjust canvas size
   useEffect(() => {
     const handleResize = () => {
       if (canvasRef.current) {
-        canvasRef.current.width = window.innerWidth
-        canvasRef.current.height = window.innerHeight
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
       }
-    }
-    window.addEventListener('resize', handleResize)
-    handleResize()
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  return <canvas ref={canvasRef} className="block w-full h-full" />
-}
+  return <canvas ref={canvasRef} className="block w-full h-full" />;
+};
 
-export default GameCanvas
+export default GameCanvas;
