@@ -1,7 +1,7 @@
 {
   "name": "@examples/sdk-webapp-outrun",
   "private": true,
-  "version": "1.18.3-alpha.1",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,15 +10,15 @@
   },
   "dependencies": {
     "@to-nexus/webapp": "workspace:*",
+    "@to-nexus/sdk": "workspace:*",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0",
+    "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "5.7.3",
-    "vite": "5.4.12"
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }
