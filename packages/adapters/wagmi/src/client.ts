@@ -380,6 +380,87 @@ export class WagmiAdapter extends AdapterBlueprint {
     return this.wagmiConfig.connectors.find(c => c.id === id)
   }
 
+  /**
+   * SSR 안전 storage 생성
+   * Wagmi가 localStorage에 직접 접근하는 것을 방지하고
+   * SSR 환경에서 안전하게 처리
+   */
+  private createSafeStorage(): Storage {
+    const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+
+    return {
+      getItem(key: string): string | null {
+        // ✅ SSR 환경에서 안전하게 null 반환
+        if (!isBrowser) {
+          return null
+        }
+        try {
+          return localStorage.getItem(key)
+        } catch (error) {
+          console.warn(`Failed to get item from storage: ${key}`, error)
+          return null
+        }
+      },
+      setItem(key: string, value: string): void {
+        // ✅ SSR 환경에서 안전하게 무시
+        if (!isBrowser) {
+          return
+        }
+        try {
+          localStorage.setItem(key, value)
+        } catch (error) {
+          console.warn(`Failed to set item in storage: ${key}`, error)
+        }
+      },
+      removeItem(key: string): void {
+        // ✅ SSR 환경에서 안전하게 무시
+        if (!isBrowser) {
+          return
+        }
+        try {
+          localStorage.removeItem(key)
+        } catch (error) {
+          console.warn(`Failed to remove item from storage: ${key}`, error)
+        }
+      },
+      clear(): void {
+        // ✅ SSR 환경에서 안전하게 무시
+        if (!isBrowser) {
+          return
+        }
+        try {
+          localStorage.clear()
+        } catch (error) {
+          console.warn(`Failed to clear storage`, error)
+        }
+      },
+      key(index: number): string | null {
+        // ✅ SSR 환경에서 안전하게 null 반환
+        if (!isBrowser) {
+          return null
+        }
+        try {
+          return localStorage.key(index)
+        } catch (error) {
+          console.warn(`Failed to get key at index: ${index}`, error)
+          return null
+        }
+      },
+      get length(): number {
+        // ✅ SSR 환경에서 안전하게 0 반환
+        if (!isBrowser) {
+          return 0
+        }
+        try {
+          return localStorage.length
+        } catch (error) {
+          console.warn(`Failed to get storage length`, error)
+          return 0
+        }
+      }
+    }
+  }
+
   private createConfig(
     configParams: Partial<CreateConfigParameters> & {
       networks: CaipNetwork[]
@@ -419,7 +500,9 @@ export class WagmiAdapter extends AdapterBlueprint {
       chains: this.wagmiChains as any, // Type assertion for viem compatibility
       transports,
       connectors: [...connectors],
-      ssr: false // 세션 복원을 위해 SSR 비활성화
+      ssr: false, // 세션 복원을 위해 SSR 비활성화
+      // ✅ SSR 안전 storage 구현
+      storage: this.createSafeStorage() as any
     })
   }
 
