@@ -60,8 +60,9 @@ export class LocalStorage implements SIWXStorage {
   }
 
   private getSessions(): LocalStorage.Sessions {
-    if (typeof localStorage === 'undefined') {
-      throw new Error('localStorage not available')
+    // ✅ SSR 환경에서 안전하게 빈 배열 반환
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return []
     }
 
     const stringItem = localStorage.getItem(this.key)
@@ -70,6 +71,11 @@ export class LocalStorage implements SIWXStorage {
   }
 
   private setSessions(sessions: LocalStorage.Sessions): void {
+    // ✅ SSR 환경 체크 추가
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return
+    }
+
     localStorage.setItem(this.key, JSON.stringify(sessions))
   }
 }
