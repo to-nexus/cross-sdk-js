@@ -1,13 +1,46 @@
 import type { CreateConnectorFn } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 
+// ✅ Wrap Cross Extension provider to handle unsupported methods
+function wrapCrossProvider(provider: any) {
+  if (!provider?.request) {
+    return provider
+  }
+
+  const originalRequest = provider.request.bind(provider)
+
+  return new Proxy(provider, {
+    get(target, prop) {
+      if (prop === 'request') {
+        return async (args: any) => {
+          /*
+           * Cross Extension doesn't support wallet_requestPermissions (EIP-2255)
+           * Return empty array to satisfy wagmi, which will then use eth_requestAccounts
+           */
+          if (args.method === 'wallet_requestPermissions') {
+            console.warn(
+              '[Wagmi Cross Connector] wallet_requestPermissions not supported, returning empty permissions array'
+            )
+
+            return []
+          }
+
+          return originalRequest(args)
+        }
+      }
+
+      return target[prop]
+    }
+  })
+}
+
 // Cross Extension을 감지하기 위한 헬퍼 함수
 function detectCrossExtensionProvider() {
   if (typeof window !== 'undefined') {
     // 1. window.crossWallet 확인 (Cross Extension의 주요 주입 방식)
     const crossWallet = (window as any).crossWallet
     if (crossWallet) {
-      return crossWallet
+      return wrapCrossProvider(crossWallet)
     }
   }
 

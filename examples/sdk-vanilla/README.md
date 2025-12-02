@@ -2,6 +2,19 @@
 
 # CROSS SDK - Vanilla JS example
 
+## Features
+
+This example demonstrates:
+
+- **Cross Wallet** connection (QR Code & Extension)
+- **MetaMask** connection (QR Code & Extension)
+- **Connect + Auth** - One-click connection with SIWE authentication
+  - 📖 For detailed usage and implementation guide, see [Authentication Guide](../../docs/authenticate-wallet-connect.md) ([English](../../docs/authenticate-wallet-connect-en.md))
+
+---
+
+## Setup
+
 1.  Prerequisites
 
     - Node.js ^20.18.0

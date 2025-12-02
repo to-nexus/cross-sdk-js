@@ -31,6 +31,7 @@ import {
   type PublicStateControllerState,
   type ReadContractArgs,
   type RouterControllerState,
+  type SIWXSession,
   type SdkVersion,
   type SendTransactionArgs,
   type SignEIP712Args,
@@ -762,6 +763,34 @@ export class AppKit {
     await ConnectionController.disconnect()
   }
 
+  public async authenticateWalletConnect(): Promise<
+    { authenticated: boolean; sessions: SIWXSession[] } | boolean | undefined
+  > {
+    const adapter = this.getAdapter(ChainController.state.activeChain)
+
+    if (!adapter) {
+      throw new Error('Adapter not found')
+    }
+
+    // WalletConnect QR Code 모달을 직접 열기 (Extension 확인 건너뛰기)
+    await this.open({ view: 'ConnectingWalletConnectBasic' })
+
+    // Wc_sessionAuthenticate 방식으로 연결 + SIWE 한 번에 처리
+    const result = await adapter.authenticateWalletConnect()
+
+    if (result.authenticated) {
+      this.close()
+      this.setClientId((await this.universalProvider?.client.core.crypto.getClientId()) || null)
+      StorageUtil.setConnectedNamespaces([...ChainController.state.chains.keys()])
+      await this.syncWalletConnectAccount()
+
+      // 세션 정보 반환
+      return result
+    }
+
+    return { authenticated: false, sessions: [] }
+  }
+
   public getConnectMethodsOrder(): ConnectMethod[] {
     return WalletUtil.getConnectOrderMethod(
       OptionsController.state.features,
@@ -1047,6 +1076,31 @@ export class AppKit {
         StorageUtil.setConnectedNamespaces([...ChainController.state.chains.keys()])
         await this.syncWalletConnectAccount()
       },
+      authenticateWalletConnect: async () => {
+        const adapter = this.getAdapter(ChainController.state.activeChain)
+
+        if (!adapter) {
+          throw new Error('Adapter not found')
+        }
+
+        // WalletConnect QR Code 모달을 직접 열기 (Extension 확인 건너뛰기)
+        await this.open({ view: 'ConnectingWalletConnectBasic' })
+
+        // Wc_sessionAuthenticate 방식으로 연결 + SIWE 한 번에 처리
+        const result = await adapter.authenticateWalletConnect()
+
+        if (result.authenticated) {
+          this.close()
+          this.setClientId((await this.universalProvider?.client.core.crypto.getClientId()) || null)
+          StorageUtil.setConnectedNamespaces([...ChainController.state.chains.keys()])
+          await this.syncWalletConnectAccount()
+
+          // 세션 정보 반환
+          return result
+        }
+
+        return { authenticated: false, sessions: [] }
+      },
       connectExternal: async ({ id, info, type, provider, chain, caipNetwork }) => {
         const activeChain = ChainController.state.activeChain as ChainNamespace
         const chainToUse = chain || activeChain
@@ -1295,6 +1349,7 @@ export class AppKit {
         if (!caipNetwork) {
           return
         }
+
         if (
           AccountController.state.address &&
           caipNetwork.chainNamespace === ChainController.state.activeChain
@@ -1335,6 +1390,16 @@ export class AppKit {
               })
             }
           } else if (providerType === 'WALLET_CONNECT') {
+            // 다른 체인으로 변경 시에도 실제 지갑에 네트워크 변경 요청을 보내야 함
+            const adapter = this.getAdapter(caipNetwork.chainNamespace as ChainNamespace)
+            const provider = ProviderUtil.getProvider(
+              ChainController.state.activeChain as ChainNamespace
+            )
+            await adapter?.switchNetwork({
+              caipNetwork,
+              provider,
+              providerType: 'WALLET_CONNECT'
+            })
             this.setCaipNetwork(caipNetwork)
             this.syncWalletConnectAccount()
           } else {

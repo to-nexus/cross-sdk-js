@@ -7,7 +7,12 @@ import {
   NetworkUtil,
   isReownName
 } from '@to-nexus/appkit-common'
-import { CoreHelperUtil, OptionsController, StorageUtil } from '@to-nexus/appkit-core'
+import {
+  CoreHelperUtil,
+  OptionsController,
+  type SIWXSession,
+  StorageUtil
+} from '@to-nexus/appkit-core'
 import {
   type ConnectorType,
   ConstantsUtil as CoreConstantsUtil,
@@ -61,6 +66,14 @@ interface PendingTransactionsFilter {
   pollingInterval?: number
 }
 
+// --- Types for Session Restore Events ---------------------------- //
+export interface ReconnectFailedEvent {
+  code: 'SESSION_RESTORE_FAILED'
+  message: string
+  attempts: number
+  error: Error
+}
+
 // --- Constants ---------------------------------------------------- //
 const DEFAULT_PENDING_TRANSACTIONS_FILTER = {
   enable: false,
@@ -75,12 +88,15 @@ export class WagmiAdapter extends AdapterBlueprint {
   private pendingTransactionsFilter: PendingTransactionsFilter
   private unwatchPendingTransactions: (() => void) | undefined
   private balancePromises: Record<string, Promise<AdapterBlueprint.GetBalanceResult>> = {}
+  private siwx?: AppKitOptions['siwx']
+  private reconnectFailedListeners = new Set<(event: ReconnectFailedEvent) => void>()
 
   constructor(
     configParams: Partial<CreateConfigParameters> & {
       networks: AppKitNetwork[]
       pendingTransactionsFilter?: PendingTransactionsFilter
       projectId: string
+      siwx?: AppKitOptions['siwx']
     }
   ) {
     super({
@@ -99,6 +115,14 @@ export class WagmiAdapter extends AdapterBlueprint {
       ...(configParams.pendingTransactionsFilter ?? {})
     }
 
+    // ✅ SIWX 설정 저장
+    this.siwx = configParams.siwx
+
+    // ✅ OptionsController에 SIWX 설정 등록 (SIWXUtil이 사용하기 위해)
+    if (this.siwx) {
+      OptionsController.setSIWX(this.siwx)
+    }
+
     this.namespace = CommonConstantsUtil.CHAIN.EVM
 
     this.createConfig({
@@ -115,6 +139,114 @@ export class WagmiAdapter extends AdapterBlueprint {
     })
 
     this.setupWatchers()
+
+    // 자동 세션 복원 시도 (SSR 환경이 아닐 때만)
+    if (typeof window !== 'undefined') {
+      this.attemptAutoReconnectWithRetry()
+    }
+  }
+
+  /**
+   * 자동 세션 복원을 재시도 로직과 함께 실행
+   * - 점진적으로 증가하는 대기 시간으로 다양한 디바이스/네트워크 환경 커버
+   * - 1차: 300ms 후 시도 (빠른 디바이스)
+   * - 2차: +200ms 후 재시도 (총 500ms, 평균적인 디바이스)
+   * - 3차: +300ms 후 재시도 (총 800ms, 느린 디바이스)
+   * - 4차: +400ms 후 최종 시도 (총 1200ms, 매우 느린 디바이스/네트워크)
+   * - 각 시도마다 2초 timeout 적용 (stuck 방지)
+   * - 실패 시: 'reconnect_failed' 이벤트 emit
+   */
+  private async attemptAutoReconnectWithRetry() {
+    const retryDelays = [300, 200, 300, 400] // 점진적 증가: 빠른 디바이스부터 느린 디바이스까지 커버
+    const reconnectTimeout = 2000 // 각 reconnect() 호출마다 2초 timeout
+    let lastError: Error | null = null
+
+    for (let attempt = 0; attempt < retryDelays.length; attempt++) {
+      // 초기 대기
+      await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]))
+
+      try {
+        // Reconnect()를 timeout과 함께 실행
+        const result = await Promise.race([
+          reconnect(this.wagmiConfig),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('RECONNECT_TIMEOUT')), reconnectTimeout)
+          )
+        ])
+
+        // 세션 복원 성공
+        if (result && result.length > 0) {
+          return
+        }
+
+        /*
+         * ✅ result.length === 0이면 다음 재시도로
+         * (provider가 아직 준비 안됨)
+         */
+        if (attempt < retryDelays.length - 1) {
+          continue
+        }
+
+        // 마지막 시도에서도 연결 없음
+        lastError = new Error('SESSION_RESTORE_NO_CONNECTIONS')
+      } catch (error) {
+        lastError = error as Error
+
+        // 에러 발생 시에도 재시도
+        if (attempt < retryDelays.length - 1) {
+          continue
+        }
+      }
+    }
+
+    // 모든 시도 실패 - 에러 이벤트 emit
+    if (lastError) {
+      this.emitReconnectFailed({
+        code: 'SESSION_RESTORE_FAILED',
+        message:
+          'Failed to restore wallet session after multiple attempts. Please reconnect your wallet manually.',
+        attempts: retryDelays.length,
+        error: lastError
+      })
+    }
+  }
+
+  /**
+   * Listen to session reconnect failure events
+   * @param callback - Callback function to handle the reconnect failure event
+   * @example
+   * ```typescript
+   * adapter.onReconnectFailed((event) => {
+   *   console.error('Session restore failed:', event.message)
+   *   // Show custom UI to user
+   *   showNotification(event.message)
+   * })
+   * ```
+   */
+  public onReconnectFailed(callback: (event: ReconnectFailedEvent) => void) {
+    this.reconnectFailedListeners.add(callback)
+  }
+
+  /**
+   * Remove a reconnect failed event listener
+   * @param callback - The callback function to remove
+   */
+  public offReconnectFailed(callback: (event: ReconnectFailedEvent) => void) {
+    this.reconnectFailedListeners.delete(callback)
+  }
+
+  /**
+   * Emit reconnect failed event to all listeners
+   * @private
+   */
+  private emitReconnectFailed(event: ReconnectFailedEvent) {
+    this.reconnectFailedListeners.forEach(callback => {
+      try {
+        callback(event)
+      } catch (error) {
+        console.error('Error in reconnect failed listener:', error)
+      }
+    })
   }
 
   override async getAccounts(
@@ -188,7 +320,8 @@ export class WagmiAdapter extends AdapterBlueprint {
       ...configParams,
       chains: this.wagmiChains as any, // Type assertion for viem compatibility
       transports,
-      connectors: [...connectors]
+      connectors: [...connectors],
+      ssr: false // 세션 복원을 위해 SSR 비활성화
     })
   }
 
@@ -289,8 +422,10 @@ export class WagmiAdapter extends AdapterBlueprint {
     const customConnectors: CreateConnectorFn[] = []
 
     if (options.enableWalletConnect !== false) {
+      // ✅ SIWX 설정을 options에 추가
+      const optionsWithSIWX = { ...options, siwx: this.siwx }
       customConnectors.push(
-        walletConnect(options, appKit, this.caipNetworks as [CaipNetwork, ...CaipNetwork[]])
+        walletConnect(optionsWithSIWX, appKit, this.caipNetworks as [CaipNetwork, ...CaipNetwork[]])
       )
     }
 
@@ -622,6 +757,155 @@ export class WagmiAdapter extends AdapterBlueprint {
     return { clientId: await walletConnectConnector.provider.client.core.crypto.getClientId() }
   }
 
+  public override async authenticateWalletConnect(
+    chainId?: number | string
+  ): Promise<{ authenticated: boolean; sessions: SIWXSession[] }> {
+    // WC_sessionAuthenticate 방식: 연결 + SIWE 한 번에
+    const wagmiConnector = this.getWagmiConnector('walletConnect') as any
+
+    if (!wagmiConnector) {
+      throw new Error('WagmiAdapter:authenticateWalletConnect - connector not found')
+    }
+
+    // ✅ Use Wagmi connector's authenticate method (added in UniversalConnector)
+    if (typeof wagmiConnector.authenticate === 'function') {
+      const result = await wagmiConnector.authenticate()
+
+      if (result.authenticated && result.sessions.length > 0) {
+        await connect(this.wagmiConfig, {
+          connector: wagmiConnector,
+          chainId: chainId ? Number(chainId) : undefined
+        })
+      }
+
+      return result
+    }
+
+    // Fallback to WalletConnectConnector (should not happen)
+    const walletConnectConnector = this.getWalletConnectConnector()
+    const result = await walletConnectConnector.authenticate()
+
+    if (result.authenticated && result.sessions.length > 0) {
+      await connect(this.wagmiConfig, {
+        connector: wagmiConnector,
+        chainId: chainId ? Number(chainId) : undefined
+      })
+    }
+
+    return result
+  }
+
+  // ✅ Cross Extension 연결 + SIWE 인증 통합 (Wagmi adapter용)
+  public async authenticateCrossExtensionWallet(): Promise<{
+    authenticated: boolean
+    sessions: SIWXSession[]
+  }> {
+    console.log('🔐 WagmiAdapter.authenticateCrossExtensionWallet() called')
+    console.log('📋 SIWX config exists:', Boolean(this.siwx))
+    console.log('📋 OptionsController SIWX:', Boolean(OptionsController.state.siwx))
+
+    if (!this.siwx) {
+      throw new Error('SIWX not configured')
+    }
+
+    try {
+      /*
+       * Import SIWXUtil
+       * @ts-ignore - Dynamic import
+       */
+      const { SIWXUtil, ChainController, CoreHelperUtil } = await import('@to-nexus/appkit-core')
+      console.log('✅ Core modules imported')
+
+      // Set flag to prevent auto SIWE modal
+      console.log('🚀 Setting _isAuthenticating = true')
+      SIWXUtil._isAuthenticating = true
+
+      // 1. Connect using Wagmi
+      console.log('🔌 Connecting via Wagmi...')
+      const crossConnector = this.getWagmiConnector('nexus.to.crosswallet.desktop')
+
+      if (!crossConnector) {
+        SIWXUtil._isAuthenticating = false
+        throw new Error('Cross Extension connector not found')
+      }
+
+      const connectResult = await connect(this.wagmiConfig, { connector: crossConnector })
+      console.log('✅ Wagmi connected:', connectResult.accounts[0])
+
+      // 2. Wait for ChainController to sync
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      const caipAddress = ChainController.getActiveCaipAddress()
+      console.log('📍 caipAddress:', caipAddress)
+
+      if (!caipAddress) {
+        SIWXUtil._isAuthenticating = false
+        throw new Error('Failed to get CAIP address')
+      }
+
+      // 3. Get address and network
+      const address = CoreHelperUtil.getPlainAddress(caipAddress as any)
+      const network = ChainController.getActiveCaipNetwork()
+      console.log('📍 Plain address:', address, 'Network:', network?.caipNetworkId)
+
+      if (!address || !network) {
+        SIWXUtil._isAuthenticating = false
+        throw new Error('Failed to get address or network')
+      }
+
+      // 4. Create SIWE message
+      console.log('📝 Creating SIWE message...')
+      const siwxMessage = await this.siwx.createMessage({
+        chainId: network.caipNetworkId,
+        accountAddress: address
+      })
+      const message = siwxMessage.toString()
+      console.log('✅ SIWE message created')
+
+      // 5. Sign message
+      console.log('✍️ Signing message...')
+      const signature = await signMessage(this.wagmiConfig, { message })
+      console.log('✅ Signature received:', `${signature.substring(0, 20)}...`)
+
+      // 6. Create session
+      const session: SIWXSession = {
+        data: siwxMessage,
+        message,
+        signature,
+        cacao: undefined
+      }
+
+      await this.siwx.addSession(session)
+      console.log('💾 Session saved')
+
+      // Verify session
+      let savedSessions = await this.siwx.getSessions(network.caipNetworkId, address)
+      if (savedSessions.length === 0) {
+        console.warn('⚠️ Retrying session check...')
+        await new Promise(resolve => setTimeout(resolve, 100))
+        savedSessions = await this.siwx.getSessions(network.caipNetworkId, address)
+      }
+      console.log('✅ Sessions verified:', savedSessions.length)
+
+      // Clear flag after delay
+      setTimeout(() => {
+        console.log('🏁 Clearing _isAuthenticating flag')
+        SIWXUtil._isAuthenticating = false
+      }, 200)
+
+      return { authenticated: true, sessions: [session] }
+    } catch (error) {
+      console.error('❌ Error:', error)
+      try {
+        const { SIWXUtil } = await import('@to-nexus/appkit-core')
+        SIWXUtil._isAuthenticating = false
+      } catch {
+        // Ignore if SIWXUtil import fails
+      }
+      throw error
+    }
+  }
+
   public async connect(
     params: AdapterBlueprint.ConnectParams
   ): Promise<AdapterBlueprint.ConnectResult> {
@@ -757,14 +1041,16 @@ export class WagmiAdapter extends AdapterBlueprint {
 
   public async disconnect() {
     const connections = getConnections(this.wagmiConfig)
-
     await Promise.all(
       connections.map(async connection => {
         const connector = this.getWagmiConnector(connection.connector.id)
 
         if (connector) {
-          // Cross Extension의 경우 wallet_getPermissions 호출로 Extension 상태 초기화 필수
-          // (재연결 시 user interaction이 정상 작동하려면 필요)
+          /*
+           * Cross Extension의 경우 wallet_getPermissions 호출로 Extension 상태 초기화 필수
+           * (재연결 시 user interaction이 정상 작동하려면 필요)
+           */
+
           if (connector.id === 'nexus.to.crosswallet.desktop') {
             try {
               const provider = (await connector.getProvider()) as Provider | undefined
@@ -791,11 +1077,13 @@ export class WagmiAdapter extends AdapterBlueprint {
       // Extension이 이미 disconnected 상태임을 명시적으로 처리
       if (permissions?.disconnected === true) {
         console.debug('[WagmiAdapter] Extension already disconnected')
+
         return
       }
 
       if (!Array.isArray(permissions)) {
         console.debug('[WagmiAdapter] permissions is not an array, skipping')
+
         return
       }
 

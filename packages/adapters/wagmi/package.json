@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-adapter-wagmi",
-  "version": "1.18.2-beta.1",
+  "version": "1.18.3-beta.5",
   "type": "module",
   "main": "./dist/esm/src/index.js",
   "types": "./dist/types/src/index.d.ts",
@@ -25,6 +25,7 @@
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-utils": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
+    "@to-nexus/appkit-wallet-button": "workspace:*",
     "@to-nexus/universal-provider": "2.19.14",
     "@walletconnect/utils": "2.18.0",
     "valtio": "1.13.2"

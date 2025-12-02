@@ -3,11 +3,13 @@ import {
   type Balance,
   type CaipNetworkId,
   type ChainNamespace,
+  ConstantsUtil as CommonConstantsUtil,
   SafeLocalStorage,
   SafeLocalStorageKeys,
   getSafeConnectorIdKey
 } from '@to-nexus/appkit-common'
 
+import { CoreHelperUtil } from './CoreHelperUtil.js'
 import type {
   BlockchainApiIdentityResponse,
   BlockchainApiLookupEnsName,
@@ -49,7 +51,56 @@ export const StorageUtil = {
 
   setWalletConnectDeepLink({ name, href }: { href: string; name: string }) {
     try {
-      SafeLocalStorage.setItem(SafeLocalStorageKeys.DEEPLINK_CHOICE, JSON.stringify({ href, name }))
+      /*
+       * 🔑 핵심: iOS만 Universal Link를 Custom URL Scheme으로 변환
+       *
+       * iOS:
+       * - Universal Link는 비동기 작업 후 사용자 인터랙션 컨텍스트가 상실되면 fallback URL로 리다이렉트됨
+       * - Custom URL Scheme (deep link)는 비동기 작업 후에도 앱을 열 수 있음
+       * - 따라서 서명 요청 등에서는 Deep Link 사용 필요
+       *
+       * Android:
+       * - 프로그래밍 방식으로 Universal Link를 열 수 있음
+       * - Universal Link 사용 시 앱 미설치 시 웹으로 fallback 가능 (더 나은 UX)
+       * - 사용자 인터랙션 컨텍스트 제약이 iOS보다 덜 엄격
+       */
+      const isIos = CoreHelperUtil.isIos()
+      let finalHref = href
+
+      // IOS에서만 Universal Link를 Deep Link로 변환
+      if (isIos && href.startsWith('https://')) {
+        // ConstantsUtil에서 정의된 모든 Universal Link 도메인들을 가져와서 Deep Link로 변환
+        const crossWalletDomains = Object.values(CommonConstantsUtil.UNIVERSAL_LINK)
+
+        for (const domain of crossWalletDomains) {
+          if (href.startsWith(domain)) {
+            /*
+             * ⚠️ 중요: 슬래시 개수에 주의!
+             *
+             * domain: "https://cross-wallet.crosstoken.io"   (끝에 / 없음)
+             * href:   "https://cross-wallet.crosstoken.io/"  (끝에 / 있음 - 다른 코드에서 추가됨)
+             *
+             * replace(domain, 'crossx:/') 사용 이유:
+             * - 'crossx://' (슬래시 2개)를 사용하면 → "crossx:///" (슬래시 3개) 결과 ❌
+             * - 'crossx:/'  (슬래시 1개)를 사용하면 → "crossx://"  (슬래시 2개) 결과 ✅
+             *
+             * 예시:
+             * "https://cross-wallet.crosstoken.io/".replace("https://cross-wallet.crosstoken.io", "crossx:/")
+             * → "crossx://"
+             *
+             * "https://cross-wallet.crosstoken.io/wc?uri=xxx".replace("https://cross-wallet.crosstoken.io", "crossx:/")
+             * → "crossx://wc?uri=xxx"
+             */
+            finalHref = href.replace(domain, 'crossx:/')
+            break
+          }
+        }
+      }
+
+      SafeLocalStorage.setItem(
+        SafeLocalStorageKeys.DEEPLINK_CHOICE,
+        JSON.stringify({ href: finalHref, name })
+      )
     } catch {
       console.info('Unable to set WalletConnect deep link')
     }
@@ -87,18 +138,22 @@ export const StorageUtil = {
   setActiveCaipNetworkId(caipNetworkId: CaipNetworkId) {
     try {
       console.log(`setActiveCaipNetworkId - caipNetworkId: ${caipNetworkId} now storing in storage`)
-      
+
       // 이전 네트워크 ID 가져오기
-      const previousNetworkId = SafeLocalStorage.getItem(SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID)
-      
+      const previousNetworkId = SafeLocalStorage.getItem(
+        SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID
+      )
+
       // 네트워크가 실제로 바뀌었는지 확인
       if (previousNetworkId && previousNetworkId !== caipNetworkId) {
-        console.log(`Network changed from ${previousNetworkId} to ${caipNetworkId}, clearing all storage for previous network`)
-        
+        console.log(
+          `Network changed from ${previousNetworkId} to ${caipNetworkId}, clearing all storage for previous network`
+        )
+
         // 이전 네트워크의 모든 스토리지 제거
         StorageUtil.clearAddressCache()
       }
-      
+
       SafeLocalStorage.setItem(SafeLocalStorageKeys.ACTIVE_CAIP_NETWORK_ID, caipNetworkId)
       StorageUtil.setActiveNamespace(caipNetworkId.split(':')[0] as ChainNamespace)
     } catch {
@@ -352,11 +407,7 @@ export const StorageUtil = {
 
     return undefined
   },
-  updateBalanceCache(params: {
-    caipAddress: string
-    balance: Balance[]
-    timestamp: number
-  }) {
+  updateBalanceCache(params: { caipAddress: string; balance: Balance[]; timestamp: number }) {
     try {
       const cache = StorageUtil.getBalanceCache()
       const { caipAddress, balance, timestamp } = params

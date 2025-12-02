@@ -184,6 +184,20 @@ export function useAppKitWallet(parameters?: {
     }
   }, [handleSuccess, handleError])
 
+  const authenticateCrossExtensionWallet = useCallback(async () => {
+    try {
+      WalletButtonController.setPending(true)
+      WalletButtonController.setError(undefined)
+      const result = await ConnectorUtil.authenticateCrossExtensionWallet()
+      return result
+    } catch (err) {
+      handleError(err)
+      throw err
+    } finally {
+      WalletButtonController.setPending(false)
+    }
+  }, [handleError])
+
   const isInstalledCrossExtensionWallet = useCallback(() => {
     return ConnectorUtil.isInstalledCrossExtensionWallet()
   }, [])
@@ -198,6 +212,7 @@ export function useAppKitWallet(parameters?: {
     connect,
     connectCrossWallet,
     connectCrossExtensionWallet,
+    authenticateCrossExtensionWallet,
     isInstalledCrossExtensionWallet
   }
 }

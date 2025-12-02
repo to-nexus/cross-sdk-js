@@ -8,7 +8,9 @@ import {
   etherMainnet,
   etherTestnet,
   kaiaMainnet,
-  kaiaTestnet
+  kaiaTestnet,
+  roninMainnet,
+  roninTestnet
 } from '@to-nexus/appkit/networks'
 import { v4 as uuidv4 } from 'uuid'
 import { parseEther, parseUnits } from 'viem'
@@ -77,6 +79,18 @@ const contractData = {
     erc20: '',
     erc721: '',
     network: etherTestnet
+  },
+  2020: {
+    coin: 'RON',
+    erc20: '',
+    erc721: '',
+    network: roninMainnet
+  },
+  2021: {
+    coin: 'tRON',
+    erc20: '',
+    erc721: '',
+    network: roninTestnet
   }
 }
 
@@ -308,7 +322,7 @@ export function ActionButtonList() {
     }
   }
 
-  // Wagmi: Send ERC20 Token
+  // Wagmi: Send ERC20 Token with Dynamic Fee
   async function handleWagmiSendErc20() {
     if (!wagmiAccount.isConnected) {
       showError('Error in Wagmi Send ERC20', 'Please connect wallet first.')
@@ -328,11 +342,15 @@ export function ActionButtonList() {
       const amount = parseUnits('1', 18) // 1 token
       const toAddress = RECEIVER_ADDRESS
 
+      // ✅ Dynamic Fee 설정 (React example과 동일)
       const hash = await writeContractAsync({
         address: ERC20_ADDRESS,
         abi: sampleErc20ABI,
         functionName: 'transfer',
-        args: [toAddress, amount]
+        args: [toAddress, amount],
+        gas: 147726n, // 명시적 gas limit 설정
+        maxFeePerGas: 3200000000n, // 3.2 Gwei (maxFee)
+        maxPriorityFeePerGas: 2000000000n // 2 Gwei (maxPriorityFee)
       })
 
       showSuccess(
@@ -345,7 +363,7 @@ export function ActionButtonList() {
     }
   }
 
-  // Wagmi: Send Native Token (네트워크별 적절한 양)
+  // Wagmi: Send Native Token with Dynamic Fee
   async function handleWagmiSendNative() {
     if (!wagmiAccount.address) {
       showError('Error in Wagmi Send Native', 'Please connect wallet first.')
@@ -353,9 +371,13 @@ export function ActionButtonList() {
     }
 
     try {
+      // ✅ Dynamic Fee 설정 (React example과 동일)
       const hash = await sendTransactionAsync({
         to: RECEIVER_ADDRESS,
-        value: parseEther(SEND_CROSS_AMOUNT.toString())
+        value: parseEther(SEND_CROSS_AMOUNT.toString()),
+        gas: 21000n, // Native transfer의 표준 gas limit
+        maxFeePerGas: 3200000000n, // 3.2 Gwei
+        maxPriorityFeePerGas: 2000000000n // 2 Gwei
       })
 
       const currentCoin = wagmiAccount.chainId
@@ -404,7 +426,7 @@ export function ActionButtonList() {
     }
   }
 
-  // Wagmi: Mint NFT (Custom Contract Write 예제)
+  // Wagmi: Mint NFT with Dynamic Fee
   async function handleWagmiMintNft() {
     if (!wagmiAccount.isConnected) {
       showError('Error in Wagmi Mint NFT', 'Please connect wallet first.')
@@ -425,11 +447,15 @@ export function ActionButtonList() {
       const uuidHex = uuidv4().replace(/-/g, '')
       const tokenId = BigInt(`0x${uuidHex}`).toString()
 
+      // ✅ Dynamic Fee 설정 (React example과 동일)
       const hash = await writeContractAsync({
         address: ERC721_ADDRESS,
         abi: sampleErc721ABI,
         functionName: 'mintTo',
-        args: [wagmiAccount.address as `0x${string}`, BigInt(tokenId)]
+        args: [wagmiAccount.address as `0x${string}`, BigInt(tokenId)],
+        gas: 200000n, // NFT mint에 충분한 gas limit
+        maxFeePerGas: 3200000000n, // 3.2 Gwei
+        maxPriorityFeePerGas: 2000000000n // 2 Gwei
       })
 
       showSuccess(

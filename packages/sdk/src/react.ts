@@ -5,10 +5,16 @@ import {
   AccountController,
   ApiController,
   type ChainAdapter,
+  ChainController,
   ConnectionController,
   ConstantsUtil,
+  CoreHelperUtil,
+  OptionsController,
+  type SIWXConfig,
+  SIWXUtil,
   SendController,
-  type ThemeMode
+  type ThemeMode,
+  createDefaultSIWXConfig
 } from '@to-nexus/appkit-core'
 import type { CustomWallet } from '@to-nexus/appkit-core'
 import {
@@ -20,7 +26,9 @@ import {
   etherTestnet,
   kaiaMainnet,
   kaiaTestnet,
-  networkList
+  networkList,
+  roninMainnet,
+  roninTestnet
 } from '@to-nexus/appkit/networks'
 import {
   createAppKit,
@@ -46,8 +54,14 @@ export type {
   TypedDataDomain,
   TypedDataTypes,
   TypedDataField,
-  ChainAdapter
+  ChainAdapter,
+  SIWXConfig,
+  SIWXMessage,
+  SIWXSession,
+  CreateSIWXConfigOptions
 } from '@to-nexus/appkit-core'
+
+export type { CaipNetworkId } from '@to-nexus/appkit-common'
 
 const ethersAdapter = new EthersAdapter()
 
@@ -67,6 +81,7 @@ type SupportedNetworks =
   | typeof kaiaTestnet
   | typeof etherMainnet
   | typeof etherTestnet
+  | typeof roninMainnet
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -83,11 +98,20 @@ export type CrossSdkParams = {
   defaultNetwork?: SupportedNetworks
   adapters?: ChainAdapter[]
   mobileLink?: string
+  siwx?: SIWXConfig
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
-  const { projectId, redirectUrl, metadata, themeMode, defaultNetwork, adapters, mobileLink } =
-    params
+  const {
+    projectId,
+    redirectUrl,
+    metadata,
+    themeMode,
+    defaultNetwork,
+    adapters,
+    mobileLink,
+    siwx
+  } = params
 
   return initCrossSdk(
     projectId,
@@ -96,7 +120,8 @@ const initCrossSdkWithParams = (params: CrossSdkParams) => {
     themeMode,
     defaultNetwork,
     adapters,
-    mobileLink
+    mobileLink,
+    siwx
   )
 }
 
@@ -108,7 +133,8 @@ const initCrossSdk = (
   themeMode?: ThemeMode,
   defaultNetwork?: SupportedNetworks,
   adapters?: ChainAdapter[],
-  mobileLink?: string
+  mobileLink?: string,
+  siwx?: SIWXConfig
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -125,6 +151,7 @@ const initCrossSdk = (
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
+    siwx,
     features: {
       swaps: false,
       onramp: false,
@@ -181,6 +208,11 @@ export {
   SendController,
   ApiController,
   AccountController,
+  ChainController,
+  OptionsController,
+  CoreHelperUtil,
+  createDefaultSIWXConfig,
+  SIWXUtil,
   crossMainnet,
   crossTestnet,
   bscMainnet,
@@ -189,6 +221,8 @@ export {
   kaiaTestnet,
   etherMainnet,
   etherTestnet,
+  roninMainnet,
+  roninTestnet,
   UniversalProvider,
   getUniversalProvider,
   ConstantsUtil

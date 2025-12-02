@@ -16,6 +16,7 @@ import {
   networks,
   projectId,
   sdkWagmiAdapter,
+  siwxConfig,
   wagmiAdapter
 } from './utils/wagmi-utils'
 
@@ -72,7 +73,8 @@ initCrossSdk(
   'dark', // theme
   crossMainnet, // default network
   [sdkWagmiAdapter], // ← CrossWallet용 adapter 전달 (중요!)
-  ConstantsUtil.getUniversalLink() // ← Universal Link (환경변수 또는 기본값)
+  ConstantsUtil.getUniversalLink(), // ← Universal Link (환경변수 또는 기본값)
+  siwxConfig // ✅ SIWX 설정 추가 - Connect + Auth 기능 활성화!
 )
 
 console.log('✅ Cross SDK initialized for CrossWallet')

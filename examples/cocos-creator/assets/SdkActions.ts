@@ -49,12 +49,37 @@ const contractData = {
     coin: 'ETH',
     erc20: '',
     erc721: ''
+  },
+  2020: {
+    coin: 'RON',
+    erc20: '',
+    erc721: ''
+  },
+  2021: {
+    coin: 'tRON',
+    erc20: '',
+    erc721: ''
   }
 }
+
+// 사용 가능한 네트워크 리스트
+const availableNetworks = [
+  { id: 612044, name: 'Cross Mainnet' },
+  { id: 612055, name: 'Cross Testnet' },
+  { id: 56, name: 'BSC Mainnet' },
+  { id: 97, name: 'BSC Testnet' },
+  { id: 8217, name: 'Kaia Mainnet' },
+  { id: 1001, name: 'Kaia Testnet' },
+  { id: 1, name: 'Ethereum Mainnet' },
+  { id: 11155111, name: 'Ethereum Testnet' },
+  { id: 2020, name: 'Ronin Mainnet' },
+  { id: 2021, name: 'Ronin Testnet' }
+]
 
 @ccclass('SdkActions')
 export class SdkActions extends Component {
   @property(Label) connectButtonLabel: Label = null!
+  @property(Label) connectWithAuthButtonLabel: Label = null!
   @property(Label) addressLabel: Label = null!
   @property(Label) chainIdLabel: Label = null!
   @property(Label) nativeBalanceLabel: Label = null!
@@ -74,6 +99,54 @@ export class SdkActions extends Component {
     await this.updateSummaryLabels()
   }
 
+  // 🔐 Connect + SIWE Authentication (QR Code)
+  async onClickConnectWithAuth() {
+    if (!window.CrossSdk) {
+      alert('SDK not loaded')
+      return
+    }
+
+    try {
+      if (this.isConnected()) {
+        // 연결되어 있으면 disconnect
+        await window.CrossSdk.ConnectionController.disconnect()
+      }
+
+      // WalletConnect (QR Code) 연결 + SIWE 인증 통합
+      const result = await window.CrossSdkInstance.authenticateWalletConnect()
+
+      if (result && typeof result === 'object' && 'authenticated' in result) {
+        if (result.authenticated && result.sessions && result.sessions.length > 0) {
+          const session = result.sessions[0]
+          if (session) {
+            alert(
+              `🎉 SIWE 인증 성공!\n\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `📍 Address:\n${session.data.accountAddress}\n\n` +
+                `🔗 Chain ID:\n${session.data.chainId}\n\n` +
+                `✍️ Signature:\n${session.signature.substring(0, 20)}...${session.signature.substring(session.signature.length - 20)}\n\n` +
+                `📅 Expires:\n${session.data.expirationTime || 'N/A'}\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━`
+            )
+          }
+        } else {
+          alert('⚠️ 인증이 취소되었거나 실패했습니다.')
+          return
+        }
+      }
+
+      // 연결 완료 후 UI 갱신
+      this.updateConnectButtonLabel()
+      try {
+        await this.refreshBalances()
+      } catch {}
+      await this.updateSummaryLabels()
+    } catch (error) {
+      console.error('Error in Connect + Auth:', error)
+      alert(`인증 실패: ${(error as Error).message}`)
+    }
+  }
+
   async onClickDisconnect() {
     if (!window.CrossSdk) return
     await window.CrossSdk.ConnectionController.disconnect()
@@ -81,24 +154,171 @@ export class SdkActions extends Component {
     await this.updateSummaryLabels()
   }
 
-  async onClickSwitchToCross() {
-    const instance = window.CrossSdkInstance
-    if (!instance) return alert('SDK not initialized')
+  // 네트워크 선택 모달 열기 (기존 onClickSwitchToCross를 대체)
+  async onClickSwitchNetwork() {
+    if (!window.CrossSdk) {
+      alert('SDK not loaded')
+      return
+    }
     if (this.isConnected() === false) {
-      return alert('Connect wallet first')
+      alert('Connect wallet first')
+      return
     }
 
-    const { chainId } = await this.getSdkSummary()
-    const target = chainId === 612044 ? window.CrossSdk.crossMainnet : window.CrossSdk.crossTestnet
+    this.openNetworkModal()
+  }
 
-    try {
-      await instance.switchNetwork(target) // ← AppKit 경로로 전환 (필수)
-      // UI는 구독으로 자동 반영되지만, 즉시 반영 원하면:
-      this.updateConnectButtonLabel()
-      await this.updateSummaryLabels()
-    } catch (e) {
-      // alert((e as Error).message || 'Switch network failed')
+  // 네트워크 선택 모달 열기
+  private openNetworkModal() {
+    this.createNetworkModal()
+  }
+
+  // 네트워크 선택 모달 생성
+  private createNetworkModal() {
+    const modal = document.getElementById('network-modal')
+    const networkList = document.getElementById('network-list')
+
+    if (!modal || !networkList) {
+      console.error('Network modal elements not found')
+      return
     }
+
+    // 기존 네트워크 리스트 초기화
+    networkList.innerHTML = ''
+
+    // 현재 체인 ID 가져오기
+    const currentChainId = (window as any).CrossSdk?.NetworkController?.state?.caipNetwork?.id
+
+    // 네트워크 객체 매핑 (SDK에서 가져오기)
+    const networkMapping: Record<number, any> = {
+      612044: (window as any).CrossSdk.crossMainnet,
+      612055: (window as any).CrossSdk.crossTestnet,
+      56: (window as any).CrossSdk.bscMainnet,
+      97: (window as any).CrossSdk.bscTestnet,
+      8217: (window as any).CrossSdk.kaiaMainnet,
+      1001: (window as any).CrossSdk.kaiaTestnet,
+      1: (window as any).CrossSdk.etherMainnet,
+      11155111: (window as any).CrossSdk.etherTestnet,
+      2020: (window as any).CrossSdk.roninMainnet,
+      2021: (window as any).CrossSdk.roninTestnet
+    }
+
+    // 디버깅: SDK에서 사용 가능한 네트워크 확인
+    console.log('🔍 [Debug] Available networks in SDK:', {
+      crossMainnet: (window as any).CrossSdk?.crossMainnet,
+      crossTestnet: (window as any).CrossSdk?.crossTestnet,
+      bscMainnet: (window as any).CrossSdk?.bscMainnet,
+      bscTestnet: (window as any).CrossSdk?.bscTestnet,
+      kaiaMainnet: (window as any).CrossSdk?.kaiaMainnet,
+      kaiaTestnet: (window as any).CrossSdk?.kaiaTestnet,
+      etherMainnet: (window as any).CrossSdk?.etherMainnet,
+      etherTestnet: (window as any).CrossSdk?.etherTestnet,
+      roninMainnet: (window as any).CrossSdk?.roninMainnet,
+      roninTestnet: (window as any).CrossSdk?.roninTestnet
+    })
+
+    // 네트워크 리스트 생성
+    availableNetworks.forEach(networkInfo => {
+      const networkItem = document.createElement('div')
+      const isCurrentNetwork = currentChainId === networkInfo.id
+
+      networkItem.className = `network-item ${isCurrentNetwork ? 'current' : ''}`
+
+      const networkName = document.createElement('span')
+      networkName.className = 'network-name'
+      networkName.textContent = networkInfo.name
+
+      const statusIndicator = document.createElement('span')
+      statusIndicator.className = `network-status ${isCurrentNetwork ? 'current' : 'selectable'}`
+      statusIndicator.textContent = isCurrentNetwork ? '✓ Current' : 'Select'
+
+      networkItem.appendChild(networkName)
+      networkItem.appendChild(statusIndicator)
+
+      // 클릭 이벤트
+      networkItem.onclick = async () => {
+        if (!isCurrentNetwork) {
+          try {
+            const targetNetwork = networkMapping[networkInfo.id]
+            console.log(
+              `🔍 [Debug] Switching to ${networkInfo.name} (chainId: ${networkInfo.id})`,
+              targetNetwork
+            )
+
+            if (!targetNetwork) {
+              console.error(`❌ [Error] Network ${networkInfo.name} is undefined`)
+              alert(`Network ${networkInfo.name} not found in SDK`)
+              return
+            }
+
+            console.log('🔄 [Debug] Calling switchNetwork...')
+            
+            // 네트워크 전환
+            try {
+              await window.CrossSdkInstance.switchNetwork(targetNetwork)
+              console.log('✅ [Debug] switchNetwork completed successfully')
+            } catch (switchError) {
+              console.error('❌ [Error] switchNetwork threw error:', switchError)
+              throw switchError
+            }
+
+            // 네트워크 전환 후 잠시 대기 (상태 업데이트를 위해)
+            await new Promise(resolve => setTimeout(resolve, 500))
+
+            // UI 업데이트
+            this.updateConnectButtonLabel()
+            await this.updateSummaryLabels()
+
+            // 모달 닫기
+            this.closeNetworkModal()
+
+            console.log(`✅ [Debug] ${networkInfo.name} 전환 완료, alert 표시`)
+            alert(`✅ ${networkInfo.name} 전환 성공!`)
+          } catch (error) {
+            console.error('❌ [Error] Network switch failed:', error)
+            console.error('❌ [Error] Error details:', {
+              message: (error as Error).message,
+              stack: (error as Error).stack,
+              errorObject: error
+            })
+            alert(`Network switch failed: ${(error as Error).message}`)
+          }
+        }
+      }
+
+      networkList.appendChild(networkItem)
+    })
+
+    // 모달 표시
+    modal.classList.add('show')
+  }
+
+  // 네트워크 모달 닫기
+  private closeNetworkModal() {
+    const modal = document.getElementById('network-modal')
+    if (modal) {
+      modal.classList.remove('show')
+    }
+  }
+
+  // 모달 이벤트 리스너 설정 (start 메서드에서 호출)
+  private setupNetworkModalEvents() {
+    const modal = document.getElementById('network-modal')
+    const closeBtn = document.getElementById('network-modal-close')
+
+    if (!modal || !closeBtn) return
+
+    // 모달 외부 클릭 시 닫기
+    modal.addEventListener('click', e => {
+      if (e.target === modal) {
+        this.closeNetworkModal()
+      }
+    })
+
+    // 닫기 버튼 클릭 시 닫기
+    closeBtn.addEventListener('click', () => {
+      this.closeNetworkModal()
+    })
   }
 
   // 2) Provider/토픽 확인
@@ -373,11 +593,17 @@ export class SdkActions extends Component {
     if (!this.connectButtonLabel) return
     const status = (window as any).CrossSdk?.AccountController?.state?.status
     const address = (window as any).CrossSdk?.AccountController?.state?.address
-    console.log('status:', status)
-    console.log('address:', address)
     const connected = status === 'connected' && Boolean(address)
-    console.log('connected:', connected)
+
+    // Connect 버튼
     this.connectButtonLabel.string = connected ? `Cross\nConnected` : `Cross\nConnect`
+
+    // Connect + Auth 버튼
+    if (this.connectWithAuthButtonLabel) {
+      this.connectWithAuthButtonLabel.string = connected
+        ? `Cross\nConnected\n(With SIWE)`
+        : `Cross\nConnect\n(With SIWE)`
+    }
   }
 
   // 요약 라벨 갱신: address / chainId / native balance
@@ -385,12 +611,11 @@ export class SdkActions extends Component {
     try {
       const summary = await this.getSdkSummary()
       if (this.addressLabel) this.addressLabel.string = summary.address || 'Not connected'
-      if (this.chainIdLabel)
+      if (this.chainIdLabel) {
         this.chainIdLabel.string = summary.chainId
-          ? summary.chainId === 612044
-            ? `Cross Testnet\n${summary.chainId}`
-            : `Cross Mainnet\n${summary.chainId}`
+          ? this.getNetworkDisplayName(summary.chainId)
           : '-'
+      }
       if (this.nativeBalanceLabel)
         this.nativeBalanceLabel.string = summary.nativeBalance
           ? `${summary.nativeBalance}`.trim()
@@ -400,6 +625,24 @@ export class SdkActions extends Component {
       if (this.chainIdLabel) this.chainIdLabel.string = '-'
       if (this.nativeBalanceLabel) this.nativeBalanceLabel.string = '-'
     }
+  }
+
+  // 체인 ID에 따른 네트워크 이름 반환
+  private getNetworkDisplayName(chainId: number): string {
+    const networkNames: Record<number, string> = {
+      612044: 'Cross Mainnet',
+      612055: 'Cross Testnet',
+      56: 'BSC Mainnet',
+      97: 'BSC Testnet',
+      8217: 'Kaia Mainnet',
+      1001: 'Kaia Testnet',
+      1: 'Ethereum Mainnet',
+      11155111: 'Ethereum Testnet',
+      2020: 'Ronin Mainnet',
+      2021: 'Ronin Testnet'
+    }
+    const networkName = networkNames[chainId] || `Chain ${chainId}`
+    return `${networkName}\n${chainId}`
   }
 
   // 연결 상태 확인: 계정 상태가 connected 이고 주소가 존재할 때 true
@@ -431,7 +674,7 @@ export class SdkActions extends Component {
     let chainId: number | undefined
 
     // 연결 상태 확인
-    const isConnected = window.CrossSdk?.AccountController?.state?.status === 'connected'
+    const isConnected = this.isConnected()
     const hasNoSession = !up?.session
     const isExtensionProvider = hasNoSession && isConnected
 
@@ -597,18 +840,64 @@ export class SdkActions extends Component {
   }
 
   async start() {
+    // SDK 초기화 with SIWX (SIWE 인증 지원을 위해 필수!)
+    if (window.CrossSdk && !window.CrossSdkInstance) {
+      try {
+        const projectId = '0979fd7c92ec3dbd8e78f433c3e5a523'
+        const redirectUrl = window.location.href
+
+        // SIWX 설정 생성
+        const siwxConfig = window.CrossSdk.createDefaultSIWXConfig({
+          statement: 'Sign in with your wallet to Cross SDK Cocos Creator Example',
+          getNonce: async () => {
+            // 데모용: 랜덤 nonce 생성 (프로덕션에서는 백엔드에서 가져와야 함)
+            return (
+              Math.random().toString(36).substring(2, 15) +
+              Math.random().toString(36).substring(2, 15)
+            )
+          },
+          verifyMessage: async ({ message, signature }: { message: any; signature: string }) => {
+            // 데모용: 자동 승인 (프로덕션에서는 백엔드에서 검증해야 함)
+            console.log('SIWX verifyMessage called')
+            return true
+          }
+        })
+
+        // SDK 인스턴스 생성 (싱글톤 패턴으로 자동 중복 방지)
+        const mobileLinkValue = window.CrossSdk.ConstantsUtil?.getUniversalLink?.()
+
+        window.CrossSdkInstance = window.CrossSdk.initCrossSdkWithParams({
+          projectId,
+          redirectUrl,
+          metadata: {
+            name: 'Cross SDK - Cocos Creator',
+            description: 'Cross SDK integration with Cocos Creator',
+            url: 'https://to.nexus',
+            icons: ['https://contents.crosstoken.io/img/sample_app_circle_icon.png']
+          },
+          themeMode: 'light',
+          mobileLink: mobileLinkValue,
+          siwx: siwxConfig
+        })
+      } catch (error) {
+        console.error('Failed to initialize SDK:', error)
+        alert(`SDK 초기화 실패: ${(error as Error).message}`)
+      }
+    }
+
     // 1) SDK 준비 후 provider 워밍업
     try {
       await this.warmupProviderIfAny()
     } catch {}
 
     // 2) 최초 연결 여부 판단 → 버튼 라벨 즉시 반영
-    const active = await this.checkInitialSessionActive()
+    await this.checkInitialSessionActive()
     this.updateConnectButtonLabel()
     await this.updateSummaryLabels()
 
-    // 3) 상태 변화 구독(이미 추가했다면 중복 X)
-    if (window.CrossSdk?.AccountController?.subscribeKey) {
+    // 3) 상태 변화 구독 (중복 방지)
+    if (window.CrossSdk?.AccountController?.subscribeKey && !(this as any)._subsRegistered) {
+      ;(this as any)._subsRegistered = true
       ;(this as any)._unsubs ||= []
       ;(this as any)._unsubs.push(
         window.CrossSdk.AccountController.subscribeKey('status', () => {
@@ -628,17 +917,23 @@ export class SdkActions extends Component {
       )
     }
 
-    // 4) 포커스 복귀 시 재점검(모바일 딥링크/탭 전환 대응)
-    window.addEventListener(
-      'focus',
-      () =>
-        setTimeout(() => {
-          this.updateConnectButtonLabel()
-          this.updateSummaryLabels()
-        }, 300),
-      {
-        passive: true
-      }
-    )
+    // 4) 포커스 복귀 시 재점검 (모바일 딥링크/탭 전환 대응, 중복 방지)
+    if (!(this as any)._focusListenerRegistered) {
+      ;(this as any)._focusListenerRegistered = true
+      window.addEventListener(
+        'focus',
+        () =>
+          setTimeout(() => {
+            this.updateConnectButtonLabel()
+            this.updateSummaryLabels()
+          }, 300),
+        {
+          passive: true
+        }
+      )
+    }
+
+    // 5) 네트워크 모달 이벤트 리스너 설정
+    this.setupNetworkModalEvents()
   }
 }

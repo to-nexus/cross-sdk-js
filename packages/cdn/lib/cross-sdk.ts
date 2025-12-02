@@ -4,23 +4,29 @@
  */
 import {
   AccountController,
+  ChainController,
   ConnectionController,
   ConnectorUtil,
   ConstantsUtil,
+  CoreHelperUtil,
   type CrossSdkParams,
   type Metadata,
+  OptionsController,
   SendController,
   UniversalProvider,
   bscMainnet,
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  createDefaultSIWXConfig,
   etherMainnet,
   etherTestnet,
   initCrossSdk,
   initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
+  roninMainnet,
+  roninTestnet,
   sdkVersion,
   useAppKitWallet
 } from '@to-nexus/sdk'
@@ -30,10 +36,14 @@ export {
   initCrossSdk,
   initCrossSdkWithParams,
   useAppKitWallet,
+  createDefaultSIWXConfig,
   ConnectionController,
   ConnectorUtil,
   SendController,
   AccountController,
+  ChainController,
+  CoreHelperUtil,
+  OptionsController,
   crossMainnet,
   crossTestnet,
   bscMainnet,
@@ -42,6 +52,8 @@ export {
   kaiaTestnet,
   etherMainnet,
   etherTestnet,
+  roninMainnet,
+  roninTestnet,
   UniversalProvider,
   ConstantsUtil,
   sdkVersion
@@ -56,10 +68,14 @@ declare global {
       initCrossSdk: typeof initCrossSdk
       initCrossSdkWithParams: typeof initCrossSdkWithParams
       useAppKitWallet: typeof useAppKitWallet
+      createDefaultSIWXConfig: typeof createDefaultSIWXConfig
       ConnectionController: typeof ConnectionController
       ConnectorUtil: typeof ConnectorUtil
       SendController: typeof SendController
       AccountController: typeof AccountController
+      ChainController: typeof ChainController
+      CoreHelperUtil: typeof CoreHelperUtil
+      OptionsController: typeof OptionsController
       crossMainnet: typeof crossMainnet
       crossTestnet: typeof crossTestnet
       bscMainnet: typeof bscMainnet
@@ -68,6 +84,8 @@ declare global {
       kaiaTestnet: typeof kaiaTestnet
       etherMainnet: typeof etherMainnet
       etherTestnet: typeof etherTestnet
+      roninMainnet: typeof roninMainnet
+      roninTestnet: typeof roninTestnet
       UniversalProvider: typeof UniversalProvider
       ConstantsUtil: typeof ConstantsUtil
       sdkVersion: typeof sdkVersion
@@ -81,10 +99,14 @@ if (typeof window !== 'undefined') {
     initCrossSdk,
     initCrossSdkWithParams,
     useAppKitWallet,
+    createDefaultSIWXConfig,
     ConnectionController,
     ConnectorUtil,
     SendController,
     AccountController,
+    ChainController,
+    CoreHelperUtil,
+    OptionsController,
     crossMainnet,
     crossTestnet,
     bscMainnet,
@@ -93,6 +115,8 @@ if (typeof window !== 'undefined') {
     kaiaTestnet,
     etherMainnet,
     etherTestnet,
+    roninMainnet,
+    roninTestnet,
     UniversalProvider,
     ConstantsUtil,
     sdkVersion

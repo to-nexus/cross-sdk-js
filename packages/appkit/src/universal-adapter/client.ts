@@ -291,6 +291,8 @@ export class UniversalAdapter extends AdapterBlueprint {
           } catch (error) {
             throw new Error('Chain is not supported')
           }
+        } else {
+          throw switchError
         }
       }
     }

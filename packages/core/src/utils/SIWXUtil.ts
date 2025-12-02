@@ -1,8 +1,7 @@
-import UniversalProvider from '@to-nexus/universal-provider'
-
 import type { CaipNetworkId, ChainNamespace } from '@to-nexus/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import { W3mFrameRpcConstants } from '@to-nexus/appkit-wallet'
+import UniversalProvider from '@to-nexus/universal-provider'
 
 import { AccountController } from '../controllers/AccountController.js'
 import { ChainController } from '../controllers/ChainController.js'
@@ -19,29 +18,57 @@ import { StorageUtil } from './StorageUtil.js'
  * SIWXUtil holds the methods to interact with the SIWX plugin and must be called internally on AppKit.
  */
 export const SIWXUtil = {
+  // Flag to prevent duplicate SIWE modal when manually authenticating
+  _isAuthenticating: false,
+
   getSIWX() {
     return OptionsController.state.siwx
   },
   async initializeIfEnabled() {
+    console.log('🔍 initializeIfEnabled called, _isAuthenticating:', this._isAuthenticating)
+
     const siwx = OptionsController.state.siwx
     const caipAddress = ChainController.getActiveCaipAddress()
 
     if (!(siwx && caipAddress)) {
+      console.log('⏭️ No siwx or caipAddress, skipping')
+
       return
     }
     const [namespace, chainId, address] = caipAddress.split(':') as [ChainNamespace, string, string]
 
     if (!ChainController.checkIfSupportedNetwork(namespace)) {
+      console.log('⏭️ Network not supported, skipping')
+
+      return
+    }
+
+    // Skip if already authenticating manually (e.g., via Connect + Auth button)
+    if (this._isAuthenticating) {
+      console.log('⏭️ Skipping auto SIWE modal - manual authentication in progress')
+
       return
     }
 
     try {
       const sessions = await siwx.getSessions(`${namespace}:${chainId}`, address)
+      console.log('📋 Existing sessions:', sessions.length)
 
       if (sessions.length) {
+        console.log('✅ Session exists, skipping modal')
+
         return
       }
 
+      // Check if SIWE is required (getRequired defaults to false - optional)
+      const required = siwx.getRequired?.() ?? false
+      if (!required) {
+        console.log('⏭️ SIWE is optional (getRequired=false), skipping auto modal')
+
+        return
+      }
+
+      console.log('🚨 Opening SIWE modal - no session found and SIWE is required')
       await ModalController.open({
         view: 'SIWXSignMessage'
       })
@@ -194,25 +221,59 @@ export const SIWXUtil = {
   async universalProviderAuthenticate({
     universalProvider,
     chains,
-    methods
+    methods,
+    optionalNamespaces
   }: {
     universalProvider: UniversalProvider
     chains: CaipNetworkId[]
     methods: string[]
+    optionalNamespaces?: any
   }) {
     const siwx = SIWXUtil.getSIWX()
 
     const namespaces = new Set(chains.map(chain => chain.split(':')[0] as ChainNamespace))
 
     if (!siwx || namespaces.size !== 1 || !namespaces.has('eip155')) {
-      return false
+      return { authenticated: false, sessions: [] }
     }
+
+    // Set flag to prevent auto SIWE modal during manual authentication
+    this._isAuthenticating = true
 
     // Ignores chainId and account address to get other message data
     const siwxMessage = await siwx.createMessage({
       chainId: ChainController.getActiveCaipNetwork()?.caipNetworkId || ('' as CaipNetworkId),
       accountAddress: ''
     })
+
+    // URI 이벤트 리스너 등록 (QR 코드 표시용)
+    universalProvider.once('display_uri', (uri: string) => {
+      ConnectionController.setUri(uri)
+
+      /*
+       * ✅ authenticate() 사용 시에도 deep link 저장 (트랜잭션/서명 시 지갑 자동 열기용)
+       * Cross Wallet의 mobile_link 정보 가져오기
+       */
+      const { customWallets } = OptionsController.state
+      const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')
+
+      if (crossWallet?.mobile_link && uri) {
+        const { mobile_link, name } = crossWallet
+
+        // 🔑 핵심: base URL만 저장 (WalletConnect Engine이 각 요청마다 동적으로 URI 생성)
+        const baseUrl = mobile_link.endsWith('/') ? mobile_link : `${mobile_link}/`
+
+        ConnectionController.setWcLinking({ name: name || 'CROSSx Wallet', href: baseUrl })
+
+        // ✅ base URL만 localStorage에 저장 (WalletConnect Engine이 동적 URL 생성)
+        StorageUtil.setWalletConnectDeepLink({ name: name || 'CROSSx Wallet', href: baseUrl })
+
+        // 저장된 값 확인
+        const saved = localStorage.getItem('WALLETCONNECT_DEEPLINK_CHOICE')
+      }
+    })
+
+    SnackController.showLoading('Authenticating...', { autoClose: false })
 
     const result = await universalProvider.authenticate({
       nonce: siwxMessage.nonce,
@@ -228,10 +289,10 @@ export const SIWXUtil = {
       chainId: siwxMessage.chainId,
       methods,
       // The first chainId is what is used for universal provider to build the message
-      chains: [siwxMessage.chainId, ...chains.filter(chain => chain !== siwxMessage.chainId)]
+      chains: [siwxMessage.chainId, ...chains.filter(chain => chain !== siwxMessage.chainId)],
+      // 🔑 핵심 수정: optionalNamespaces에 rpcMap을 포함하여 httpProviders가 올바른 RPC URL로 생성되도록 함
+      ...(optionalNamespaces && { optionalNamespaces })
     })
-
-    SnackController.showLoading('Authenticating...', { autoClose: false })
 
     AccountController.setConnectedWalletInfo(
       {
@@ -270,11 +331,45 @@ export const SIWXUtil = {
       try {
         await siwx.setSessions(sessions)
 
+        /*
+         * Verify sessions were saved before SDK's auto initializeIfEnabled() runs
+         * This prevents duplicate SIWE modal from appearing
+         */
+        if (sessions.length > 0 && sessions[0]) {
+          const firstSession = sessions[0]
+          let savedSessions = await siwx.getSessions(
+            firstSession.data.chainId,
+            firstSession.data.accountAddress
+          )
+          if (savedSessions.length === 0) {
+            console.warn('⚠️ Sessions not found immediately after saving, waiting...')
+            // Give a small delay for sessions to be fully persisted
+            await new Promise(resolve => setTimeout(resolve, 100))
+            // Re-check after delay
+            savedSessions = await siwx.getSessions(
+              firstSession.data.chainId,
+              firstSession.data.accountAddress
+            )
+            console.log('🔄 Re-checked sessions after delay:', savedSessions.length)
+          }
+        }
+
         EventsController.sendEvent({
           type: 'track',
           event: 'SIWX_AUTH_SUCCESS',
           properties: SIWXUtil.getSIWXEventProperties()
         })
+
+        /*
+         * Delay flag clearing to ensure initializeIfEnabled sees the flag
+         * Use setTimeout to clear flag after current call stack
+         */
+        setTimeout(() => {
+          console.log('🏁 Clearing _isAuthenticating flag (delayed)')
+          this._isAuthenticating = false
+        }, 200)
+
+        return { authenticated: true, sessions }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('SIWX:universalProviderAuth - failed to set sessions', error)
@@ -287,13 +382,20 @@ export const SIWXUtil = {
 
         // eslint-disable-next-line no-console
         await universalProvider.disconnect().catch(console.error)
+
+        // Clear flag after failed authentication
+        this._isAuthenticating = false
+
         throw error
       } finally {
         SnackController.hide()
       }
     }
 
-    return true
+    // Clear flag if authentication not applicable (fallback case)
+    this._isAuthenticating = false
+
+    return { authenticated: false, sessions: [] }
   },
   getSIWXEventProperties() {
     return {
