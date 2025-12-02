@@ -200,7 +200,7 @@ export function walletConnect(
 
         provider.setDefaultChain(`eip155:${currentChainId}`)
 
-        return { accounts, chainId: currentChainId }
+        return { accounts, chainId: currentChainId as number }
       } catch (error) {
         if (
           // eslint-disable-next-line prefer-named-capture-group, require-unicode-regexp
@@ -284,17 +284,29 @@ export function walletConnect(
       return provider_ as Provider
     },
     async getChainId() {
+      // 먼저 provider session에서 체인 확인
+      const provider = (await this.getProvider()) as any
+      const chain = provider.session?.namespaces[ConstantsUtil.CHAIN.EVM]?.chains?.[0]
+
+      if (chain) {
+        const chainIdStr = chain.split(':')[1]
+        const network = caipNetworks.find(
+          (c: any) => String(c.id) === chainIdStr || c.id === Number(chainIdStr)
+        )
+        if (network) {
+          return network.id as number
+        }
+        return Number(chainIdStr)
+      }
+
+      // provider session이 없으면 AppKit 상태 사용 (기존 로직)
       const chainId = appKit.getCaipNetwork()?.id
       if (chainId) {
         return chainId as number
       }
 
-      const provider = (await this.getProvider()) as any
-      const chain = provider.session?.namespaces[ConstantsUtil.CHAIN.EVM]?.chains?.[0]
-
-      const network = caipNetworks.find((c: any) => c.id === chain)
-
-      return network?.id as number
+      // 둘 다 없으면 첫 번째 네트워크
+      return (caipNetworks[0]?.id as number) || 1
     },
     async isAuthorized() {
       try {
