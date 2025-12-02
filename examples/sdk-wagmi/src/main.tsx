@@ -49,9 +49,7 @@ createAppKit({
   },
   enableWalletConnect: true,
   enableInjected: true,
-  enableCoinbase: false,
-  // @ts-ignore - customStoragePrefix로 Cross SDK와 localStorage 격리
-  customStoragePrefix: 'reown-metamask-'
+  enableCoinbase: false
 })
 
 console.log('✅ Reown AppKit initialized for MetaMask')
