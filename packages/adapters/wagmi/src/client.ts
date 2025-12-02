@@ -399,10 +399,11 @@ export class WagmiAdapter extends AdapterBlueprint {
         if (coinbaseWallet) {
           thirdPartyConnectors.push(
             coinbaseWallet({
-              version: '4',
               appName: options.metadata?.name ?? 'Unknown',
               appLogoUrl: options.metadata?.icons[0] ?? 'Unknown',
-              preference: options.coinbasePreference ?? 'all'
+              preference: {
+                options: options.coinbasePreference ?? 'all'
+              }
             })
           )
         }
