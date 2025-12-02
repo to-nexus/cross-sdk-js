@@ -56,20 +56,26 @@ This monorepo contains the following packages:
 
 ## 🚀 Quick Start
 
+### Registry
+Add next script to the .npmrc in the project root
+```
+@to-nexus:registry=https://package.cross-nexus.com/repository/cross-sdk-js
+```
+
 ### Installation
 
 ```bash
-npm install @to-nexus/cross-sdk
+npm install @to-nexus/sdk
 # or
-pnpm install @to-nexus/cross-sdk
+pnpm install @to-nexus/sdk
 # or
-yarn add @to-nexus/cross-sdk
+yarn add @to-nexus/sdk
 ```
 
 ### Basic Usage
 
 ```typescript
-import { initCrossSdk } from '@to-nexus/cross-sdk'
+import { initCrossSdk } from '@to-nexus/sdk'
 
 // Initialize the SDK
 const sdk = initCrossSdk({
@@ -91,7 +97,7 @@ await sdk.connect()
 ```tsx
 import { useEffect, useState } from 'react'
 
-import { AccountController, initCrossSdk } from '@to-nexus/cross-sdk'
+import { AccountController, initCrossSdk } from '@to-nexus/sdk'
 
 function App() {
   const [account, setAccount] = useState(null)
