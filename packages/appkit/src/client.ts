@@ -1668,6 +1668,11 @@ export class AppKit {
       })
 
       this.universalProvider.on('chainChanged', (chainId: number | string) => {
+        // 🚫 CROSS Wallet chainChanged 이벤트 무시 (테스트)
+        console.log('🚫 [CROSS SDK] chainChanged event ignored for testing', { chainId })
+        return
+
+        // 아래 코드는 실행되지 않음
         // eslint-disable-next-line eqeqeq
         const caipNetwork = this.caipNetworks?.find(c => c.id == chainId)
         const currentCaipNetwork = this.getCaipNetwork()

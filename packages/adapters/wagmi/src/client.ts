@@ -212,6 +212,85 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   /**
+   * LocalStorage에 유효한 세션 정보가 있는지 확인
+   * - WalletConnect 세션 만료 시간을 체크하여 실제 유효성 판단
+   * - 시간 경과가 아닌 세션 자체의 expiry로 판단
+   * @private
+   * @returns {boolean} 유효한 세션이 있으면 true
+   */
+  private hasValidStoredSession(): boolean {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    try {
+      // 1. Cross SDK 기본 연결 정보 확인
+      const connectionStatus = localStorage.getItem('@cross/connection_status')
+      const connectorId = localStorage.getItem('@cross/eip155:connected_connector_id')
+
+      if (connectionStatus !== 'connected' || !connectorId) {
+        return false
+      }
+
+      // 2. WalletConnect 세션 유효성 확인 (핵심!)
+      const wcSession = localStorage.getItem('wc@2:client:0.3//session')
+      if (!wcSession) {
+        console.log('[WagmiAdapter] No WalletConnect session storage found')
+
+        return false
+      }
+
+      try {
+        const sessions = JSON.parse(wcSession)
+
+        if (!Array.isArray(sessions) || sessions.length === 0) {
+          console.log('[WagmiAdapter] WalletConnect session storage is empty')
+
+          return false
+        }
+
+        // 유효한 세션이 하나라도 있는지 확인
+        const hasValidSession = sessions.some((session: any) => {
+          if (!session.expiry) {
+            return false
+          }
+
+          const expiryMs = session.expiry * 1000
+          const isValid = expiryMs > Date.now()
+
+          if (!isValid) {
+            console.log('[WagmiAdapter] Session expired:', {
+              topic: `${session.topic?.substring(0, 10)}...`,
+              expiry: new Date(expiryMs).toISOString(),
+              now: new Date().toISOString()
+            })
+          }
+
+          return isValid
+        })
+
+        if (!hasValidSession) {
+          console.log('[WagmiAdapter] All WalletConnect sessions expired - allowing cleanup')
+
+          return false
+        }
+
+        console.log('[WagmiAdapter] Found valid WalletConnect session')
+
+        return true
+      } catch (parseError) {
+        console.warn('[WagmiAdapter] Failed to parse WalletConnect session:', parseError)
+
+        return false
+      }
+    } catch (error) {
+      console.warn('[WagmiAdapter] Error checking session validity:', error)
+
+      return false
+    }
+  }
+
+  /**
    * Listen to session reconnect failure events
    * @param callback - Callback function to handle the reconnect failure event
    * @example
@@ -357,7 +436,20 @@ export class WagmiAdapter extends AdapterBlueprint {
           prevAccountData.address &&
           prevAccountData.status !== 'reconnecting'
         ) {
-          this.emit('disconnect')
+          // ✅ localStorage에 유효한 세션이 있는지 확인 후 조건부 disconnect
+          const hasValidSession = this.hasValidStoredSession()
+
+          if (!hasValidSession) {
+            console.log(
+              '[WagmiAdapter] Account disconnected and no valid session - emitting disconnect'
+            )
+            this.emit('disconnect')
+          } else {
+            console.log(
+              '[WagmiAdapter] Account disconnected but valid session exists - preserving localStorage'
+            )
+            // 상태 전환 중일 가능성 - disconnect 이벤트 발생시키지 않음
+          }
         }
 
         if (accountData.status === 'connected') {
@@ -383,7 +475,18 @@ export class WagmiAdapter extends AdapterBlueprint {
     watchConnections(this.wagmiConfig, {
       onChange: connections => {
         if (connections.length === 0) {
-          this.emit('disconnect')
+          // ✅ localStorage에 유효한 세션이 있는지 확인 후 조건부 disconnect
+          const hasValidSession = this.hasValidStoredSession()
+
+          if (!hasValidSession) {
+            console.log('[WagmiAdapter] No connections and no valid session - emitting disconnect')
+            this.emit('disconnect')
+          } else {
+            console.log(
+              '[WagmiAdapter] No connections but valid session exists - preserving localStorage'
+            )
+            // 새로고침 직후 또는 provider 준비 중 - disconnect 이벤트 발생시키지 않음
+          }
         }
       }
     })

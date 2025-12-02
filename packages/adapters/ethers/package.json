@@ -1,6 +1,6 @@
 {
   "name": "@to-nexus/appkit-adapter-ethers",
-  "version": "1.18.3-beta.5",
+  "version": "1.18.4-beta.1",
   "type": "module",
   "main": "./dist/esm/src/index.js",
   "types": "./dist/types/src/index.d.ts",
@@ -31,7 +31,7 @@
     "@to-nexus/appkit-ui": "workspace:*",
     "@to-nexus/appkit-utils": "workspace:*",
     "@to-nexus/appkit-wallet": "workspace:*",
-    "@to-nexus/universal-provider": "2.19.14",
+    "@to-nexus/universal-provider": "2.19.14-alpha.2",
     "@walletconnect/utils": "2.18.0",
     "valtio": "1.13.2"
   },
