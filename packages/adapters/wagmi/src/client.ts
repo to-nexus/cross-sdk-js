@@ -5,7 +5,8 @@ import type { AppKitNetwork, CaipNetwork, ChainNamespace } from '@to-nexus/appki
 import {
   ConstantsUtil as CommonConstantsUtil,
   NetworkUtil,
-  isReownName
+  isReownName,
+  SafeLocalStorage
 } from '@to-nexus/appkit-common'
 import {
   CoreHelperUtil,
@@ -223,16 +224,22 @@ export class WagmiAdapter extends AdapterBlueprint {
       return false
     }
 
+    // ✅ SSR 환경에서 localStorage가 없는 경우 체크
+    if (typeof localStorage === 'undefined') {
+      return false
+    }
+
     try {
       // 1. Cross SDK 기본 연결 정보 확인
-      const connectionStatus = localStorage.getItem('@cross/connection_status')
-      const connectorId = localStorage.getItem('@cross/eip155:connected_connector_id')
+      const connectionStatus = SafeLocalStorage.getItem('@cross/connection_status')
+      const connectorId = SafeLocalStorage.getItem('@cross/eip155:connected_connector_id')
 
       if (connectionStatus !== 'connected' || !connectorId) {
         return false
       }
 
       // 2. WalletConnect 세션 유효성 확인 (핵심!)
+      // ⚠️ WalletConnect 내부 키는 SafeLocalStorage 타입에 없으므로 직접 접근
       const wcSession = localStorage.getItem('wc@2:client:0.3//session')
       if (!wcSession) {
         console.log('[WagmiAdapter] No WalletConnect session storage found')

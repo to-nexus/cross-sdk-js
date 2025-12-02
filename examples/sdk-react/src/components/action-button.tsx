@@ -196,6 +196,12 @@ initCrossSdkWithParams({
         //   throw new Error('Signature verification failed')
         // }
 
+        // ✅ SSR 환경 체크
+        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+          console.warn('SSR environment detected, skipping session storage')
+          return
+        }
+
         // 데모용: localStorage에 다중 체인 세션 저장 (프로덕션에서는 백엔드에 저장!)
         const sessionsKey = 'siwx_multi_chain_sessions'
         const existingSessionsStr = localStorage.getItem(sessionsKey)
@@ -226,6 +232,12 @@ initCrossSdkWithParams({
     // 백엔드에서 세션 조회
     getSessions: async (chainId, address) => {
       try {
+        // ✅ SSR 환경 체크
+        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+          console.warn('SSR environment detected, returning empty sessions')
+          return []
+        }
+
         // 실제 프로덕션에서는 백엔드에서 세션 조회
         // const response = await fetch(
         //   `/api/siwe/sessions?chain=${chainId}&address=${address}`
@@ -270,6 +282,12 @@ initCrossSdkWithParams({
     // ✅ setSessions도 커스텀 구현 (Connect + Auth에서 사용됨!)
     setSessions: async sessions => {
       try {
+        // ✅ SSR 환경 체크
+        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+          console.warn('SSR environment detected, skipping session save')
+          return
+        }
+
         const sessionsKey = 'siwx_multi_chain_sessions'
 
         if (sessions.length === 0) {
@@ -407,6 +425,11 @@ export function ActionButtonList() {
 
   // ✅ 연결 상태 변화 감지 (Cross Wallet QR code 연결)
   useEffect(() => {
+    // ✅ SSR 환경 체크
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return
+    }
+
     if (account?.isConnected && account.address) {
       const activeWallet = getActiveWallet()
       if (activeWallet?.type === 'cross') {
@@ -529,6 +552,11 @@ export function ActionButtonList() {
 
   // MetaMask QR Code (Reown AppKit) 자동 재연결 확인
   useEffect(() => {
+    // ✅ SSR 환경 체크
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return
+    }
+
     // Reown AppKit이 세션을 자동으로 복원했는지 확인
     if (reownAccount?.isConnected && reownAccount?.address) {
       const connectionType = localStorage.getItem('metamask_connection_type')
@@ -544,6 +572,16 @@ export function ActionButtonList() {
   useEffect(() => {
     const autoReconnectMetaMask = async () => {
       try {
+        // ✅ SSR 환경 체크 (최우선)
+        if (typeof window === 'undefined') {
+          return
+        }
+
+        // ✅ localStorage 안전 체크
+        if (typeof localStorage === 'undefined') {
+          return
+        }
+
         // localStorage에서 이전 연결 타입 확인
         const connectionType = localStorage.getItem('metamask_connection_type')
 
@@ -1026,6 +1064,12 @@ export function ActionButtonList() {
         await reownDisconnect()
       } catch (e) {
         // 연결되지 않았을 수 있으므로 에러 무시
+      }
+
+      // ✅ SSR 환경 체크
+      if (typeof window === 'undefined') {
+        showError('실행 환경 오류', '브라우저 환경이 아닙니다.')
+        return
       }
 
       // MetaMask가 설치되어 있는지 확인
