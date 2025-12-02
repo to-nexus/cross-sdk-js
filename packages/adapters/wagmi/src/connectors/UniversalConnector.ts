@@ -406,6 +406,11 @@ export function walletConnect(
       }
     },
     onChainChanged(chain: string) {
+      // 🚫 CROSS Wallet chainChanged 이벤트 무시 (테스트)
+      console.log('🚫 [UniversalConnector] chainChanged event ignored for testing', { chain })
+      return
+
+      // 아래 코드는 실행되지 않음
       const chainId = Number(chain)
 
       config.emitter.emit('change', { chainId })
