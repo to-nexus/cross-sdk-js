@@ -5,8 +5,8 @@ import type { AppKitNetwork, CaipNetwork, ChainNamespace } from '@to-nexus/appki
 import {
   ConstantsUtil as CommonConstantsUtil,
   NetworkUtil,
-  isReownName,
-  SafeLocalStorage
+  SafeLocalStorage,
+  isReownName
 } from '@to-nexus/appkit-common'
 import {
   CoreHelperUtil,
@@ -177,6 +177,18 @@ export class WagmiAdapter extends AdapterBlueprint {
 
         // 세션 복원 성공
         if (result && result.length > 0) {
+          // ✅ 재연결 성공 즉시 체인 정보를 동기화하여 ChainController 초기화
+          const account = getAccount(this.wagmiConfig)
+          if (account.chainId && account.address) {
+            console.log('[WagmiAdapter] Reconnect successful - syncing chain', {
+              chainId: account.chainId,
+              address: account.address
+            })
+            this.emit('switchNetwork', {
+              address: account.address,
+              chainId: account.chainId
+            })
+          }
           return
         }
 
