@@ -53,21 +53,21 @@ export function crossExtensionConnector(): CreateConnectorFn {
     target() {
       const crossProvider = detectCrossExtensionProvider()
       if (crossProvider) {
-        // Console.log('[Wagmi Cross Connector] ✅ Cross Wallet Desktop provider detected and ready')
+        // Console.log('[Wagmi Cross Connector] ✅ CROSSx Extension provider detected and ready')
         return {
           id: 'nexus.to.crosswallet.desktop',
-          name: 'Cross Wallet Desktop',
+          name: 'CROSSx Extension',
           provider: crossProvider
         }
       }
       /*
-       * Console.log('[Wagmi Cross Connector] ⚠️ Cross Wallet Desktop provider not detected, will retry on connect')
+       * Console.log('[Wagmi Cross Connector] ⚠️ CROSSx Extension provider not detected, will retry on connect')
        * 실제 연결 시도 시점에 다시 감지를 시도하는 wrapper provider
        */
 
       return {
         id: 'nexus.to.crosswallet.desktop',
-        name: 'Cross Wallet Desktop',
+        name: 'CROSSx Extension',
         provider: {
           request: async (args: any) => {
             // Console.log('[Wagmi Cross Connector] Connection attempt, retrying detection...')

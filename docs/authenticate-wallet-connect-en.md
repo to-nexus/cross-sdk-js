@@ -543,7 +543,7 @@ export const sdkWagmiAdapter = new ToNexusWagmiAdapter({
   siwx: siwxConfig // Add SIWX configuration
 })
 
-// Initialize Cross SDK (for Cross Wallet)
+// Initialize Cross SDK (for CROSSx Wallet)
 initCrossSdk(
   projectId,
   redirectUrl,
@@ -815,7 +815,7 @@ localStorage.removeItem('siwx_session')
 ### Auto-Reconnection Conditions
 
 ```typescript
-// For Cross Wallet, the SDK handles auto-reconnection automatically.
+// For CROSSx Wallet, the SDK handles auto-reconnection automatically.
 // Auto-reconnect when ALL conditions are met:
 // 1. wallet_connected === 'true'
 // 2. WalletConnect session is valid

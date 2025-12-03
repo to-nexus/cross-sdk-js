@@ -133,7 +133,7 @@ document.getElementById('connect-cross-extension')?.addEventListener('click', as
       )
     } else if (errorMessage.includes('customWallets에 설정되지 않았습니다')) {
       alert(
-        '⚙️ Configuration Error\n\nCross Wallet is not properly configured. Please contact the developer.'
+        '⚙️ Configuration Error\n\nCROSSx Wallet is not properly configured. Please contact the developer.'
       )
     } else {
       alert(
