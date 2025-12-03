@@ -18,7 +18,7 @@ This detailed documentation is designed for developers who want to integrate Cro
 
 This project demonstrates how to integrate Cross SDK into Cocos Creator web games:
 
-- **Wallet Connection**: Cross Wallet connection support
+- **Wallet Connection**: CROSSx Wallet connection support
 - **Network Switching**: Multi-chain support for Cross, Ethereum, BSC, Kaia, etc.
 - **Token Transfer**: Native token and ERC-20 token transfers
 - **Smart Contracts**: Contract read/write functionality
@@ -353,7 +353,7 @@ export class SdkActions extends Component {
     }
 
     try {
-      // Connect Cross Wallet
+      // Connect CROSSx Wallet
       await window.CrossSdk.useAppKitWallet().connect('cross_wallet')
 
       // Update UI

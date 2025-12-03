@@ -1668,7 +1668,7 @@ export class AppKit {
       })
 
       this.universalProvider.on('chainChanged', (chainId: number | string) => {
-        // 🚫 CROSS Wallet chainChanged 이벤트 무시 (테스트)
+        // 🚫 CROSSx Wallet chainChanged 이벤트 무시 (테스트)
         console.log('🚫 [CROSS SDK] chainChanged event ignored for testing', { chainId })
         return
 

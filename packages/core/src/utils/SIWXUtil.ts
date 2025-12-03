@@ -252,7 +252,7 @@ export const SIWXUtil = {
 
       /*
        * ✅ authenticate() 사용 시에도 deep link 저장 (트랜잭션/서명 시 지갑 자동 열기용)
-       * Cross Wallet의 mobile_link 정보 가져오기
+       * CROSSx Wallet의 mobile_link 정보 가져오기
        */
       const { customWallets } = OptionsController.state
       const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')

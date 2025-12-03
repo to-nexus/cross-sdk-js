@@ -28,7 +28,7 @@ examples/cocos-creator/
 
 ### 1. 지갑 연결 관리
 
-- CrossKit 프로토콜을 통한 Cross Wallet 연결
+- CrossKit 프로토콜을 통한 CROSSx Wallet 연결
 - 적절한 정리를 포함한 지갑 연결 해제
 - 실시간 연결 상태 업데이트
 - Cross Connect ↔ Cross Connected 버튼 라벨 토글
@@ -197,7 +197,7 @@ export class CrossInit extends Component {
 ### 2. 지갑 연결 (SdkActions.ts)
 
 ```typescript
-// Cross Wallet에 연결
+// CROSSx Wallet에 연결
 async onClickConnect() {
   if (!window.CrossSdk) {
     alert('SDK가 로드되지 않았습니다')

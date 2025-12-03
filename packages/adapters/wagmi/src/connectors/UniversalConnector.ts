@@ -418,7 +418,7 @@ export function walletConnect(
       }
     },
     onChainChanged(chain: string) {
-      // 🚫 CROSS Wallet chainChanged 이벤트 무시 (테스트)
+      // 🚫 CROSSx Wallet chainChanged 이벤트 무시 (테스트)
       console.log('🚫 [UniversalConnector] chainChanged event ignored for testing', { chain })
       return
 
