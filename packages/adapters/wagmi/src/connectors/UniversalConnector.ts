@@ -2,11 +2,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable func-style */
 /* eslint-disable init-declarations */
+import type { AppKit, AppKitOptions } from '@to-nexus/appkit'
 import { WcHelpersUtil } from '@to-nexus/appkit'
-import type { AppKitOptions } from '@to-nexus/appkit'
-import type { AppKit } from '@to-nexus/appkit'
-import { ConstantsUtil } from '@to-nexus/appkit-common'
 import type { CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
 import { StorageUtil } from '@to-nexus/appkit-core'
 import { type UniversalProvider as UniversalProviderType } from '@to-nexus/universal-provider'
 import {
@@ -418,11 +417,6 @@ export function walletConnect(
       }
     },
     onChainChanged(chain: string) {
-      // 🚫 CROSS Wallet chainChanged 이벤트 무시 (테스트)
-      console.log('🚫 [UniversalConnector] chainChanged event ignored for testing', { chain })
-      return
-
-      // 아래 코드는 실행되지 않음
       const chainId = Number(chain)
 
       config.emitter.emit('change', { chainId })
