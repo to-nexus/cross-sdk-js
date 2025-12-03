@@ -8,15 +8,13 @@ import {
   isReownName
 } from '@to-nexus/appkit-common'
 import {
-  CoreHelperUtil,
-  OptionsController,
-  type SIWXSession,
-  StorageUtil
-} from '@to-nexus/appkit-core'
-import {
   type ConnectorType,
   ConstantsUtil as CoreConstantsUtil,
-  type Provider
+  CoreHelperUtil,
+  OptionsController,
+  type Provider,
+  type SIWXSession,
+  StorageUtil
 } from '@to-nexus/appkit-core'
 import { CaipNetworksUtil, PresetsUtil } from '@to-nexus/appkit-utils'
 import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'

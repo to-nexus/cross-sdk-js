@@ -6,7 +6,7 @@
 
 This example demonstrates:
 
-- **Cross Wallet** connection (QR Code & Extension)
+- **CROSSx Wallet** connection (QR Code & Extension)
 - **MetaMask** connection (QR Code & Extension)
 - **Connect + Auth** - One-click connection with SIWE authentication
   - 📖 For detailed usage and implementation guide, see [Authentication Guide](../../docs/authenticate-wallet-connect.md) ([English](../../docs/authenticate-wallet-connect-en.md))
@@ -37,7 +37,7 @@ This example demonstrates:
         # Optional: MetaMask (Reown) Project ID (default: a48aa6e93d89fbc0f047637579e65356)
         VITE_METAMASK_PROJECT_ID=a48aa6e93d89fbc0f047637579e65356
 
-        # Optional: Universal Link for Cross Wallet (default: crossx:// deep link)
+        # Optional: Universal Link for CROSSx Wallet (default: crossx:// deep link)
         VITE_UNIVERSAL_LINK=https://stg-cross-wallet.crosstoken.io  # stage
         # VITE_UNIVERSAL_LINK=https://dev-cross-wallet.crosstoken.io  # development
         # VITE_UNIVERSAL_LINK=https://cross-wallet.crosstoken.io  # production
@@ -49,7 +49,7 @@ This example demonstrates:
     - `VITE_METAMASK_PROJECT_ID`: (Optional) MetaMask (Reown) Project ID
       - Defaults to the built-in value if not provided
       - Request a new Reown Project ID at [cloud.reown.com](https://cloud.reown.com)
-    - `VITE_UNIVERSAL_LINK`: (Optional) Universal link for the Cross Wallet app
+    - `VITE_UNIVERSAL_LINK`: (Optional) Universal link for the CROSSx Wallet app
       - Falls back to the `crossx://` deep link when omitted
 
 3.  Install dependencies

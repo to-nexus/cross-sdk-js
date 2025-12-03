@@ -382,7 +382,7 @@ export function ActionButtonList() {
       }
     }
 
-    // 3. Cross Wallet (Extension 또는 QR)로 연결된 경우
+    // 3. CROSSx Wallet (Extension 또는 QR)로 연결된 경우
     if (account?.isConnected && walletProvider) {
       return {
         type: 'cross' as const,
@@ -405,12 +405,12 @@ export function ActionButtonList() {
     network
   ])
 
-  // ✅ 연결 상태 변화 감지 (Cross Wallet QR code 연결)
+  // ✅ 연결 상태 변화 감지 (CROSSx Wallet QR code 연결)
   useEffect(() => {
     if (account?.isConnected && account.address) {
       const activeWallet = getActiveWallet()
       if (activeWallet?.type === 'cross') {
-        // Cross Wallet QR code 연결 성공 시 플래그 저장
+        // CROSSx Wallet QR code 연결 성공 시 플래그 저장
         localStorage.setItem('wallet_connected', 'true')
         localStorage.setItem('wallet_type', 'cross')
       }
@@ -864,7 +864,7 @@ export function ActionButtonList() {
 
       // Cross Extension이 설치되어 있는지 확인
       if (!isInstalledCrossExtensionWallet()) {
-        showError('Cross Extension 미설치', 'Cross Wallet Extension을 먼저 설치해주세요.')
+        showError('Cross Extension 미설치', 'CROSSx Wallet Extension을 먼저 설치해주세요.')
         return
       }
 
@@ -1187,7 +1187,7 @@ export function ActionButtonList() {
       } else if (errorMessage.includes('customWallets에 설정되지 않았습니다')) {
         showError(
           '설정 오류',
-          'Cross Wallet이 올바르게 설정되지 않았습니다. 개발자에게 문의해주세요.'
+          'CROSSx Wallet이 올바르게 설정되지 않았습니다. 개발자에게 문의해주세요.'
         )
       } else {
         showError('연결 실패', `지갑 연결 중 오류가 발생했습니다: ${errorMessage}`)
@@ -1283,9 +1283,9 @@ export function ActionButtonList() {
         await reownDisconnect()
         showSuccess('연결 해제 성공', 'MetaMask QR Code가 연결 해제되었습니다.')
       } else {
-        // Cross Wallet 연결 해제
+        // CROSSx Wallet 연결 해제
         await disconnect()
-        showSuccess('연결 해제 성공', 'Cross Wallet이 연결 해제되었습니다.')
+        showSuccess('연결 해제 성공', 'CROSSx Wallet이 연결 해제되었습니다.')
       }
 
       // 모든 상태 클리어
@@ -1417,14 +1417,14 @@ export function ActionButtonList() {
           `메시지: ${message}\n서명: ${signature.slice(0, 20)}...${signature.slice(-20)}`
         )
       } else {
-        // Cross Wallet: SDK 사용
+        // CROSSx Wallet: SDK 사용
         const signedMessage = await ConnectionController.signMessage({
           message,
           customData: {
             metadata: 'This is metadata for signed message'
           }
         })
-        showSuccess('⚡ Cross Wallet 서명 성공!', `서명: ${signedMessage}`)
+        showSuccess('⚡ CROSSx Wallet 서명 성공!', `서명: ${signedMessage}`)
       }
     } catch (error) {
       analyzeAndShowError(error, 'sign')
@@ -1593,7 +1593,7 @@ Check console for full details.`
         })
         showSuccess('🦊 MetaMask Extension 전송 성공!', `트랜잭션 해시: ${txHash}`)
       } else {
-        // Cross Wallet 또는 MetaMask QR: SDK 사용
+        // CROSSx Wallet 또는 MetaMask QR: SDK 사용
         const resTx = await SendController.sendNativeToken({
           data: '0x',
           receiverAddress: RECEIVER_ADDRESS,
@@ -1678,7 +1678,7 @@ Check console for full details.`
           },
           type: ConstantsUtil.TRANSACTION_TYPE.LEGACY
         })
-        showSuccess('⚡ Cross Wallet ERC20 전송 성공!', `resTx: ${JSON.stringify(resTx)}`)
+        showSuccess('⚡ CROSSx Wallet ERC20 전송 성공!', `resTx: ${JSON.stringify(resTx)}`)
         getBalanceOfERC20({ showResult: false })
       }
     } catch (error) {
@@ -1691,7 +1691,7 @@ Check console for full details.`
     if (!account?.isConnected) {
       showError(
         'Error in handleSendTransactionWithDynamicFee',
-        'This feature is only available with Cross Wallet.'
+        'This feature is only available with CROSSx Wallet.'
       )
       return
     }
@@ -1742,7 +1742,7 @@ Check console for full details.`
     if (!account?.isConnected) {
       showError(
         'Error in handleSendNativeWithDynamicFee',
-        'This feature is only available with Cross Wallet.'
+        'This feature is only available with CROSSx Wallet.'
       )
       return
     }
@@ -1771,7 +1771,7 @@ Check console for full details.`
     if (!account?.isConnected) {
       showError(
         'Error in handleSendERC20TokenWithDynamicFee',
-        'This feature is only available with Cross Wallet.'
+        'This feature is only available with CROSSx Wallet.'
       )
       return
     }
@@ -1820,7 +1820,7 @@ Check console for full details.`
       } else {
         // Cross SDK
         const balance = account?.balance
-        showSuccess('⚡ Cross Wallet Native 잔액 조회 성공!', `Balance: ${balance}`)
+        showSuccess('⚡ CROSSx Wallet Native 잔액 조회 성공!', `Balance: ${balance}`)
       }
     } catch (error) {
       console.error('Error in getBalanceOfNative:', error)
@@ -1890,7 +1890,7 @@ Check console for full details.`
         await AccountController.updateTokenBalance(balance)
         if (showResult)
           showSuccess(
-            '⚡ Cross Wallet ERC20 잔액 조회 성공!',
+            '⚡ CROSSx Wallet ERC20 잔액 조회 성공!',
             `updated erc20 balance: ${JSON.stringify(
               account?.tokenBalance?.find(token => token.address === ERC20_ADDRESS.toLowerCase()),
               (key, value) => (typeof value === 'bigint' ? value.toString() : value),
@@ -1927,7 +1927,7 @@ Check console for full details.`
     if (!account?.isConnected) {
       showError(
         'Error in getBalanceFromWalletWithChainFilter',
-        'This feature is only available with Cross Wallet.'
+        'This feature is only available with CROSSx Wallet.'
       )
       return
     }
@@ -1949,7 +1949,7 @@ Check console for full details.`
     if (!account?.isConnected) {
       showError(
         'Error in getBalanceFromWalletWithAssetFilter',
-        'This feature is only available with Cross Wallet.'
+        'This feature is only available with CROSSx Wallet.'
       )
       return
     }
@@ -2000,7 +2000,7 @@ Check console for full details.`
     if (!account?.isConnected) {
       showError(
         'Error in getBalanceFromWalletOnMultipleChains',
-        'This feature is only available with Cross Wallet.'
+        'This feature is only available with CROSSx Wallet.'
       )
       return
     }
@@ -2049,7 +2049,7 @@ Check console for full details.`
     if (!account?.isConnected) {
       showError(
         'Error in getBalanceFromWalletByTokenType',
-        'This feature is only available with Cross Wallet.'
+        'This feature is only available with CROSSx Wallet.'
       )
       return
     }

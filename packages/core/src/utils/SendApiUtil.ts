@@ -28,7 +28,7 @@ export const SendApiUtil = {
       }
     }
 
-    // Fallback to cross wallet API
+    // Fallback to CROSSx Wallet API
     const balances = await ApiController.getBalance(
       address,
       caipNetwork.caipNetworkId,

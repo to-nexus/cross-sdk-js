@@ -13,55 +13,53 @@ import {
   getW3mThemeVariables
 } from '@to-nexus/appkit-common'
 import {
+  AccountController,
   type AccountControllerState,
+  AlertController,
+  ApiController,
+  AssetUtil,
+  BlockchainApiController,
   type ChainAdapter,
+  ChainController,
   type ConnectMethod,
   type ConnectedWalletInfo,
+  ConnectionController,
   type ConnectionControllerClient,
   type ConnectionStatus,
+  ConnectorController,
   type ConnectorType,
   ConstantsUtil as CoreConstantsUtil,
+  CoreHelperUtil,
+  EnsController,
   type EstimateGasTransactionArgs,
+  EventsController,
   type EventsControllerState,
   type Features,
   type Metadata,
+  ModalController,
   type ModalControllerState,
   type NetworkControllerClient,
+  OptionsController,
   type OptionsControllerState,
+  PublicStateController,
   type PublicStateControllerState,
   type ReadContractArgs,
+  RouterController,
   type RouterControllerState,
   type SIWXSession,
   type SdkVersion,
   type SendTransactionArgs,
   type SignEIP712Args,
   type SignTypedDataV4Args,
+  SnackController,
   type SocialProvider,
+  StorageUtil,
+  ThemeController,
   type ThemeControllerState,
   type UseAppKitAccountReturn,
   type UseAppKitNetworkReturn,
   type WalletFeature,
   type WriteContractArgs
-} from '@to-nexus/appkit-core'
-import {
-  AccountController,
-  AlertController,
-  ApiController,
-  AssetUtil,
-  BlockchainApiController,
-  ChainController,
-  ConnectionController,
-  ConnectorController,
-  CoreHelperUtil,
-  EnsController,
-  EventsController,
-  ModalController,
-  OptionsController,
-  PublicStateController,
-  RouterController,
-  SnackController,
-  StorageUtil,
-  ThemeController
 } from '@to-nexus/appkit-core'
 import { WalletUtil } from '@to-nexus/appkit-scaffold-ui/utils'
 import { setColorTheme, setThemeVariables } from '@to-nexus/appkit-ui'
@@ -79,8 +77,8 @@ import {
   type W3mFrameTypes
 } from '@to-nexus/appkit-wallet'
 import type { AppKitNetwork } from '@to-nexus/appkit/networks'
-import UniversalProvider from '@to-nexus/universal-provider'
 import type { UniversalProviderOpts } from '@to-nexus/universal-provider'
+import UniversalProvider from '@to-nexus/universal-provider'
 import type { SessionTypes } from '@walletconnect/types'
 
 import { PACKAGE_VERSION } from '../exports/constants.js'
@@ -1668,11 +1666,6 @@ export class AppKit {
       })
 
       this.universalProvider.on('chainChanged', (chainId: number | string) => {
-        // 🚫 CROSS Wallet chainChanged 이벤트 무시 (테스트)
-        console.log('🚫 [CROSS SDK] chainChanged event ignored for testing', { chainId })
-        return
-
-        // 아래 코드는 실행되지 않음
         // eslint-disable-next-line eqeqeq
         const caipNetwork = this.caipNetworks?.find(c => c.id == chainId)
         const currentCaipNetwork = this.getCaipNetwork()
@@ -1748,6 +1741,53 @@ export class AppKit {
     }
   }
 
+  /**
+   * Cross SDK가 관리하는 connector ID인지 확인하는 헬퍼 메소드
+   * @param chainNamespace - 체인 네임스페이스
+   * @param adapter - 어댑터 인스턴스
+   * @returns Cross SDK가 관리하는 connector인지 여부
+   */
+  private isCrossSdkManagedConnector(
+    chainNamespace: ChainNamespace,
+    adapter: AdapterBlueprint
+  ): boolean {
+    // 1. Cross SDK가 관리하는 connector ID 목록
+    const crossSdkConnectorIds = [
+      'walletConnect', // WalletConnect (QR 코드)
+      'nexus.to.crosswallet.desktop', // Cross Extension
+      'cross_wallet' // Cross Wallet (필요 시)
+    ]
+
+    // 2. StorageUtil에서 저장된 connector ID 확인
+    let connectedConnectorId = StorageUtil.getConnectedConnectorId(chainNamespace)
+
+    // 3. StorageUtil에 아직 저장되지 않았다면, adapter에서 직접 확인
+    if (!connectedConnectorId && (adapter as any).wagmiConfig) {
+      try {
+        const connections = (adapter as any).wagmiConfig.state.connections
+        const currentConnection = connections?.get(connections?.keys().next().value)
+        connectedConnectorId = currentConnection?.connector?.id
+
+        console.log('[Cross SDK] 🔍 Connector ID from Wagmi state:', connectedConnectorId)
+      } catch (error) {
+        console.warn('[Cross SDK] Failed to get connector from Wagmi state:', error)
+      }
+    }
+
+    // 4. Cross SDK가 관리하는 connector인지 확인
+    const isCrossSdkConnector = crossSdkConnectorIds.includes(connectedConnectorId || '')
+
+    if (!isCrossSdkConnector && connectedConnectorId) {
+      console.log('[Cross SDK] 🚫 Not a Cross SDK connector', {
+        connectedConnectorId,
+        chainNamespace,
+        crossSdkConnectorIds
+      })
+    }
+
+    return isCrossSdkConnector
+  }
+
   private listenAdapter(chainNamespace: ChainNamespace) {
     const adapter = this.getAdapter(chainNamespace)
 
@@ -1770,6 +1810,16 @@ export class AppKit {
     }
 
     adapter.on('switchNetwork', ({ address, chainId }) => {
+      // 🚫 Cross SDK가 관리하지 않는 connector의 체인 변경 이벤트 무시
+      if (!this.isCrossSdkManagedConnector(chainNamespace, adapter)) {
+        console.log('[Cross SDK] 🚫 Ignoring switchNetwork - Not a Cross SDK connector', {
+          chainId,
+          chainNamespace
+        })
+
+        return
+      }
+
       if (
         chainId &&
         this.caipNetworks?.find(n => n.id === chainId || n.caipNetworkId === chainId)
@@ -1961,9 +2011,22 @@ export class AppKit {
   }: Pick<AdapterBlueprint.ConnectResult, 'type' | 'provider' | 'id'> & {
     chainNamespace: ChainNamespace
   }) {
+    console.log('[AppKit] 🔍 syncProvider called', {
+      type,
+      id,
+      chainNamespace,
+      hasProvider: Boolean(provider)
+    })
+
     ProviderUtil.setProviderId(chainNamespace, type)
     ProviderUtil.setProvider(chainNamespace, provider)
     StorageUtil.setConnectedConnectorId(chainNamespace, id)
+
+    console.log('[AppKit] ✅ Connector ID stored:', {
+      chainNamespace,
+      id,
+      stored: StorageUtil.getConnectedConnectorId(chainNamespace)
+    })
   }
 
   private async syncAccount(
