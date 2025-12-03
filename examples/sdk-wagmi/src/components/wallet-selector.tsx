@@ -223,10 +223,10 @@ export function WalletSelector() {
 
       if (currentWallet === 'cross_wallet') {
         // connect('cross_wallet')
-        // 이미 Cross Wallet 환경이면 바로 QR Code 모달 열기
+        // 이미 CROSSx Wallet 환경이면 바로 QR Code 모달 열기
         await crossAppKit.connect()
       } else {
-        // MetaMask에서 Cross Wallet로 전환 (autoConnect: true로 자동으로 QR Code 모달 열림)
+        // MetaMask에서 CROSSx Wallet로 전환 (autoConnect: true로 자동으로 QR Code 모달 열림)
         await handleConnect('cross_wallet')
       }
     } catch (error) {
@@ -243,10 +243,10 @@ export function WalletSelector() {
       setLoadingStates(prev => ({ ...prev, crossExtension: true }))
 
       if (currentWallet === 'cross_wallet') {
-        // 이미 Cross Wallet 환경이면 바로 Extension 연결
+        // 이미 CROSSx Wallet 환경이면 바로 Extension 연결
         await connectCrossExtensionWallet()
       } else {
-        // MetaMask에서 Cross Wallet로 전환 (autoConnect: false로 모달 열지 않음)
+        // MetaMask에서 CROSSx Wallet로 전환 (autoConnect: false로 모달 열지 않음)
         await handleConnect('cross_wallet', { autoConnect: false })
         await new Promise(resolve => setTimeout(resolve, 500))
         await connectCrossExtensionWallet()
@@ -282,7 +282,7 @@ export function WalletSelector() {
           }
         }
       } else {
-        // MetaMask에서 Cross Wallet로 전환 (autoConnect: false로 모달 열지 않음)
+        // MetaMask에서 CROSSx Wallet로 전환 (autoConnect: false로 모달 열지 않음)
         await handleConnect('cross_wallet', { autoConnect: false })
         await new Promise(resolve => setTimeout(resolve, 500))
 
@@ -336,7 +336,7 @@ export function WalletSelector() {
           }
         }
       } else {
-        // MetaMask에서 Cross Wallet로 전환 (autoConnect: false로 모달 열지 않음)
+        // MetaMask에서 CROSSx Wallet로 전환 (autoConnect: false로 모달 열지 않음)
         await handleConnect('cross_wallet', { autoConnect: false })
         await new Promise(resolve => setTimeout(resolve, 500))
 

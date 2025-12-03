@@ -35,7 +35,7 @@ export default function App() {
     activeWalletType === 'metamask' || // MetaMask Extension
     (reownAccount?.isConnected && !!reownAccount?.address) // MetaMask QR
 
-  // Cross Wallet 연결: Extension 또는 QR Code
+  // CROSSx Wallet 연결: Extension 또는 QR Code
   const isCrossConnected =
     !isMetaMaskConnected && // MetaMask가 아니고
     crossAccount?.isConnected &&
@@ -54,7 +54,7 @@ export default function App() {
 
       <h1 className="page-title">Cross React Sdk Example</h1>
 
-      {/* 조건부 네트워크 버튼: MetaMask는 Reown, Cross Wallet은 Cross SDK */}
+      {/* 조건부 네트워크 버튼: MetaMask는 Reown, CROSSx Wallet은 Cross SDK */}
       {isMetaMaskConnected ? (
         <w3m-network-button />
       ) : isCrossConnected ? (

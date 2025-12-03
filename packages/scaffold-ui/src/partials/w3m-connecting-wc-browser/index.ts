@@ -27,7 +27,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
       throw new Error('cross-w3m-connecting-wc-browser: No wallet provided')
     }
 
-    // Cross Wallet 설치 여부 확인
+    // CROSSx Wallet 설치 여부 확인
     this.checkCrossWalletInstallation()
 
     this.onConnect = this.onConnectProxy.bind(this)
@@ -42,7 +42,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
 
   // -- Render -------------------------------------------- //
   public override render() {
-    // Cross Wallet이 설치되어 있지 않으면 스토어 링크 표시
+    // CROSSx Wallet이 설치되어 있지 않으면 스토어 링크 표시
     if (!this.isCrossWalletInstalled && this.isCrossWallet()) {
       return this.renderStoreLinks()
     }
@@ -74,7 +74,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
       return
     }
 
-    // 2순위: window에서 Cross Wallet 전용 체크
+    // 2순위: window에서 CROSSx Wallet 전용 체크
     if (typeof window !== 'undefined') {
       const rdns = this.wallet.rdns
       // crossWallet은 window.crossWallet에 무조건 객체를 넣음
@@ -87,7 +87,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
       }
     }
 
-    // Cross Wallet이 설치되지 않음
+    // CROSSx Wallet이 설치되지 않음
     this.isCrossWalletInstalled = false
   }
 
@@ -107,9 +107,9 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
         </cross-wui-flex>
 
         <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <cross-wui-text variant="paragraph-500" color="fg-100"> Cross Wallet not installed </cross-wui-text>
+          <cross-wui-text variant="paragraph-500" color="fg-100"> CROSSx Wallet not installed </cross-wui-text>
           <cross-wui-text align="center" variant="small-500" color="fg-200">
-            Install Cross Wallet to continue with browser connection
+            Install CROSSx Wallet to continue with browser connection
           </cross-wui-text>
         </cross-wui-flex>
 
@@ -127,7 +127,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
             `
         : html`
               <cross-wui-text align="center" variant="small-500" color="fg-200">
-                Please install Cross Wallet extension for your browser
+                Please install CROSSx Wallet extension for your browser
               </cross-wui-text>
             `}
       </cross-wui-flex>
@@ -187,8 +187,8 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
             properties: { method: 'browser', name: this.wallet?.name || 'Unknown' }
           })
         } else {
-          // Cross Wallet이 설치되지 않았으면 에러 발생시키지 않고 현재 화면 유지
-          console.log('Cross Wallet not installed - staying on install screen')
+          // CROSSx Wallet이 설치되지 않았으면 에러 발생시키지 않고 현재 화면 유지
+          console.log('CROSSx Wallet not installed - staying on install screen')
           return
         }
       } else {

@@ -199,7 +199,7 @@ export function walletConnect(
 
         provider.setDefaultChain(`eip155:${currentChainId}`)
 
-        return { accounts, chainId: currentChainId as number }
+        return { accounts, chainId: currentChainId }
       } catch (error) {
         if (
           // eslint-disable-next-line prefer-named-capture-group, require-unicode-regexp
@@ -295,10 +295,11 @@ export function walletConnect(
         if (network) {
           return network.id as number
         }
+
         return Number(chainIdStr)
       }
 
-      // provider session이 없으면 AppKit 상태 사용 (기존 로직)
+      // Provider session이 없으면 AppKit 상태 사용 (기존 로직)
       const chainId = appKit.getCaipNetwork()?.id
       if (chainId) {
         return chainId as number

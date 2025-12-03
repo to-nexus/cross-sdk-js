@@ -18,7 +18,7 @@ Cocos Creator 3.8.7 게임 프로젝트에 Cross SDK를 통합하여 블록체�
 
 이 프로젝트는 Cocos Creator 웹게임에 Cross SDK를 통합하는 방법을 보여줍니다:
 
-- **지갑 연결**: Cross Wallet 지갑 연결 지원
+- **지갑 연결**: CROSSx Wallet 지갑 연결 지원
 - **네트워크 전환**: Cross, Ethereum, BSC, Kaia 등 멀티체인 지원
 - **토큰 전송**: 네이티브 토큰 및 ERC-20 토큰 전송
 - **스마트 컨트랙트**: 컨트랙트 읽기/쓰기 기능
@@ -353,7 +353,7 @@ export class SdkActions extends Component {
     }
 
     try {
-      // Cross Wallet 연결
+      // CROSSx Wallet 연결
       await window.CrossSdk.useAppKitWallet().connect('cross_wallet')
 
       // UI 업데이트

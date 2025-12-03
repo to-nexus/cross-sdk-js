@@ -6,7 +6,7 @@
 
 This example demonstrates:
 
-- **Cross Wallet** connection (QR Code & Extension via Cross SDK modal)
+- **CROSSx Wallet** connection (QR Code & Extension via Cross SDK modal)
 - **Cross Extension** - Browser extension wallet
 - **MetaMask Extension** - Browser extension wallet
 - **Connect + Auth** - One-click connection with SIWE authentication

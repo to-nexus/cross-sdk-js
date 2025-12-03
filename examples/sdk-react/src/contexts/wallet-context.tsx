@@ -26,7 +26,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       return 'metamask'
     }
 
-    // 아니면 null (Cross Wallet은 SDK에서 관리)
+    // 아니면 null (CROSSx Wallet은 SDK에서 관리)
     return null
   }, [metamaskProvider, metamaskAccount])
 

@@ -550,7 +550,7 @@ export const sdkWagmiAdapter = new ToNexusWagmiAdapter({
   siwx: siwxConfig // SIWX 설정 추가
 })
 
-// Cross SDK 초기화 (Cross Wallet용)
+// Cross SDK 초기화 (CROSSx Wallet용)
 initCrossSdk(
   projectId,
   redirectUrl,
@@ -825,7 +825,7 @@ localStorage.removeItem('siwx_session')
 ### 자동 재연결 조건
 
 ```typescript
-// Cross Wallet의 경우 SDK가 자동으로 재연결을 처리합니다.
+// CROSSx Wallet의 경우 SDK가 자동으로 재연결을 처리합니다.
 // 다음 조건을 모두 만족할 때 자동 재연결:
 // 1. wallet_connected === 'true'
 // 2. WalletConnect 세션이 유효함

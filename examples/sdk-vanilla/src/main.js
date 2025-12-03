@@ -310,7 +310,7 @@ function getActiveWallet() {
     }
   }
 
-  // Cross Wallet이 연결되어 있으면
+  // CROSSx Wallet이 연결되어 있으면
   if (accountState?.isConnected && eip155Provider) {
     return {
       type: 'cross',
@@ -425,7 +425,7 @@ function createNetworkModal() {
   availableNetworks.forEach(networkInfo => {
     const networkItem = document.createElement('div')
 
-    // 현재 네트워크 확인 (MetaMask와 Cross Wallet 구분)
+    // 현재 네트워크 확인 (MetaMask와 CROSSx Wallet 구분)
     const currentChainId =
       activeWallet?.type === 'metamask' ? metamaskChainId : networkState?.caipNetwork?.id
     const isCurrentNetwork = currentChainId === networkInfo.network.id
@@ -499,7 +499,7 @@ function createNetworkModal() {
               }
             }
           } else {
-            // Cross Wallet 네트워크 전환
+            // CROSSx Wallet 네트워크 전환
             await crossSdk.switchNetwork(networkInfo.network)
           }
 
@@ -623,7 +623,7 @@ async function handleSignMessage() {
   const activeWallet = getActiveWallet()
 
   if (!activeWallet) {
-    showError('지갑 미연결', 'Cross Wallet 또는 MetaMask를 먼저 연결해주세요.')
+    showError('지갑 미연결', 'CROSSx Wallet 또는 MetaMask를 먼저 연결해주세요.')
     return
   }
 
@@ -641,14 +641,14 @@ async function handleSignMessage() {
         `메시지: ${message}\n서명: ${signature.slice(0, 20)}...${signature.slice(-20)}`
       )
     } else {
-      // Cross Wallet 사용
+      // CROSSx Wallet 사용
       const signedMessage = await ConnectionController.signMessage({
         message,
         customData: {
           metadata: 'This is metadata for signed message'
         }
       })
-      showSuccess('⚡ Cross Wallet 서명 성공!', `서명: ${signedMessage}`)
+      showSuccess('⚡ CROSSx Wallet 서명 성공!', `서명: ${signedMessage}`)
     }
   } catch (error) {
     console.error('Error signing message:', error)
@@ -661,7 +661,7 @@ async function handleSignTypedDataV4() {
   const activeWallet = getActiveWallet()
 
   if (!activeWallet) {
-    showError('지갑 미연결', 'Cross Wallet 또는 MetaMask를 먼저 연결해주세요.')
+    showError('지갑 미연결', 'CROSSx Wallet 또는 MetaMask를 먼저 연결해주세요.')
     return
   }
 
@@ -759,8 +759,8 @@ async function handleSignTypedDataV4() {
 
       // Signature completed
     } else {
-      // Cross Wallet 사용 - ConnectionController.signTypedDataV4 사용
-      // Cross Wallet signing
+      // CROSSx Wallet 사용 - ConnectionController.signTypedDataV4 사용
+      // CROSSx Wallet signing
 
       signature = await ConnectionController.signTypedDataV4(paramsData, {
         metadata: apiData
@@ -791,7 +791,7 @@ async function handleSignTypedDataV4() {
 
     // Show detailed results
     const walletIcon = activeWallet.type === 'metamask' ? '🦊' : '⚡'
-    const walletName = activeWallet.type === 'metamask' ? 'MetaMask' : 'Cross Wallet'
+    const walletName = activeWallet.type === 'metamask' ? 'MetaMask' : 'CROSSx Wallet'
     const message = usingFallback
       ? `${walletIcon} ${walletName} Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n⚠️ Using Fallback Data (API unavailable)`
       : `${walletIcon} ${walletName} Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}`
@@ -806,7 +806,7 @@ async function handleSignTypedDataV4() {
 // Cross SDK only
 async function handleProviderRequest() {
   if (!accountState.isConnected) {
-    showError('This feature is only available with Cross Wallet.')
+    showError('This feature is only available with CROSSx Wallet.')
     return
   }
 
@@ -1416,7 +1416,7 @@ crossSdk.subscribeAccount(state => {
     2
   )
 
-  // Cross Wallet 연결 시 지갑 표시 업데이트
+  // CROSSx Wallet 연결 시 지갑 표시 업데이트
   if (state.isConnected) {
     updateWalletIndicator()
   }
@@ -1596,7 +1596,7 @@ connectCrossExtension.addEventListener('click', async () => {
         '익스텐션 미설치: Cross Extension Wallet이 설치되지 않았습니다. 먼저 익스텐션을 설치해주세요.'
       )
     } else if (errorMessage.includes('customWallets에 설정되지 않았습니다')) {
-      alert('설정 오류: Cross Wallet이 올바르게 설정되지 않았습니다. 개발자에게 문의해주세요.')
+      alert('설정 오류: CROSSx Wallet이 올바르게 설정되지 않았습니다. 개발자에게 문의해주세요.')
     } else {
       alert(`연결 실패: 지갑 연결 중 오류가 발생했습니다 - ${errorMessage}`)
     }
@@ -2154,7 +2154,7 @@ document.getElementById('send-transaction-unified')?.addEventListener('click', a
   const activeWallet = getActiveWallet()
 
   if (!activeWallet) {
-    showError('지갑 미연결', 'Cross Wallet 또는 MetaMask를 먼저 연결해주세요.')
+    showError('지갑 미연결', 'CROSSx Wallet 또는 MetaMask를 먼저 연결해주세요.')
     return
   }
 
@@ -2178,14 +2178,14 @@ document.getElementById('send-transaction-unified')?.addEventListener('click', a
         `Tx Hash: ${txHash}\nTo: ${RECEIVER_ADDRESS}\nValue: 0.001 ETH`
       )
     } else {
-      // Cross Wallet 사용
+      // CROSSx Wallet 사용
       const result = await SendController.sendTransaction({
         to: RECEIVER_ADDRESS,
         value: ConnectionController.parseUnits('0.01', 18),
         data: '0x'
       })
 
-      showSuccess('⚡ Cross Wallet 트랜잭션 성공!', `Tx Hash: ${result}\nTo: ${RECEIVER_ADDRESS}`)
+      showSuccess('⚡ CROSSx Wallet 트랜잭션 성공!', `Tx Hash: ${result}\nTo: ${RECEIVER_ADDRESS}`)
     }
   } catch (error) {
     console.error('Transaction error:', error)
@@ -2198,7 +2198,7 @@ document.getElementById('get-balance-unified')?.addEventListener('click', async 
   const activeWallet = getActiveWallet()
 
   if (!activeWallet) {
-    showError('지갑 미연결', 'Cross Wallet 또는 MetaMask를 먼저 연결해주세요.')
+    showError('지갑 미연결', 'CROSSx Wallet 또는 MetaMask를 먼저 연결해주세요.')
     return
   }
 
@@ -2216,12 +2216,12 @@ document.getElementById('get-balance-unified')?.addEventListener('click', async 
           `Chain ID: ${activeWallet.chainId}`
       )
     } else {
-      // Cross Wallet 사용
+      // CROSSx Wallet 사용
       const balance = await ConnectionController.getBalance(activeWallet.account)
       const coin = contractData[activeWallet.chainId]?.coin || 'TOKEN'
 
       showSuccess(
-        '⚡ Cross Wallet 잔액 조회 성공!',
+        '⚡ CROSSx Wallet 잔액 조회 성공!',
         `주소: ${activeWallet.account}\n잔액: ${balance} ${coin}`
       )
     }
@@ -2277,7 +2277,7 @@ disconnectWallet.addEventListener('click', async () => {
       alert('MetaMask 연결이 해제되었습니다.')
     } else {
       // Cross SDK 연결 해제
-      // Disconnecting Cross Wallet
+      // Disconnecting CROSSx Wallet
       await appkitWallet.disconnect()
 
       // ✅ 연결 상태 제거 (자동 재연결 방지)
@@ -2286,7 +2286,7 @@ disconnectWallet.addEventListener('click', async () => {
       localStorage.removeItem('has_siwx_session')
       localStorage.removeItem('siwx_session')
 
-      // Cross Wallet disconnected
+      // CROSSx Wallet disconnected
     }
   } catch (error) {
     console.error('지갑 연결 해제 실패:', error)

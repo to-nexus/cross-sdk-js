@@ -781,7 +781,7 @@ async function initializeApp() {
     // Universal EIP-712 signing using server-provided typed data (Cross SDK only)
     async function handleSignTypedDataV4() {
       if (!accountState.isConnected) {
-        alert('This feature is only available with Cross Wallet.')
+        alert('This feature is only available with CROSSx Wallet.')
         return
       }
 
@@ -913,7 +913,7 @@ Check console for full details.`)
     // Cross SDK only
     async function handleProviderRequest() {
       if (!accountState.isConnected) {
-        alert('This feature is only available with Cross Wallet.')
+        alert('This feature is only available with CROSSx Wallet.')
         return
       }
 
@@ -932,7 +932,7 @@ Check console for full details.`)
     // Cross SDK only
     async function handleSendTransaction() {
       if (!accountState.isConnected) {
-        alert('This feature is only available with Cross Wallet.')
+        alert('This feature is only available with CROSSx Wallet.')
         return
       }
 
@@ -1076,7 +1076,7 @@ Check console for full details.`)
     // Cross SDK only
     async function handleSendTransactionWithDynamicFee() {
       if (!accountState.isConnected) {
-        alert('This feature is only available with Cross Wallet.')
+        alert('This feature is only available with CROSSx Wallet.')
         return
       }
 
@@ -1125,7 +1125,7 @@ Check console for full details.`)
     // Cross SDK only
     async function handleSendNativeWithDynamicFee() {
       if (!accountState.isConnected) {
-        alert('This feature is only available with Cross Wallet.')
+        alert('This feature is only available with CROSSx Wallet.')
         return
       }
 
@@ -1151,7 +1151,7 @@ Check console for full details.`)
     // Cross SDK only
     async function handleSendERC20TokenWithDynamicFee() {
       if (!accountState.isConnected) {
-        alert('This feature is only available with Cross Wallet.')
+        alert('This feature is only available with CROSSx Wallet.')
         return
       }
 
@@ -1387,7 +1387,7 @@ ${JSON.stringify(status.sessions, null, 2)}`)
           : '1 ' + contractData[networkState?.chainId]?.coin || 'CROSS'
       document.getElementById('networkState').textContent = JSON.stringify(state, null, 2)
 
-      // switch-network 버튼 텍스트 업데이트 (Cross Wallet용)
+      // switch-network 버튼 텍스트 업데이트 (CROSSx Wallet용)
       updateSwitchNetworkButton()
     })
 

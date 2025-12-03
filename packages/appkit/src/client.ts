@@ -1816,6 +1816,7 @@ export class AppKit {
           chainId,
           chainNamespace
         })
+
         return
       }
 
@@ -2014,7 +2015,7 @@ export class AppKit {
       type,
       id,
       chainNamespace,
-      hasProvider: !!provider
+      hasProvider: Boolean(provider)
     })
 
     ProviderUtil.setProviderId(chainNamespace, type)

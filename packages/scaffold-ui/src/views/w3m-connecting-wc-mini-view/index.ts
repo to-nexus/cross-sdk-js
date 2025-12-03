@@ -250,7 +250,7 @@ export class W3mConnectingWcMiniView extends LitElement {
       mobile: 'Mobile',
       qrcode: 'QR Code',
       web: 'Web',
-      desktop: 'Desktop',
+      desktop: 'Extension',
       unsupported: 'Unsupported'
     }
 

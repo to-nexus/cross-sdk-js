@@ -123,7 +123,7 @@ connectCrossExtension.addEventListener('click', async () => {
     } else if (errorMessage.includes('익스텐션이 설치되지 않았습니다')) {
       alert('📦 Extension Not Installed\n\nCross Extension Wallet is not installed.')
     } else if (errorMessage.includes('customWallets에 설정되지 않았습니다')) {
-      alert('⚙️ Configuration Error\n\nCross Wallet is not properly configured.')
+      alert('⚙️ Configuration Error\n\nCROSSx Wallet is not properly configured.')
     } else {
       alert(`❌ Connection Failed\n\n${errorMessage}`)
     }
