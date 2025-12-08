@@ -135,12 +135,17 @@ case "$ENVIRONMENT" in
       echo "Registry URL not available; defaulting to stable"
       META_RAW=""
     fi
-    export META_RAW
+    # META_RAW를 임시 파일에 저장 (환경 변수로 전달하면 "Argument list too long" 발생 가능)
+    META_FILE=$(mktemp)
+    echo "$META_RAW" > "$META_FILE"
     export TARBALL_OK="${TARBALL_OK:-0}"
     export BASE_VERSION
+    export META_FILE
     node -e "
  const fs = require('fs');
- let metaStr = process.env.META_RAW || '';
+ const metaFile = process.env.META_FILE || '';
+ let metaStr = '';
+ try { metaStr = fs.readFileSync(metaFile, 'utf8'); } catch (e) {}
  let meta = {}; try { meta = JSON.parse(metaStr || '{}'); } catch (e) {}
  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
  const baseVersion = process.env.BASE_VERSION || pkg.version.replace(/-alpha.*$/, '').replace(/-beta.*$/, '');
@@ -180,7 +185,8 @@ case "$ENVIRONMENT" in
  }
  fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
  console.log('Workspace version set to:', pkg.version);
- " META_RAW="$META_RAW" TARBALL_OK="$TARBALL_OK"
+ "
+    rm -f "$META_FILE" || true
     SELECTED_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
     if [ -n "$SELECTED_VERSION" ]; then
       node scripts/set-workspace-version.cjs "$SELECTED_VERSION" || true
