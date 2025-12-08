@@ -3854,14 +3854,14 @@ packages:
       react: ^18 || ^19
 
   '@to-nexus/core@2.19.14':
-    resolution: {integrity: sha512-hFijvjSJKRR5PB6V30HtjzHKSodxSkBs9vVsTwRZSoXW+zvgofyGlY1RUv7A3QcND2Or2V3ok76QoSVkJCJGIQ==}
+    resolution: {integrity: sha1-SyLVDwIuHxF9DPbmj85beSMfJZo=}
     engines: {node: '>=18'}
 
   '@to-nexus/sign-client@2.19.14':
-    resolution: {integrity: sha512-OLSnjPgLlcjqrlD9Tv3ckeqNBs7ML1Rc1WIo/hnukHXLQMHzs/E4/ED+Cu4q2CphqOIYMVXNk3Ba/7z6uOK8ug==}
+    resolution: {integrity: sha1-qc5VP4boNqs9l/zmvuPR8ToWSu0=}
 
   '@to-nexus/universal-provider@2.19.14':
-    resolution: {integrity: sha512-3UnaZZFbgJRB4je2WgvVobSjURU53rYtTztCUSOiK5YuqwqJl2HpCMdK6nAzHPhVKlb7l7BXB3OtO7M3yAyVcg==}
+    resolution: {integrity: sha1-GJMWGwXzgZ7jeuOH6SdaKsA9YNo=}
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -16914,7 +16914,7 @@ snapshots:
 
   asn1.js@4.10.1:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       inherits: 2.0.4
       minimalistic-assert: 1.0.1
 
@@ -17482,7 +17482,7 @@ snapshots:
 
   cids@0.7.5:
     dependencies:
-      buffer: 5.7.1
+      buffer: 5.5.0
       class-is: 1.1.0
       multibase: 0.6.1
       multicodec: 1.0.4
@@ -17631,7 +17631,7 @@ snapshots:
 
   create-ecdh@4.0.4:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       elliptic: 6.5.4
 
   create-hash@1.2.0:
@@ -17924,7 +17924,7 @@ snapshots:
 
   diffie-hellman@5.0.3:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       miller-rabin: 4.0.1
       randombytes: 2.1.0
 
@@ -20455,7 +20455,7 @@ snapshots:
 
   miller-rabin@4.0.1:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       brorand: 1.1.0
 
   mime-db@1.52.0: {}
@@ -20624,12 +20624,12 @@ snapshots:
   multibase@0.6.1:
     dependencies:
       base-x: 3.0.11
-      buffer: 5.7.1
+      buffer: 5.5.0
 
   multibase@0.7.0:
     dependencies:
       base-x: 3.0.11
-      buffer: 5.7.1
+      buffer: 5.5.0
 
   multibase@3.1.2:
     dependencies:
@@ -20663,7 +20663,7 @@ snapshots:
 
   multihashes@0.4.21:
     dependencies:
-      buffer: 5.7.1
+      buffer: 5.5.0
       multibase: 0.7.0
       varint: 5.0.2
 
@@ -21285,7 +21285,7 @@ snapshots:
 
   public-encrypt@4.0.3:
     dependencies:
-      bn.js: 4.11.6
+      bn.js: 4.12.2
       browserify-rsa: 4.1.1
       create-hash: 1.2.0
       parse-asn1: 5.1.9
@@ -22129,7 +22129,7 @@ snapshots:
   swarm-js@0.1.42(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
       bluebird: 3.7.2
-      buffer: 5.7.1
+      buffer: 5.5.0
       eth-lib: 0.1.29(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       fs-extra: 4.0.3
       got: 11.8.6
