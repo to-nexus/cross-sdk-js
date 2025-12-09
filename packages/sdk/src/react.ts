@@ -26,7 +26,7 @@ import {
   etherTestnet,
   kaiaMainnet,
   kaiaTestnet,
-  networkList,
+  networkController,
   roninMainnet,
   roninTestnet
 } from '@to-nexus/appkit/networks'
@@ -146,7 +146,9 @@ const initCrossSdk = (
 
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
-    networks: networkList,
+    networks: [
+      ...networkController.getNetworks()
+    ] as [any, ...any[]],
     defaultNetwork,
     metadata: mergedMetadata,
     projectId,

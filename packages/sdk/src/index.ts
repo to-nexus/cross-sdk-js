@@ -26,7 +26,7 @@ import {
   etherTestnet,
   kaiaMainnet,
   kaiaTestnet,
-  networkList,
+  networkController,
   roninMainnet,
   roninTestnet
 } from '@to-nexus/appkit/networks'
@@ -163,7 +163,10 @@ const initCrossSdk = (
 
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
-    networks: networkList,
+    networks: [
+      ...networkController.getNetworks(),
+      // 타입 호환성을 위해 튜플로 변환이 필요할 수 있으나, createAppKit이 배열을 받으므로 spread로 처리
+    ] as [any, ...any[]], 
     defaultNetwork,
     metadata: mergedMetadata,
     projectId,
