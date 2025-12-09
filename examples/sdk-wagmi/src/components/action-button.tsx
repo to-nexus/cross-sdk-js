@@ -255,32 +255,48 @@ export function ActionButtonList() {
     }
 
     try {
-      // EIP-712 typed data 예제 - Simple Ping structure
+      // EIP-712 typed data 예제 - ERC20Mint (real-world use case)
+      // NOTE: This is example data. In production:
+      // - 'from' is implicit (the signer's address)
+      // - 'nonce' should be fetched from the contract
+      // - 'deadline' should be current timestamp + expiry time
       const domain = {
-        name: 'Example',
+        name: '0cd3a59377299deb46d424c0dc5edfc8',
         version: '1',
         chainId: wagmiAccount.chainId,
-        verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC' as `0x${string}`
+        verifyingContract: '0x5ad400c3db22641f7f94a1bd36f88ac359b74dae' as `0x${string}`
       }
 
       const types = {
-        Ping: [{ name: 'contents', type: 'string' }]
+        ERC20Mint: [
+          { name: 'token', type: 'address' },
+          { name: 'amount', type: 'uint256' },
+          { name: 'feeRecipient', type: 'address' },
+          { name: 'feeBPS', type: 'uint256' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' }
+        ]
       }
 
       const message = {
-        contents: 'hello from Wagmi'
+        token: '0x979a94888aa35ab603ff3ef1a25f942a99a1e7a5',
+        amount: '1000000000000000000', // 1 token (18 decimals)
+        feeRecipient: '0x56b78f96f028e8302aa8b94dd69299e43d7c58a6',
+        feeBPS: '1000', // 10% fee (1000 basis points)
+        nonce: '12', // Example value - fetch from contract in production
+        deadline: '1765196498' // Example timestamp - use Math.floor(Date.now() / 1000) + expiry in production
       }
 
       const signature = await signTypedDataAsync({
         domain,
         types,
-        primaryType: 'Ping',
+        primaryType: 'ERC20Mint',
         message
       })
 
       showSuccess(
         'Wagmi Sign Typed Data Successful!',
-        `Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n\nMessage: "${message.contents}"`
+        `Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n\nToken: ${message.token}\nAmount: ${message.amount} (1 token)`
       )
     } catch (error) {
       console.error('Error signing typed data with Wagmi:', error)
