@@ -23,6 +23,24 @@ import { InfuraProvider, JsonRpcProvider, Signature, formatEther } from 'ethers'
 
 import { EthersMethods } from './utils/EthersMethods.js'
 
+// Helper function to safely extract error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  if (typeof error === 'string') {
+    return error
+  }
+  if (typeof error === 'object' && error !== null) {
+    const obj = error as Record<string, unknown>
+    if ('message' in obj && typeof obj['message'] === 'string') {
+      return obj['message']
+    }
+  }
+
+  return String(error)
+}
+
 export interface EIP6963ProviderDetail {
   info: Connector['info']
   provider: Provider
@@ -126,8 +144,10 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error, null, 2)
-      throw new Error(`EthersAdapter:signMessage - Sign message failed: ${errorMessage}`)
+      const errorMessage = getErrorMessage(error)
+      throw new Error(`EthersAdapter:signMessage - Sign message failed: ${errorMessage}`, {
+        cause: error
+      })
     }
   }
 
@@ -143,7 +163,7 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error('EthersAdapter:etherSignMessage - Sign message failed')
+      throw new Error('EthersAdapter:etherSignMessage - Sign message failed', { cause: error })
     }
   }
 
@@ -186,8 +206,8 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error, null, 2)
-      throw new Error(`EthersAdapter:signEIP712 failed: ${errorMessage}`)
+      const errorMessage = getErrorMessage(error)
+      throw new Error(`EthersAdapter:signEIP712 failed: ${errorMessage}`, { cause: error })
     }
   }
 
@@ -250,8 +270,8 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error, null, 2)
-      throw new Error(`EthersAdapter:signTypedDataV4 failed: ${errorMessage}`)
+      const errorMessage = getErrorMessage(error)
+      throw new Error(`EthersAdapter:signTypedDataV4 failed: ${errorMessage}`, { cause: error })
     }
   }
 
@@ -348,7 +368,7 @@ export class EthersAdapter extends AdapterBlueprint {
 
       return { gas: result }
     } catch (error) {
-      throw new Error('EthersAdapter:estimateGas - Estimate gas failed')
+      throw new Error('EthersAdapter:estimateGas - Estimate gas failed', { cause: error })
     }
   }
 
@@ -564,7 +584,7 @@ export class EthersAdapter extends AdapterBlueprint {
             providerType: type as ConnectorType
           })
         } catch (error) {
-          throw new Error('EthersAdapter:connect - Switch network failed')
+          throw new Error('EthersAdapter:connect - Switch network failed', { cause: error })
         }
       }
 

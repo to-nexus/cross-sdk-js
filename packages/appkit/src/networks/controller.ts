@@ -47,7 +47,9 @@ export class NetworkController {
     try {
       const response = await fetch(`${this.apiUrl}/chain/info`)
       if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.statusText}`)
+        throw new Error(`Network response was not ok: ${response.statusText}`, { 
+          cause: { status: response.status, statusText: response.statusText } 
+        })
       }
 
       const json: ChainApiResponse = await response.json()
@@ -58,6 +60,7 @@ export class NetworkController {
         this.isInitialized = true
       }
     } catch (error) {
+      // Log error with full details but don't throw - fallback to defaults
       console.warn('Failed to fetch dynamic networks, using defaults:', error)
     }
   }

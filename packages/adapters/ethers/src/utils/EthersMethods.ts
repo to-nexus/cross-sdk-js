@@ -519,7 +519,7 @@ export const EthersMethods = {
     try {
       return JSON.parse(str)
     } catch (error) {
-      throw new Error('Error parsing wallet capabilities')
+      throw new Error('Error parsing wallet capabilities', { cause: error })
     }
   },
 

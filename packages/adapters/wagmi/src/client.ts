@@ -59,6 +59,24 @@ import { walletConnect } from './connectors/UniversalConnector.js'
 import { LimitterUtil } from './utils/LimitterUtil.js'
 import { parseWalletCapabilities } from './utils/helpers.js'
 
+// Helper function to safely extract error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  if (typeof error === 'string') {
+    return error
+  }
+  if (typeof error === 'object' && error !== null) {
+    const obj = error as Record<string, unknown>
+    if ('message' in obj && typeof obj['message'] === 'string') {
+      return obj['message']
+    }
+  }
+
+  return String(error)
+}
+
 interface PendingTransactionsFilter {
   enable: boolean
   pollingInterval?: number
@@ -569,7 +587,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error('WagmiAdapter:signMessage - Sign message failed')
+      throw new Error('WagmiAdapter:signMessage - Sign message failed', { cause: error })
     }
   }
 
@@ -589,7 +607,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error('WagmiAdapter:etherSignMessage - Sign message failed')
+      throw new Error('WagmiAdapter:etherSignMessage - Sign message failed', { cause: error })
     }
   }
 
@@ -623,9 +641,10 @@ export class WagmiAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error(
-        `WagmiAdapter:signTypedDataV4 - Sign typed data failed: ${(error as Error).message}`
-      )
+      const errorMessage = getErrorMessage(error)
+      throw new Error(`WagmiAdapter:signTypedDataV4 - Sign typed data failed: ${errorMessage}`, {
+        cause: error
+      })
     }
   }
 
@@ -724,7 +743,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
       return { gas: result }
     } catch (error) {
-      throw new Error('WagmiAdapter:estimateGas - error estimating gas')
+      throw new Error('WagmiAdapter:estimateGas - error estimating gas', { cause: error })
     }
   }
 
