@@ -144,6 +144,38 @@ const initCrossSdk = (
     }
   }
 
+  // Mobile_link를 미리 계산 (한 번만 평가)
+  const resolvedMobileLink =
+    mobileLink ||
+    (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
+    'https://cross-wallet.crosstoken.io'
+
+  // Custom wallet 설정 생성
+  const crossWalletConfig: CustomWallet & { chrome_store?: string } = {
+    id: 'cross_wallet',
+    name: 'CROSSx Wallet',
+    image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
+    app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
+    play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
+    chrome_store:
+      'https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg',
+    rdns: 'nexus.to.crosswallet.desktop',
+    // 명시적으로 빈 문자열로 설정하여 오버라이드
+    mobile_link: '',
+    desktop_link: '',
+    webapp_link: '',
+    injected: [
+      {
+        injected_id: 'nexus.to.crosswallet.desktop'
+      }
+    ]
+  }
+
+  // 모바일 환경일 때만 mobile_link 추가 (빈 문자열을 덮어씀)
+  if (CoreHelperUtil.isMobile()) {
+    Object.assign(crossWalletConfig, { mobile_link: resolvedMobileLink })
+  }
+
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
     networks: [
@@ -167,28 +199,7 @@ const initCrossSdk = (
       legalCheckbox: false
     },
     enableCoinbase: false,
-    customWallets: [
-      {
-        id: 'cross_wallet',
-        name: 'CROSSx Wallet',
-        image_url: 'https://contents.crosstoken.io/wallet/token/images/CROSSx.svg',
-        mobile_link:
-          mobileLink ||
-          (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
-          'https://cross-wallet.crosstoken.io',
-        app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
-        play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',
-        chrome_store:
-          'https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg',
-
-        rdns: 'nexus.to.crosswallet.desktop',
-        injected: [
-          {
-            injected_id: 'nexus.to.crosswallet.desktop'
-          }
-        ]
-      } as CustomWallet & { chrome_store?: string }
-    ],
+    customWallets: [crossWalletConfig],
     allWallets: 'HIDE'
   })
 }

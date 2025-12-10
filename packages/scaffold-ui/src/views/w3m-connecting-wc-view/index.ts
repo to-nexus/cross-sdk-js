@@ -94,7 +94,9 @@ export class W3mConnectingWcView extends LitElement {
   private finalizeConnection() {
     const { wcLinking, recentWallet } = ConnectionController.state
 
-    if (wcLinking) {
+    // 모바일 환경에서만 Deep Link 저장 (데스크탑에서는 저장하지 않아 리다이렉트 방지)
+    // href가 빈 문자열이 아닌 경우만 저장
+    if (wcLinking && wcLinking.href && wcLinking.href.trim() !== '' && CoreHelperUtil.isMobile()) {
       StorageUtil.setWalletConnectDeepLink(wcLinking)
     }
 
@@ -115,15 +117,16 @@ export class W3mConnectingWcView extends LitElement {
   private isCrossWalletInstalled(rdns: string): boolean {
     // ANNOUNCED 커넥터에서 찾기
     const currentConnectors = ConnectorController.state.connectors
-    const crossWalletExtensionConnectors = currentConnectors.filter(c => (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.id === rdns)
+    const crossWalletExtensionConnectors = currentConnectors.filter(
+      c => (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.id === rdns
+    )
 
     if (crossWalletExtensionConnectors && crossWalletExtensionConnectors.length > 0) {
       return true
     }
 
-    // window.ethereum에서 cross extension 프로바이더 체크
-    const isCrossWalletInWindow =
-      typeof window !== 'undefined' && (window as any).crossWallet
+    // Window.ethereum에서 cross extension 프로바이더 체크
+    const isCrossWalletInWindow = typeof window !== 'undefined' && (window as any).crossWallet
 
     return Boolean(isCrossWalletInWindow)
   }
@@ -146,6 +149,7 @@ export class W3mConnectingWcView extends LitElement {
         this.platforms.push('qrcode')
         this.platform = 'qrcode'
       }
+
       return true
     }
 
@@ -155,7 +159,7 @@ export class W3mConnectingWcView extends LitElement {
       const isCrossWalletFound = this.isCrossWalletInstalled(rdns)
 
       if (isCrossWalletFound) {
-        // console.log('isCrossWalletFound', isCrossWalletFound)
+        // Console.log('isCrossWalletFound', isCrossWalletFound)
         if (isChrome) {
           this.platforms.push('qrcode')
           this.platforms.push('browser')
@@ -168,12 +172,14 @@ export class W3mConnectingWcView extends LitElement {
         this.platforms.push('qrcode')
         this.platform = 'qrcode'
       }
+
       return true
     }
 
     // 기본 케이스
     this.platforms.push('qrcode')
     this.platform = 'qrcode'
+
     return true
   }
 
@@ -205,6 +211,7 @@ export class W3mConnectingWcView extends LitElement {
 
     if (isCrossWallet && rdns) {
       this.determinePlatformsForCross({ mobile_link, rdns, isBrowser: Boolean(isBrowser) })
+
       return
     }
 

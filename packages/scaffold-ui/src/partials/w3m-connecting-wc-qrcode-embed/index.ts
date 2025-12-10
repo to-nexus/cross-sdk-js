@@ -72,13 +72,20 @@ export class W3mConnectingWcQrcodeEmbed extends W3mConnectingWidget {
     if (this.wallet?.mobile_link && this.uri) {
       const { mobile_link, name } = this.wallet
 
-      // 🔑 핵심: base URL만 저장 (WalletConnect Engine이 각 요청마다 동적으로 URI 생성)
-      const baseUrl = mobile_link.endsWith('/') ? mobile_link : `${mobile_link}/`
+      // mobile_link가 빈 문자열이면 스킵 (데스크탑 환경)
+      if (!mobile_link || mobile_link.trim() === '') {
+        ConnectionController.setWcLinking(undefined)
+      } else {
+        // 🔑 핵심: base URL만 저장 (WalletConnect Engine이 각 요청마다 동적으로 URI 생성)
+        const baseUrl = mobile_link.endsWith('/') ? mobile_link : `${mobile_link}/`
 
-      ConnectionController.setWcLinking({ name, href: baseUrl })
+        ConnectionController.setWcLinking({ name, href: baseUrl })
 
-      // ✅ base URL만 localStorage에 저장 (WalletConnect Engine이 동적 URL 생성)
-      StorageUtil.setWalletConnectDeepLink({ name, href: baseUrl })
+        // ✅ 모바일 환경에서만 localStorage에 저장 (데스크탑에서는 저장하지 않아 리다이렉트 방지)
+        if (CoreHelperUtil.isMobile()) {
+          StorageUtil.setWalletConnectDeepLink({ name, href: baseUrl })
+        }
+      }
     } else {
       ConnectionController.setWcLinking(undefined)
     }
