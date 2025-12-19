@@ -16,7 +16,7 @@ export * from './ronin/index.js'
 // -- Utils ------------------------------------------------------------------
 export * from './utils.js'
 
-export { networkController, NetworkController, DEFAULT_API_URL } from './controller.js'
+export { networkController, NetworkController } from './controller.js'
 export { mapApiToNetwork } from './mapper.js'
 export * from './types.js'
 

@@ -1,4 +1,5 @@
 import type { AppKitNetwork } from '@to-nexus/appkit-common'
+import { ConstantsUtil } from '@to-nexus/appkit-common'
 
 import { bscMainnet } from './bsc/bscMainnet.js'
 import { bscTestnet } from './bsc/bscTestnet.js'
@@ -31,8 +32,8 @@ export class NetworkController {
   private apiUrl: string
   private isInitialized = false
 
-  constructor(apiUrl: string) {
-    this.apiUrl = apiUrl
+  constructor(apiUrl?: string) {
+    this.apiUrl = apiUrl || ConstantsUtil.getWeb3mApiUrl()
   }
 
   setApiUrl(url: string) {
@@ -45,7 +46,7 @@ export class NetworkController {
 
   async fetchNetworks() {
     try {
-      const response = await fetch(`${this.apiUrl}/chain/info?from=crossx-js-sdk`)
+      const response = await fetch(`${this.apiUrl}/api/v1/public/chain/info?from=crossx-js-sdk`)
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.statusText}`, {
           cause: { status: response.status, statusText: response.statusText }
@@ -79,5 +80,4 @@ export class NetworkController {
   }
 }
 
-export const DEFAULT_API_URL = 'https://api.crosstoken.io/v1'
-export const networkController = new NetworkController(DEFAULT_API_URL)
+export const networkController = new NetworkController()
