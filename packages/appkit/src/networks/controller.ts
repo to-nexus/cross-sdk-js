@@ -45,10 +45,10 @@ export class NetworkController {
 
   async fetchNetworks() {
     try {
-      const response = await fetch(`${this.apiUrl}/chain/info`)
+      const response = await fetch(`${this.apiUrl}/chain/info?from=crossx-js-sdk`)
       if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.statusText}`, { 
-          cause: { status: response.status, statusText: response.statusText } 
+        throw new Error(`Network response was not ok: ${response.statusText}`, {
+          cause: { status: response.status, statusText: response.statusText }
         })
       }
 
