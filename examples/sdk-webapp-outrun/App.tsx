@@ -83,7 +83,17 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-900">
+    <div
+      className="relative w-screen overflow-hidden bg-slate-900"
+      style={{
+        height: 'var(--viewport-height, 100vh)',
+        paddingTop: 'var(--safe-area-top, 0px)',
+        paddingBottom: 'var(--safe-area-bottom, 0px)',
+        paddingLeft: 'var(--safe-area-left, 0px)',
+        paddingRight: 'var(--safe-area-right, 0px)',
+        boxSizing: 'border-box'
+      }}
+    >
       {/* Background Music / Sound Effects could be mounted here */}
 
       {/* Game Layer */}
