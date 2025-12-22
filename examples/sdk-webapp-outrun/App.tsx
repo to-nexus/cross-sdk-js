@@ -84,14 +84,15 @@ const App: React.FC = () => {
 
   return (
     <div
-      className="relative w-screen overflow-hidden bg-slate-900"
+      className="relative overflow-hidden bg-slate-900"
       style={{
-        height: 'var(--viewport-height, 100vh)',
-        paddingTop: 'var(--safe-area-top, 0px)',
-        paddingBottom: 'var(--safe-area-bottom, 0px)',
-        paddingLeft: 'var(--safe-area-left, 0px)',
-        paddingRight: 'var(--safe-area-right, 0px)',
-        boxSizing: 'border-box'
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh'
       }}
     >
       {/* Background Music / Sound Effects could be mounted here */}

@@ -7,7 +7,15 @@ interface PauseMenuProps {
 
 const PauseMenu: React.FC<PauseMenuProps> = ({ onResume }) => {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-30 backdrop-blur-sm">
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-30 backdrop-blur-sm"
+      style={{
+        paddingTop: 'var(--safe-area-top, 0px)',
+        paddingBottom: 'var(--safe-area-bottom, 0px)',
+        paddingLeft: 'var(--safe-area-left, 0px)',
+        paddingRight: 'var(--safe-area-right, 0px)'
+      }}
+    >
       <div className="bg-slate-900/90 border border-cyan-500/50 p-8 rounded-lg shadow-[0_0_30px_rgba(34,211,238,0.2)] max-w-sm w-full mx-4 text-center">
         <h2 className="text-4xl font-black text-white italic tracking-tighter neon-text mb-2" style={{ fontFamily: 'Orbitron' }}>
           PAUSED

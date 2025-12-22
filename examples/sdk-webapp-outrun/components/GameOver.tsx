@@ -11,7 +11,15 @@ interface GameOverProps {
 
 const GameOver: React.FC<GameOverProps> = ({ score, onRestart, leaderboard }) => {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/90 z-30 backdrop-blur-md">
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/90 z-30 backdrop-blur-md"
+      style={{
+        paddingTop: 'var(--safe-area-top, 0px)',
+        paddingBottom: 'var(--safe-area-bottom, 0px)',
+        paddingLeft: 'var(--safe-area-left, 0px)',
+        paddingRight: 'var(--safe-area-right, 0px)'
+      }}
+    >
       <div className="text-center mb-8">
         <h2 className="text-6xl font-black text-white italic tracking-tighter neon-text-red mb-2" style={{ fontFamily: 'Orbitron' }}>
           SYSTEM FAILURE
