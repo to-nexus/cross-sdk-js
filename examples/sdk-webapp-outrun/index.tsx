@@ -43,8 +43,33 @@ function SDKWrapper() {
       console.log('[Outrun] Running in CROSSx environment')
       console.log('[Outrun] WebApp version:', CROSSxWebApp.version)
 
+      // Safe Area Insets 가져오기 및 CSS 변수 설정
+      const initializeSafeArea = async () => {
+        try {
+          const insets = await CROSSxWebApp.getSafeAreaInsets()
+          console.log('[Outrun] Safe Area Insets:', insets)
+
+          // CSS 변수로 설정하여 전체 앱에서 사용 가능하도록
+          document.documentElement.style.setProperty('--safe-area-top', `${insets.top}px`)
+          document.documentElement.style.setProperty('--safe-area-bottom', `${insets.bottom}px`)
+          document.documentElement.style.setProperty('--safe-area-left', `${insets.left}px`)
+          document.documentElement.style.setProperty('--safe-area-right', `${insets.right}px`)
+
+          // 화면 전체 높이 설정 (Safe Area 포함)
+          const totalHeight = window.innerHeight
+          document.documentElement.style.setProperty('--viewport-height', `${totalHeight}px`)
+
+          console.log('[Outrun] Safe Area CSS variables set')
+        } catch (error) {
+          console.error('[Outrun] Failed to get safe area insets:', error)
+        }
+      }
+
       // 전체화면 요청
       CROSSxWebApp.requestFullScreen({ isExpandSafeArea: true })
+
+      // Safe Area Insets 초기화
+      initializeSafeArea()
 
       // 준비 완료 신호
       CROSSxWebApp.ready()

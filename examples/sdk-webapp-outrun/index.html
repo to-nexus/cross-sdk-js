@@ -3,17 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Neon Outrun</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+      
+      :root {
+        /* Safe Area CSS 변수 초기값 (WebApp에서 동적으로 설정됨) */
+        --safe-area-top: 0px;
+        --safe-area-bottom: 0px;
+        --safe-area-left: 0px;
+        --safe-area-right: 0px;
+        --viewport-height: 100vh;
+      }
+      
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      
       body {
         font-family: 'Share Tech Mono', monospace;
         background-color: #0f172a;
         overflow: hidden; /* Prevent scrolling during game */
         touch-action: none; /* Prevent browser gestures */
       }
+      
+      #root {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      
       .neon-text {
         text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
       }
