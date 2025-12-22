@@ -84,6 +84,7 @@ import type { SessionTypes } from '@walletconnect/types'
 import { PACKAGE_VERSION } from '../exports/constants.js'
 import type { AdapterBlueprint } from './adapters/ChainAdapterBlueprint.js'
 import { W3mFrameProviderSingleton } from './auth-provider/W3MFrameProviderSingleton.js'
+import { networkController } from './networks/index.js'
 import { type ProviderStoreUtilState, ProviderUtil } from './store/ProviderUtil.js'
 import {
   UniversalAdapter,
@@ -233,10 +234,39 @@ export class AppKit {
     await this.injectModalUi()
     await this.syncExistingConnection()
 
+    // Dynamic networks initialization
+    this.initializeDynamicNetworks()
+
     // 🔥 지갑이 연결되어 있고 네트워크가 다르면 자동 변경
     await this.autoSwitchWalletNetwork()
 
     PublicStateController.set({ initialized: true })
+  }
+
+  private async initializeDynamicNetworks() {
+    try {
+      await networkController.fetchNetworks()
+      const newNetworks = networkController.getNetworks()
+      const currentNetworkIds = new Set(this.caipNetworks?.map(n => n.id))
+
+      for (const network of newNetworks) {
+        if (currentNetworkIds && !currentNetworkIds.has(network.id)) {
+          if (
+            'chainNamespace' in network &&
+            network.chainNamespace &&
+            this.chainAdapters?.[network.chainNamespace]
+          ) {
+            try {
+              this.addNetwork(network.chainNamespace, network)
+            } catch (e) {
+              console.warn(`[AppKit] Failed to add dynamic network ${network.name}:`, e)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('[AppKit] Failed to initialize dynamic networks:', error)
+    }
   }
 
   /**

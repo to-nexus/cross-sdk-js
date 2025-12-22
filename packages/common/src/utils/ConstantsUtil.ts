@@ -30,8 +30,8 @@ export const ConstantsUtil = {
     return ConstantsUtil.W3M_API_URL[envKey]
   },
   W3M_API_URL: {
-    DEVELOPMENT: 'https://wallet-server.crosstoken.io',
-    STAGE: 'https://wallet-server.crosstoken.io',
+    DEVELOPMENT: 'https://dev-wallet-server.crosstoken.io',
+    STAGE: 'https://stg-wallet-server.crosstoken.io',
     PRODUCTION: 'https://wallet-server.crosstoken.io'
   },
   getRelayUrl() {

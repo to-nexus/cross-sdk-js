@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { ConnectionController } from '@to-nexus/appkit'
 import {
   bscMainnet,
   bscTestnet,
@@ -9,6 +10,7 @@ import {
   etherTestnet,
   kaiaMainnet,
   kaiaTestnet,
+  networkController,
   roninMainnet,
   roninTestnet
 } from '@to-nexus/appkit/networks'
@@ -114,7 +116,6 @@ export function ActionButtonList() {
     }
   })
   const { signMessageAsync } = useSignMessage()
-  const { signTypedDataAsync } = useSignTypedData()
   const { sendTransactionAsync } = useSendTransaction()
   const { writeContractAsync } = useWriteContract()
   const { switchChainAsync } = useSwitchChain()
@@ -136,17 +137,11 @@ export function ActionButtonList() {
       : ''
   ) as `0x${string}`
 
-  // 지원 네트워크 목록
-  const supportedNetworks = [
-    { chainId: 612044, name: 'Cross Testnet' },
-    { chainId: 612055, name: 'Cross Mainnet' },
-    { chainId: 1, name: 'Ethereum' },
-    { chainId: 11155111, name: 'Sepolia' },
-    { chainId: 56, name: 'BSC' },
-    { chainId: 97, name: 'BSC Testnet' },
-    { chainId: 8217, name: 'Kaia' },
-    { chainId: 1001, name: 'Kaia Testnet' }
-  ]
+  // SDK에서 관리하는 네트워크 목록 사용 (API에서 동적으로 가져옴)
+  const supportedNetworks = networkController.getNetworks().map(network => ({
+    chainId: network.id,
+    name: network.name
+  }))
 
   // ERC20 토큰 잔액 읽기
   const { data: wagmiErc20Balance, refetch: refetchErc20Balance } = useReadContract({
@@ -260,43 +255,50 @@ export function ActionButtonList() {
       // - 'from' is implicit (the signer's address)
       // - 'nonce' should be fetched from the contract
       // - 'deadline' should be current timestamp + expiry time
-      const domain = {
-        name: '0cd3a59377299deb46d424c0dc5edfc8',
-        version: '1',
-        chainId: wagmiAccount.chainId,
-        verifyingContract: '0x5ad400c3db22641f7f94a1bd36f88ac359b74dae' as `0x${string}`
-      }
-
-      const types = {
-        ERC20Mint: [
-          { name: 'token', type: 'address' },
-          { name: 'amount', type: 'uint256' },
-          { name: 'feeRecipient', type: 'address' },
-          { name: 'feeBPS', type: 'uint256' },
-          { name: 'nonce', type: 'uint256' },
-          { name: 'deadline', type: 'uint256' }
-        ]
-      }
-
-      const message = {
-        token: '0x979a94888aa35ab603ff3ef1a25f942a99a1e7a5',
-        amount: '1000000000000000000', // 1 token (18 decimals)
-        feeRecipient: '0x56b78f96f028e8302aa8b94dd69299e43d7c58a6',
-        feeBPS: '1000', // 10% fee (1000 basis points)
-        nonce: '12', // Example value - fetch from contract in production
-        deadline: '1765196498' // Example timestamp - use Math.floor(Date.now() / 1000) + expiry in production
-      }
-
-      const signature = await signTypedDataAsync({
-        domain,
-        types,
+      const paramsData = {
+        domain: {
+          name: '0cd3a59377299deb46d424c0dc5edfc8',
+          version: '1',
+          chainId: wagmiAccount.chainId,
+          verifyingContract: '0x5ad400c3db22641f7f94a1bd36f88ac359b74dae' as `0x${string}`
+        },
+        types: {
+          ERC20Mint: [
+            { name: 'token', type: 'address' },
+            { name: 'amount', type: 'uint256' },
+            { name: 'feeRecipient', type: 'address' },
+            { name: 'feeBPS', type: 'uint256' },
+            { name: 'nonce', type: 'uint256' },
+            { name: 'deadline', type: 'uint256' }
+          ]
+        },
         primaryType: 'ERC20Mint',
-        message
+        message: {
+          token: '0x979a94888aa35ab603ff3ef1a25f942a99a1e7a5',
+          amount: '1000000000000000000', // 1 token (18 decimals)
+          feeRecipient: '0x56b78f96f028e8302aa8b94dd69299e43d7c58a6',
+          feeBPS: '1000', // 10% fee (1000 basis points)
+          nonce: '12', // Example value - fetch from contract in production
+          deadline: '1765196498' // Example timestamp - use Math.floor(Date.now() / 1000) + expiry in production
+        }
+      }
+
+      // Use ConnectionController.signTypedDataV4 (Cross Wallet compatible)
+      const signature = await ConnectionController.signTypedDataV4(paramsData, {
+        metadata: {
+          description: 'ERC20Mint EIP-712 typed data signature',
+          timestamp: new Date().toISOString()
+        }
       })
+
+      if (!signature) {
+        showError('Error in Wagmi Sign Typed Data', 'Signature is undefined')
+        return
+      }
 
       showSuccess(
         'Wagmi Sign Typed Data Successful!',
-        `Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n\nToken: ${message.token}\nAmount: ${message.amount} (1 token)`
+        `Signature: ${signature.slice(0, 20)}...${signature.slice(-20)}\n\nToken: ${paramsData.message.token}\nAmount: ${paramsData.message.amount} (1 token)`
       )
     } catch (error) {
       console.error('Error signing typed data with Wagmi:', error)
