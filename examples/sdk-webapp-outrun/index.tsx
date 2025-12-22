@@ -9,7 +9,7 @@ import App from './App'
 // Your unique project id provided by Cross Team. If you don't have one, please contact us.
 const projectId = import.meta.env.VITE_PROJECT_ID || '0979fd7c92ec3dbd8e78f433c3e5a523'
 // Redirect URL to return to after wallet app interaction
-const redirectUrl = window.location.href
+const redirectUrl = window.location.origin + window.location.pathname
 
 const metadata = {
   name: 'Neon Outrun',
@@ -65,14 +65,22 @@ function SDKWrapper() {
         }
       }
 
-      // 전체화면 요청
-      CROSSxWebApp.requestFullScreen({ isExpandSafeArea: true })
+      // 초기화 순서
+      const initialize = async () => {
+        // 1. 전체화면 요청
+        CROSSxWebApp.requestFullScreen({ isExpandSafeArea: true })
 
-      // Safe Area Insets 초기화
-      initializeSafeArea()
+        // 2. 전체화면 적용을 위한 대기 (300ms)
+        await new Promise(resolve => setTimeout(resolve, 300))
 
-      // 준비 완료 신호
-      CROSSxWebApp.ready()
+        // 3. Safe Area Insets 가져오기
+        await initializeSafeArea()
+
+        // 4. 준비 완료 신호
+        CROSSxWebApp.ready()
+      }
+
+      initialize()
 
       // 이벤트 리스너 등록
       const handleViewClosed = () => {
@@ -85,6 +93,14 @@ function SDKWrapper() {
         // 게임 일시정지 등의 작업 수행
       }
 
+      // fullscreen 변경 감지 (디버깅용)
+      const handleFullscreenChange = () => {
+        const isFullscreen = !!document.fullscreenElement
+        console.log('[Outrun] Fullscreen changed:', isFullscreen)
+      }
+
+      document.addEventListener('fullscreenchange', handleFullscreenChange)
+
       CROSSxWebApp.on('viewClosed', handleViewClosed)
       CROSSxWebApp.on('viewBackgrounded', handleViewBackgrounded)
 
@@ -94,6 +110,7 @@ function SDKWrapper() {
       cleanupWebApp = () => {
         CROSSxWebApp.off('viewClosed', handleViewClosed)
         CROSSxWebApp.off('viewBackgrounded', handleViewBackgrounded)
+        document.removeEventListener('fullscreenchange', handleFullscreenChange)
       }
     } else {
       console.log('[Outrun] Running in browser environment (WebApp not available)')

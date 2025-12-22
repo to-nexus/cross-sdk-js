@@ -60,7 +60,15 @@ const MainMenu: React.FC<MainMenuProps> = ({ onStart, highScore }) => {
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 backdrop-blur-sm text-cyan-400">
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 backdrop-blur-sm text-cyan-400"
+      style={{
+        paddingTop: 'var(--safe-area-top, 0px)',
+        paddingBottom: 'var(--safe-area-bottom, 0px)',
+        paddingLeft: 'var(--safe-area-left, 0px)',
+        paddingRight: 'var(--safe-area-right, 0px)'
+      }}
+    >
       <div className="text-center mb-8 animate-pulse">
         <h1
           className="text-6xl md:text-8xl font-black italic tracking-tighter neon-text mb-2 text-white"

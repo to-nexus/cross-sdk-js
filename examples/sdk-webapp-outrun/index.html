@@ -21,22 +21,33 @@
       html, body {
         margin: 0;
         padding: 0;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        /* iOS Safe Area 무시 */
+        margin-top: calc(-1 * env(safe-area-inset-top, 0px));
+        margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+        margin-left: calc(-1 * env(safe-area-inset-left, 0px));
+        margin-right: calc(-1 * env(safe-area-inset-right, 0px));
       }
       
       body {
         font-family: 'Share Tech Mono', monospace;
         background-color: #0f172a;
-        overflow: hidden; /* Prevent scrolling during game */
-        touch-action: none; /* Prevent browser gestures */
+        overflow: hidden;
+        touch-action: none;
       }
       
       #root {
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
       }
       
       .neon-text {
