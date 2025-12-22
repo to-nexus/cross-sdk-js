@@ -633,10 +633,13 @@ export class WagmiAdapter extends AdapterBlueprint {
         throw new Error('WagmiAdapter:signTypedDataV4 - No connected account found')
       }
 
-      // Eth_signTypedData_v4 expects [address, typedDataJSON]
+      /*
+       * Cross Wallet expects [typedData, metadata] (address is automatically extracted from connected account)
+       * Standard wallets expect [address, typedData]
+       */
       const signature = await provider.request({
         method: 'eth_signTypedData_v4',
-        params: [account.address, JSON.stringify(params.paramsData)]
+        params: [params.paramsData, params.customData] as any
       })
 
       return { signature }

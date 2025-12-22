@@ -140,8 +140,6 @@ export const EthersMethods = {
     }
 
     try {
-      console.log(`signTypedDataV4 - paramsData: ${JSON.stringify(paramsData, null, 2)}`)
-
       const signature = await provider.request({
         method: 'eth_signTypedData_v4',
         params: [paramsData, customData]
