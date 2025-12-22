@@ -1,14 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>Neon Outrun</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-      
+
       :root {
         /* Safe Area CSS 변수 초기값 (WebApp에서 동적으로 설정됨) */
         --safe-area-top: 0px;
@@ -17,30 +20,23 @@
         --safe-area-right: 0px;
         --viewport-height: 100vh;
       }
-      
-      html, body {
+
+      html,
+      body {
         margin: 0;
         padding: 0;
         width: 100vw;
         height: 100vh;
         overflow: hidden;
-        position: fixed;
-        top: 0;
-        left: 0;
-        /* iOS Safe Area 무시 */
-        margin-top: calc(-1 * env(safe-area-inset-top, 0px));
-        margin-bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-        margin-left: calc(-1 * env(safe-area-inset-left, 0px));
-        margin-right: calc(-1 * env(safe-area-inset-right, 0px));
       }
-      
+
       body {
         font-family: 'Share Tech Mono', monospace;
         background-color: #0f172a;
         overflow: hidden;
         touch-action: none;
       }
-      
+
       #root {
         width: 100vw;
         height: 100vh;
@@ -49,28 +45,34 @@
         top: 0;
         left: 0;
       }
-      
+
       .neon-text {
-        text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+        text-shadow:
+          0 0 5px #0ff,
+          0 0 10px #0ff,
+          0 0 20px #0ff;
       }
       .neon-text-red {
-        text-shadow: 0 0 5px #f00, 0 0 10px #f00, 0 0 20px #f00;
+        text-shadow:
+          0 0 5px #f00,
+          0 0 10px #f00,
+          0 0 20px #f00;
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-</head>
+    <script type="importmap">
+      {
+        "imports": {
+          "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+          "react": "https://aistudiocdn.com/react@^19.2.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+          "react/": "https://aistudiocdn.com/react@^19.2.0/"
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/index.css" />
+  </head>
   <body>
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+    <script type="module" src="/index.tsx"></script>
+  </body>
 </html>
