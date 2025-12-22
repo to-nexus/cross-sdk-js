@@ -91,6 +91,7 @@ jobs:
             DEFAULT_TAG="latest"
           fi
           echo "Default dist-tag: ${DEFAULT_TAG}"
+          echo "DEFAULT_TAG=${DEFAULT_TAG}" >> $GITHUB_ENV
 
           declare -A PKG_MAP
           PKG_MAP[core]="@to-nexus/core"
@@ -178,9 +179,24 @@ jobs:
           git add -A
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "chore: version bump (${DEFAULT_TAG})"
-            git fetch origin "${GITHUB_REF_NAME}" || true
-            git rebase "origin/${GITHUB_REF_NAME}" || git merge --ff-only "origin/${GITHUB_REF_NAME}" || true
-            git push || git push --force-with-lease
+            git fetch origin "${GITHUB_REF_NAME}"
+            
+            # Try rebase first, if it fails, abort and use merge strategy
+            if ! git rebase "origin/${GITHUB_REF_NAME}"; then
+              echo "Rebase failed, aborting and trying merge strategy..."
+              git rebase --abort
+              
+              # Pull with merge (no rebase)
+              if ! git pull --no-rebase origin "${GITHUB_REF_NAME}"; then
+                # If there's a conflict, use theirs for pnpm-lock.yaml and ours for everything else
+                echo "Merge conflict detected, resolving automatically..."
+                git checkout --theirs pnpm-lock.yaml || true
+                git add pnpm-lock.yaml || true
+                git commit --no-edit --allow-empty -m "chore: resolve merge conflict"
+              fi
+            fi
+            
+            git push
           else
             echo "No changes to commit"
           fi
