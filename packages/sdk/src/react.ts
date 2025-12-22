@@ -226,6 +226,7 @@ export {
   CoreHelperUtil,
   createDefaultSIWXConfig,
   SIWXUtil,
+  networkController,
   crossMainnet,
   crossTestnet,
   bscMainnet,

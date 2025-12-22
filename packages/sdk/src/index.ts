@@ -240,6 +240,7 @@ export {
   CoreHelperUtil,
   createDefaultSIWXConfig,
   OptionsController,
+  networkController,
   crossMainnet,
   crossTestnet,
   bscMainnet,
