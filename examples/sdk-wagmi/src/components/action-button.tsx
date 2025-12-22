@@ -10,6 +10,7 @@ import {
   etherTestnet,
   kaiaMainnet,
   kaiaTestnet,
+  networkController,
   roninMainnet,
   roninTestnet
 } from '@to-nexus/appkit/networks'
@@ -136,17 +137,11 @@ export function ActionButtonList() {
       : ''
   ) as `0x${string}`
 
-  // 지원 네트워크 목록
-  const supportedNetworks = [
-    { chainId: 612044, name: 'Cross Testnet' },
-    { chainId: 612055, name: 'Cross Mainnet' },
-    { chainId: 1, name: 'Ethereum' },
-    { chainId: 11155111, name: 'Sepolia' },
-    { chainId: 56, name: 'BSC' },
-    { chainId: 97, name: 'BSC Testnet' },
-    { chainId: 8217, name: 'Kaia' },
-    { chainId: 1001, name: 'Kaia Testnet' }
-  ]
+  // SDK에서 관리하는 네트워크 목록 사용 (API에서 동적으로 가져옴)
+  const supportedNetworks = networkController.getNetworks().map(network => ({
+    chainId: network.id,
+    name: network.name
+  }))
 
   // ERC20 토큰 잔액 읽기
   const { data: wagmiErc20Balance, refetch: refetchErc20Balance } = useReadContract({
