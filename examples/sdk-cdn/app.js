@@ -1946,10 +1946,26 @@ const sampleEIP712 = [
   }
 ]
 
+// CROSSx Browser 감지 함수
+function detectCROSSxBrowser() {
+  const marker = window.__crossx
+  if (marker !== undefined) {
+    if (marker === true) return true
+    if (typeof marker === 'object' && marker?.browser === true) return true
+  }
+  return /CROSSx\/[\d.]+/i.test(navigator.userAgent)
+}
+
 // DOM이 로드된 후 앱 초기화
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 DOM Content Loaded - Starting app initialization...')
   initializeApp()
+
+  // CROSSx Browser 감지 (한 번만)
+  if (detectCROSSxBrowser()) {
+    const dot = document.getElementById('crossx-browser-dot')
+    if (dot) dot.style.display = 'inline-block'
+  }
 })
 
 // Debugging: Check if script is loaded

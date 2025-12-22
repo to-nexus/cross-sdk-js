@@ -14,16 +14,47 @@
         <img src="./appkit-logo.png" alt="Cross Sdk" width="150" />
       </div>
 
-      <h1 class="page-title">CROSS SDK - CDN Example</h1>
+      <h1 class="page-title">
+        CROSS SDK - CDN Example<span
+          id="crossx-browser-dot"
+          style="
+            display: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #10b981;
+            margin-left: 6px;
+            vertical-align: middle;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+          "
+          title="CROSSx Browser Detected"
+        ></span>
+      </h1>
 
       <div class="appkit-buttons-container">
         <h3 style="margin-bottom: 10px; color: var(--text-primary)">🔗 Wallet Connection</h3>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px">
-          <button id="connect-cross-qr" style="background-color: #00d4aa">Connect CROSSx Wallet</button>
-          <button id="connect-cross-extension" style="background-color: #00d4aa">Connect Cross Extension</button>
-          <button id="connect-metamask-extension" style="background-color: #f6851b">Connect MetaMask Extension</button>
-          <button id="authenticate-cross-extension" style="background-color: #10b981; color: white; font-weight: bold">🔐 Connect + Auth (Extension)</button>
-          <button id="authenticate-walletconnect" style="background-color: #10b981; color: white; font-weight: bold">🔐 Connect + Auth (QR Code)</button>
+          <button id="connect-cross-qr" style="background-color: #00d4aa">
+            Connect CROSSx Wallet
+          </button>
+          <button id="connect-cross-extension" style="background-color: #00d4aa">
+            Connect Cross Extension
+          </button>
+          <button id="connect-metamask-extension" style="background-color: #f6851b">
+            Connect MetaMask Extension
+          </button>
+          <button
+            id="authenticate-cross-extension"
+            style="background-color: #10b981; color: white; font-weight: bold"
+          >
+            🔐 Connect + Auth (Extension)
+          </button>
+          <button
+            id="authenticate-walletconnect"
+            style="background-color: #10b981; color: white; font-weight: bold"
+          >
+            🔐 Connect + Auth (QR Code)
+          </button>
         </div>
         <button
           id="disconnect-wallet"
