@@ -617,6 +617,37 @@ export class WagmiAdapter extends AdapterBlueprint {
     return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
   }
 
+  /**
+   * Recursively converts BigInt values to hex strings for JSON serialization
+   * This is necessary for Chrome extension messaging which cannot serialize BigInt
+   */
+  private serializeBigInt(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return obj
+    }
+
+    if (typeof obj === 'bigint') {
+      return `0x${obj.toString(16)}`
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.serializeBigInt(item))
+    }
+
+    if (typeof obj === 'object') {
+      const serialized: Record<string, any> = {}
+      for (const key in obj) {
+        if (Object.hasOwn(obj, key)) {
+          serialized[key] = this.serializeBigInt(obj[key])
+        }
+      }
+
+      return serialized
+    }
+
+    return obj
+  }
+
   public async signTypedDataV4(
     params: AdapterBlueprint.SignTypedDataV4Params
   ): Promise<AdapterBlueprint.SignTypedDataV4Result> {
@@ -634,12 +665,18 @@ export class WagmiAdapter extends AdapterBlueprint {
       }
 
       /*
+       * Serialize BigInt values to hex strings for JSON serialization compatibility
+       * Chrome extension messaging cannot handle BigInt, so we convert them
+       */
+      const serializedParamsData = this.serializeBigInt(params.paramsData)
+
+      /*
        * Cross Wallet expects [typedData, metadata] (address is automatically extracted from connected account)
        * Standard wallets expect [address, typedData]
        */
       const signature = await provider.request({
         method: 'eth_signTypedData_v4',
-        params: [params.paramsData, params.customData] as any
+        params: [serializedParamsData, params.customData] as any
       })
 
       return { signature }
