@@ -68,6 +68,7 @@ async function initializeApp() {
       kaiaTestnet,
       etherMainnet,
       etherTestnet,
+      networkController,
       AccountController,
       ConnectionController,
       ConstantsUtil,
@@ -75,56 +76,41 @@ async function initializeApp() {
       sdkVersion
     } = CrossSdk
 
-    const contractData = {
+    // 네트워크별 컨트랙트 주소 매핑 (하드코딩 필요)
+    const contractAddresses = {
       612044: {
-        coin: 'CROSS',
         erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
-        erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
-        network: crossTestnet
+        erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
       },
       612055: {
-        coin: 'CROSS',
         erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
-        erc721: '',
-        network: crossMainnet
-      },
-      97: {
-        coin: 'BNB',
-        erc20: '',
-        erc721: '',
-        network: bscTestnet
-      },
-      56: {
-        coin: 'BNB',
-        erc20: '',
-        erc721: '',
-        network: bscMainnet
+        erc721: ''
       },
       1001: {
-        coin: 'KAIA',
         erc20: '0xd4846dddf83278d10b92bf6c169c5951d6f5abb8',
-        erc721: '',
-        network: kaiaTestnet
-      },
-      8217: {
-        coin: 'KAIA',
-        erc20: '',
-        erc721: '',
-        network: kaiaMainnet
-      },
-      1: {
-        coin: 'ETH',
-        erc20: '',
-        erc721: '',
-        network: etherMainnet
-      },
-      11155111: {
-        coin: 'ETH',
-        erc20: '',
-        erc721: '',
-        network: etherTestnet
+        erc721: ''
       }
     }
+
+    // SDK의 네트워크 정보를 기반으로 contractData 동적 생성
+    const getContractData = () => {
+      const networks = networkController.getNetworks()
+      const data = {}
+
+      networks.forEach(network => {
+        const chainId = network.id
+        data[chainId] = {
+          coin: network.nativeCurrency.symbol,
+          erc20: contractAddresses[chainId]?.erc20 || '',
+          erc721: contractAddresses[chainId]?.erc721 || '',
+          network: network
+        }
+      })
+
+      return data
+    }
+
+    const contractData = getContractData()
 
     const metadata = {
       name: 'Cross SDK',

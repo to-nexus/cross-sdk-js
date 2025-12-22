@@ -137,7 +137,7 @@ export class CloudAuthSIWX implements SIWXConfig {
           }
 
     const response = await fetch(
-      `${ConstantsUtil.W3M_API_URL}/auth/v1/${key}?projectId=${projectId}&st=${st}&sv=${sv}`,
+      `${ConstantsUtil.getWeb3mApiUrl()}/auth/v1/${key}?projectId=${projectId}&st=${st}&sv=${sv}`,
       {
         method: RequestMethod[key],
         body: params ? JSON.stringify(params) : undefined,
