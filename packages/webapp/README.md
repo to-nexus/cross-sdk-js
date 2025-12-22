@@ -28,29 +28,29 @@ pnpm add @to-nexus/webapp
 ### Basic Usage
 
 ```typescript
-import { CROSSxWebApp } from '@to-nexus/webapp';
+import { CROSSxWebApp } from '@to-nexus/webapp'
 
 // Get SDK version
-console.log(CROSSxWebApp.version);
+console.log(CROSSxWebApp.version)
 
 // Signal that your app is ready
-CROSSxWebApp.ready();
+CROSSxWebApp.ready()
 
 // Request fullscreen mode
 document.getElementById('startBtn').addEventListener('click', () => {
-  CROSSxWebApp.requestFullScreen();
-});
+  CROSSxWebApp.requestFullScreen()
+})
 
 // Listen for lifecycle events
 CROSSxWebApp.on('viewClosed', () => {
-  console.log('App closed - save state');
-  saveGameState();
-});
+  console.log('App closed - save state')
+  saveGameState()
+})
 
 CROSSxWebApp.on('viewBackgrounded', () => {
-  console.log('App backgrounded - pause');
-  pauseGame();
-});
+  console.log('App backgrounded - pause')
+  pauseGame()
+})
 ```
 
 ### Global Access (Browser/CDN)
@@ -62,9 +62,9 @@ When included via CDN, the SDK is automatically available as a global object:
 
 <script>
   // Available globally as window.CROSSx.WebApp
-  console.log(window.CROSSx.WebApp.version);
-  
-  window.CROSSx.WebApp.ready();
+  console.log(window.CROSSx.WebApp.version)
+
+  window.CROSSx.WebApp.ready()
 </script>
 ```
 
@@ -73,55 +73,61 @@ When included via CDN, the SDK is automatically available as a global object:
 ### Properties
 
 #### `version`
+
 Get the SDK version.
 
 ```typescript
-const version: string = CROSSxWebApp.version;
+const version: string = CROSSxWebApp.version
 // Returns: "1.0.0"
 ```
 
 ### Methods
 
 #### `ready()`
+
 Signal to the CROSSx app that your WebApp is ready to interact.
 
 **Important:** Call this after your app has initialized and is ready to receive user input.
 
 ```typescript
-CROSSxWebApp.ready();
+CROSSxWebApp.ready()
 ```
 
 #### `requestFullScreen()`
+
 Request the CROSSx app to display your WebApp in fullscreen mode.
 
 ```typescript
-CROSSxWebApp.requestFullScreen();
+CROSSxWebApp.requestFullScreen()
 ```
 
 #### `on(event, callback)`
+
 Register a listener for lifecycle events.
 
 ```typescript
 CROSSxWebApp.on('viewClosed', () => {
   // Handle app closure
-});
+})
 
 CROSSxWebApp.on('viewBackgrounded', () => {
   // Handle app being backgrounded
-});
+})
 ```
 
 **Supported Events:**
+
 - `viewClosed` - The WebView was closed by the user
 - `viewBackgrounded` - The app was sent to background
 
 #### `off(event, callback)`
+
 Remove a previously registered event listener.
 
 ```typescript
-const handler = () => console.log('closed');
-CROSSxWebApp.on('viewClosed', handler);
-CROSSxWebApp.off('viewClosed', handler);
+const handler = () => console.log('closed')
+CROSSxWebApp.on('viewClosed', handler)
+CROSSxWebApp.off('viewClosed', handler)
 ```
 
 ## Environment Detection
@@ -132,15 +138,15 @@ The SDK automatically detects whether it's running in:
 2. **Browser Environment** - Uses mock implementation for development
 
 ```typescript
-import { isCROSSxEnvironment, getEnvironmentType } from '@to-nexus/webapp';
+import { getEnvironmentType, isCROSSxEnvironment } from '@to-nexus/webapp'
 
 if (isCROSSxEnvironment()) {
-  console.log('Running in CROSSx app');
+  console.log('Running in CROSSx app')
 } else {
-  console.log('Running in browser (mock mode)');
+  console.log('Running in browser (mock mode)')
 }
 
-const env = getEnvironmentType(); // 'crossx' | 'browser'
+const env = getEnvironmentType() // 'crossx' | 'browser'
 ```
 
 ## Mock Testing
@@ -148,16 +154,16 @@ const env = getEnvironmentType(); // 'crossx' | 'browser'
 For development and testing, the SDK provides mock implementations:
 
 ```typescript
-import { CROSSxWebApp } from '@to-nexus/webapp';
+import { CROSSxWebApp } from '@to-nexus/webapp'
 
 // Register events
 CROSSxWebApp.on('viewClosed', () => {
-  console.log('App closed');
-});
+  console.log('App closed')
+})
 
 // Simulate events (only available in mock mode)
 if (CROSSxWebApp._simulateClose) {
-  CROSSxWebApp._simulateClose(); // Triggers 'viewClosed' event
+  CROSSxWebApp._simulateClose() // Triggers 'viewClosed' event
 }
 ```
 
@@ -232,81 +238,81 @@ window.crossxNativeBridge = {
 ### Game Integration
 
 ```typescript
-import { CROSSxWebApp } from '@to-nexus/webapp';
+import { CROSSxWebApp } from '@to-nexus/webapp'
 
 class Game {
   constructor() {
-    this.init();
+    this.init()
   }
 
   private init() {
     // Signal app ready
-    CROSSxWebApp.ready();
+    CROSSxWebApp.ready()
 
     // Request fullscreen for better experience
-    CROSSxWebApp.requestFullScreen();
+    CROSSxWebApp.requestFullScreen()
 
     // Handle state transitions
     CROSSxWebApp.on('viewBackgrounded', () => {
-      this.pause();
-    });
+      this.pause()
+    })
 
     CROSSxWebApp.on('viewClosed', () => {
-      this.saveProgress();
-      this.cleanup();
-    });
+      this.saveProgress()
+      this.cleanup()
+    })
   }
 
   private pause() {
-    console.log('Game paused');
+    console.log('Game paused')
   }
 
   private saveProgress() {
-    console.log('Progress saved');
+    console.log('Progress saved')
   }
 
   private cleanup() {
-    console.log('Game cleaned up');
+    console.log('Game cleaned up')
   }
 }
 
 // Start game
-const game = new Game();
+const game = new Game()
 ```
 
 ### Web App Integration
 
 ```typescript
-import { CROSSxWebApp, isCROSSxEnvironment } from '@to-nexus/webapp';
+import { CROSSxWebApp, isCROSSxEnvironment } from '@to-nexus/webapp'
 
 document.addEventListener('DOMContentLoaded', () => {
   // Only in CROSSx environment
   if (isCROSSxEnvironment()) {
     // App is ready
-    CROSSxWebApp.ready();
+    CROSSxWebApp.ready()
 
     // Handle fullscreen button
     document.getElementById('fullscreenBtn').addEventListener('click', () => {
-      CROSSxWebApp.requestFullScreen();
-    });
+      CROSSxWebApp.requestFullScreen()
+    })
   }
 
   // Listen for lifecycle events
   CROSSxWebApp.on('viewClosed', () => {
-    console.log('Saving data before exit');
+    console.log('Saving data before exit')
     // Save user data, clear cache, etc.
-  });
-});
+  })
+})
 ```
 
 ## Browser Compatibility
 
-| Browser | Support | Notes |
-|---------|---------|-------|
+| Browser | Support | Notes              |
+| ------- | ------- | ------------------ |
 | CROSSx  | ✅      | Full functionality |
-| Chrome  | ✅      | Mock mode |
-| Safari  | ✅      | Mock mode |
-| Firefox | ✅      | Mock mode |
+| Chrome  | ✅      | Mock mode          |
+| Safari  | ✅      | Mock mode          |
+| Firefox | ✅      | Mock mode          |
 
 ## License
 
@@ -315,4 +321,3 @@ Apache-2.0
 ## Support
 
 For issues and feature requests, visit: https://github.com/cross-sdk-js/issues
-

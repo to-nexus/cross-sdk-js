@@ -250,12 +250,14 @@ const env = getEnvironmentType() // 'crossx' | 'browser'
 
 ### 메서드 (Methods)
 
-| 메서드                 | 설명                  | 반환값          |
-| ---------------------- | --------------------- | --------------- |
-| `ready()`              | WebApp 준비 완료 신호 | `void`          |
-| `requestFullScreen()`  | 전체 화면 요청        | `Promise<void>` |
-| `on(event, callback)`  | 이벤트 리스너 등록    | `void`          |
-| `off(event, callback)` | 이벤트 리스너 제거    | `void`          |
+| 메서드                    | 설명                    | 반환값                    |
+| ------------------------- | ----------------------- | ------------------------- |
+| `ready()`                 | WebApp 준비 완료 신호   | `void`                    |
+| `requestFullScreen()`     | 전체 화면 요청          | `Promise<void>`           |
+| `getSafeAreaInsets()`     | Safe Area 인셋 가져오기 | `Promise<SafeAreaInsets>` |
+| `hapticFeedback(type)`    | 햅틱 피드백 실행        | `void`                    |
+| `on(event, callback)`     | 이벤트 리스너 등록      | `void`                    |
+| `off(event, callback)`    | 이벤트 리스너 제거      | `void`                    |
 
 ### 이벤트 (Events)
 

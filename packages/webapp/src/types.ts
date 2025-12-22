@@ -77,12 +77,23 @@ export interface IWebApp {
 }
 
 /**
+ * CROSSx Browser Marker - Injected by CROSSx Browser via JS injection
+ */
+export interface CROSSxBrowserMarker {
+  browser: true
+  version: string
+  platform: 'ios' | 'android' | 'desktop'
+  injectedAt?: number
+}
+
+/**
  * Global Window Extensions
  */
 declare global {
   interface Window {
     crossxNativeBridge?: INativeBridge
-    __crossx?: boolean
+    /** @deprecated Use object form with CROSSxBrowserMarker instead */
+    __crossx?: boolean | CROSSxBrowserMarker
     CROSSx?: {
       WebApp: IWebApp
     }
