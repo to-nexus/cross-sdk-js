@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 
 import { ConstantsUtil, createDefaultSIWXConfig, initCrossSdkWithParams } from '@to-nexus/sdk/react'
+import { CROSSxWebApp, isCROSSxEnvironment } from '@to-nexus/webapp'
 
 import App from './App'
 
@@ -35,12 +36,56 @@ function SDKWrapper() {
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
+    // WebApp 초기화 (CROSSx 앱 환경에서만)
+    let cleanupWebApp: (() => void) | undefined
+
+    if (isCROSSxEnvironment()) {
+      console.log('[Outrun] Running in CROSSx environment')
+      console.log('[Outrun] WebApp version:', CROSSxWebApp.version)
+
+      // 전체화면 요청
+      CROSSxWebApp.requestFullScreen({ isExpandSafeArea: true })
+
+      // 준비 완료 신호
+      CROSSxWebApp.ready()
+
+      // 이벤트 리스너 등록
+      const handleViewClosed = () => {
+        console.log('[Outrun] View closed event received')
+        // 게임 상태 저장 등의 작업 수행
+      }
+
+      const handleViewBackgrounded = () => {
+        console.log('[Outrun] View backgrounded event received')
+        // 게임 일시정지 등의 작업 수행
+      }
+
+      CROSSxWebApp.on('viewClosed', handleViewClosed)
+      CROSSxWebApp.on('viewBackgrounded', handleViewBackgrounded)
+
+      console.log('[Outrun] WebApp initialized successfully')
+
+      // Cleanup function for WebApp
+      cleanupWebApp = () => {
+        CROSSxWebApp.off('viewClosed', handleViewClosed)
+        CROSSxWebApp.off('viewBackgrounded', handleViewBackgrounded)
+      }
+    } else {
+      console.log('[Outrun] Running in browser environment (WebApp not available)')
+    }
+
     // SDK가 준비될 때까지 대기
     const timer = setTimeout(() => {
       setIsReady(true)
     }, 1000) // 1초 대기
 
-    return () => clearTimeout(timer)
+    // Cleanup
+    return () => {
+      clearTimeout(timer)
+      if (cleanupWebApp) {
+        cleanupWebApp()
+      }
+    }
   }, [])
 
   if (!isReady) {

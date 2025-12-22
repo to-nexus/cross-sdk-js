@@ -83,7 +83,7 @@ interface JsonRpcResponse {
 
 ## Supported Methods (JSON-RPC 2.0)
 
-### `webapp.ready` (alias: `ready`)
+### `crossx_app_ready`
 
 Called when the WebApp is ready for interaction.
 
@@ -93,8 +93,8 @@ Called when the WebApp is ready for interaction.
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "method": "webapp.ready",
-  "params": {}
+  "method": "crossx_app_ready",
+  "params": []
 }
 ```
 
@@ -113,7 +113,9 @@ Called when the WebApp is ready for interaction.
 **JavaScript Call:**
 
 ```typescript
-await CROSSx.WebApp.ready()
+CROSSxWebApp.ready()
+// or
+window.CROSSx.WebApp.ready()
 ```
 
 **Native Responsibility:**
@@ -127,7 +129,7 @@ await CROSSx.WebApp.ready()
 
 ---
 
-### `webapp.requestFullScreen` (alias: `requestFullScreen`)
+### `crossx_app_requestFullscreen`
 
 Called when WebApp requests to be displayed in fullscreen mode.
 
@@ -137,10 +139,12 @@ Called when WebApp requests to be displayed in fullscreen mode.
 {
   "jsonrpc": "2.0",
   "id": 2,
-  "method": "webapp.requestFullScreen",
-  "params": {
-    "isExpandSafeArea": false
-  }
+  "method": "crossx_app_requestFullscreen",
+  "params": [
+    {
+      "isExpandSafeArea": false
+    }
+  ]
 }
 ```
 
@@ -177,10 +181,10 @@ Called when WebApp requests to be displayed in fullscreen mode.
 
 ```typescript
 // Basic fullscreen (respect safe areas)
-await CROSSx.WebApp.requestFullScreen()
+CROSSxWebApp.requestFullScreen()
 
 // Fullscreen with content expanded to safe areas
-await CROSSx.WebApp.requestFullScreen({ isExpandSafeArea: true })
+CROSSxWebApp.requestFullScreen({ isExpandSafeArea: true })
 ```
 
 **Native Responsibility:**
@@ -208,7 +212,7 @@ Returns the current safe area insets of the device.
   "jsonrpc": "2.0",
   "id": 3,
   "method": "crossx_app_safeAreaInset",
-  "params": {}
+  "params": []
 }
 ```
 
@@ -230,7 +234,7 @@ Returns the current safe area insets of the device.
 **JavaScript Call:**
 
 ```typescript
-const insets = await CROSSx.WebApp.getSafeAreaInsets()
+const insets = await CROSSxWebApp.getSafeAreaInsets()
 console.log('Safe area:', insets)
 // { top: 47, bottom: 34, left: 0, right: 0 }
 ```
@@ -267,9 +271,11 @@ Triggers haptic feedback on the device.
   "jsonrpc": "2.0",
   "id": 4,
   "method": "crossx_app_hapticFeedback",
-  "params": {
-    "type": "medium"
-  }
+  "params": [
+    {
+      "hapticType": "impactMedium"
+    }
+  ]
 }
 ```
 
@@ -287,26 +293,28 @@ Triggers haptic feedback on the device.
 
 **Parameters:**
 
-- `type` (string, required): The type of haptic feedback to trigger
-  - `light` - Light impact feedback
-  - `medium` - Medium impact feedback
-  - `heavy` - Heavy impact feedback
-  - `success` - Success notification feedback
-  - `warning` - Warning notification feedback
-  - `error` - Error notification feedback
+- `hapticType` (string, required): The type of haptic feedback to trigger
   - `selection` - Selection changed feedback
+  - `impactLight` - Light impact feedback
+  - `impactMedium` - Medium impact feedback
+  - `impactHeavy` - Heavy impact feedback
+  - `notificationSuccess` - Success notification feedback
+  - `notificationWarning` - Warning notification feedback
+  - `notificationError` - Error notification feedback
 
 **JavaScript Call:**
 
 ```typescript
+import { Haptics } from '@to-nexus/webapp'
+
 // Light haptic feedback
-await CROSSx.WebApp.hapticFeedback('light')
+CROSSxWebApp.hapticFeedback(Haptics.impactLight)
 
 // Success feedback
-await CROSSx.WebApp.hapticFeedback('success')
+CROSSxWebApp.hapticFeedback(Haptics.notificationSuccess)
 
 // Heavy impact
-await CROSSx.WebApp.hapticFeedback('heavy')
+CROSSxWebApp.hapticFeedback(Haptics.impactHeavy)
 ```
 
 **Native Responsibility:**
@@ -731,20 +739,26 @@ class CrossxWebAppBridge(private val webView: WebView) {
     val id = request.getString("id")
 
     when (method) {
-      "webapp.ready" -> {
+      "crossx_app_ready" -> {
         // Handle ready
         callback(JSONObject().apply {
+          put("jsonrpc", "2.0")
           put("id", id)
-          put("result", true)
+          put("result", JSONObject().apply {
+            put("success", true)
+          })
         })
       }
 
-      "webapp.requestFullScreen" -> {
+      "crossx_app_requestFullscreen" -> {
         // Enter fullscreen
         // ... implementation ...
         callback(JSONObject().apply {
+          put("jsonrpc", "2.0")
           put("id", id)
-          put("result", true)
+          put("result", JSONObject().apply {
+            put("success", true)
+          })
         })
       }
 
@@ -802,15 +816,19 @@ export const CrossxWebView = () => {
       const { request } = data;
 
       switch (request.method) {
-        case 'webapp.ready':
+        case 'crossx_app_ready':
           // Handle ready
           webViewRef.current?.postMessage(JSON.stringify({
             type: 'bridgeResponse',
-            response: { id: request.id, result: true }
+            response: {
+              jsonrpc: '2.0',
+              id: request.id,
+              result: { success: true }
+            }
           }));
           break;
 
-        case 'webapp.requestFullScreen':
+        case 'crossx_app_requestFullscreen':
           // Enter fullscreen
           webViewRef.current?.postMessage(JSON.stringify({
             type: 'bridgeResponse',
@@ -865,9 +883,8 @@ The SDK validates response format:
 If `window.crossxNativeBridge` is not provided:
 
 ```typescript
-CROSSx.WebApp.requestFullScreen().catch(error => {
-  console.error('Native bridge not available')
-})
+CROSSxWebApp.requestFullScreen()
+// Error will be logged internally if bridge is not available
 ```
 
 ---
@@ -882,22 +899,20 @@ CROSSx.WebApp.requestFullScreen().catch(error => {
 4. **Inject bridge early** - Use `.atDocumentStart` to ensure bridge is available before page scripts run
 5. **Support both main and iframes** - Set `forMainFrameOnly: false` to support embedded content
 6. **Emit events reliably** - Don't lose lifecycle events, queue them if needed
-7. **Version compatibility** - Support both old method names (`crossx_app_*`) and new ones (`webapp.*`)
-8. **State management** - Check current state before executing actions (e.g., already in fullscreen)
-9. **Use MainActor** - Ensure UI updates happen on main thread in Swift
-10. **Provide user controls** - Add buttons for users to exit fullscreen or toggle safe area expansion
+7. **State management** - Check current state before executing actions (e.g., already in fullscreen)
+8. **Use MainActor** - Ensure UI updates happen on main thread in Swift
+9. **Provide user controls** - Add buttons for users to exit fullscreen or toggle safe area expansion
 
 ### JavaScript App
 
 1. **Always call ready()** - Signal when app is initialized and ready for interaction
 2. **Listen to lifecycle** - Handle close and background events for proper cleanup
-3. **Handle errors** - Implement catch handlers for all bridge calls
-4. **Use async/await** - All bridge methods return Promises for clean error handling
-5. **Save state** - Save data when backgrounded or closing
-6. **Test thoroughly** - Test in actual WebView, not just browser
-7. **Check bridge availability** - Handle cases where native bridge might not be available
-8. **Respect timeouts** - Requests timeout after 10 seconds, handle appropriately
-9. **Progressive enhancement** - App should work (degraded) without native bridge if needed
+3. **Handle async methods** - Only `getSafeAreaInsets()` returns a Promise, use `await` for it
+4. **Save state** - Save data when backgrounded or closing
+5. **Test thoroughly** - Test in actual WebView, not just browser
+6. **Check bridge availability** - Handle cases where native bridge might not be available
+7. **Respect timeouts** - Requests timeout after 10 seconds, handle appropriately
+8. **Progressive enhancement** - App should work (degraded) without native bridge if needed
 
 ---
 
@@ -937,7 +952,7 @@ window.__CROSSX_BRIDGE_INITIALIZED__ = true
 ### Automated Testing
 
 ```typescript
-import { CROSSx } from '@to-nexus/webapp'
+import { CROSSxWebApp } from '@to-nexus/webapp'
 
 describe('WebApp Bridge', () => {
   beforeEach(() => {
@@ -954,26 +969,27 @@ describe('WebApp Bridge', () => {
     }
   })
 
-  it('should call ready', async () => {
-    await CROSSx.WebApp.ready()
+  it('should call ready', () => {
+    CROSSxWebApp.ready()
 
     expect(window.crossxNativeBridge.send).toHaveBeenCalledWith(
       expect.objectContaining({
         jsonrpc: '2.0',
-        method: 'webapp.ready'
+        method: 'crossx_app_ready',
+        params: []
       }),
       expect.any(Function)
     )
   })
 
-  it('should request fullscreen with parameters', async () => {
-    await CROSSx.WebApp.requestFullScreen({ isExpandSafeArea: true })
+  it('should request fullscreen with parameters', () => {
+    CROSSxWebApp.requestFullScreen({ isExpandSafeArea: true })
 
     expect(window.crossxNativeBridge.send).toHaveBeenCalledWith(
       expect.objectContaining({
         jsonrpc: '2.0',
-        method: 'webapp.requestFullScreen',
-        params: { isExpandSafeArea: true }
+        method: 'crossx_app_requestFullscreen',
+        params: [{ isExpandSafeArea: true }]
       }),
       expect.any(Function)
     )
@@ -983,7 +999,7 @@ describe('WebApp Bridge', () => {
     // Mock that doesn't call callback
     window.crossxNativeBridge.send = vi.fn()
 
-    await expect(CROSSx.WebApp.ready()).rejects.toThrow('Request timeout')
+    await expect(CROSSxWebApp.getSafeAreaInsets()).rejects.toThrow('Request timeout')
   })
 
   it('should handle errors', async () => {
@@ -998,7 +1014,7 @@ describe('WebApp Bridge', () => {
       })
     })
 
-    await expect(CROSSx.WebApp.ready()).rejects.toThrow('Method not found')
+    await expect(CROSSxWebApp.getSafeAreaInsets()).rejects.toThrow('Method not found')
   })
 })
 ```
@@ -1033,8 +1049,9 @@ console.log('Bridge methods:', {
 
 // Test bridge
 try {
-  await CROSSx.WebApp.ready()
-  console.log('✅ Bridge working')
+  CROSSxWebApp.ready()
+  const insets = await CROSSxWebApp.getSafeAreaInsets()
+  console.log('✅ Bridge working', insets)
 } catch (error) {
   console.error('❌ Bridge failed:', error)
 }

@@ -2,13 +2,13 @@
   "name": "@to-nexus/webapp",
   "version": "1.18.3-alpha.1",
   "type": "module",
-  "main": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/types/src/index.js",
+  "types": "./dist/types/src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "types": "./dist/types/src/index.d.ts",
+      "import": "./dist/types/src/index.js",
+      "default": "./dist/types/src/index.js"
     }
   },
   "files": [
