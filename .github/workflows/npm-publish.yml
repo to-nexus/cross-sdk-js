@@ -62,7 +62,7 @@ jobs:
       (github.ref == 'refs/heads/develop' && inputs.environment == 'dev') ||
       (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
       (startsWith(github.ref, 'refs/heads/release/') && inputs.environment == 'stage')
-    runs-on: ubuntu-latest
+    runs-on: [arc-runner-set]
     environment: ${{ inputs.environment }}
     env:
       VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
@@ -715,7 +715,7 @@ jobs:
     needs: [version_bump]
     if: |
       github.ref == 'refs/heads/main' && inputs.environment == 'prod'
-    runs-on: ubuntu-latest
+    runs-on: [arc-runner-set]
     environment: prod
     env:
       VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
