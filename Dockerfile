@@ -45,8 +45,8 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   cat /root/.npmrc.secret >> /root/.npmrc && \
   NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm install
 
-# 빌드 실행 (캐시 무시)
-RUN pnpm run build --force
+# 빌드 실행
+RUN pnpm run build
 
 # Build sdk-react
 WORKDIR $WORKDIR/examples/sdk-react
@@ -104,7 +104,7 @@ COPY --chown=nexus:nexus nginx.conf /etc/nginx/nginx.conf
 RUN chmod -R a-w /usr/share/nginx/html
 RUN chown -R nexus:nexus /var/cache/nginx /var/run /var/log/nginx
 
-# USER nexus
+USER nexus
 
 # 포트 8080에서 서빙 (non-root 사용자는 1024 이상 포트 사용)
 EXPOSE 8080
