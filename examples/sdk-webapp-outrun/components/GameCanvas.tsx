@@ -1,6 +1,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { GameState, Obstacle, ObstacleType, Player } from '../types';
+import { CROSSxWebApp, Haptics } from '@to-nexus/webapp';
 
 interface GameCanvasProps {
   gameState: GameState;
@@ -50,7 +51,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore,
   const LANES = [-2/3, 0, 2/3]; 
   
   // Refs
-  const playerRef = useRef<Player>({ x: 0, lane: 1, speed: 0, maxSpeed: 9000, energy: 100 });
+  const playerRef = useRef<Player>({ x: 0, lane: 1, speed: 0, maxSpeed: 12000, energy: 100 });
   const obstaclesRef = useRef<Obstacle[]>([]);
   const sceneryRef = useRef<SceneryObject[]>([]);
   const particlesRef = useRef<Particle[]>([]); // Particles for explosion/smoke
@@ -89,7 +90,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore,
       particlesRef.current = [];
       playerRef.current.x = 0;
       playerRef.current.lane = 1;
-      playerRef.current.speed = 3000; // Idle speed for visual (Fast start)
+      playerRef.current.speed = 5000; // Idle speed for visual (Fast start)
       totalDistanceRef.current = 0;
       distanceSinceLastCollisionRef.current = 0;
       levelRef.current = 1;
@@ -225,10 +226,16 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore,
           if (distX < laneTolerance) {
             obs.hit = true;
             
-            // Apply Damage Multiplier if in Boost Mode (Warping)
-            let finalDamage = obs.damage;
+            // Apply Damage Multiplier based on speed (higher speed = more damage)
+            // Base speed: 3000, Max speed: 9000+
+            // Multiplier ranges from 1.0 (at 3000) to 3.0+ (at 9000+)
+            const currentSpeed = playerRef.current.speed;
+            const speedMultiplier = 1 + Math.max(0, (currentSpeed - 3000) / 3000);
+            let finalDamage = Math.floor(obs.damage * speedMultiplier);
+            
+            // Additional penalty if in Boost Mode (Warping)
             if (warpEffectTimerRef.current > 0) {
-              finalDamage = Math.floor(obs.damage * 1.2);
+              finalDamage = Math.floor(finalDamage * 1.3);
             }
 
             const newEnergy = Math.max(0, playerRef.current.energy - finalDamage);
@@ -236,14 +243,24 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore,
             setEnergy(newEnergy); 
             
             // CRASH PENALTY & RESET LEVEL
-            playerRef.current.speed = 3000;
-            playerRef.current.maxSpeed = 9000; // Reset to base max speed
+            playerRef.current.speed = 5000;
+            playerRef.current.maxSpeed = 12000; // Reset to base max speed
             levelRef.current = 1; // Reset Level
             warpEffectTimerRef.current = 0; // Cancel boost immediately
             distanceSinceLastCollisionRef.current = 0; // Reset safe distance tracker
             
             // Trigger Shake
             shakeTimeRef.current = 0.5; // Shake for 0.5 seconds
+            
+            // Trigger Haptic Feedback using CROSSx WebApp API
+            // Choose intensity based on damage
+            if (finalDamage >= 60) {
+              CROSSxWebApp.hapticFeedback(Haptics.impactHeavy);
+            } else if (finalDamage >= 30) {
+              CROSSxWebApp.hapticFeedback(Haptics.impactMedium);
+            } else {
+              CROSSxWebApp.hapticFeedback(Haptics.impactLight);
+            }
 
             // Calculate impact position for explosion
             const maxRoadWidth = Math.min(width * 0.9, 800);
@@ -257,6 +274,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore,
               isDyingRef.current = true;
               dyingTimerRef.current = 2.0; // 2 seconds of smoke
               playerRef.current.speed = 0; // Stop car
+              
+              // Strong haptic feedback for game over
+              CROSSxWebApp.hapticFeedback(Haptics.notificationError);
             }
           }
         }
@@ -874,7 +894,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore,
         obstaclesRef.current = [];
         sceneryRef.current = [];
         particlesRef.current = [];
-        playerRef.current = { x: 0, lane: 1, speed: 3000, maxSpeed: 9000, energy: 100 };
+        playerRef.current = { x: 0, lane: 1, speed: 5000, maxSpeed: 12000, energy: 100 };
         totalDistanceRef.current = 0; 
         distanceSinceLastCollisionRef.current = 0; // Reset safe distance
         levelRef.current = 1; 
@@ -935,8 +955,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore,
           setScore(Math.floor(totalDistanceRef.current));
           
           // Update speed display (convert game speed to km/h for display)
-          // Game speed is ~3000-9000, convert to ~200-600 km/h for realistic display
-          const displaySpeed = (playerRef.current.speed / 15);
+          // Display at 1/4 of previous scale for more realistic speed numbers
+          const displaySpeed = (playerRef.current.speed / 60);
           setSpeed(displaySpeed);
           
           // Check for Boost Trigger (Every 1km without collision)
@@ -959,7 +979,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setEnergy, setScore,
           const lerpSpeed = 15; 
           playerRef.current.x += (targetX - playerRef.current.x) * lerpSpeed * deltaTime;
 
-          const acceleration = 800;
+          const acceleration = 1500;
           playerRef.current.speed += acceleration * deltaTime;
 
           if (playerRef.current.speed > playerRef.current.maxSpeed) {
