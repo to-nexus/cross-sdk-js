@@ -20,7 +20,6 @@ packages:
   - 'examples/sdk-vanilla'
   - 'examples/sdk-cdn'
   - 'examples/sdk-wagmi'
-  - 'examples/sdk-webapp'
   - 'examples/sdk-webapp-outrun'
   - 'examples/cocos-creator'
   - 'packages/cdn'

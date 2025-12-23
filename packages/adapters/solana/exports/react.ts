@@ -1,4 +1,5 @@
-import { useSnapshot } from 'valtio'
+import { useState, useEffect } from 'react'
+import { subscribe } from 'valtio/vanilla'
 
 import type { Connection } from '@to-nexus/appkit-utils/solana'
 
@@ -14,11 +15,18 @@ export * from '../src/index.js'
 export function useAppKitConnection(): {
   connection: Connection | undefined
 } {
-  const state = useSnapshot(SolStoreUtil.state)
+  const [connection, setConnection] = useState<Connection | undefined>(
+    SolStoreUtil.state.connection
+  )
+
+  useEffect(() => {
+    const unsubscribe = subscribe(SolStoreUtil.state, () => {
+      setConnection(SolStoreUtil.state.connection)
+    })
+    return unsubscribe
+  }, [])
 
   return {
-    connection: state.connection
-  } as {
-    connection: Connection | undefined
+    connection
   }
 }

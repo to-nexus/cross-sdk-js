@@ -187,7 +187,7 @@ pnpm example:webapp:build
 
 ### 예제 ✅
 - ✅ `example.html` - 기본 테스트 페이지
-- ✅ `examples/sdk-webapp/` - 완전한 예제 프로젝트
+- ✅ `examples/sdk-webapp-outrun/` - 완전한 예제 프로젝트
 
 ## 🌍 배포 준비
 
@@ -248,7 +248,7 @@ CROSSx.WebApp.haptics.light()
 ### 문제 해결
 1. **SDK 관련**: [README.md](./README.md) 참고
 2. **Native 통신**: [NATIVE_BRIDGE.md](./NATIVE_BRIDGE.md) 참고
-3. **예제 오류**: [examples/sdk-webapp/README.md](../examples/sdk-webapp/README.md) 참고
+3. **예제 오류**: [examples/sdk-webapp-outrun/README.md](../../examples/sdk-webapp-outrun/README.md) 참고
 
 ### 버그 신고
 ```

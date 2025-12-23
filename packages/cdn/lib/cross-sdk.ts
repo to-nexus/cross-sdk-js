@@ -25,6 +25,7 @@ import {
   initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
+  networkController,
   roninMainnet,
   roninTestnet,
   sdkVersion,
@@ -56,7 +57,8 @@ export {
   roninTestnet,
   UniversalProvider,
   ConstantsUtil,
-  sdkVersion
+  sdkVersion,
+  networkController
 }
 
 // Export types
@@ -89,6 +91,7 @@ declare global {
       UniversalProvider: typeof UniversalProvider
       ConstantsUtil: typeof ConstantsUtil
       sdkVersion: typeof sdkVersion
+      networkController: typeof networkController
     }
   }
 }
@@ -119,6 +122,7 @@ if (typeof window !== 'undefined') {
     roninTestnet,
     UniversalProvider,
     ConstantsUtil,
-    sdkVersion
+    sdkVersion,
+    networkController
   }
 }

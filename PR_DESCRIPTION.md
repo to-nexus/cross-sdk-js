@@ -41,11 +41,6 @@ packages/webapp/
 
 #### 새로운 예제
 
-- **sdk-webapp**: WebApp SDK 기본 사용 예제
-
-  - HTML 기반 간단한 통합 예제
-  - 515줄의 완전한 예제 코드
-
 - **sdk-webapp-outrun**: 실제 게임 통합 예제
   - React + TypeScript 기반 Outrun 레이싱 게임
   - GameCanvas 컴포넌트 (1,148줄)
