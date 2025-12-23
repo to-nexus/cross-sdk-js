@@ -45,8 +45,8 @@ RUN --mount=type=secret,id=npmrc,dst=$WORKDIR/.npmrc \
   cat /root/.npmrc.secret >> /root/.npmrc && \
   NPM_CONFIG_USERCONFIG=/root/.npmrc pnpm install
 
-# 빌드 실행
-RUN pnpm run build
+# 빌드 실행 (캐시 무시)
+RUN pnpm run build --force
 
 # Build sdk-react
 WORKDIR $WORKDIR/examples/sdk-react
