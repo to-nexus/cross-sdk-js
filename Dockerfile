@@ -1,4 +1,4 @@
-FROM node:20 AS builder
+FROM public.ecr.aws/docker/library/node:20 AS builder
 
 ARG SERVICE_NAME
 ARG WORKDIR
@@ -82,7 +82,7 @@ RUN rm -f cross-sdk*.js cross-sdk*.js.map index-*.js index-*.js.map index.es-*.j
     cp ../../packages/cdn/dist/*.js . && \
     cp ../../packages/cdn/dist/*.map .
 
-FROM nginx:alpine AS runner
+FROM public.ecr.aws/docker/library/nginx:alpine AS runner
 
 # nginx 사용자 설정
 RUN addgroup -S nexus && adduser -S -G nexus nexus
