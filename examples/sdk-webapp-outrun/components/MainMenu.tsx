@@ -71,11 +71,11 @@ const MainMenu: React.FC<MainMenuProps> = ({ onStart, highScore }) => {
     >
       <div className="text-center mb-8 animate-pulse">
         <h1
-          className="text-6xl md:text-8xl font-black italic tracking-tighter neon-text mb-2 text-white"
+          className="flex flex-col md:flex-row items-center justify-center text-5xl md:text-8xl font-black italic tracking-tighter neon-text mb-2 text-white"
           style={{ fontFamily: 'Orbitron' }}
         >
-          NEON
-          <span className="text-pink-500 neon-text-red ml-4">OUTRUN</span>
+          <span>NEON</span>
+          <span className="text-pink-500 neon-text-red md:ml-4">OUTRUN</span>
         </h1>
         <p className="text-sm md:text-lg tracking-widest uppercase opacity-80 mt-4">
           Cybernetic High-Speed Survival

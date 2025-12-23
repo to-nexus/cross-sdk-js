@@ -134,8 +134,9 @@ function SDKWrapper() {
     return (
       <div className="w-screen h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center text-cyan-400">
-          <h1 className="text-5xl font-bold mb-4" style={{ fontFamily: 'Orbitron' }}>
-            NEON <span className="text-pink-500">OUTRUN</span>
+          <h1 className="flex flex-col md:flex-row items-center justify-center text-4xl md:text-5xl font-bold mb-4 gap-2" style={{ fontFamily: 'Orbitron' }}>
+            <span>NEON</span>
+            <span className="text-pink-500">OUTRUN</span>
           </h1>
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-cyan-400 mx-auto mb-4"></div>
           <p className="text-lg">Loading...</p>
