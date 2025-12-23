@@ -146,14 +146,15 @@ function getEnv(): string {
   }
 
   // ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
-  if (process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
+  // 브라우저 환경에서는 process가 정의되지 않을 수 있음
+  if (typeof process !== 'undefined' && process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
     // Console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env['NEXT_PUBLIC_ENV_MODE'])
 
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
   // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
-  if (process?.env?.['NODE_ENV']) {
+  if (typeof process !== 'undefined' && process?.env?.['NODE_ENV']) {
     // Console.log('getEnv(), process.env.NODE_ENV', process.env['NODE_ENV'])
 
     return process.env['NODE_ENV']

@@ -6,11 +6,12 @@ function getEnv(): string {
     return import.meta.env['VITE_ENV_MODE']
   }
 
-  if (process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
+  // 브라우저 환경에서는 process가 정의되지 않을 수 있음
+  if (typeof process !== 'undefined' && process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
-  if (process?.env?.['NODE_ENV']) {
+  if (typeof process !== 'undefined' && process?.env?.['NODE_ENV']) {
     return process.env['NODE_ENV']
   }
 
@@ -52,7 +53,7 @@ export const ConstantsUtil = {
       return import.meta.env['CROSS_RELAY']
     }
 
-    if (process?.env?.['CROSS_RELAY']) {
+    if (typeof process !== 'undefined' && process?.env?.['CROSS_RELAY']) {
       console.log('Using CROSS_RELAY from process.env:', process.env['CROSS_RELAY'])
 
       return process.env['CROSS_RELAY']
@@ -85,7 +86,7 @@ export const ConstantsUtil = {
       return import.meta.env['UNIVERSAL_LINK']
     }
 
-    if (process?.env?.['UNIVERSAL_LINK']) {
+    if (typeof process !== 'undefined' && process?.env?.['UNIVERSAL_LINK']) {
       console.log('Using UNIVERSAL_LINK from process.env:', process.env['UNIVERSAL_LINK'])
 
       return process.env['UNIVERSAL_LINK']
