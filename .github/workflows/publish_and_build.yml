@@ -67,7 +67,7 @@ concurrency:
 jobs:
   display_info:
     name: ${{ format('{0} | {1} | {2} | {3}{4}{5}{6}', inputs.services || 'auto-trigger', inputs.environment || github.ref_name, inputs.publish_version || 'latest', inputs.dry_run == 'true' && ' [DRY-RUN]' || '', inputs.package_versions && format(' | pkg:{0}', inputs.package_versions) || '', inputs.publish_filters != '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client' && ' | [CUSTOM-FILTERS]' || '', github.event_name == 'push' && ' | [AUTO-PUSH]' || '') }}
-    runs-on: ubuntu-latest
+    runs-on: [arc-runner-set]
     if: always()
     steps:
       - name: Display Workflow Information
@@ -98,7 +98,7 @@ jobs:
         (startsWith(github.ref, 'refs/heads/feature/') && (inputs.environment == 'dev' || inputs.environment == 'stage')) ||
         (github.ref == 'refs/heads/main' && inputs.environment == 'prod')
       ) && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'cdn-publish' || inputs.services == 'changeset' || inputs.services == 'sample-page')
-    runs-on: ubuntu-latest
+    runs-on: [arc-runner-set]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -339,7 +339,7 @@ jobs:
 
   sonarqube:
     name: SonarQube Analysis
-    runs-on: ubuntu-latest
+    runs-on: [arc-runner-set]
     if: github.event_name == 'workflow_dispatch' && (inputs.environment == 'stage' || inputs.environment == 'prod') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
     steps:
       - uses: actions/checkout@v4
