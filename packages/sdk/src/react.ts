@@ -178,20 +178,17 @@ const initCrossSdk = (
 
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
-    networks: [
-      ...networkController.getNetworks()
-    ] as [any, ...any[]],
+    networks: [...networkController.getNetworks()] as [any, ...any[]],
     defaultNetwork,
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
     siwx,
-    // ⭐ 지갑 관련 옵션 기본값 설정
+    // ⭐ 지갑 관련 옵션 - Cross SDK는 지갑 전용이므로 항상 활성화
     enableWallets: true,
     enableWalletConnect: true,
     enableEIP6963: true,
     enableInjected: true,
-    enableCoinbase: false,
     enableWalletGuide: true,
     features: {
       swaps: false,
