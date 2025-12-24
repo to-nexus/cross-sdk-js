@@ -101,7 +101,8 @@ COPY --from=builder --chown=nexus:nexus /nexus/apps/cross-sdk-js/examples/index.
 COPY --chown=nexus:nexus nginx.conf /etc/nginx/nginx.conf
 
 # 권한 설정
-RUN chmod -R a-w /usr/share/nginx/html
+RUN chmod -R 755 /usr/share/nginx/html
+RUN find /usr/share/nginx/html -type f -exec chmod 644 {} \;
 RUN chown -R nexus:nexus /var/cache/nginx /var/run /var/log/nginx
 
 # USER nexus
