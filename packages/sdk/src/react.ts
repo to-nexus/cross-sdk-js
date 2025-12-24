@@ -186,6 +186,13 @@ const initCrossSdk = (
     projectId,
     themeMode: themeMode || 'light',
     siwx,
+    // ⭐ 지갑 관련 옵션 기본값 설정
+    enableWallets: true,
+    enableWalletConnect: true,
+    enableEIP6963: true,
+    enableInjected: true,
+    enableCoinbase: false,
+    enableWalletGuide: true,
     features: {
       swaps: false,
       onramp: false,
@@ -198,7 +205,6 @@ const initCrossSdk = (
       analytics: false,
       legalCheckbox: false
     },
-    enableCoinbase: false,
     customWallets: [crossWalletConfig],
     allWallets: 'HIDE'
   })
