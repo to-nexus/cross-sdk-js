@@ -168,7 +168,13 @@ const state = proxy<OptionsControllerState & OptionsControllerStateInternal>({
   projectId: '',
   sdkType: 'appkit',
   sdkVersion: 'html-wagmi-undefined',
-  defaultAccountTypes: ConstantsUtil.DEFAULT_ACCOUNT_TYPES
+  defaultAccountTypes: ConstantsUtil.DEFAULT_ACCOUNT_TYPES,
+  enableWallets: undefined,
+  enableWalletConnect: undefined,
+  enableInjected: undefined,
+  enableCoinbase: undefined,
+  enableEIP6963: undefined,
+  enableWalletGuide: undefined
 })
 
 // -- Controller ---------------------------------------- //
