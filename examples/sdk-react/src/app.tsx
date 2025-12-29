@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useAppKitAccount, useAppKitTheme } from '@to-nexus/sdk/react'
 
 import { useAppKitAccount as useReownAccount } from '@reown/appkit/react'
@@ -20,12 +21,16 @@ declare module 'react' {
 }
 
 export default function App() {
-  const { themeMode } = useAppKitTheme()
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>('dark')
+  const { setThemeMode: setCrossSdkTheme } = useAppKitTheme()
   const crossAccount = useAppKitAccount() // Cross SDK 계정
   const reownAccount = useReownAccount() // Reown AppKit 계정 (MetaMask QR)
   const { getActiveWalletType } = useWalletContext() // MetaMask Extension 상태
 
-  document.documentElement.className = themeMode
+  useEffect(() => {
+    document.documentElement.className = themeMode
+    setCrossSdkTheme(themeMode)
+  }, [themeMode, setCrossSdkTheme])
 
   // 활성 지갑 타입 확인
   const activeWalletType = getActiveWalletType()
@@ -53,6 +58,21 @@ export default function App() {
       </div>
 
       <h1 className="page-title">Cross React Sdk Example</h1>
+
+      <button
+        onClick={() => setThemeMode(prev => (prev === 'dark' ? 'light' : 'dark'))}
+        style={{
+          padding: '8px 16px',
+          marginBottom: '20px',
+          backgroundColor: themeMode === 'dark' ? '#333' : '#fff',
+          color: themeMode === 'dark' ? '#fff' : '#333',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Toggle Theme: {themeMode === 'dark' ? '🌙 Dark' : '☀️ Light'}
+      </button>
 
       {/* 조건부 네트워크 버튼: MetaMask는 Reown, CROSSx Wallet은 Cross SDK */}
       {isMetaMaskConnected ? (

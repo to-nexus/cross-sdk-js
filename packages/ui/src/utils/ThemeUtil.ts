@@ -1,7 +1,7 @@
-import { css, unsafeCSS } from 'lit'
-
 import { getW3mThemeVariables } from '@to-nexus/appkit-common'
 import type { ThemeType, ThemeVariables } from '@to-nexus/appkit-common'
+
+import { css, unsafeCSS } from 'lit'
 
 // -- Utilities ---------------------------------------------------------------
 let themeTag: HTMLStyleElement | undefined = undefined
@@ -24,11 +24,11 @@ export function initializeTheming(themeVariables?: ThemeVariables, themeMode?: T
 export function setColorTheme(themeMode?: string) {
   if (darkModeTag && lightModeTag) {
     if (themeMode === 'light') {
-      darkModeTag.removeAttribute('media')
-      lightModeTag.media = 'enabled'
+      lightModeTag.disabled = true
+      darkModeTag.disabled = false
     } else {
-      lightModeTag.removeAttribute('media')
-      darkModeTag.media = 'enabled'
+      darkModeTag.disabled = true
+      lightModeTag.disabled = false
     }
   }
 }
@@ -546,6 +546,8 @@ function createRootStyles(themeVariables?: ThemeVariables) {
         )};
         --wui-color-accent-base-100: var(--w3m-accent);
 
+        --wui-cover: rgba(20, 20, 20, 0.8);
+
         --wui-color-blueberry-100: hsla(230, 100%, 67%, 1);
         --wui-color-blueberry-090: hsla(231, 76%, 61%, 1);
         --wui-color-blueberry-080: hsla(230, 59%, 55%, 1);
@@ -654,6 +656,8 @@ function createRootStyles(themeVariables?: ThemeVariables) {
           getW3mThemeVariables(themeVariables, 'light')['--w3m-background']
         )};
         --wui-color-accent-base-100: var(--w3m-accent);
+
+        --wui-cover: rgba(255, 255, 255, 0.2);
 
         --wui-color-blueberry-100: hsla(231, 100%, 70%, 1);
         --wui-color-blueberry-090: hsla(231, 97%, 72%, 1);
