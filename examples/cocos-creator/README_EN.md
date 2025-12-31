@@ -81,42 +81,6 @@ cocos-creator/
 | `w3m-modal-*.js` | WalletConnect modal UI               | ⭐⭐⭐   |
 | `style.css`      | Responsive UI styles                 | ⭐⭐     |
 
-## ⚡ Quick Start
-
-### 1. Project Setup
-
-```bash
-# 1. Install Cocos Creator 3.8.7
-# https://www.cocos.com/en/creator/download
-
-# 2. Open project
-# Open this folder as a project in Cocos Creator
-
-# 3. Build (optional)
-npm run build
-```
-
-### 2. Development Environment
-
-1. **Open project in Cocos Creator**
-2. **Select Scene**: `assets/scene/home.scene`
-3. **Run Preview**: Top menu → Preview → Browser
-4. **Test Wallet Connection**: Click "Cross Connect" button
-
-### 3. Production Build
-
-```bash
-# Full build (desktop + mobile)
-npm run build
-
-# Individual platform builds
-npm run build:web-desktop   # For desktop
-npm run build:web-mobile    # For mobile
-
-# Check build results
-ls dist/
-```
-
 ## 🔧 SDK Integration
 
 ### ⚠️ Why Use CDN Approach?
@@ -127,7 +91,9 @@ This import map only includes the Cocos engine (`cc`), and **npm packages are NO
 ```json
 // build/web-mobile/src/import-map.json (build result)
 { "imports": { "cc": "./../cocos-js/cc.js" } }
- // ← No npm packages
+
+
+// ← No npm packages
 ```
 
 Therefore, npm imports like this will cause **runtime errors**:
@@ -865,14 +831,5 @@ window.addEventListener('unhandledrejection', event => {
   console.error('Unhandled promise rejection:', event.reason)
 })
 ```
-
-## 📞 Support & Contact
-
-- **Technical Inquiries**: [Cross Developer Portal](https://developers.cross.io)
-- **SDK Documentation**: [Cross SDK Guide](https://docs.cross.io/sdk)
-- **Community**: [Discord](https://discord.gg/cross)
-- **Issue Reports**: [GitHub Issues](https://github.com/cross-org/cross-sdk-js/issues)
-
----
 
 We hope this guide helps you successfully integrate Cross SDK into your Cocos Creator web game! 🚀

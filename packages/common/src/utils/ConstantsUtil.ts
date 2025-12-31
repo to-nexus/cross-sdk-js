@@ -7,10 +7,12 @@ function getEnv(): string {
   }
 
   // 브라우저 환경에서는 process가 정의되지 않을 수 있음
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
   if (typeof process !== 'undefined' && process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
   if (typeof process !== 'undefined' && process?.env?.['NODE_ENV']) {
     return process.env['NODE_ENV']
   }
@@ -53,6 +55,7 @@ export const ConstantsUtil = {
       return import.meta.env['CROSS_RELAY']
     }
 
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (typeof process !== 'undefined' && process?.env?.['CROSS_RELAY']) {
       console.log('Using CROSS_RELAY from process.env:', process.env['CROSS_RELAY'])
 
@@ -86,6 +89,7 @@ export const ConstantsUtil = {
       return import.meta.env['UNIVERSAL_LINK']
     }
 
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (typeof process !== 'undefined' && process?.env?.['UNIVERSAL_LINK']) {
       console.log('Using UNIVERSAL_LINK from process.env:', process.env['UNIVERSAL_LINK'])
 
@@ -121,9 +125,9 @@ export const ConstantsUtil = {
     return ConstantsUtil.CROSS_WALLET_WEBAPP_LINK[envKey]
   },
   CROSS_WALLET_WEBAPP_LINK: {
-    DEVELOPMENT: 'crossx://',
-    STAGE: 'crossx://',
-    PRODUCTION: 'crossx://' // Todo: change to universal link (https://cross-wallet.crosstoken.io)
+    DEVELOPMENT: 'https://dev-cross-wallet.crosstoken.io/wc',
+    STAGE: 'https://stg-cross-wallet.crosstoken.io/wc',
+    PRODUCTION: 'https://cross-wallet.crosstoken.io/wc'
   },
 
   /* Connector IDs */

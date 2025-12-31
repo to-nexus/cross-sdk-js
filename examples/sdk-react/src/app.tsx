@@ -28,7 +28,7 @@ export default function App() {
   const { getActiveWalletType } = useWalletContext() // MetaMask Extension 상태
 
   useEffect(() => {
-    document.documentElement.className = themeMode
+  document.documentElement.className = themeMode
     setCrossSdkTheme(themeMode)
   }, [themeMode, setCrossSdkTheme])
 

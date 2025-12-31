@@ -52,24 +52,45 @@ export const StorageUtil = {
   setWalletConnectDeepLink({ name, href }: { href: string; name: string }) {
     try {
       /*
-       * 🔑 핵심: iOS만 Universal Link를 Custom URL Scheme으로 변환
+       * 🔑 핵심: 플랫폼별 최적의 링크 전략
        *
-       * iOS:
-       * - Universal Link는 비동기 작업 후 사용자 인터랙션 컨텍스트가 상실되면 fallback URL로 리다이렉트됨
-       * - Custom URL Scheme (deep link)는 비동기 작업 후에도 앱을 열 수 있음
-       * - 따라서 서명 요청 등에서는 Deep Link 사용 필요
+       * 📱 iOS:
+       * - Universal Link (https://)는 최초 연결에는 좋지만,
+       *   비동기 작업(서명/트랜잭션) 중에는 사용자 인터랙션 컨텍스트가 상실되어 실패
+       * - Custom URL Scheme (crossx://)는 비동기 작업 후에도 안정적으로 앱 열기 가능
+       * - 따라서 서명/트랜잭션용으로는 Deep Link로 변환 필요 ✅
        *
-       * Android:
-       * - 프로그래밍 방식으로 Universal Link를 열 수 있음
+       * 🤖 Android:
+       * - 프로그래밍 방식으로 Universal Link 사용 가능 (비동기 작업에서도 안정적)
        * - Universal Link 사용 시 앱 미설치 시 웹으로 fallback 가능 (더 나은 UX)
-       * - 사용자 인터랙션 컨텍스트 제약이 iOS보다 덜 엄격
+       * - 따라서 Universal Link를 그대로 유지 ✅
+       *
+       * 💡 하이브리드 전략:
+       * - 최초 연결: Universal Link + 자동 버튼 클릭 (iOS)
+       * - 서명/트랜잭션: iOS는 Deep Link, Android는 Universal Link
+       *
+       * ⚠️ 왜 트랜잭션은 Deep Link가 필요한가?
+       *
+       * 트랜잭션 플로우:
+       * 1. 사용자 "Send Transaction" 버튼 클릭 (인터랙션 컨텍스트 시작)
+       * 2. 가스 추정 (await estimateGas) - 네트워크 요청 ~200-300ms
+       * 3. 수수료 조회 (await getFeeData) - 네트워크 요청 ~200ms
+       * 4. 트랜잭션 전송 (await eth_sendTransaction) - 지갑 열기 시도
+       *
+       * 문제: 4번 시점에는 이미 500ms+ 경과, iOS 인터랙션 컨텍스트 상실
+       * → Universal Link 실패 (iOS 정책)
+       * → Deep Link는 비동기 후에도 작동 가능 ✅
+       *
+       * Android는 인터랙션 컨텍스트 제약이 덜 엄격하므로 Universal Link 유지
        */
       const isIos = CoreHelperUtil.isIos()
       let finalHref = href
 
-      // IOS에서만 Universal Link를 Deep Link로 변환
+      /*
+       * IOS에서만 Universal Link → Deep Link 변환
+       * Android는 Universal Link 그대로 유지
+       */
       if (isIos && href.startsWith('https://')) {
-        // ConstantsUtil에서 정의된 모든 Universal Link 도메인들을 가져와서 Deep Link로 변환
         const crossWalletDomains = Object.values(CommonConstantsUtil.UNIVERSAL_LINK)
 
         for (const domain of crossWalletDomains) {
@@ -77,19 +98,16 @@ export const StorageUtil = {
             /*
              * ⚠️ 중요: 슬래시 개수에 주의!
              *
-             * domain: "https://cross-wallet.crosstoken.io"   (끝에 / 없음)
-             * href:   "https://cross-wallet.crosstoken.io/"  (끝에 / 있음 - 다른 코드에서 추가됨)
+             * Domain: "https://cross-wallet.crosstoken.io"   (끝에 / 없음)
+             * Href:   "https://cross-wallet.crosstoken.io/"  (끝에 / 있음)
              *
-             * replace(domain, 'crossx:/') 사용 이유:
+             * Replace(domain, 'crossx:/') 사용 이유:
              * - 'crossx://' (슬래시 2개)를 사용하면 → "crossx:///" (슬래시 3개) 결과 ❌
              * - 'crossx:/'  (슬래시 1개)를 사용하면 → "crossx://"  (슬래시 2개) 결과 ✅
              *
              * 예시:
-             * "https://cross-wallet.crosstoken.io/".replace("https://cross-wallet.crosstoken.io", "crossx:/")
-             * → "crossx://"
-             *
-             * "https://cross-wallet.crosstoken.io/wc?uri=xxx".replace("https://cross-wallet.crosstoken.io", "crossx:/")
-             * → "crossx://wc?uri=xxx"
+             * - "https://cross-wallet.crosstoken.io/" → "crossx://"
+             * - "https://cross-wallet.crosstoken.io/wc?uri=xxx" → "crossx://wc?uri=xxx"
              */
             finalHref = href.replace(domain, 'crossx:/')
             break
