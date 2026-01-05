@@ -1,5 +1,4 @@
 import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
-import type { AppKitNetwork } from '@to-nexus/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -146,9 +145,7 @@ const initCrossSdk = (
 
   // Mobile_link를 미리 계산 (한 번만 평가)
   const resolvedMobileLink =
-    mobileLink ||
-    (CommonConstantsUtil as any).getCrossWalletDeepLink?.() ||
-    'https://cross-wallet.crosstoken.io'
+    mobileLink || (CommonConstantsUtil as any).getCrossWalletDeepLink?.() || 'crossx://'
 
   // Custom wallet 설정 생성
   const crossWalletConfig: CustomWallet & { chrome_store?: string } = {
