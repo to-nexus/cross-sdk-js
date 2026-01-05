@@ -124,10 +124,22 @@ export const ConstantsUtil = {
 
     return ConstantsUtil.CROSS_WALLET_WEBAPP_LINK[envKey]
   },
+  getCrossWalletDeepLink() {
+    const injectedEnv = getEnv()
+    type EnvKey = keyof typeof ConstantsUtil.CROSS_WALLET_DEEP_LINK
+    const envKey = injectedEnv.toUpperCase() as EnvKey
+
+    return ConstantsUtil.CROSS_WALLET_DEEP_LINK[envKey]
+  },
   CROSS_WALLET_WEBAPP_LINK: {
     DEVELOPMENT: 'https://dev-cross-wallet.crosstoken.io/wc',
     STAGE: 'https://stg-cross-wallet.crosstoken.io/wc',
     PRODUCTION: 'https://cross-wallet.crosstoken.io/wc'
+  },
+  CROSS_WALLET_DEEP_LINK: {
+    DEVELOPMENT: 'crossx://',
+    STAGE: 'crossx://',
+    PRODUCTION: 'crossx://'
   },
 
   /* Connector IDs */

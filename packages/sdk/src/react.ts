@@ -147,7 +147,7 @@ const initCrossSdk = (
   // Mobile_link를 미리 계산 (한 번만 평가)
   const resolvedMobileLink =
     mobileLink ||
-    (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
+    (CommonConstantsUtil as any).getCrossWalletDeepLink?.() ||
     'https://cross-wallet.crosstoken.io'
 
   // Custom wallet 설정 생성

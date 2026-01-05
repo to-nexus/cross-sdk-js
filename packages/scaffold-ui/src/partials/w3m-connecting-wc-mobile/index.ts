@@ -26,13 +26,14 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
     const isUniversalLink = this.wallet.mobile_link?.startsWith('https://')
 
     /*
-     * 🎯 Telegram-style approach:
-     * Always render the button for iOS + Universal Link (we'll auto-click it).
-     * Deep Links (custom schemes like 'crossx://') can be opened programmatically without button.
+     * 🎯 iOS Universal Link requires manual button click:
+     * - iOS + Universal Link: Show button for user to tap (preserves interaction context)
+     * - Deep Links (crossx://): Can be opened programmatically without button
+     * - Android: Can be opened programmatically (no iOS restrictions)
      */
     const shouldShowButton = isIos && isUniversalLink
 
-    this.secondaryBtnLabel = shouldShowButton ? 'Open CrossX App' : undefined
+    this.secondaryBtnLabel = shouldShowButton ? 'Open CROSSx App' : undefined
     this.secondaryBtnIcon = shouldShowButton ? 'externalLink' : 'refresh'
 
     // Show different text for mini window
@@ -82,34 +83,25 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
        */
       const isIos = CoreHelperUtil.isIos()
       const isUniversalLink = this.wallet?.mobile_link?.startsWith('https://')
-      const shouldAutoClick = isIos && isUniversalLink
+      const requiresManualClick = isIos && isUniversalLink
 
-      if (shouldAutoClick) {
-        // Update label to show we're opening the wallet
-        this.secondaryLabel = 'Opening CROSSx Wallet...'
+      if (requiresManualClick) {
+        /*
+         * 🎯 iOS Universal Link 제약사항:
+         * - 사용자 클릭 이벤트 핸들러 내에서만 작동
+         * - 비동기 작업 후에는 클릭 컨텍스트가 상실됨
+         * - connect('cross_wallet')는 비동기 작업이 많아서 자동 클릭 불가
+         * - 따라서 iOS + Universal Link만 버튼을 보여주고 직접 클릭하게 함
+         * - Android 및 Deep Link는 자동으로 앱 열림
+         */
+        this.secondaryLabel = 'Tap to open CROSSx Wallet'
 
         /*
-         * Auto-click the button after a short delay (Telegram method)
-         * 200ms delay - adjustable based on testing
+         * 버튼만 표시하고 자동 클릭하지 않음
+         * 사용자가 직접 클릭하면 onConnect()가 호출됨
          */
-        this.autoClickTimeout = setTimeout(() => {
-          const button = this.shadowRoot?.querySelector(
-            '[data-testid="cross-w3m-connecting-widget-secondary-button"]'
-          ) as HTMLElement
-
-          if (button) {
-            button.click()
-          }
-        }, 200)
-
-        // Fallback: show manual button if auto-connect fails after 3 seconds
-        setTimeout(() => {
-          if (ConnectionController.state.wcError) {
-            this.secondaryLabel = 'Connection failed. Please try again.'
-          }
-        }, 3000)
       } else {
-        // For non-iOS or Deep Links: trigger automatic connection
+        // Android, iOS Deep Link: 자동으로 앱 열기
         this.onConnect?.()
       }
     }
