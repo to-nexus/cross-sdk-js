@@ -88,7 +88,9 @@ export class W3mConnectingWcLandscapeView extends LitElement {
 
   private finalizeConnection() {
     const { wcLinking, recentWallet } = ConnectionController.state
-    if (wcLinking) {
+    // 모바일 환경에서만 Deep Link 저장 (데스크탑에서는 저장하지 않아 리다이렉트 방지)
+    // href가 빈 문자열이 아닌 경우만 저장
+    if (wcLinking && wcLinking.href && wcLinking.href.trim() !== '' && CoreHelperUtil.isMobile()) {
       StorageUtil.setWalletConnectDeepLink(wcLinking)
     }
     if (recentWallet) {

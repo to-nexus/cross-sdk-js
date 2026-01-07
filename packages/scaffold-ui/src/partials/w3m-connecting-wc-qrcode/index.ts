@@ -103,22 +103,29 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
 
     const size = this.getBoundingClientRect().width - 40
     const alt = this.wallet ? this.wallet.name : 'CROSSx Wallet'
-    
+
     // ✅ QR Code 연결에서도 deep link 정보 저장 (모바일 지갑 자동 열기용)
     if (this.wallet?.mobile_link && this.uri) {
       const { mobile_link, name } = this.wallet
-      
-      // 🔑 핵심: base URL만 저장 (WalletConnect Engine이 각 요청마다 동적으로 URI 생성)
-      const baseUrl = mobile_link.endsWith('/') ? mobile_link : `${mobile_link}/`
-      
-      ConnectionController.setWcLinking({ name, href: baseUrl })
-      
-      // ✅ base URL만 localStorage에 저장 (WalletConnect Engine이 동적 URL 생성)
-      StorageUtil.setWalletConnectDeepLink({ name, href: baseUrl })
+
+      // Mobile_link가 빈 문자열이면 스킵 (데스크탑 환경)
+      if (!mobile_link || mobile_link.trim() === '') {
+        ConnectionController.setWcLinking(undefined)
+      } else {
+        // 🔑 핵심: base URL만 저장 (WalletConnect Engine이 각 요청마다 동적으로 URI 생성)
+        const baseUrl = mobile_link.endsWith('/') ? mobile_link : `${mobile_link}/`
+
+        ConnectionController.setWcLinking({ name, href: baseUrl })
+
+        // ✅ 모바일 환경에서만 localStorage에 저장 (데스크탑에서는 저장하지 않아 리다이렉트 방지)
+        if (CoreHelperUtil.isMobile()) {
+          StorageUtil.setWalletConnectDeepLink({ name, href: baseUrl })
+        }
+      }
     } else {
       ConnectionController.setWcLinking(undefined)
     }
-    
+
     ConnectionController.setRecentWallet(this.wallet)
 
     return html` <cross-wui-qr-code

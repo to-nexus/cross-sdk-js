@@ -27,7 +27,7 @@ jobs:
     # develop 의 dev 전용, sample-page는 독립 실행
     if: |
       ((github.ref == 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/feature/')) && inputs.environment == 'dev'
-    runs-on: ubuntu-latest
+    runs-on: [arc-runner-set]
 
     environment: ${{ inputs.environment }}
     env:
@@ -146,7 +146,7 @@ jobs:
     # release/* | feature/* 의 stage 전용, sample-page는 독립 실행
     if: |
       (startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/feature/')) && inputs.environment == 'stage'
-    runs-on: ubuntu-latest
+    runs-on: [arc-runner-set]
 
     environment: ${{ inputs.environment }}
     env:
@@ -159,6 +159,11 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
 
       - name: Resolve Nexus registry URL (stage)
         id: registry_stage
@@ -274,7 +279,7 @@ jobs:
     name: Build and Push Docker Image (prod)
     if: |
       github.ref == 'refs/heads/main' && inputs.environment == 'prod'
-    runs-on: ubuntu-latest
+    runs-on: [arc-runner-set]
 
     environment: ${{ inputs.environment }}
     env:

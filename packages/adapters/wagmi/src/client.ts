@@ -59,6 +59,24 @@ import { walletConnect } from './connectors/UniversalConnector.js'
 import { LimitterUtil } from './utils/LimitterUtil.js'
 import { parseWalletCapabilities } from './utils/helpers.js'
 
+// Helper function to safely extract error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  if (typeof error === 'string') {
+    return error
+  }
+  if (typeof error === 'object' && error !== null) {
+    const obj = error as Record<string, unknown>
+    if ('message' in obj && typeof obj['message'] === 'string') {
+      return obj['message']
+    }
+  }
+
+  return String(error)
+}
+
 interface PendingTransactionsFilter {
   enable: boolean
   pollingInterval?: number
@@ -569,7 +587,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error('WagmiAdapter:signMessage - Sign message failed')
+      throw new Error('WagmiAdapter:signMessage - Sign message failed', { cause: error })
     }
   }
 
@@ -589,7 +607,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
       return { signature }
     } catch (error) {
-      throw new Error('WagmiAdapter:etherSignMessage - Sign message failed')
+      throw new Error('WagmiAdapter:etherSignMessage - Sign message failed', { cause: error })
     }
   }
 
@@ -597,6 +615,37 @@ export class WagmiAdapter extends AdapterBlueprint {
     _params: AdapterBlueprint.SignEIP712Params
   ): Promise<AdapterBlueprint.SignEIP712Result> {
     return Promise.resolve({} as unknown as AdapterBlueprint.SignEIP712Result)
+  }
+
+  /**
+   * Recursively converts BigInt values to hex strings for JSON serialization
+   * This is necessary for Chrome extension messaging which cannot serialize BigInt
+   */
+  private serializeBigInt(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return obj
+    }
+
+    if (typeof obj === 'bigint') {
+      return `0x${obj.toString(16)}`
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.serializeBigInt(item))
+    }
+
+    if (typeof obj === 'object') {
+      const serialized: Record<string, any> = {}
+      for (const key in obj) {
+        if (Object.hasOwn(obj, key)) {
+          serialized[key] = this.serializeBigInt(obj[key])
+        }
+      }
+
+      return serialized
+    }
+
+    return obj
   }
 
   public async signTypedDataV4(
@@ -615,17 +664,27 @@ export class WagmiAdapter extends AdapterBlueprint {
         throw new Error('WagmiAdapter:signTypedDataV4 - No connected account found')
       }
 
-      // Eth_signTypedData_v4 expects [address, typedDataJSON]
+      /*
+       * Serialize BigInt values to hex strings for JSON serialization compatibility
+       * Chrome extension messaging cannot handle BigInt, so we convert them
+       */
+      const serializedParamsData = this.serializeBigInt(params.paramsData)
+
+      /*
+       * Cross Wallet expects [typedData, metadata] (address is automatically extracted from connected account)
+       * Standard wallets expect [address, typedData]
+       */
       const signature = await provider.request({
         method: 'eth_signTypedData_v4',
-        params: [account.address, JSON.stringify(params.paramsData)]
+        params: [serializedParamsData, params.customData] as any
       })
 
       return { signature }
     } catch (error) {
-      throw new Error(
-        `WagmiAdapter:signTypedDataV4 - Sign typed data failed: ${(error as Error).message}`
-      )
+      const errorMessage = getErrorMessage(error)
+      throw new Error(`WagmiAdapter:signTypedDataV4 - Sign typed data failed: ${errorMessage}`, {
+        cause: error
+      })
     }
   }
 
@@ -724,7 +783,7 @@ export class WagmiAdapter extends AdapterBlueprint {
 
       return { gas: result }
     } catch (error) {
-      throw new Error('WagmiAdapter:estimateGas - error estimating gas')
+      throw new Error('WagmiAdapter:estimateGas - error estimating gas', { cause: error })
     }
   }
 

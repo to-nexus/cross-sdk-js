@@ -81,44 +81,6 @@ cocos-creator/
 | `w3m-modal-*.js` | WalletConnect 모달 UI    | ⭐⭐⭐ |
 | `style.css`      | 반응형 UI 스타일         | ⭐⭐   |
 
-## ⚡ 빠른 시작
-
-### 1. 프로젝트 설정
-
-```bash
-# 1. Cocos Creator 3.8.7 설치
-# https://www.cocos.com/en/creator/download
-
-# 2. 프로젝트 열기
-# Cocos Creator에서 이 폴더를 프로젝트로 열기
-
-# 3. 빌드 (선택사항)
-npm run build
-```
-
-### 2. 개발 환경 실행
-
-1. **Cocos Creator에서 프로젝트 열기**
-2. **Scene 선택**: `assets/scene/home.scene`
-3. **미리보기 실행**: 상단 메뉴 → Preview → Browser
-4. **지갑 연결 테스트**: "Cross Connect" 버튼 클릭
-
-### 3. 프로덕션 빌드
-
-```bash
-# 전체 빌드 (데스크톱 + 모바일)
-npm run build
-
-# 개별 플랫폼 빌드
-npm run build:web-desktop   # 데스크톱용
-npm run build:web-mobile    # 모바일용
-
-# 빌드 결과 확인
-ls dist/
-```
-
-## 🔧 SDK 통합 방법
-
 ### ⚠️ 왜 CDN 방식을 사용하나요?
 
 Cocos Creator는 **자체 모듈 시스템(SystemJS)** 을 사용하며, 빌드 시 `import map`을 생성합니다.  
@@ -127,7 +89,9 @@ Cocos Creator는 **자체 모듈 시스템(SystemJS)** 을 사용하며, 빌드 
 ```json
 // build/web-mobile/src/import-map.json (빌드 결과)
 { "imports": { "cc": "./../cocos-js/cc.js" } }
- // ← npm 패키지 없음
+
+
+// ← npm 패키지 없음
 ```
 
 따라서 다음과 같은 npm import는 **런타임 에러**가 발생합니다:
@@ -740,13 +704,36 @@ build-templates/
   height: 100vh !important;
 }
 
-/* 다양한 화면 비율 대응 */
-@media screen and (orientation: landscape) {
-  /* 가로형 최적화 */
+/* 모바일에서 브라우저 UI 영역을 고려한 높이 조정 */
+@media screen and (max-width: 768px) {
+  #GameDiv {
+    height: calc(100vh - 60px) !important; /* 상태 UI를 위한 공간 확보 */
+    padding: 10px 0;
+  }
+
+  #GameCanvas {
+    transform: scale(1.1); /* 상태 UI를 보존하기 위한 적절한 스케일링 */
+    transform-origin: center center;
+  }
 }
 
-@media screen and (orientation: portrait) {
-  /* 세로형 대응 */
+/* 작은 모바일 화면을 위한 더 많은 여백 */
+@media screen and (max-width: 480px) {
+  #GameDiv {
+    height: calc(100vh - 80px) !important;
+    padding: 15px 0;
+  }
+
+  #GameCanvas {
+    transform: scale(1.2); /* 적절한 스케일링 */
+  }
+}
+
+/* 매우 작은 화면에서도 상태 UI 보존 */
+@media screen and (max-width: 360px) {
+  #GameCanvas {
+    transform: scale(1.3); /* 제한된 스케일링 */
+  }
 }
 
 /* 노치 대응 */
@@ -771,14 +758,18 @@ build-templates/
 **해결 방법**:
 
 ```bash
-# 1. SDK 파일 존재 확인
-ls build-templates/web-mobile/external/cross-sdk.js
+# 1. 모든 필수 SDK 파일이 존재하는지 확인
+ls build-templates/web-mobile/external/
+# 필요한 파일들: cross-sdk.js, index.es-*.js, w3m-modal-*.js
 
 # 2. HTML 템플릿 확인
 grep "cross-sdk.js" build-templates/web-mobile/index.html
 
 # 3. 브라우저 콘솔에서 확인
 console.log(window.CrossSdk)
+
+# 4. Network 탭에서 파일 로딩 확인
+# 개발자 도구 → Network 탭에서 모든 SDK 파일이 200 상태로 로드되는지 확인
 ```
 
 #### 2. 빌드 후 SDK 동작 안함
@@ -838,10 +829,3 @@ window.addEventListener('unhandledrejection', event => {
   console.error('Unhandled promise rejection:', event.reason)
 })
 ```
-
-## 📞 지원 및 문의
-
-- **기술 문의**: [Cross 개발자 포털](https://developers.cross.io)
-- **SDK 문서**: [Cross SDK 가이드](https://docs.cross.io/sdk)
-- **커뮤니티**: [Discord](https://discord.gg/cross)
-- **이슈 리포트**: [GitHub Issues](https://github.com/cross-org/cross-sdk-js/issues)

@@ -1,17 +1,6 @@
 import type { AppKitNetwork, CaipNetwork } from '@to-nexus/appkit-common'
 import type { Assign, ChainFormatters, Prettify } from 'viem'
 
-import { bscMainnet } from './bsc/bscMainnet.js'
-import { bscTestnet } from './bsc/bscTestnet.js'
-import { crossMainnet } from './cross/crossMainnet.js'
-import { crossTestnet } from './cross/crossTestnet.js'
-import { etherMainnet } from './ethereum/etherMainnet.js'
-import { etherTestnet } from './ethereum/etherTestnet.js'
-import { kaiaMainnet } from './kaia/kaiaMainnet.js'
-import { kaiaTestnet } from './kaia/kaiaTestnet.js'
-import { roninMainnet } from './ronin/roninMainnet.js'
-import { roninTestnet } from './ronin/roninTestnet.js'
-
 export function defineChain<
   formatters extends ChainFormatters,
   const chain extends CaipNetwork<formatters>
@@ -23,16 +12,3 @@ export function defineChain<
     ...chain
   } as Assign<CaipNetwork<undefined>, chain>
 }
-
-export const networkList: [AppKitNetwork, ...AppKitNetwork[]] = [
-  crossTestnet,
-  crossMainnet,
-  bscTestnet,
-  bscMainnet,
-  kaiaTestnet,
-  kaiaMainnet,
-  etherTestnet,
-  etherMainnet,
-  roninMainnet,
-  roninTestnet
-]

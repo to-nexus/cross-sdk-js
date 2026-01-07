@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+import { useAppKitTheme } from '@to-nexus/sdk/react'
+
 import { AccountInfo } from './components/account-info'
 import ActionButtonList from './components/action-button'
 import Footer from './components/footer'
@@ -8,10 +10,12 @@ import { WalletSelector } from './components/wallet-selector'
 
 export default function App() {
   const [themeMode, setThemeMode] = useState<'light' | 'dark'>('dark')
+  const { setThemeMode: setCrossSdkTheme } = useAppKitTheme()
 
   useEffect(() => {
     document.documentElement.className = themeMode
-  }, [themeMode])
+    setCrossSdkTheme(themeMode)
+  }, [themeMode, setCrossSdkTheme])
 
   return (
     <div className="page-container">

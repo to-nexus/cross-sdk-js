@@ -140,8 +140,6 @@ export const EthersMethods = {
     }
 
     try {
-      console.log(`signTypedDataV4 - paramsData: ${JSON.stringify(paramsData, null, 2)}`)
-
       const signature = await provider.request({
         method: 'eth_signTypedData_v4',
         params: [paramsData, customData]
@@ -519,7 +517,7 @@ export const EthersMethods = {
     try {
       return JSON.parse(str)
     } catch (error) {
-      throw new Error('Error parsing wallet capabilities')
+      throw new Error('Error parsing wallet capabilities', { cause: error })
     }
   },
 

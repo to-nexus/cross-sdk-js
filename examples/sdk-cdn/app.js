@@ -68,6 +68,7 @@ async function initializeApp() {
       kaiaTestnet,
       etherMainnet,
       etherTestnet,
+      networkController,
       AccountController,
       ConnectionController,
       ConstantsUtil,
@@ -75,56 +76,41 @@ async function initializeApp() {
       sdkVersion
     } = CrossSdk
 
-    const contractData = {
+    // 네트워크별 컨트랙트 주소 매핑 (하드코딩 필요)
+    const contractAddresses = {
       612044: {
-        coin: 'CROSS',
         erc20: '0xe934057Ac314cD9bA9BC17AE2378959fd39Aa2E3',
-        erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013',
-        network: crossTestnet
+        erc721: '0xaD31a95fE6bAc89Bc4Cf84dEfb23ebBCA080c013'
       },
       612055: {
-        coin: 'CROSS',
         erc20: '0xe9013a5231BEB721f4F801F2d07516b8ca19d953',
-        erc721: '',
-        network: crossMainnet
-      },
-      97: {
-        coin: 'BNB',
-        erc20: '',
-        erc721: '',
-        network: bscTestnet
-      },
-      56: {
-        coin: 'BNB',
-        erc20: '',
-        erc721: '',
-        network: bscMainnet
+        erc721: ''
       },
       1001: {
-        coin: 'KAIA',
         erc20: '0xd4846dddf83278d10b92bf6c169c5951d6f5abb8',
-        erc721: '',
-        network: kaiaTestnet
-      },
-      8217: {
-        coin: 'KAIA',
-        erc20: '',
-        erc721: '',
-        network: kaiaMainnet
-      },
-      1: {
-        coin: 'ETH',
-        erc20: '',
-        erc721: '',
-        network: etherMainnet
-      },
-      11155111: {
-        coin: 'ETH',
-        erc20: '',
-        erc721: '',
-        network: etherTestnet
+        erc721: ''
       }
     }
+
+    // SDK의 네트워크 정보를 기반으로 contractData 동적 생성
+    const getContractData = () => {
+      const networks = networkController.getNetworks()
+      const data = {}
+
+      networks.forEach(network => {
+        const chainId = network.id
+        data[chainId] = {
+          coin: network.nativeCurrency.symbol,
+          erc20: contractAddresses[chainId]?.erc20 || '',
+          erc721: contractAddresses[chainId]?.erc721 || '',
+          network: network
+        }
+      })
+
+      return data
+    }
+
+    const contractData = getContractData()
 
     const metadata = {
       name: 'Cross SDK',
@@ -791,20 +777,36 @@ async function initializeApp() {
           ? parseInt(networkState.chainId, 10)
           : networkState.chainId || 1
 
-      // Fallback typed data for when API fails
+      // ERC20Mint typed data (real-world use case for token minting with permit)
+      // NOTE: This is example data. In production:
+      // - 'from' is implicit (the signer's address)
+      // - 'nonce' should be fetched from the contract
+      // - 'deadline' should be current timestamp + expiry time
       const fallbackTypedData = {
         domain: {
-          name: 'Example',
+          name: '0cd3a59377299deb46d424c0dc5edfc8',
           version: '1',
           chainId: currentChainId,
-          verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
+          verifyingContract: '0x5ad400c3db22641f7f94a1bd36f88ac359b74dae'
         },
         message: {
-          contents: 'hello'
+          token: '0x979a94888aa35ab603ff3ef1a25f942a99a1e7a5',
+          amount: '1000000000000000000', // 1 token (18 decimals)
+          feeRecipient: '0x56b78f96f028e8302aa8b94dd69299e43d7c58a6',
+          feeBPS: '1000', // 10% fee (1000 basis points)
+          nonce: '12', // Example value - fetch from contract in production
+          deadline: '1765196498' // Example timestamp - use Math.floor(Date.now() / 1000) + expiry in production
         },
-        primaryType: 'Ping',
+        primaryType: 'ERC20Mint',
         types: {
-          Ping: [{ name: 'contents', type: 'string' }]
+          ERC20Mint: [
+            { name: 'token', type: 'address' },
+            { name: 'amount', type: 'uint256' },
+            { name: 'feeRecipient', type: 'address' },
+            { name: 'feeBPS', type: 'uint256' },
+            { name: 'nonce', type: 'uint256' },
+            { name: 'deadline', type: 'uint256' }
+          ]
         }
       }
 

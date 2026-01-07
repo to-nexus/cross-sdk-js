@@ -35,6 +35,36 @@ export class W3mConnectingWcView extends LitElement {
 
   public constructor() {
     super()
+
+    /*
+     * 🔑 핵심 수정: initializeConnection() 호출 전에 localStorage 저장!
+     *
+     * 문제:
+     * - initializeConnection() → connectWalletConnect() → Engine이 localStorage 읽기
+     * - 하지만 Mobile/QR 컴포넌트 렌더링은 비동기로 나중에 실행됨
+     * - iPhone 16e 같은 느린 기기에서는 타이밍 차이로 localStorage가 비어있음
+     *
+     * 해결:
+     * - initializeConnection() 호출 전에 여기서 먼저 저장 ✅
+     * - Engine이 localStorage를 읽을 때 이미 값이 있음
+     */
+    if (this.wallet?.mobile_link && CoreHelperUtil.isMobile()) {
+      const { mobile_link, name } = this.wallet
+
+      if (mobile_link && mobile_link.trim() !== '') {
+        // Deep Link는 슬래시 추가하지 않음
+        const isDeepLink = mobile_link.startsWith('crossx://')
+        const baseUrl = isDeepLink
+          ? mobile_link
+          : mobile_link.endsWith('/')
+            ? mobile_link
+            : `${mobile_link}/`
+
+        ConnectionController.setWcLinking({ name, href: baseUrl })
+        StorageUtil.setWalletConnectDeepLink({ name, href: baseUrl })
+      }
+    }
+
     this.determinePlatforms()
     this.initializeConnection()
     this.interval = setInterval(
@@ -67,6 +97,7 @@ export class W3mConnectingWcView extends LitElement {
 
     try {
       const { wcPairingExpiry, status } = ConnectionController.state
+
       if (retry || CoreHelperUtil.isPairingExpired(wcPairingExpiry) || status === 'connecting') {
         await ConnectionController.connectWalletConnect()
         this.finalizeConnection()
@@ -94,7 +125,11 @@ export class W3mConnectingWcView extends LitElement {
   private finalizeConnection() {
     const { wcLinking, recentWallet } = ConnectionController.state
 
-    if (wcLinking) {
+    /*
+     * 모바일 환경에서만 Deep Link 저장 (데스크탑에서는 저장하지 않아 리다이렉트 방지)
+     * href가 빈 문자열이 아닌 경우만 저장
+     */
+    if (wcLinking?.href && wcLinking.href.trim() !== '' && CoreHelperUtil.isMobile()) {
       StorageUtil.setWalletConnectDeepLink(wcLinking)
     }
 
@@ -115,15 +150,16 @@ export class W3mConnectingWcView extends LitElement {
   private isCrossWalletInstalled(rdns: string): boolean {
     // ANNOUNCED 커넥터에서 찾기
     const currentConnectors = ConnectorController.state.connectors
-    const crossWalletExtensionConnectors = currentConnectors.filter(c => (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.id === rdns)
+    const crossWalletExtensionConnectors = currentConnectors.filter(
+      c => (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.id === rdns
+    )
 
     if (crossWalletExtensionConnectors && crossWalletExtensionConnectors.length > 0) {
       return true
     }
 
-    // window.ethereum에서 cross extension 프로바이더 체크
-    const isCrossWalletInWindow =
-      typeof window !== 'undefined' && (window as any).crossWallet
+    // Window.ethereum에서 cross extension 프로바이더 체크
+    const isCrossWalletInWindow = typeof window !== 'undefined' && (window as any).crossWallet
 
     return Boolean(isCrossWalletInWindow)
   }
@@ -146,6 +182,7 @@ export class W3mConnectingWcView extends LitElement {
         this.platforms.push('qrcode')
         this.platform = 'qrcode'
       }
+
       return true
     }
 
@@ -155,7 +192,7 @@ export class W3mConnectingWcView extends LitElement {
       const isCrossWalletFound = this.isCrossWalletInstalled(rdns)
 
       if (isCrossWalletFound) {
-        // console.log('isCrossWalletFound', isCrossWalletFound)
+        // Console.log('isCrossWalletFound', isCrossWalletFound)
         if (isChrome) {
           this.platforms.push('qrcode')
           this.platforms.push('browser')
@@ -168,12 +205,14 @@ export class W3mConnectingWcView extends LitElement {
         this.platforms.push('qrcode')
         this.platform = 'qrcode'
       }
+
       return true
     }
 
     // 기본 케이스
     this.platforms.push('qrcode')
     this.platform = 'qrcode'
+
     return true
   }
 
@@ -205,6 +244,7 @@ export class W3mConnectingWcView extends LitElement {
 
     if (isCrossWallet && rdns) {
       this.determinePlatformsForCross({ mobile_link, rdns, isBrowser: Boolean(isBrowser) })
+
       return
     }
 

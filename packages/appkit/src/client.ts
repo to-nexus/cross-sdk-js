@@ -84,6 +84,7 @@ import type { SessionTypes } from '@walletconnect/types'
 import { PACKAGE_VERSION } from '../exports/constants.js'
 import type { AdapterBlueprint } from './adapters/ChainAdapterBlueprint.js'
 import { W3mFrameProviderSingleton } from './auth-provider/W3MFrameProviderSingleton.js'
+import { networkController } from './networks/index.js'
 import { type ProviderStoreUtilState, ProviderUtil } from './store/ProviderUtil.js'
 import {
   UniversalAdapter,
@@ -144,15 +145,20 @@ function getEnv(): string {
     return import.meta.env['VITE_ENV_MODE']
   }
 
-  // ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
-  if (process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
+  /*
+   * ✅ Next.js에서는 `NEXT_PUBLIC_ENV_MODE` 환경 변수를 사용할 수도 있음
+   * 브라우저 환경에서는 process가 정의되지 않을 수 있음
+   */
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+  if (typeof process !== 'undefined' && process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
     // Console.log('getEnv(), process.env.NEXT_PUBLIC_ENV_MODE', process.env['NEXT_PUBLIC_ENV_MODE'])
 
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
   // ✅ Next.js, Webpack, esbuild, Node.js 환경 (process.env.NODE_ENV 사용)
-  if (process?.env?.['NODE_ENV']) {
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+  if (typeof process !== 'undefined' && process?.env?.['NODE_ENV']) {
     // Console.log('getEnv(), process.env.NODE_ENV', process.env['NODE_ENV'])
 
     return process.env['NODE_ENV']
@@ -233,10 +239,39 @@ export class AppKit {
     await this.injectModalUi()
     await this.syncExistingConnection()
 
+    // Dynamic networks initialization
+    this.initializeDynamicNetworks()
+
     // 🔥 지갑이 연결되어 있고 네트워크가 다르면 자동 변경
     await this.autoSwitchWalletNetwork()
 
     PublicStateController.set({ initialized: true })
+  }
+
+  private async initializeDynamicNetworks() {
+    try {
+      await networkController.fetchNetworks()
+      const newNetworks = networkController.getNetworks()
+      const currentNetworkIds = new Set(this.caipNetworks?.map(n => n.id))
+
+      for (const network of newNetworks) {
+        if (currentNetworkIds && !currentNetworkIds.has(network.id)) {
+          if (
+            'chainNamespace' in network &&
+            network.chainNamespace &&
+            this.chainAdapters?.[network.chainNamespace]
+          ) {
+            try {
+              this.addNetwork(network.chainNamespace, network)
+            } catch (e) {
+              console.warn(`[AppKit] Failed to add dynamic network ${network.name}:`, e)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('[AppKit] Failed to initialize dynamic networks:', error)
+    }
   }
 
   /**
@@ -1810,9 +1845,10 @@ export class AppKit {
     }
 
     adapter.on('switchNetwork', ({ address, chainId }) => {
-      // 🚫 Cross SDK가 관리하지 않는 connector의 체인 변경 이벤트 무시
+      // Check if it's a Cross SDK managed connector (blocks MetaMask, etc.)
       if (!this.isCrossSdkManagedConnector(chainNamespace, adapter)) {
-        console.log('[Cross SDK] 🚫 Ignoring switchNetwork - Not a Cross SDK connector', {
+        // eslint-disable-next-line no-console
+        console.log('[Cross SDK] 🚫 External wallet blocked', {
           chainId,
           chainNamespace
         })
@@ -2257,6 +2293,9 @@ export class AppKit {
         throw new Error(`Adapter or connectorId not found for namespace ${namespace}`)
       }
 
+      // Check if this is a Cross SDK managed connector
+      const isCrossSdkManaged = this.isCrossSdkManagedConnector(namespace, adapter)
+
       const connection = await adapter?.syncConnection({
         namespace,
         id: connectorId,
@@ -2280,7 +2319,29 @@ export class AppKit {
         }
 
         this.syncProvider({ ...connection, chainNamespace: namespace })
-        await this.syncAccount({ ...connection, chainNamespace: namespace })
+
+        // Conditional network synchronization based on connector type
+        if (isCrossSdkManaged) {
+          // Cross SDK managed wallets: sync with wallet's network (existing behavior)
+          console.log('[Cross SDK] ✅ Cross SDK managed wallet - syncing with wallet network', {
+            connectorId,
+            chainId: connection.chainId
+          })
+          await this.syncAccount({ ...connection, chainNamespace: namespace })
+        } else {
+          // External wallets (MetaMask, etc.): keep SDK network
+          console.log('[Cross SDK] 🚫 External wallet - keeping SDK network', {
+            connectorId,
+            sdkNetwork: caipNetwork?.id,
+            walletNetwork: connection.chainId
+          })
+          await this.syncAccount({
+            address: connection.address,
+            chainId: caipNetwork?.id || connection.chainId,
+            chainNamespace: namespace
+          })
+        }
+
         this.setStatus('connected', namespace)
       } else {
         this.setStatus('disconnected', namespace)
