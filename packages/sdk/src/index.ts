@@ -52,10 +52,6 @@ export type {
 
 const ethersAdapter = new EthersAdapter()
 
-const CROSS_WALLET_WEBAPP_LINK = (() =>
-  (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
-  'https://cross-wallet.crosstoken.io/wc')()
-
 export type Metadata = {
   name: string
   description: string
@@ -155,8 +151,8 @@ const initCrossSdk = (
   const resolvedMobileLink =
     mobileLink ||
     cachedMobileLink ||
-    (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
-    CROSS_WALLET_WEBAPP_LINK
+    (CommonConstantsUtil as any).getCrossWalletDeepLink?.() ||
+    'crossx://'
 
   // SIWX 설정도 캐시에서 복원
   const resolvedSiwx = siwx || cachedSiwx
@@ -240,6 +236,7 @@ export {
   CoreHelperUtil,
   createDefaultSIWXConfig,
   OptionsController,
+  networkController,
   crossMainnet,
   crossTestnet,
   bscMainnet,

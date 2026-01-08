@@ -6,11 +6,14 @@ function getEnv(): string {
     return import.meta.env['VITE_ENV_MODE']
   }
 
-  if (process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
+  // 브라우저 환경에서는 process가 정의되지 않을 수 있음
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+  if (typeof process !== 'undefined' && process?.env?.['NEXT_PUBLIC_ENV_MODE']) {
     return process.env['NEXT_PUBLIC_ENV_MODE']
   }
 
-  if (process?.env?.['NODE_ENV']) {
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+  if (typeof process !== 'undefined' && process?.env?.['NODE_ENV']) {
     return process.env['NODE_ENV']
   }
 
@@ -52,7 +55,8 @@ export const ConstantsUtil = {
       return import.meta.env['CROSS_RELAY']
     }
 
-    if (process?.env?.['CROSS_RELAY']) {
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (typeof process !== 'undefined' && process?.env?.['CROSS_RELAY']) {
       console.log('Using CROSS_RELAY from process.env:', process.env['CROSS_RELAY'])
 
       return process.env['CROSS_RELAY']
@@ -85,7 +89,8 @@ export const ConstantsUtil = {
       return import.meta.env['UNIVERSAL_LINK']
     }
 
-    if (process?.env?.['UNIVERSAL_LINK']) {
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (typeof process !== 'undefined' && process?.env?.['UNIVERSAL_LINK']) {
       console.log('Using UNIVERSAL_LINK from process.env:', process.env['UNIVERSAL_LINK'])
 
       return process.env['UNIVERSAL_LINK']
@@ -119,10 +124,22 @@ export const ConstantsUtil = {
 
     return ConstantsUtil.CROSS_WALLET_WEBAPP_LINK[envKey]
   },
+  getCrossWalletDeepLink() {
+    const injectedEnv = getEnv()
+    type EnvKey = keyof typeof ConstantsUtil.CROSS_WALLET_DEEP_LINK
+    const envKey = injectedEnv.toUpperCase() as EnvKey
+
+    return ConstantsUtil.CROSS_WALLET_DEEP_LINK[envKey]
+  },
   CROSS_WALLET_WEBAPP_LINK: {
+    DEVELOPMENT: 'https://dev-cross-wallet.crosstoken.io/wc',
+    STAGE: 'https://stg-cross-wallet.crosstoken.io/wc',
+    PRODUCTION: 'https://cross-wallet.crosstoken.io/wc'
+  },
+  CROSS_WALLET_DEEP_LINK: {
     DEVELOPMENT: 'crossx://',
     STAGE: 'crossx://',
-    PRODUCTION: 'crossx://' // Todo: change to universal link (https://cross-wallet.crosstoken.io)
+    PRODUCTION: 'crossx://'
   },
 
   /* Connector IDs */

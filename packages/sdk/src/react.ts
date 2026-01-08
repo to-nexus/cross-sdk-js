@@ -1,5 +1,4 @@
 import { EthersAdapter } from '@to-nexus/appkit-adapter-ethers'
-import type { AppKitNetwork } from '@to-nexus/appkit-common'
 import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import {
   AccountController,
@@ -146,9 +145,7 @@ const initCrossSdk = (
 
   // Mobile_link를 미리 계산 (한 번만 평가)
   const resolvedMobileLink =
-    mobileLink ||
-    (CommonConstantsUtil as any).getCrossWalletWebappLink?.() ||
-    'https://cross-wallet.crosstoken.io'
+    mobileLink || (CommonConstantsUtil as any).getCrossWalletDeepLink?.() || 'crossx://'
 
   // Custom wallet 설정 생성
   const crossWalletConfig: CustomWallet & { chrome_store?: string } = {
@@ -178,14 +175,18 @@ const initCrossSdk = (
 
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
-    networks: [
-      ...networkController.getNetworks()
-    ] as [any, ...any[]],
+    networks: [...networkController.getNetworks()] as [any, ...any[]],
     defaultNetwork,
     metadata: mergedMetadata,
     projectId,
     themeMode: themeMode || 'light',
     siwx,
+    // ⭐ 지갑 관련 옵션 - Cross SDK는 지갑 전용이므로 항상 활성화
+    enableWallets: true,
+    enableWalletConnect: true,
+    enableEIP6963: true,
+    enableInjected: true,
+    enableWalletGuide: true,
     features: {
       swaps: false,
       onramp: false,
@@ -198,7 +199,6 @@ const initCrossSdk = (
       analytics: false,
       legalCheckbox: false
     },
-    enableCoinbase: false,
     customWallets: [crossWalletConfig],
     allWallets: 'HIDE'
   })
@@ -226,6 +226,7 @@ export {
   CoreHelperUtil,
   createDefaultSIWXConfig,
   SIWXUtil,
+  networkController,
   crossMainnet,
   crossTestnet,
   bscMainnet,

@@ -289,6 +289,7 @@ export const ChainController = {
   },
 
   setActiveCaipNetwork(caipNetwork: AdapterNetworkState['caipNetwork']) {
+    // eslint-disable-next-line no-console
     console.log(`setActiveCaipNetwork - caipNetwork: ${caipNetwork?.id}`)
     if (!caipNetwork) {
       return
