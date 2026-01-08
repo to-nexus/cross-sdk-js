@@ -1,4 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
+import { subscribe } from 'valtio/vanilla'
 
 import type { ChainNamespace } from '@to-nexus/appkit-common'
 import type {
@@ -11,7 +12,6 @@ import type {
   W3mConnectButton,
   W3mNetworkButton
 } from '@to-nexus/appkit-scaffold-ui'
-import { useSnapshot } from 'valtio'
 
 import type { AppKit } from '../../../src/client.js'
 import { ProviderUtil } from '../../store/ProviderUtil.js'
@@ -79,15 +79,22 @@ export async function getUniversalProvider() {
 export * from '@to-nexus/appkit-core/react'
 
 export function useAppKitProvider<T>(chainNamespace: ChainNamespace) {
-  const { providers, providerIds } = useSnapshot(ProviderUtil.state)
+  const [providerState, setProviderState] = useState(() => ({
+    walletProvider: ProviderUtil.state.providers[chainNamespace] as T,
+    walletProviderType: ProviderUtil.state.providerIds[chainNamespace]
+  }))
 
-  const walletProvider = providers[chainNamespace] as T
-  const walletProviderType = providerIds[chainNamespace]
+  useEffect(() => {
+    const unsubscribe = subscribe(ProviderUtil.state, () => {
+      setProviderState({
+        walletProvider: ProviderUtil.state.providers[chainNamespace] as T,
+        walletProviderType: ProviderUtil.state.providerIds[chainNamespace]
+      })
+    })
+    return unsubscribe
+  }, [chainNamespace])
 
-  return {
-    walletProvider,
-    walletProviderType
-  }
+  return providerState
 }
 
 export function useAppKitTheme() {

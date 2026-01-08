@@ -12,6 +12,23 @@ import type { AccountTypeMap, ChainAdapter, LinkingRecord, NamespaceTypeMap } fr
 type SDKFramework = 'html' | 'react' | 'vue'
 type OpenTarget = '_blank' | '_self' | 'popupWindow' | '_top'
 
+/**
+ * CROSSx Browser Marker - Injected by CROSSx Browser via JS injection
+ */
+export interface CROSSxBrowserMarker {
+  browser: true
+  version: string
+  platform: 'ios' | 'android' | 'desktop'
+  injectedAt?: number
+}
+
+/**
+ * Extended Window interface for CROSSx detection
+ */
+interface CROSSxWindow extends Window {
+  __crossx?: boolean | CROSSxBrowserMarker
+}
+
 export const CoreHelperUtil = {
   isMobile() {
     if (this.isClient()) {
@@ -89,10 +106,59 @@ export const CoreHelperUtil = {
       return false
     }
 
+    // 1순위: JS injection 마커 확인 (window.__crossx)
+    const marker = (window as CROSSxWindow).__crossx
+    if (marker !== undefined) {
+      // Boolean form (legacy)
+      if (marker === true) {
+        return true
+      }
+      // Object form (CROSSxBrowserMarker)
+      if (
+        typeof marker === 'object' &&
+        marker !== null &&
+        'browser' in marker &&
+        marker.browser === true
+      ) {
+        return true
+      }
+    }
+
+    // #region LEGACY_USERAGENT_FALLBACK
+    // TODO: Remove this fallback once all CROSSx wallets support JS injection (window.__crossx)
+    // @deprecated userAgent-based detection - will be removed in future version
+    // 2순위 (하위 호환성): userAgent fallback
     const ua = window.navigator.userAgent
 
     // CROSS 브라우저는 UserAgent에 CROSSx/${version} 패턴을 포함
     return /CROSSx\/[\d.]+/i.test(ua)
+    // #endregion LEGACY_USERAGENT_FALLBACK
+  },
+
+  /**
+   * Get CROSSx browser info from JS injection marker
+   * @returns CROSSxBrowserMarker object or null
+   */
+  getCROSSxBrowserInfo(): CROSSxBrowserMarker | null {
+    if (!this.isClient()) {
+      return null
+    }
+
+    const marker = (window as CROSSxWindow).__crossx
+    if (
+      typeof marker === 'object' &&
+      marker !== null &&
+      'browser' in marker &&
+      marker.browser === true &&
+      'version' in marker &&
+      typeof marker.version === 'string' &&
+      'platform' in marker &&
+      ['ios', 'android', 'desktop'].includes(marker.platform)
+    ) {
+      return marker as CROSSxBrowserMarker
+    }
+
+    return null
   },
 
   isLandscape() {

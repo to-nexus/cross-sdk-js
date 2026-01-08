@@ -28,7 +28,7 @@
     "@to-nexus/appkit-wallet-button": "workspace:*",
     "@to-nexus/universal-provider": "2.19.15",
     "@walletconnect/utils": "2.18.0",
-    "valtio": "1.13.2"
+    "valtio": "2.1.7"
   },
   "optionalDependencies": {
     "@wagmi/connectors": ">=5.7"

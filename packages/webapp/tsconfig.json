@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "composite": true,
+    "outDir": "./dist/types",
+    "declarationMap": true,
+    "removeComments": false,
+    "baseUrl": "."
+  },
+  "include": [
+    "src",
+    "package.json"
+  ]
+}
+

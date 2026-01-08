@@ -1,4 +1,4 @@
-import { s as AccountController, u as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, v as ApiController, w as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as roninTestnet, J as roninMainnet, K as etherTestnet, L as etherMainnet, N as kaiaTestnet, Q as kaiaMainnet, V as bscTestnet, X as bscMainnet, Y as crossTestnet, _ as crossMainnet, C as ChainController, $ as SendController } from "./index.es-BHEXD4wz.js";
+import { s as AccountController, u as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, v as ApiController, w as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, F as networkController, G as ConstantsUtil$2, Z, I as roninTestnet, J as roninMainnet, K as etherTestnet, L as etherMainnet, N as kaiaTestnet, Q as kaiaMainnet, V as bscTestnet, X as bscMainnet, Y as crossTestnet, _ as crossMainnet, C as ChainController, $ as SendController } from "./index.es-wzwiJP3f.js";
 function createDefaultSIWXConfig(options = {}) {
   let currentChainId = void 0;
   AccountController.subscribeKey("caipAddress", (caipAddress) => {
@@ -185,56 +185,78 @@ function createAppKitWalletButton() {
   }
   return walletButton;
 }
-const b = new EthersAdapter(), S = (() => {
+const S = new EthersAdapter(), W = (() => {
   var e, t;
   return ((t = (e = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : t.call(e)) || "https://cross-wallet.crosstoken.io/wc";
-})(), W = {
+})(), M = {
   name: "Cross SDK",
   description: "Cross SDK for HTML",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
 };
-let r = null, f, h;
-const K = (e) => {
+let r = null, k, h;
+const O = (e) => {
   if (r)
     return r;
   const {
     projectId: t,
-    redirectUrl: a,
-    metadata: l,
+    redirectUrl: n,
+    metadata: a,
     themeMode: i,
     defaultNetwork: o,
     adapters: c,
     mobileLink: s,
-    siwx: n
+    siwx: l
   } = e;
-  return f = s, h = n, r = _(
+  return k = s, h = l, r = L(
     t,
+    n,
     a,
-    l,
     i,
     o,
     c,
     s,
-    n
+    l
   ), r;
-}, _ = (e, t, a, l, i, o, c, s) => {
-  var p, d;
-  const n = {
-    ...W,
-    ...a,
+}, L = (e, t, n, a, i, o, c, s) => {
+  var d, m;
+  const l = {
+    ...M,
+    ...n,
     redirect: {
       universal: t
     }
-  }, u = c || f || ((d = (p = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : d.call(p)) || S, C = s || h;
-  return createAppKit({
-    adapters: o && o.length > 0 ? o : [b],
-    networks: networkList,
+  }, u = c || k || ((m = (d = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : m.call(d)) || W, g = s || h;
+  !CoreHelperUtil.isMobile() && typeof localStorage < "u" && localStorage.removeItem("WALLETCONNECT_DEEPLINK_CHOICE");
+  const p = {
+    id: "cross_wallet",
+    name: "CROSSx Wallet",
+    image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
+    app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
+    play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
+    chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
+    rdns: "nexus.to.crosswallet.desktop",
+    // 명시적으로 빈 문자열로 설정하여 오버라이드
+    mobile_link: "",
+    desktop_link: "",
+    webapp_link: "",
+    injected: [
+      {
+        injected_id: "nexus.to.crosswallet.desktop"
+      }
+    ]
+  };
+  return CoreHelperUtil.isMobile() && Object.assign(p, { mobile_link: u }), createAppKit({
+    adapters: o && o.length > 0 ? o : [S],
+    networks: [
+      ...networkController.getNetworks()
+      // 타입 호환성을 위해 튜플로 변환이 필요할 수 있으나, createAppKit이 배열을 받으므로 spread로 처리
+    ],
     defaultNetwork: i,
-    metadata: n,
+    metadata: l,
     projectId: e,
-    themeMode: l || "light",
-    siwx: C,
+    themeMode: a || "light",
+    siwx: g,
     features: {
       swaps: false,
       onramp: false,
@@ -248,30 +270,14 @@ const K = (e) => {
       legalCheckbox: false
     },
     enableCoinbase: false,
-    customWallets: [
-      {
-        id: "cross_wallet",
-        name: "CROSSx Wallet",
-        image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: u,
-        app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
-        play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
-        chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
-        rdns: "nexus.to.crosswallet.desktop",
-        injected: [
-          {
-            injected_id: "nexus.to.crosswallet.desktop"
-          }
-        ]
-      }
-    ],
+    customWallets: [p],
     allWallets: "HIDE"
   });
-}, U = () => createAppKitWalletButton(), I = "1.18.3-beta.4";
+}, U = () => createAppKitWalletButton(), N = "1.18.6-alpha.0";
 if (typeof window !== "undefined") {
   window.CrossSdk = {
-    initCrossSdk: _,
-    initCrossSdkWithParams: K,
+    initCrossSdk: L,
+    initCrossSdkWithParams: O,
     useAppKitWallet: U,
     createDefaultSIWXConfig,
     ConnectionController,
@@ -293,7 +299,8 @@ if (typeof window !== "undefined") {
     roninTestnet,
     UniversalProvider: Z,
     ConstantsUtil: ConstantsUtil$2,
-    sdkVersion: I
+    sdkVersion: N,
+    networkController
   };
 }
 export {
@@ -313,13 +320,14 @@ export {
   crossTestnet,
   etherMainnet,
   etherTestnet,
-  _ as initCrossSdk,
-  K as initCrossSdkWithParams,
+  L as initCrossSdk,
+  O as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
+  networkController,
   roninMainnet,
   roninTestnet,
-  I as sdkVersion,
+  N as sdkVersion,
   U as useAppKitWallet
 };
 //# sourceMappingURL=cross-sdk.js.map

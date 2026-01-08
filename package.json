@@ -25,6 +25,8 @@
     "laboratory-new": "pnpm --filter @apps/laboratory-new dev",
     "browser-extension": "pnpm --filter @apps/browser-extension dev",
     "examples": "turbo run dev --filter={./examples/*} --filter=!@examples/cocos-creator",
+    "example:webapp-outrun": "pnpm --filter @examples/sdk-webapp-outrun dev",
+    "example:webapp-outrun:build": "pnpm build && pnpm --filter @examples/sdk-webapp-outrun build",
     "build:gallery": "pnpm build; pnpm --filter=./apps/gallery build",
     "build:gallery-new": "pnpm build; pnpm --filter=./apps/gallery-new build",
     "build:laboratory": "pnpm build; pnpm --filter=./apps/laboratory build",
@@ -102,7 +104,8 @@
       "@solana/web3.js": "1.95.8",
       "@wagmi/core": "2.16.4",
       "wagmi": "2.14.11",
-      "viem": "^2.38.0"
+      "viem": "^2.38.0",
+      "valtio": "2.1.7"
     }
   },
   "resolutions": {

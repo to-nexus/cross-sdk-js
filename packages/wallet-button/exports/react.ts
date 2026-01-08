@@ -1,5 +1,6 @@
 /* eslint-disable consistent-return */
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { subscribe } from 'valtio/vanilla'
 
 import type { ParsedCaipAddress } from '@to-nexus/appkit-common'
 import {
@@ -9,7 +10,6 @@ import {
   OptionsController,
   RouterController
 } from '@to-nexus/appkit-core'
-import { useSnapshot } from 'valtio'
 
 import { ApiController } from '../src/controllers/ApiController.js'
 import { WalletButtonController } from '../src/controllers/WalletButtonController.js'
@@ -33,13 +33,38 @@ export function useAppKitWallet(parameters?: {
   onSuccess?: (data: ParsedCaipAddress) => void
   onError?: (error: Error) => void
 }) {
-  const { connectors } = useSnapshot(ConnectorController.state)
+  const [connectors, setConnectors] = useState(ConnectorController.state.connectors)
+  const [walletButtonState, setWalletButtonState] = useState({
+    pending: WalletButtonController.state.pending,
+    ready: WalletButtonController.state.ready,
+    error: WalletButtonController.state.error,
+    data: WalletButtonController.state.data
+  })
+
+  useEffect(() => {
+    const unsubConnector = subscribe(ConnectorController.state, () => {
+      setConnectors(ConnectorController.state.connectors)
+    })
+    const unsubWalletButton = subscribe(WalletButtonController.state, () => {
+      setWalletButtonState({
+        pending: WalletButtonController.state.pending,
+        ready: WalletButtonController.state.ready,
+        error: WalletButtonController.state.error,
+        data: WalletButtonController.state.data
+      })
+    })
+    return () => {
+      unsubConnector()
+      unsubWalletButton()
+    }
+  }, [])
+
   const {
     pending: isWalletButtonConnecting,
     ready: isWalletButtonReady,
     error: walletButtonError,
     data: walletButtonData
-  } = useSnapshot(WalletButtonController.state)
+  } = walletButtonState
 
   const { onSuccess, onError } = parameters ?? {}
 
