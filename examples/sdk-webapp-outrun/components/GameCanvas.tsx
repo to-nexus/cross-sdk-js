@@ -94,12 +94,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
   // Load car sprite image
   useEffect(() => {
+    console.log('[Outrun] Starting to load car sprite...')
     const img = new Image()
     img.src = '/assets/cars-sprite.png'
     img.onload = () => {
       carSpriteRef.current = img
       carSpriteLoadedRef.current = true
-      console.log('[Outrun] Car sprite loaded successfully')
+      console.log('[Outrun] Car sprite loaded successfully', { width: img.width, height: img.height })
     }
     img.onerror = () => {
       console.warn('[Outrun] Car sprite not found, using canvas drawing fallback')
@@ -132,12 +133,21 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   }, [gameState])
 
   useEffect(() => {
+    console.log('[Outrun] Main useEffect triggered, gameState:', gameState)
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) {
+      console.warn('[Outrun] Canvas ref not available')
+      return
+    }
+    console.log('[Outrun] Canvas found:', { width: canvas.width, height: canvas.height })
 
     // Note: { alpha: false } can cause issues on some Safari versions
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx) {
+      console.error('[Outrun] Failed to get 2D context')
+      return
+    }
+    console.log('[Outrun] 2D context obtained successfully')
 
     // --- HELPER FUNCTIONS ---
 
@@ -210,8 +220,45 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       let width = 200
       let height = 220
       let damage = 20
+      let carIndex: number | undefined = undefined
 
-      if (r > 0.7) {
+      // CAR types have different spawn rates and exclude player's current car
+      // Car 0 (Red F40): 3% when not player's car
+      // Car 1 (Blue DeLorean): 2.5% when not player's car
+      // Car 2 (Purple Lambo): 2% when not player's car
+      // Car 3 (Cyan Porsche): 1.5% when not player's car
+      if (r > 0.91) {
+        // CAR spawn range (9% total)
+        type = ObstacleType.CAR
+        width = 160
+        height = 180
+        damage = 50
+
+        // Select a car that's NOT the player's current car
+        // Weight: Car 0=3, Car 1=2.5, Car 2=2, Car 3=1.5 (total 9)
+        const currentPlayerCar = selectedCarRef.current
+        const availableCars: { index: number; weight: number }[] = []
+
+        // Define weights for each car (higher = more common)
+        const carWeights = [3, 2.5, 2, 1.5] // Car 0, 1, 2, 3
+
+        for (let i = 0; i < 4; i++) {
+          if (i !== currentPlayerCar) {
+            availableCars.push({ index: i, weight: carWeights[i] })
+          }
+        }
+
+        // Weighted random selection
+        const totalWeight = availableCars.reduce((sum, car) => sum + car.weight, 0)
+        let randomWeight = Math.random() * totalWeight
+        for (const car of availableCars) {
+          randomWeight -= car.weight
+          if (randomWeight <= 0) {
+            carIndex = car.index
+            break
+          }
+        }
+      } else if (r > 0.7) {
         type = ObstacleType.JAYWALKER
         width = 60
         height = 130
@@ -231,7 +278,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         width,
         height,
         damage,
-        hit: false
+        hit: false,
+        carIndex
       }
 
       obstaclesRef.current.push(obstacle)
@@ -964,6 +1012,85 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       ctx.restore()
     }
 
+    const drawObstacleCar = (
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+      carIndex: number
+    ) => {
+      ctx.save()
+
+      if (carSpriteLoadedRef.current && carSpriteRef.current) {
+        const sprite = carSpriteRef.current
+        const spriteCarWidth = sprite.width / 2
+        const spriteCarHeight = sprite.height / 2
+
+        const srcX = (carIndex % 2) * spriteCarWidth
+        const srcY = Math.floor(carIndex / 2) * spriteCarHeight
+
+        const baseWidth = 160 * scale
+        const aspectRatio = spriteCarHeight / spriteCarWidth
+        const destWidth = baseWidth * 1.4
+        const destHeight = destWidth * aspectRatio
+
+        // Shadow - positioned at y (road surface)
+        // Using simple ellipse for Safari compatibility
+        const shadowWidth = destWidth * 0.7
+        const shadowHeight = 10 * scale
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+        ctx.beginPath()
+        // Safari-compatible ellipse drawing
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.scale(shadowWidth * 0.5, shadowHeight)
+        ctx.arc(0, 0, 1, 0, Math.PI * 2)
+        ctx.restore()
+        ctx.fill()
+
+        // Draw car sprite - car bottom should be at y
+        // Adjust so the car sits on the road at position y
+        try {
+          ctx.drawImage(
+            sprite,
+            srcX,
+            srcY,
+            spriteCarWidth,
+            spriteCarHeight,
+            x - destWidth / 2,
+            y - destHeight * 0.85,
+            destWidth,
+            destHeight
+          )
+        } catch (e) {
+          console.warn('[Outrun] Failed to draw obstacle car sprite:', e)
+          // Fallback to simple rect on error
+          ctx.fillStyle = '#3b82f6'
+          ctx.fillRect(x - 80 * scale, y - 90 * scale, 160 * scale, 90 * scale)
+        }
+      } else {
+        // Fallback: simple colored rectangle
+        const carColors = ['#dc2626', '#3b82f6', '#a855f7', '#06b6d4'] // Red, Blue, Purple, Cyan
+
+        // Shadow first - Safari compatible
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+        ctx.beginPath()
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.scale(60 * scale, 10 * scale)
+        ctx.arc(0, 0, 1, 0, Math.PI * 2)
+        ctx.restore()
+        ctx.fill()
+
+        // Car body
+        ctx.fillStyle = carColors[carIndex] || '#fbbf24'
+        ctx.fillRect(x - 80 * scale, y - 90 * scale, 160 * scale, 90 * scale)
+      }
+
+      ctx.restore()
+    }
+
     const drawPalmTree = (
       ctx: CanvasRenderingContext2D,
       x: number,
@@ -1037,7 +1164,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
     // --- GAME LOOP ---
 
     const render = (time: number) => {
-      if (!lastTimeRef.current) lastTimeRef.current = time
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = time
+        console.log('[Outrun] Render loop started at time:', time)
+      }
       const deltaTime = Math.min((time - lastTimeRef.current) / 1000, 0.05)
       lastTimeRef.current = time
 
@@ -1048,6 +1178,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       if (gameState === GameState.GAME_OVER) return
 
       if (gameState === GameState.PLAYING && prevGameStateRef.current === GameState.MENU) {
+        console.log('[Outrun] Game state changed from MENU to PLAYING - initializing game...')
         // Reset Logic
         obstaclesRef.current = []
         sceneryRef.current = []
@@ -1065,10 +1196,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         dyingTimerRef.current = 0
         prevGameStateRef.current = GameState.PLAYING
 
+        console.log('[Outrun] Spawning initial scenery...')
         for (let z = 0; z < RENDER_DISTANCE * SEGMENT_LENGTH; z += 1000) {
           if (Math.random() > 0.3) createSceneryAtZ(z)
           if (Math.random() > 0.3) createSceneryAtZ(z)
         }
+        console.log('[Outrun] Game initialized, scenery count:', sceneryRef.current.length)
       }
 
       const width = canvas.width
@@ -1249,6 +1382,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
             drawCactus(ctx, renderX, renderY, renderScale * cactusScaleFactor)
           } else if (obs.type === ObstacleType.JAYWALKER) {
             drawJaywalker(ctx, renderX, renderY, renderScale * jaywalkerScaleFactor)
+          } else if (obs.type === ObstacleType.CAR && obs.carIndex !== undefined) {
+            const carScaleFactor = (laneWidth * 0.8) / 160
+            drawObstacleCar(ctx, renderX, renderY, renderScale * carScaleFactor, obs.carIndex)
           }
         } else {
           const scenery = item.data as SceneryObject
@@ -1294,30 +1430,40 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       }
     }
 
+    console.log('[Outrun] Setting up event listeners...')
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
     canvas.addEventListener('touchstart', handleTouchStart)
 
+    console.log('[Outrun] Starting animation frame loop...')
     requestRef.current = requestAnimationFrame(render)
 
     return () => {
+      console.log('[Outrun] Cleaning up event listeners and animation frame')
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
       canvas.removeEventListener('touchstart', handleTouchStart)
       cancelAnimationFrame(requestRef.current)
     }
-  }, [gameState, setEnergy, setScore, onGameOver])
+  }, [gameState, setEnergy, setScore, onGameOver, setSpeed])
 
   useEffect(() => {
+    console.log('[Outrun] Resize effect mounted')
     const handleResize = () => {
       if (canvasRef.current) {
-        canvasRef.current.width = window.innerWidth
-        canvasRef.current.height = window.innerHeight
+        const newWidth = window.innerWidth
+        const newHeight = window.innerHeight
+        canvasRef.current.width = newWidth
+        canvasRef.current.height = newHeight
+        console.log('[Outrun] Canvas resized:', { width: newWidth, height: newHeight })
       }
     }
     window.addEventListener('resize', handleResize)
     handleResize()
-    return () => window.removeEventListener('resize', handleResize)
+    return () => {
+      console.log('[Outrun] Resize effect cleanup')
+      window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   return <canvas ref={canvasRef} className="block w-full h-full" />

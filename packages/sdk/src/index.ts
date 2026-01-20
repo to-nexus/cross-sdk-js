@@ -249,6 +249,5 @@ export {
   roninTestnet,
   UniversalProvider,
   ConstantsUtil,
-  ConnectorUtil,
-  networkController
+  ConnectorUtil
 }

@@ -10,6 +10,7 @@ export enum ObstacleType {
   TRUCK = 'TRUCK',
   CACTUS = 'CACTUS',
   JAYWALKER = 'JAYWALKER',
+  CAR = 'CAR',
 }
 
 export interface Obstacle {
@@ -21,6 +22,7 @@ export interface Obstacle {
   height: number;
   damage: number;
   hit: boolean;
+  carIndex?: number; // For CAR type: 0-3 sprite index
 }
 
 export interface Player {
