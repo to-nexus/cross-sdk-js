@@ -2587,6 +2587,13 @@ window.addEventListener('DOMContentLoaded', () => {
   // 초기에는 연결되지 않은 상태로 버튼 설정
   updateButtonVisibility(false)
 
+  // CROSSx Browser 감지 (한 번만)
+  const isCROSSxBrowser = CoreHelperUtil.isCROSSxBrowser()
+  if (isCROSSxBrowser) {
+    const dot = document.getElementById('crossx-browser-dot')
+    if (dot) dot.style.display = 'inline-block'
+  }
+
   // MetaMask 자동 재연결 시도
   setTimeout(async () => {
     // 연결 타입에 따라 적절한 재연결 함수 실행

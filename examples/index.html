@@ -50,6 +50,19 @@
         margin-bottom: 2rem;
       }
 
+      .webapp-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      @media (max-width: 768px) {
+        .webapp-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
       .example-card {
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
@@ -154,6 +167,26 @@
           <div class="example-description">
             Cocos Creator 게임 엔진에<br />
             통합된 블록체인 지갑 예제
+          </div>
+        </a>
+      </div>
+
+      <div class="webapp-row">
+        <a href="/webapp/" class="example-card">
+          <div class="example-icon">📱</div>
+          <div class="example-title">WebApp Example</div>
+          <div class="example-description">
+            미니 앱 플랫폼을 위한<br />
+            웹앱 통합 예제
+          </div>
+        </a>
+
+        <a href="/webapp-outrun/" class="example-card">
+          <div class="example-icon">🌃</div>
+          <div class="example-title">WebApp Outrun Game</div>
+          <div class="example-description">
+            신스웨이브 스타일의<br />
+            인터랙티브 레이싱 게임
           </div>
         </a>
       </div>
