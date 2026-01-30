@@ -90,6 +90,14 @@ export interface ReconnectFailedEvent {
   error: Error
 }
 
+export interface ReconnectSuccessEvent {
+  address: string
+  chainId: number
+  provider: Provider
+  id: string
+  type: ConnectorType
+}
+
 // --- Constants ---------------------------------------------------- //
 const DEFAULT_PENDING_TRANSACTIONS_FILTER = {
   enable: false,
@@ -177,12 +185,15 @@ export class WagmiAdapter extends AdapterBlueprint {
     const reconnectTimeout = 2000 // 각 reconnect() 호출마다 2초 timeout
     let lastError: Error | null = null
 
+    // eslint-disable-next-line no-await-in-loop
     for (let attempt = 0; attempt < retryDelays.length; attempt++) {
       // 초기 대기
+      // eslint-disable-next-line no-await-in-loop
       await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]))
 
       try {
         // Reconnect()를 timeout과 함께 실행
+        // eslint-disable-next-line no-await-in-loop
         const result = await Promise.race([
           reconnect(this.wagmiConfig),
           new Promise<never>((_, reject) =>
@@ -192,6 +203,21 @@ export class WagmiAdapter extends AdapterBlueprint {
 
         // 세션 복원 성공
         if (result && result.length > 0) {
+          const connection = result[0]
+          if (connection) {
+            const connector = this.wagmiConfig.connectors.find(c => c.id === connection.connector.id)
+            // eslint-disable-next-line no-await-in-loop
+            const provider = (await connector?.getProvider()) as Provider
+
+            this.emit('reconnect_success', {
+              address: connection.accounts[0],
+              chainId: connection.chainId,
+              provider,
+              id: connection.connector.id,
+              type: connection.connector.type
+            })
+          }
+
           return
         }
 
@@ -849,25 +875,6 @@ export class WagmiAdapter extends AdapterBlueprint {
     // ✅ Add wagmi connectors FIRST to create the walletConnect connector
     this.addWagmiConnectors(options, appKit)
 
-    /*
-     * ✅ WalletConnect provider를 가져와서 WalletConnectConnector 인스턴스 생성
-     * Wait a bit for connector to be fully initialized
-     */
-    await new Promise(resolve => setTimeout(resolve, 100))
-
-    const walletConnectWagmiConnector = this.getWagmiConnector('walletConnect')
-    if (walletConnectWagmiConnector) {
-      try {
-        const universalProvider =
-          (await walletConnectWagmiConnector.getProvider()) as UniversalProvider
-        if (universalProvider) {
-          this.setUniversalProvider(universalProvider)
-        }
-      } catch (error) {
-        console.warn('Failed to get WalletConnect provider:', error)
-      }
-    }
-
     // Add third party connectors
     await this.addThirdPartyConnectors(options)
   }
@@ -1388,6 +1395,14 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public override setUniversalProvider(universalProvider: UniversalProvider): void {
+    const hasWalletConnectConnector = this.connectors.some(
+      c => c.id === CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
+    )
+
+    if (hasWalletConnectConnector) {
+      return
+    }
+
     this.addConnector(
       new WalletConnectConnector({
         provider: universalProvider,
