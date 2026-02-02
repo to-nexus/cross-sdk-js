@@ -114,6 +114,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   private balancePromises: Record<string, Promise<AdapterBlueprint.GetBalanceResult>> = {}
   private siwx?: AppKitOptions['siwx']
   private reconnectFailedListeners = new Set<(event: ReconnectFailedEvent) => void>()
+  private isAutoReconnecting = false
 
   constructor(
     configParams: Partial<CreateConfigParameters> & {
@@ -185,6 +186,9 @@ export class WagmiAdapter extends AdapterBlueprint {
     const reconnectTimeout = 2000 // 각 reconnect() 호출마다 2초 timeout
     let lastError: Error | null = null
 
+    // ✅ 자동 복원 진행 중임을 표시 (성급한 disconnect 방지)
+    this.isAutoReconnecting = true
+
     // eslint-disable-next-line no-await-in-loop
     for (let attempt = 0; attempt < retryDelays.length; attempt++) {
       // 초기 대기
@@ -218,6 +222,8 @@ export class WagmiAdapter extends AdapterBlueprint {
             })
           }
 
+          this.isAutoReconnecting = false
+
           return
         }
 
@@ -241,7 +247,9 @@ export class WagmiAdapter extends AdapterBlueprint {
       }
     }
 
-    // 모든 시도 실패 - 에러 이벤트 emit
+    // 모든 시도 실패
+    this.isAutoReconnecting = false
+
     if (lastError) {
       this.emitReconnectFailed({
         code: 'SESSION_RESTORE_FAILED',
@@ -274,10 +282,23 @@ export class WagmiAdapter extends AdapterBlueprint {
         return false
       }
 
-      // 2. WalletConnect 세션 유효성 확인 (핵심!)
-      const wcSession = localStorage.getItem('wc@2:client:0.3//session')
+      // 2. WalletConnect 세션 유효성 확인
+      // customStoragePrefix('nexus-')가 적용된 키와 기본 키 모두 확인
+      const wcSessionKeys = ['nexus-wc@2:client:0.3//session', 'wc@2:client:0.3//session']
+      let wcSession: string | null = null
+
+      for (const key of wcSessionKeys) {
+        wcSession = localStorage.getItem(key)
+        if (wcSession) {
+          console.log(`[WagmiAdapter] Found session in storage with key: ${key}`)
+          break
+        }
+      }
+
       if (!wcSession) {
-        console.log('[WagmiAdapter] No WalletConnect session storage found')
+        console.log(
+          '[WagmiAdapter] No WalletConnect session storage found (checked nexus- and default)'
+        )
 
         return false
       }
@@ -478,19 +499,18 @@ export class WagmiAdapter extends AdapterBlueprint {
           prevAccountData.address &&
           prevAccountData.status !== 'reconnecting'
         ) {
-          // ✅ localStorage에 유효한 세션이 있는지 확인 후 조건부 disconnect
+          // ✅ 자동 복원 중이거나 localStorage에 유효한 세션이 있으면 disconnect 무시
           const hasValidSession = this.hasValidStoredSession()
 
-          if (!hasValidSession) {
+          if (!hasValidSession && !this.isAutoReconnecting) {
             console.log(
               '[WagmiAdapter] Account disconnected and no valid session - emitting disconnect'
             )
             this.emit('disconnect')
           } else {
             console.log(
-              '[WagmiAdapter] Account disconnected but valid session exists - preserving localStorage'
+              '[WagmiAdapter] Account disconnected but valid session exists or reconnecting - preserving state'
             )
-            // 상태 전환 중일 가능성 - disconnect 이벤트 발생시키지 않음
           }
         }
 
@@ -517,17 +537,16 @@ export class WagmiAdapter extends AdapterBlueprint {
     watchConnections(this.wagmiConfig, {
       onChange: connections => {
         if (connections.length === 0) {
-          // ✅ localStorage에 유효한 세션이 있는지 확인 후 조건부 disconnect
+          // ✅ 자동 복원 중이거나 localStorage에 유효한 세션이 있으면 disconnect 무시
           const hasValidSession = this.hasValidStoredSession()
 
-          if (!hasValidSession) {
+          if (!hasValidSession && !this.isAutoReconnecting) {
             console.log('[WagmiAdapter] No connections and no valid session - emitting disconnect')
             this.emit('disconnect')
           } else {
             console.log(
-              '[WagmiAdapter] No connections but valid session exists - preserving localStorage'
+              '[WagmiAdapter] No connections but valid session exists or reconnecting - preserving state'
             )
-            // 새로고침 직후 또는 provider 준비 중 - disconnect 이벤트 발생시키지 않음
           }
         }
       }
