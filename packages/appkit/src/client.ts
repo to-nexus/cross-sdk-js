@@ -1909,6 +1909,12 @@ export class AppKit {
         })
       }
     })
+
+    adapter.on('reconnect_success', res => {
+      this.syncProvider({ ...res, chainNamespace })
+      this.syncAccount({ ...res, chainNamespace })
+      this.setStatus('connected', chainNamespace)
+    })
   }
 
   private async updateNativeBalance(ignoreCache = false) {
@@ -2593,8 +2599,8 @@ export class AppKit {
   private async initChainAdapter(namespace: ChainNamespace) {
     this.onConnectors(namespace)
     this.listenAdapter(namespace)
-    this.chainAdapters?.[namespace].syncConnectors(this.options, this)
     await this.createUniversalProviderForAdapter(namespace)
+    await this.chainAdapters?.[namespace].syncConnectors(this.options, this)
     this.createAuthProviderForAdapter(namespace)
   }
 

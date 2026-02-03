@@ -32,12 +32,20 @@ type EventName =
   | 'switchNetwork'
   | 'connectors'
   | 'pendingTransactions'
+  | 'reconnect_success'
 type EventData = {
   disconnect: () => void
   accountChanged: { address: string; chainId?: number | string }
   switchNetwork: { address?: string; chainId: number | string }
   connectors: ChainAdapterConnector[]
   pendingTransactions: () => void
+  reconnect_success: {
+    address: string
+    chainId: number
+    provider: any
+    id: string
+    type: any
+  }
 }
 type EventCallback<T extends EventName> = (data: EventData[T]) => void
 

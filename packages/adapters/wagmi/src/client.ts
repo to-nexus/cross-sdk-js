@@ -90,6 +90,14 @@ export interface ReconnectFailedEvent {
   error: Error
 }
 
+export interface ReconnectSuccessEvent {
+  address: string
+  chainId: number
+  provider: Provider
+  id: string
+  type: ConnectorType
+}
+
 // --- Constants ---------------------------------------------------- //
 const DEFAULT_PENDING_TRANSACTIONS_FILTER = {
   enable: false,
@@ -106,6 +114,7 @@ export class WagmiAdapter extends AdapterBlueprint {
   private balancePromises: Record<string, Promise<AdapterBlueprint.GetBalanceResult>> = {}
   private siwx?: AppKitOptions['siwx']
   private reconnectFailedListeners = new Set<(event: ReconnectFailedEvent) => void>()
+  private isAutoReconnecting = false
 
   constructor(
     configParams: Partial<CreateConfigParameters> & {
@@ -177,12 +186,18 @@ export class WagmiAdapter extends AdapterBlueprint {
     const reconnectTimeout = 2000 // 각 reconnect() 호출마다 2초 timeout
     let lastError: Error | null = null
 
+    // ✅ 자동 복원 진행 중임을 표시 (성급한 disconnect 방지)
+    this.isAutoReconnecting = true
+
+    // eslint-disable-next-line no-await-in-loop
     for (let attempt = 0; attempt < retryDelays.length; attempt++) {
       // 초기 대기
+      // eslint-disable-next-line no-await-in-loop
       await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]))
 
       try {
         // Reconnect()를 timeout과 함께 실행
+        // eslint-disable-next-line no-await-in-loop
         const result = await Promise.race([
           reconnect(this.wagmiConfig),
           new Promise<never>((_, reject) =>
@@ -192,6 +207,23 @@ export class WagmiAdapter extends AdapterBlueprint {
 
         // 세션 복원 성공
         if (result && result.length > 0) {
+          const connection = result[0]
+          if (connection) {
+            const connector = this.wagmiConfig.connectors.find(c => c.id === connection.connector.id)
+            // eslint-disable-next-line no-await-in-loop
+            const provider = (await connector?.getProvider()) as Provider
+
+            this.emit('reconnect_success', {
+              address: connection.accounts[0],
+              chainId: connection.chainId,
+              provider,
+              id: connection.connector.id,
+              type: connection.connector.type
+            })
+          }
+
+          this.isAutoReconnecting = false
+
           return
         }
 
@@ -215,7 +247,9 @@ export class WagmiAdapter extends AdapterBlueprint {
       }
     }
 
-    // 모든 시도 실패 - 에러 이벤트 emit
+    // 모든 시도 실패
+    this.isAutoReconnecting = false
+
     if (lastError) {
       this.emitReconnectFailed({
         code: 'SESSION_RESTORE_FAILED',
@@ -248,10 +282,23 @@ export class WagmiAdapter extends AdapterBlueprint {
         return false
       }
 
-      // 2. WalletConnect 세션 유효성 확인 (핵심!)
-      const wcSession = localStorage.getItem('wc@2:client:0.3//session')
+      // 2. WalletConnect 세션 유효성 확인
+      // customStoragePrefix('nexus-')가 적용된 키와 기본 키 모두 확인
+      const wcSessionKeys = ['nexus-wc@2:client:0.3//session', 'wc@2:client:0.3//session']
+      let wcSession: string | null = null
+
+      for (const key of wcSessionKeys) {
+        wcSession = localStorage.getItem(key)
+        if (wcSession) {
+          console.log(`[WagmiAdapter] Found session in storage with key: ${key}`)
+          break
+        }
+      }
+
       if (!wcSession) {
-        console.log('[WagmiAdapter] No WalletConnect session storage found')
+        console.log(
+          '[WagmiAdapter] No WalletConnect session storage found (checked nexus- and default)'
+        )
 
         return false
       }
@@ -452,19 +499,18 @@ export class WagmiAdapter extends AdapterBlueprint {
           prevAccountData.address &&
           prevAccountData.status !== 'reconnecting'
         ) {
-          // ✅ localStorage에 유효한 세션이 있는지 확인 후 조건부 disconnect
+          // ✅ 자동 복원 중이거나 localStorage에 유효한 세션이 있으면 disconnect 무시
           const hasValidSession = this.hasValidStoredSession()
 
-          if (!hasValidSession) {
+          if (!hasValidSession && !this.isAutoReconnecting) {
             console.log(
               '[WagmiAdapter] Account disconnected and no valid session - emitting disconnect'
             )
             this.emit('disconnect')
           } else {
             console.log(
-              '[WagmiAdapter] Account disconnected but valid session exists - preserving localStorage'
+              '[WagmiAdapter] Account disconnected but valid session exists or reconnecting - preserving state'
             )
-            // 상태 전환 중일 가능성 - disconnect 이벤트 발생시키지 않음
           }
         }
 
@@ -491,17 +537,16 @@ export class WagmiAdapter extends AdapterBlueprint {
     watchConnections(this.wagmiConfig, {
       onChange: connections => {
         if (connections.length === 0) {
-          // ✅ localStorage에 유효한 세션이 있는지 확인 후 조건부 disconnect
+          // ✅ 자동 복원 중이거나 localStorage에 유효한 세션이 있으면 disconnect 무시
           const hasValidSession = this.hasValidStoredSession()
 
-          if (!hasValidSession) {
+          if (!hasValidSession && !this.isAutoReconnecting) {
             console.log('[WagmiAdapter] No connections and no valid session - emitting disconnect')
             this.emit('disconnect')
           } else {
             console.log(
-              '[WagmiAdapter] No connections but valid session exists - preserving localStorage'
+              '[WagmiAdapter] No connections but valid session exists or reconnecting - preserving state'
             )
-            // 새로고침 직후 또는 provider 준비 중 - disconnect 이벤트 발생시키지 않음
           }
         }
       }
@@ -848,25 +893,6 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     // ✅ Add wagmi connectors FIRST to create the walletConnect connector
     this.addWagmiConnectors(options, appKit)
-
-    /*
-     * ✅ WalletConnect provider를 가져와서 WalletConnectConnector 인스턴스 생성
-     * Wait a bit for connector to be fully initialized
-     */
-    await new Promise(resolve => setTimeout(resolve, 100))
-
-    const walletConnectWagmiConnector = this.getWagmiConnector('walletConnect')
-    if (walletConnectWagmiConnector) {
-      try {
-        const universalProvider =
-          (await walletConnectWagmiConnector.getProvider()) as UniversalProvider
-        if (universalProvider) {
-          this.setUniversalProvider(universalProvider)
-        }
-      } catch (error) {
-        console.warn('Failed to get WalletConnect provider:', error)
-      }
-    }
 
     // Add third party connectors
     await this.addThirdPartyConnectors(options)
@@ -1388,6 +1414,14 @@ export class WagmiAdapter extends AdapterBlueprint {
   }
 
   public override setUniversalProvider(universalProvider: UniversalProvider): void {
+    const hasWalletConnectConnector = this.connectors.some(
+      c => c.id === CommonConstantsUtil.CONNECTOR_ID.WALLET_CONNECT
+    )
+
+    if (hasWalletConnectConnector) {
+      return
+    }
+
     this.addConnector(
       new WalletConnectConnector({
         provider: universalProvider,
