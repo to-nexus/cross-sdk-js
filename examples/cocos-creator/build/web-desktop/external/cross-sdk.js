@@ -1,4 +1,4 @@
-import { s as AccountController, u as AppKit, c as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, v as ApiController, w as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, I as roninTestnet, J as roninMainnet, K as etherTestnet, L as etherMainnet, N as kaiaTestnet, Q as kaiaMainnet, V as bscTestnet, X as bscMainnet, Y as crossTestnet, _ as crossMainnet, C as ChainController, $ as SendController } from "./index.es-BHEXD4wz.js";
+import { u as AccountController, v as AppKit, d as CoreHelperUtil, P as PACKAGE_VERSION, W as WalletButtonController, w as ApiController, x as ConnectionController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, D as ConnectorController, O as OptionsController, E as EthersAdapter, g as ConstantsUtil$1, F as networkController, G as ConstantsUtil$2, Z, I as roninTestnet, J as roninMainnet, K as etherTestnet, L as etherMainnet, N as kaiaTestnet, Q as kaiaMainnet, V as bscTestnet, X as bscMainnet, Y as crossTestnet, _ as crossMainnet, C as ChainController, $ as SendController } from "./index.es-QQ-ABb65.js";
 function createDefaultSIWXConfig(options = {}) {
   let currentChainId = void 0;
   AccountController.subscribeKey("caipAddress", (caipAddress) => {
@@ -185,56 +185,75 @@ function createAppKitWalletButton() {
   }
   return walletButton;
 }
-const b = new EthersAdapter(), S = (() => {
-  var e, t;
-  return ((t = (e = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : t.call(e)) || "https://cross-wallet.crosstoken.io/wc";
-})(), W = {
+const _ = new EthersAdapter(), M = {
   name: "Cross SDK",
   description: "Cross SDK for HTML",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
 };
-let r = null, f, h;
-const K = (e) => {
+let r = null, C, k;
+const U = (t) => {
   if (r)
     return r;
   const {
-    projectId: t,
-    redirectUrl: a,
-    metadata: l,
+    projectId: n,
+    redirectUrl: l,
+    metadata: a,
     themeMode: i,
-    defaultNetwork: o,
+    defaultNetwork: e,
     adapters: c,
-    mobileLink: s,
-    siwx: n
-  } = e;
-  return f = s, h = n, r = _(
-    t,
-    a,
+    mobileLink: o,
+    siwx: s
+  } = t;
+  return C = o, k = s, r = W(
+    n,
     l,
+    a,
     i,
-    o,
+    e,
     c,
-    s,
-    n
+    o,
+    s
   ), r;
-}, _ = (e, t, a, l, i, o, c, s) => {
-  var p, d;
-  const n = {
-    ...W,
-    ...a,
+}, W = (t, n, l, a, i, e, c, o) => {
+  var d, m;
+  const s = {
+    ...M,
+    ...l,
     redirect: {
-      universal: t
+      universal: n
     }
-  }, u = c || f || ((d = (p = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : d.call(p)) || S, C = s || h;
-  return createAppKit({
-    adapters: o && o.length > 0 ? o : [b],
-    networks: networkList,
+  }, u = c || C || ((m = (d = ConstantsUtil$1).getCrossWalletDeepLink) == null ? void 0 : m.call(d)) || "crossx://", h = o || k;
+  !CoreHelperUtil.isMobile() && typeof localStorage < "u" && localStorage.removeItem("WALLETCONNECT_DEEPLINK_CHOICE");
+  const p = {
+    id: "cross_wallet",
+    name: "CROSSx Wallet",
+    image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
+    app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
+    play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
+    chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
+    rdns: "nexus.to.crosswallet.desktop",
+    // 명시적으로 빈 문자열로 설정하여 오버라이드
+    mobile_link: "",
+    desktop_link: "",
+    webapp_link: "",
+    injected: [
+      {
+        injected_id: "nexus.to.crosswallet.desktop"
+      }
+    ]
+  };
+  return CoreHelperUtil.isMobile() && Object.assign(p, { mobile_link: u }), createAppKit({
+    adapters: e && e.length > 0 ? e : [_],
+    networks: [
+      ...networkController.getNetworks()
+      // 타입 호환성을 위해 튜플로 변환이 필요할 수 있으나, createAppKit이 배열을 받으므로 spread로 처리
+    ],
     defaultNetwork: i,
-    metadata: n,
-    projectId: e,
-    themeMode: l || "light",
-    siwx: C,
+    metadata: s,
+    projectId: t,
+    themeMode: a || "light",
+    siwx: h,
     features: {
       swaps: false,
       onramp: false,
@@ -248,31 +267,15 @@ const K = (e) => {
       legalCheckbox: false
     },
     enableCoinbase: false,
-    customWallets: [
-      {
-        id: "cross_wallet",
-        name: "CROSSx Wallet",
-        image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: u,
-        app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
-        play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
-        chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
-        rdns: "nexus.to.crosswallet.desktop",
-        injected: [
-          {
-            injected_id: "nexus.to.crosswallet.desktop"
-          }
-        ]
-      }
-    ],
+    customWallets: [p],
     allWallets: "HIDE"
   });
-}, U = () => createAppKitWalletButton(), I = "1.18.3-beta.4";
+}, D = () => createAppKitWalletButton(), K = "1.19.1-beta.1";
 if (typeof window !== "undefined") {
   window.CrossSdk = {
-    initCrossSdk: _,
-    initCrossSdkWithParams: K,
-    useAppKitWallet: U,
+    initCrossSdk: W,
+    initCrossSdkWithParams: U,
+    useAppKitWallet: D,
     createDefaultSIWXConfig,
     ConnectionController,
     ConnectorUtil,
@@ -293,7 +296,7 @@ if (typeof window !== "undefined") {
     roninTestnet,
     UniversalProvider: Z,
     ConstantsUtil: ConstantsUtil$2,
-    sdkVersion: I
+    sdkVersion: K
   };
 }
 export {
@@ -313,13 +316,13 @@ export {
   crossTestnet,
   etherMainnet,
   etherTestnet,
-  _ as initCrossSdk,
-  K as initCrossSdkWithParams,
+  W as initCrossSdk,
+  U as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
   roninMainnet,
   roninTestnet,
-  I as sdkVersion,
-  U as useAppKitWallet
+  K as sdkVersion,
+  D as useAppKitWallet
 };
 //# sourceMappingURL=cross-sdk.js.map
