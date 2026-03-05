@@ -1,4 +1,4 @@
-import { a4 as process$1, a5 as getDefaultExportFromCjs, a6 as subscribe, a7 as snapshot, a8 as p, a9 as a, aa as w, C as ChainController, D as ConnectorController, c as CoreHelperUtil, w as ConnectionController, ab as ProviderUtil, W as WalletButtonController, v as ApiController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, O as OptionsController, s as AccountController, u as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, f as ConstantsUtil$1, F as networkList, G as ConstantsUtil$2, Z, K as etherTestnet, L as etherMainnet, N as kaiaTestnet, Q as kaiaMainnet, V as bscTestnet, X as bscMainnet, Y as crossTestnet, _ as crossMainnet, $ as SendController } from "./index.es-BHEXD4wz.js";
+import { a4 as process$1, a5 as getDefaultExportFromCjs, a6 as subscribe, a7 as snapshot, a8 as p, a9 as a, aa as w$1, C as ChainController, D as ConnectorController, d as CoreHelperUtil, x as ConnectionController, ab as ProviderUtil, W as WalletButtonController, w as ApiController, y as ConstantsUtil, z as ConnectorUtil, B as WalletUtil, O as OptionsController, u as AccountController, v as AppKit, P as PACKAGE_VERSION, E as EthersAdapter, g as ConstantsUtil$1, F as networkController, G as ConstantsUtil$2, Z, K as etherTestnet, L as etherMainnet, N as kaiaTestnet, Q as kaiaMainnet, V as bscTestnet, X as bscMainnet, Y as crossTestnet, _ as crossMainnet, $ as SendController } from "./index.es-QQ-ABb65.js";
 var react = { exports: {} };
 var react_production = {};
 var hasRequiredReact_production;
@@ -420,7 +420,7 @@ function requireReact_production() {
   react_production.useTransition = function() {
     return ReactSharedInternals.H.useTransition();
   };
-  react_production.version = "19.0.0";
+  react_production.version = "19.0.1";
   return react_production;
 }
 var react_development = { exports: {} };
@@ -429,7 +429,7 @@ var hasRequiredReact_development;
 function requireReact_development() {
   if (hasRequiredReact_development) return react_development.exports;
   hasRequiredReact_development = 1;
-  (function(module, exports) {
+  (function(module, exports$1) {
     "production" !== process$1.env.NODE_ENV && function() {
       function defineDeprecationWarning(methodName, info) {
         Object.defineProperty(Component.prototype, methodName, {
@@ -1161,7 +1161,7 @@ function requireReact_development() {
           return queueMicrotask(callback);
         });
       } : enqueueTask;
-      exports.Children = {
+      exports$1.Children = {
         map: mapChildren,
         forEach: function(children, forEachFunc, forEachContext) {
           mapChildren(
@@ -1192,14 +1192,14 @@ function requireReact_development() {
           return children;
         }
       };
-      exports.Component = Component;
-      exports.Fragment = REACT_FRAGMENT_TYPE;
-      exports.Profiler = REACT_PROFILER_TYPE;
-      exports.PureComponent = PureComponent;
-      exports.StrictMode = REACT_STRICT_MODE_TYPE;
-      exports.Suspense = REACT_SUSPENSE_TYPE;
-      exports.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE = ReactSharedInternals;
-      exports.act = function(callback) {
+      exports$1.Component = Component;
+      exports$1.Fragment = REACT_FRAGMENT_TYPE;
+      exports$1.Profiler = REACT_PROFILER_TYPE;
+      exports$1.PureComponent = PureComponent;
+      exports$1.StrictMode = REACT_STRICT_MODE_TYPE;
+      exports$1.Suspense = REACT_SUSPENSE_TYPE;
+      exports$1.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE = ReactSharedInternals;
+      exports$1.act = function(callback) {
         var prevActQueue = ReactSharedInternals.actQueue, prevActScopeDepth = actScopeDepth;
         actScopeDepth++;
         var queue = ReactSharedInternals.actQueue = null !== prevActQueue ? prevActQueue : [], didAwaitActCall = false;
@@ -1276,12 +1276,12 @@ function requireReact_development() {
           }
         };
       };
-      exports.cache = function(fn) {
+      exports$1.cache = function(fn) {
         return function() {
           return fn.apply(null, arguments);
         };
       };
-      exports.cloneElement = function(element, config, children) {
+      exports$1.cloneElement = function(element, config, children) {
         if (null === element || void 0 === element)
           throw Error(
             "The argument must be a React element, but you passed " + element + "."
@@ -1317,7 +1317,7 @@ function requireReact_development() {
           validateChildKeys(arguments[key], props.type);
         return props;
       };
-      exports.createContext = function(defaultValue) {
+      exports$1.createContext = function(defaultValue) {
         defaultValue = {
           $$typeof: REACT_CONTEXT_TYPE,
           _currentValue: defaultValue,
@@ -1335,7 +1335,7 @@ function requireReact_development() {
         defaultValue._currentRenderer2 = null;
         return defaultValue;
       };
-      exports.createElement = function(type, config, children) {
+      exports$1.createElement = function(type, config, children) {
         if (isValidElementType(type))
           for (var i = 2; i < arguments.length; i++)
             validateChildKeys(arguments[i], type);
@@ -1377,12 +1377,12 @@ function requireReact_development() {
         );
         return ReactElement(type, typeString, void 0, void 0, getOwner(), i);
       };
-      exports.createRef = function() {
+      exports$1.createRef = function() {
         var refObject = { current: null };
         Object.seal(refObject);
         return refObject;
       };
-      exports.forwardRef = function(render) {
+      exports$1.forwardRef = function(render) {
         null != render && render.$$typeof === REACT_MEMO_TYPE ? console.error(
           "forwardRef requires a render function but received a `memo` component. Instead of forwardRef(memo(...)), use memo(forwardRef(...))."
         ) : "function" !== typeof render ? console.error(
@@ -1409,15 +1409,15 @@ function requireReact_development() {
         });
         return elementType;
       };
-      exports.isValidElement = isValidElement;
-      exports.lazy = function(ctor) {
+      exports$1.isValidElement = isValidElement;
+      exports$1.lazy = function(ctor) {
         return {
           $$typeof: REACT_LAZY_TYPE,
           _payload: { _status: -1, _result: ctor },
           _init: lazyInitializer
         };
       };
-      exports.memo = function(type, compare) {
+      exports$1.memo = function(type, compare) {
         isValidElementType(type) || console.error(
           "memo: The first argument must be a component. Instead received: %s",
           null === type ? "null" : typeof type
@@ -1441,7 +1441,7 @@ function requireReact_development() {
         });
         return compare;
       };
-      exports.startTransition = function(scope) {
+      exports$1.startTransition = function(scope) {
         var prevTransition = ReactSharedInternals.T, currentTransition = {};
         ReactSharedInternals.T = currentTransition;
         currentTransition._updatedFibers = /* @__PURE__ */ new Set();
@@ -1457,76 +1457,76 @@ function requireReact_development() {
           )), ReactSharedInternals.T = prevTransition;
         }
       };
-      exports.unstable_useCacheRefresh = function() {
+      exports$1.unstable_useCacheRefresh = function() {
         return resolveDispatcher().useCacheRefresh();
       };
-      exports.use = function(usable) {
+      exports$1.use = function(usable) {
         return resolveDispatcher().use(usable);
       };
-      exports.useActionState = function(action, initialState, permalink) {
+      exports$1.useActionState = function(action, initialState, permalink) {
         return resolveDispatcher().useActionState(
           action,
           initialState,
           permalink
         );
       };
-      exports.useCallback = function(callback, deps) {
+      exports$1.useCallback = function(callback, deps) {
         return resolveDispatcher().useCallback(callback, deps);
       };
-      exports.useContext = function(Context) {
+      exports$1.useContext = function(Context) {
         var dispatcher = resolveDispatcher();
         Context.$$typeof === REACT_CONSUMER_TYPE && console.error(
           "Calling useContext(Context.Consumer) is not supported and will cause bugs. Did you mean to call useContext(Context) instead?"
         );
         return dispatcher.useContext(Context);
       };
-      exports.useDebugValue = function(value, formatterFn) {
+      exports$1.useDebugValue = function(value, formatterFn) {
         return resolveDispatcher().useDebugValue(value, formatterFn);
       };
-      exports.useDeferredValue = function(value, initialValue) {
+      exports$1.useDeferredValue = function(value, initialValue) {
         return resolveDispatcher().useDeferredValue(value, initialValue);
       };
-      exports.useEffect = function(create, deps) {
+      exports$1.useEffect = function(create, deps) {
         return resolveDispatcher().useEffect(create, deps);
       };
-      exports.useId = function() {
+      exports$1.useId = function() {
         return resolveDispatcher().useId();
       };
-      exports.useImperativeHandle = function(ref, create, deps) {
+      exports$1.useImperativeHandle = function(ref, create, deps) {
         return resolveDispatcher().useImperativeHandle(ref, create, deps);
       };
-      exports.useInsertionEffect = function(create, deps) {
+      exports$1.useInsertionEffect = function(create, deps) {
         return resolveDispatcher().useInsertionEffect(create, deps);
       };
-      exports.useLayoutEffect = function(create, deps) {
+      exports$1.useLayoutEffect = function(create, deps) {
         return resolveDispatcher().useLayoutEffect(create, deps);
       };
-      exports.useMemo = function(create, deps) {
+      exports$1.useMemo = function(create, deps) {
         return resolveDispatcher().useMemo(create, deps);
       };
-      exports.useOptimistic = function(passthrough, reducer) {
+      exports$1.useOptimistic = function(passthrough, reducer) {
         return resolveDispatcher().useOptimistic(passthrough, reducer);
       };
-      exports.useReducer = function(reducer, initialArg, init) {
+      exports$1.useReducer = function(reducer, initialArg, init) {
         return resolveDispatcher().useReducer(reducer, initialArg, init);
       };
-      exports.useRef = function(initialValue) {
+      exports$1.useRef = function(initialValue) {
         return resolveDispatcher().useRef(initialValue);
       };
-      exports.useState = function(initialState) {
+      exports$1.useState = function(initialState) {
         return resolveDispatcher().useState(initialState);
       };
-      exports.useSyncExternalStore = function(subscribe2, getSnapshot, getServerSnapshot) {
+      exports$1.useSyncExternalStore = function(subscribe2, getSnapshot, getServerSnapshot) {
         return resolveDispatcher().useSyncExternalStore(
           subscribe2,
           getSnapshot,
           getServerSnapshot
         );
       };
-      exports.useTransition = function() {
+      exports$1.useTransition = function() {
         return resolveDispatcher().useTransition();
       };
-      exports.version = "19.0.0";
+      exports$1.version = "19.0.1";
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
     }();
   })(react_development, react_development.exports);
@@ -1555,17 +1555,17 @@ function requireUseSyncExternalStoreShim_production_min() {
   if (hasRequiredUseSyncExternalStoreShim_production_min) return useSyncExternalStoreShim_production_min;
   hasRequiredUseSyncExternalStoreShim_production_min = 1;
   var e = reactExports;
-  function h2(a2, b) {
-    return a2 === b && (0 !== a2 || 1 / a2 === 1 / b) || a2 !== a2 && b !== b;
+  function h(a2, b2) {
+    return a2 === b2 && (0 !== a2 || 1 / a2 === 1 / b2) || a2 !== a2 && b2 !== b2;
   }
-  var k = "function" === typeof Object.is ? Object.is : h2, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p2 = e.useDebugValue;
-  function q(a2, b) {
-    var d = b(), f = l({ inst: { value: d, getSnapshot: b } }), c = f[0].inst, g2 = f[1];
+  var k = "function" === typeof Object.is ? Object.is : h, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p2 = e.useDebugValue;
+  function q(a2, b2) {
+    var d = b2(), f = l({ inst: { value: d, getSnapshot: b2 } }), c = f[0].inst, g2 = f[1];
     n(function() {
       c.value = d;
-      c.getSnapshot = b;
+      c.getSnapshot = b2;
       r(c) && g2({ inst: c });
-    }, [a2, d, b]);
+    }, [a2, d, b2]);
     m(function() {
       r(c) && g2({ inst: c });
       return a2(function() {
@@ -1576,17 +1576,17 @@ function requireUseSyncExternalStoreShim_production_min() {
     return d;
   }
   function r(a2) {
-    var b = a2.getSnapshot;
+    var b2 = a2.getSnapshot;
     a2 = a2.value;
     try {
-      var d = b();
+      var d = b2();
       return !k(a2, d);
     } catch (f) {
       return true;
     }
   }
-  function t(a2, b) {
-    return b();
+  function t(a2, b2) {
+    return b2();
   }
   var u = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? t : q;
   useSyncExternalStoreShim_production_min.useSyncExternalStore = void 0 !== e.useSyncExternalStore ? e.useSyncExternalStore : u;
@@ -1726,7 +1726,7 @@ const { useSyncExternalStore } = useSyncExternalStoreExports;
 const useAffectedDebugValue = (state, affected) => {
   const pathList = reactExports.useRef();
   reactExports.useEffect(() => {
-    pathList.current = w(state, affected);
+    pathList.current = w$1(state, affected);
   });
   reactExports.useDebugValue(pathList.current);
 };
@@ -2075,49 +2075,72 @@ function useAppKitNetwork() {
     switchNetwork
   };
 }
-const h = new EthersAdapter(), C = {
+const g = new EthersAdapter(), b = {
   name: "Cross SDK",
   description: "Cross SDK for React",
   url: "https://to.nexus",
   icons: ["https://contents.crosstoken.io/img/sample_app_circle_icon.png"]
-}, S = (t) => {
+}, K = (t) => {
   const {
-    projectId: s,
-    redirectUrl: o,
+    projectId: o,
+    redirectUrl: s,
     metadata: r,
-    themeMode: a2,
+    themeMode: n,
     defaultNetwork: e,
-    adapters: n,
-    mobileLink: l,
+    adapters: l,
+    mobileLink: a2,
     siwx: i
   } = t;
-  return g(
-    s,
+  return w(
     o,
+    s,
     r,
-    a2,
-    e,
     n,
+    e,
     l,
+    a2,
     i
   );
-}, g = (t, s, o, r, a2, e, n, l) => {
-  var p2, c;
+}, w = (t, o, s, r, n, e, l, a2) => {
+  var c, m;
   const i = {
-    ...C,
-    ...o,
+    ...b,
+    ...s,
     redirect: {
-      universal: s
+      universal: o
     }
+  }, d = l || ((m = (c = ConstantsUtil$1).getCrossWalletDeepLink) == null ? void 0 : m.call(c)) || "crossx://", p2 = {
+    id: "cross_wallet",
+    name: "CROSSx Wallet",
+    image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
+    app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
+    play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
+    chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
+    rdns: "nexus.to.crosswallet.desktop",
+    // 명시적으로 빈 문자열로 설정하여 오버라이드
+    mobile_link: "",
+    desktop_link: "",
+    webapp_link: "",
+    injected: [
+      {
+        injected_id: "nexus.to.crosswallet.desktop"
+      }
+    ]
   };
-  return createAppKit({
-    adapters: e && e.length > 0 ? e : [h],
-    networks: networkList,
-    defaultNetwork: a2,
+  return CoreHelperUtil.isMobile() && Object.assign(p2, { mobile_link: d }), createAppKit({
+    adapters: e && e.length > 0 ? e : [g],
+    networks: [...networkController.getNetworks()],
+    defaultNetwork: n,
     metadata: i,
     projectId: t,
     themeMode: r || "light",
-    siwx: l,
+    siwx: a2,
+    // ⭐ 지갑 관련 옵션 - Cross SDK는 지갑 전용이므로 항상 활성화
+    enableWallets: true,
+    enableWalletConnect: true,
+    enableEIP6963: true,
+    enableInjected: true,
+    enableWalletGuide: true,
     features: {
       swaps: false,
       onramp: false,
@@ -2130,31 +2153,14 @@ const h = new EthersAdapter(), C = {
       analytics: false,
       legalCheckbox: false
     },
-    enableCoinbase: false,
-    customWallets: [
-      {
-        id: "cross_wallet",
-        name: "CROSSx Wallet",
-        image_url: "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg",
-        mobile_link: n || ((c = (p2 = ConstantsUtil$1).getCrossWalletWebappLink) == null ? void 0 : c.call(p2)) || "https://cross-wallet.crosstoken.io",
-        app_store: "https://apps.apple.com/us/app/crossx-games/id6741250674",
-        play_store: "https://play.google.com/store/apps/details?id=com.nexus.crosswallet",
-        chrome_store: "https://chromewebstore.google.com/detail/crossx/nninbdadmocnokibpaaohnoepbnpdgcg",
-        rdns: "nexus.to.crosswallet.desktop",
-        injected: [
-          {
-            injected_id: "nexus.to.crosswallet.desktop"
-          }
-        ]
-      }
-    ],
+    customWallets: [p2],
     allWallets: "HIDE"
   });
 };
 if (typeof window !== "undefined") {
   window.CrossSdkReact = {
-    initCrossSdk: g,
-    initCrossSdkWithParams: S,
+    initCrossSdk: w,
+    initCrossSdkWithParams: K,
     useAppKit,
     useAppKitState,
     useAppKitTheme,
@@ -2194,8 +2200,8 @@ export {
   etherMainnet,
   etherTestnet,
   getUniversalProvider,
-  g as initCrossSdk,
-  S as initCrossSdkWithParams,
+  w as initCrossSdk,
+  K as initCrossSdkWithParams,
   kaiaMainnet,
   kaiaTestnet,
   useAppKit,

@@ -209,7 +209,9 @@ export class WagmiAdapter extends AdapterBlueprint {
         if (result && result.length > 0) {
           const connection = result[0]
           if (connection) {
-            const connector = this.wagmiConfig.connectors.find(c => c.id === connection.connector.id)
+            const connector = this.wagmiConfig.connectors.find(
+              c => c.id === connection.connector.id
+            )
             // eslint-disable-next-line no-await-in-loop
             const provider = (await connector?.getProvider()) as Provider
 
@@ -282,8 +284,10 @@ export class WagmiAdapter extends AdapterBlueprint {
         return false
       }
 
-      // 2. WalletConnect 세션 유효성 확인
-      // customStoragePrefix('nexus-')가 적용된 키와 기본 키 모두 확인
+      /*
+       * 2. WalletConnect 세션 유효성 확인
+       * customStoragePrefix('nexus-')가 적용된 키와 기본 키 모두 확인
+       */
       const wcSessionKeys = ['nexus-wc@2:client:0.3//session', 'wc@2:client:0.3//session']
       let wcSession: string | null = null
 
@@ -738,17 +742,36 @@ export class WagmiAdapter extends AdapterBlueprint {
   ): Promise<AdapterBlueprint.SendTransactionResult> {
     const { chainId } = getAccount(this.wagmiConfig)
 
-    const txParams = {
+    // Type 결정: params.type이 있으면 사용, 없으면 Legacy(0)
+    const txType = params.type ?? CoreConstantsUtil.TRANSACTION_TYPE.LEGACY
+    const isEIP1559 = txType === CoreConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+
+    // Base transaction params
+    const baseTxParams = {
       account: params.address,
       to: params.to as Hex,
       value: params.value as bigint,
       gas: params.gas as bigint,
-      gasPrice: params.gasPrice as bigint,
-      maxFee: params.maxFee as bigint,
-      maxPriorityFee: params.maxPriorityFee as bigint,
       data: params.data as Hex,
-      chainId,
-      type: 'legacy' as const
+      chainId
+    }
+
+    // Legacy Transaction (Type 0)
+    let txParams
+    if (!isEIP1559) {
+      txParams = {
+        ...baseTxParams,
+        gasPrice: params.gasPrice as bigint,
+        type: 'legacy' as const
+      }
+    } else {
+      // EIP-1559 Transaction (Type 2)
+      txParams = {
+        ...baseTxParams,
+        maxFeePerGas: params.maxFee as bigint,
+        maxPriorityFeePerGas: params.maxPriorityFee as bigint,
+        type: 'eip1559' as const
+      }
     }
 
     await prepareTransactionRequest(this.wagmiConfig, txParams)
@@ -771,7 +794,12 @@ export class WagmiAdapter extends AdapterBlueprint {
     const { caipNetwork, ...data } = params
     const chainId = Number(NetworkUtil.caipNetworkIdToNumber(caipNetwork.caipNetworkId))
 
-    const tx = await wagmiWriteContract(this.wagmiConfig, {
+    // Type 결정: params.type이 있으면 사용, 없으면 Legacy(0)
+    const txType = params.type ?? CoreConstantsUtil.TRANSACTION_TYPE.LEGACY
+    const isEIP1559 = txType === CoreConstantsUtil.TRANSACTION_TYPE.DYNAMIC
+
+    // Base contract params
+    const baseContractParams = {
       chain: this.wagmiChains?.[chainId],
       chainId,
       address: data.contractAddress,
@@ -779,8 +807,28 @@ export class WagmiAdapter extends AdapterBlueprint {
       abi: data.abi,
       functionName: data.method,
       args: data.args,
-      __mode: 'prepared'
-    })
+      __mode: 'prepared' as const
+    }
+
+    // Legacy Transaction (Type 0)
+    let contractParams
+    if (!isEIP1559) {
+      contractParams = {
+        ...baseContractParams,
+        gasPrice: data.gasPrice as bigint,
+        type: 'legacy' as const
+      }
+    } else {
+      // EIP-1559 Transaction (Type 2)
+      contractParams = {
+        ...baseContractParams,
+        maxFeePerGas: data.maxFee as bigint,
+        maxPriorityFeePerGas: data.maxPriorityFee as bigint,
+        type: 'eip1559' as const
+      }
+    }
+
+    const tx = await wagmiWriteContract(this.wagmiConfig, contractParams as any)
 
     return { hash: tx }
   }
