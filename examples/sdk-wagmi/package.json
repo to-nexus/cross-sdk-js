@@ -23,8 +23,8 @@
     "react-dom": "19.0.4",
     "uuid": "^9.0.1",
     "viem": "^2.37.0",
-    "wagmi": "2.14.11",
-    "@wagmi/core": "2.16.4"
+    "wagmi": "^2.18.2",
+    "@wagmi/core": "^2.22.1"
   },
   "devDependencies": {
     "@types/react-dom": "^19.1.6",
