@@ -84,6 +84,31 @@ export const CoreHelperUtil = {
     )
   },
 
+  /**
+   * Chromium 기반 브라우저 감지 (Chrome, Edge, Opera, Brave, Arc, Vivaldi 등).
+   * Chrome 웹 스토어 익스텐션이 동작하는 브라우저인지 판단할 때 사용한다.
+   * Firefox / Safari 는 제외한다.
+   */
+  isChromiumBased() {
+    if (!this.isClient()) {
+      return false
+    }
+
+    const ua = window.navigator.userAgent.toLowerCase()
+
+    if (ua.includes('firefox') || ua.includes('fxios')) {
+      return false
+    }
+
+    return (
+      ua.includes('chrome') ||
+      ua.includes('crios') ||
+      ua.includes('edg') ||
+      ua.includes('opr') ||
+      ua.includes('opera')
+    )
+  },
+
   isCROSSxBrowser() {
     if (!this.isClient()) {
       return false
