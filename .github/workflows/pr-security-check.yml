@@ -1,0 +1,40 @@
+name: PR Security Check
+
+on:
+  pull_request:
+    branches: [dev, develop, stg, stage, master, main]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: codebuild-cross-gha-runner-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.35.0
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.trivy-cache
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          format: 'table'
+          scanners: 'vuln'
+          timeout: '10m'
+
+      - name: Run Trivy secret scanner
+        uses: aquasecurity/trivy-action@0.35.0
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.trivy-cache
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          exit-code: '1'
+          format: 'table'
+          scanners: 'secret'

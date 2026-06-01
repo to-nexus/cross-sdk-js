@@ -59,14 +59,46 @@ permissions:
   id-token: write
   contents: write
   packages: write
+  actions: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.environment || 'na' }}-${{ inputs.services || 'na' }}
   cancel-in-progress: true
 
 jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: codebuild-cross-gha-runner-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.35.0
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.trivy-cache
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          format: 'table'
+          scanners: 'vuln'
+          timeout: '10m'
+
+      - name: Run Trivy secret scanner
+        uses: aquasecurity/trivy-action@0.35.0
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.trivy-cache
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          exit-code: '1'
+          format: 'table'
+          scanners: 'secret'
+
   display_info:
     name: ${{ format('{0} | {1} | {2} | {3}{4}{5}{6}', inputs.services || 'auto-trigger', inputs.environment || github.ref_name, inputs.publish_version || 'latest', inputs.dry_run == 'true' && ' [DRY-RUN]' || '', inputs.package_versions && format(' | pkg:{0}', inputs.package_versions) || '', inputs.publish_filters != '@reown/appkit-*,@to-nexus/appkit*,@to-nexus/sdk,@to-nexus/sdk-cdn,@to-nexus/sign-client' && ' | [CUSTOM-FILTERS]' || '', github.event_name == 'push' && ' | [AUTO-PUSH]' || '') }}
+    needs: [security-scan]
     runs-on: codebuild-cross-gha-runner-${{ github.run_id }}-${{ github.run_attempt }}
     if: always()
     steps:
@@ -88,6 +120,7 @@ jobs:
 
   changeset_prepare:
     name: Prepare Changeset (auto for preview)
+    needs: [security-scan]
     # develop(dev) | release/*(stage) | main(prod) | feature/*(dev/stage) 전용, 해당 환경에서 다른 서비스 실행 전 자동 수행
     environment: ${{ inputs.environment }}
     if: |
@@ -337,22 +370,9 @@ jobs:
             echo "No changes to commit"
           fi
 
-  sonarqube:
-    name: SonarQube Analysis
-    runs-on: codebuild-cross-gha-runner-${{ github.run_id }}-${{ github.run_attempt }}
-    if: github.event_name == 'workflow_dispatch' && (inputs.environment == 'stage' || inputs.environment == 'prod') && (inputs.services == 'all' || inputs.services == 'package-publish' || inputs.services == 'sample-page' || inputs.services == 'cdn-publish')
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
   npm_publish:
     name: NPM Package Publishing
-    needs: [changeset_prepare]
+    needs: [security-scan, changeset_prepare]
     if: |
       github.event_name == 'workflow_dispatch' && (
         (inputs.services == 'all' || inputs.services == 'package-publish') && (
@@ -373,7 +393,7 @@ jobs:
 
   docker_build:
     name: Docker Image Build & Push
-    needs: [changeset_prepare]
+    needs: [security-scan, changeset_prepare]
     if: |
       github.event_name == 'workflow_dispatch' && (
         (inputs.services == 'all' || inputs.services == 'sample-page') && (
@@ -392,6 +412,7 @@ jobs:
 
   cdn_publish:
     name: CDN Publish
+    needs: [security-scan]
     if: |
       github.event_name == 'workflow_dispatch' && 
       github.ref == 'refs/heads/main' && 
