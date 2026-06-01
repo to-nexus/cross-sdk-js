@@ -10,5 +10,31 @@ permissions:
 
 jobs:
   security-scan:
-    uses: to-nexus/cross-hub-workflows/.github/workflows/security-scan-v2.yml@master
-    secrets: inherit
+    name: Security Scan
+    runs-on: codebuild-cross-gha-runner-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.35.0
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.trivy-cache
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          format: 'table'
+          scanners: 'vuln'
+          timeout: '10m'
+
+      - name: Run Trivy secret scanner
+        uses: aquasecurity/trivy-action@0.35.0
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.trivy-cache
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          exit-code: '1'
+          format: 'table'
+          scanners: 'secret'
