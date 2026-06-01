@@ -11,3 +11,17 @@
 # the wallet-connect input path, so it is not exploitable in this context.
 # Remove once sats-connect ships a release built against valibot@1.x.
 CVE-2025-66020
+
+# bigint-buffer buffer overflow in toBigIntLE() (CVE-2025-3194)
+# Source: @solana/web3.js dependency tree.
+# Why accepted: no patched version exists (status: affected, no fix released).
+# Nothing to upgrade to. Re-evaluate when bigint-buffer ships a fix.
+CVE-2025-3194
+
+# parse-duration ReDoS (CVE-2025-25283)
+# Source: caver-js -> ipfs-http-client@49.0.4 -> ipfs-core-utils -> parse-duration@0.4.4
+# Why accepted: the only patched line is parse-duration@2.x, which is ESM-only
+# (`type: module`) and would break the CJS ipfs-http-client@49 that require()s it.
+# This sits in caver-js's bundled IPFS tree, which the SDK does not exercise, and
+# the ReDoS is not on any wallet/transaction input path.
+CVE-2025-25283
