@@ -1,0 +1,14 @@
+name: PR Security Check
+
+on:
+  pull_request:
+    branches: [dev, develop, stg, stage, master, main]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  security-scan:
+    uses: to-nexus/cross-hub-workflows/.github/workflows/security-scan-v2.yml@master
+    secrets: inherit
