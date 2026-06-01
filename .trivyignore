@@ -1,0 +1,13 @@
+# Trivy ignore list — transitive vulnerabilities that cannot be safely fixed
+# via pnpm.overrides without breaking a consumer. Each entry documents why it
+# is accepted. Review periodically.
+
+# valibot ReDoS in EMOJI_REGEX (CVE-2025-66020)
+# Source: sats-connect@3.0.1 -> @sats-connect/core@0.4.1 -> valibot@0.42.1
+#         (used only by @to-nexus/appkit-adapter-bitcoin)
+# Why accepted: the only patched line is valibot@1.x, a breaking major that
+# @sats-connect/core@0.4.1 does not support (forcing it fails the bitcoin
+# adapter typecheck). The ReDoS is in an emoji-validation regex that is not on
+# the wallet-connect input path, so it is not exploitable in this context.
+# Remove once sats-connect ships a release built against valibot@1.x.
+CVE-2025-66020
