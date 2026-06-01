@@ -33,7 +33,7 @@ jobs:
     outputs:
       can_publish: ${{ steps.resolve.outputs.CAN_PUBLISH }}
     environment: ${{ inputs.environment }}
-    runs-on: [arc-runner-set]
+    runs-on: codebuild-cross-gha-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
