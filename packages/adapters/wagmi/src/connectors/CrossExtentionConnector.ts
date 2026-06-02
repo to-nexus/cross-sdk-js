@@ -34,14 +34,48 @@ function wrapCrossProvider(provider: any) {
   })
 }
 
+// Cross Extension의 EIP-6963 rdns
+const CROSS_WALLET_RDNS = 'nexus.to.crosswallet.desktop'
+
+// EIP-6963로 announce된 Cross provider 캐시
+let announcedCrossProvider: any | undefined
+let eip6963ListenerAttached = false
+
+// EIP-6963 announce 리스너를 한 번만 부착하고 즉시 요청을 보낸다.
+function ensureCrossEip6963Listener() {
+  if (eip6963ListenerAttached || typeof window === 'undefined') {
+    return
+  }
+  eip6963ListenerAttached = true
+
+  window.addEventListener('eip6963:announceProvider', ((event: any) => {
+    const detail = event?.detail
+    if (detail?.info?.rdns === CROSS_WALLET_RDNS && detail.provider) {
+      announcedCrossProvider = detail.provider
+    }
+  }) as EventListener)
+
+  // 이미 announce된 provider를 회수하기 위해 요청 이벤트 dispatch
+  window.dispatchEvent(new Event('eip6963:requestProvider'))
+}
+
 // Cross Extension을 감지하기 위한 헬퍼 함수
 function detectCrossExtensionProvider() {
-  if (typeof window !== 'undefined') {
-    // 1. window.crossWallet 확인 (Cross Extension의 주요 주입 방식)
-    const crossWallet = (window as any).crossWallet
-    if (crossWallet) {
-      return wrapCrossProvider(crossWallet)
-    }
+  if (typeof window === 'undefined') {
+    return undefined
+  }
+
+  ensureCrossEip6963Listener()
+
+  // 1. EIP-6963로 announce된 provider (표준 방식, window.ethereum 점유와 무관)
+  if (announcedCrossProvider) {
+    return wrapCrossProvider(announcedCrossProvider)
+  }
+
+  // 2. window.crossWallet fallback (레거시 주입 방식)
+  const crossWallet = (window as any).crossWallet
+  if (crossWallet) {
+    return wrapCrossProvider(crossWallet)
   }
 
   return undefined

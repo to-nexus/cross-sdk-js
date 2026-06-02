@@ -1258,7 +1258,11 @@ export class AppKit {
           const provider = ProviderUtil.getProvider(
             ChainController.state.activeChain as ChainNamespace
           )
-          const result = await adapter?.sendTransaction({ ...args, provider })
+          const caipNetwork = this.getCaipNetwork()
+          if (!caipNetwork) {
+            throw new Error('CaipNetwork is undefined')
+          }
+          const result = await adapter?.sendTransaction({ ...args, caipNetwork, provider })
 
           // Update native balance
           this.updateNativeBalance(true) // IgnoreCache after sendTransaction

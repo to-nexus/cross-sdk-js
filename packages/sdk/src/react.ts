@@ -98,6 +98,13 @@ export type CrossSdkParams = {
   adapters?: ChainAdapter[]
   mobileLink?: string
   siwx?: SIWXConfig
+  /**
+   * Networks to register with AppKit. When omitted, every network from
+   * `networkController.getNetworks()` is registered (legacy behavior).
+   * Pass an explicit list to restrict the dApp to specific chains so the
+   * active/requested network can never resolve to an unwanted chain.
+   */
+  networks?: SupportedNetworks[]
 }
 
 const initCrossSdkWithParams = (params: CrossSdkParams) => {
@@ -109,7 +116,8 @@ const initCrossSdkWithParams = (params: CrossSdkParams) => {
     defaultNetwork,
     adapters,
     mobileLink,
-    siwx
+    siwx,
+    networks
   } = params
 
   return initCrossSdk(
@@ -120,7 +128,8 @@ const initCrossSdkWithParams = (params: CrossSdkParams) => {
     defaultNetwork,
     adapters,
     mobileLink,
-    siwx
+    siwx,
+    networks
   )
 }
 
@@ -133,7 +142,8 @@ const initCrossSdk = (
   defaultNetwork?: SupportedNetworks,
   adapters?: ChainAdapter[],
   mobileLink?: string,
-  siwx?: SIWXConfig
+  siwx?: SIWXConfig,
+  networks?: SupportedNetworks[]
 ) => {
   const mergedMetadata = {
     ...defaultMetadata,
@@ -173,9 +183,13 @@ const initCrossSdk = (
     Object.assign(crossWalletConfig, { mobile_link: resolvedMobileLink })
   }
 
+  // Use the caller-supplied networks when provided; otherwise fall back to the full built-in list.
+  const resolvedNetworks =
+    networks && networks.length > 0 ? networks : networkController.getNetworks()
+
   return createAppKit({
     adapters: adapters && adapters.length > 0 ? adapters : [ethersAdapter],
-    networks: [...networkController.getNetworks()] as [any, ...any[]],
+    networks: [...resolvedNetworks] as [any, ...any[]],
     defaultNetwork,
     metadata: mergedMetadata,
     projectId,

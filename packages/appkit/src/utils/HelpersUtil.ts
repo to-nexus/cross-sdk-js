@@ -67,7 +67,12 @@ export const WcHelpersUtil = {
           methods,
           events: ['accountsChanged', 'chainChanged'],
           chains: [],
-          rpcMap: {}
+          rpcMap: {},
+          // First network of each namespace is the primary chain. Without
+          // defaultChain the wallet falls back to chains[0] or its own
+          // previously-selected chain, which can route requests to an
+          // unintended network.
+          defaultChain: `${id}`
         } satisfies Namespace
       }
 

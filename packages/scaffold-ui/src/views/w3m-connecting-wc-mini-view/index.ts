@@ -150,19 +150,15 @@ export class W3mConnectingWcMiniView extends LitElement {
       return true
     }
 
+    // 익스텐션 지원 브라우저(Chromium 기반: Chrome / Edge / Opera / Brave 등)에서 CROSSx Wallet 확인
     if (isBrowser && !ChainController.state.noAdapters && rdns) {
-      const isChrome = CoreHelperUtil.isChrome()
+      const isChromium = CoreHelperUtil.isChromiumBased()
       const isCrossWalletFound = this.isCrossWalletInstalled(rdns)
 
-      if (isCrossWalletFound) {
-        if (isChrome) {
-          this.platforms.push('qrcode')
-          this.platforms.push('browser')
-          this.platform = 'qrcode'
-        } else {
-          this.platforms.push('qrcode')
-          this.platform = 'qrcode'
-        }
+      if (isCrossWalletFound && isChromium) {
+        this.platforms.push('qrcode')
+        this.platforms.push('browser')
+        this.platform = 'qrcode'
       } else {
         this.platforms.push('qrcode')
         this.platform = 'qrcode'
