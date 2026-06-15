@@ -1794,7 +1794,8 @@ export class AppKit {
     const crossSdkConnectorIds = [
       'walletConnect', // WalletConnect (QR 코드)
       'nexus.to.crosswallet.desktop', // Cross Extension
-      'cross_wallet' // Cross Wallet (필요 시)
+      'cross_wallet', // Cross Wallet (필요 시)
+      'crossx' // Embedded (소셜/이메일 로그인) 지갑 — crossy-sdk-js
     ]
 
     // 2. StorageUtil에서 저장된 connector ID 확인

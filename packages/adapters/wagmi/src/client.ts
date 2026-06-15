@@ -285,6 +285,51 @@ export class WagmiAdapter extends AdapterBlueprint {
       }
 
       /*
+       * 1-b. 임베디드(소셜 로그인) 지갑 세션 확인
+       * crossy-sdk-js의 embedded 커넥터('crossx')는 WalletConnect 세션을
+       * 만들지 않고 SDK가 발급한 access token을 localStorage에 보관한다
+       * (`crossx_<env>_access_token`). 이 커넥터가 활성 연결이면서 토큰이
+       * 살아 있으면 WalletConnect 세션 부재를 "무효 세션"으로 판단해
+       * disconnect를 emit하면 안 된다.
+       *
+       * 토큰 존재 여부로 판별하므로, 명시적 로그아웃(signOut이 토큰을
+       * 제거) 시에는 자연히 false가 되어 정상적으로 disconnect가 전파된다.
+       */
+      const EMBEDDED_SOCIAL_CONNECTOR_IDS = ['crossx']
+      if (EMBEDDED_SOCIAL_CONNECTOR_IDS.includes(connectorId)) {
+        const hasEmbeddedToken = (() => {
+          try {
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i)
+              if (key && /^crossx_.+_access_token$/.test(key) && localStorage.getItem(key)) {
+                return true
+              }
+            }
+          } catch {
+            /* ignore storage access errors */
+          }
+
+          return false
+        })()
+
+        if (hasEmbeddedToken) {
+          console.log(
+            '[WagmiAdapter] Embedded (social) wallet session detected - treating as valid',
+            { connectorId }
+          )
+
+          return true
+        }
+
+        console.log(
+          '[WagmiAdapter] Embedded connector active but no access token - allowing disconnect',
+          { connectorId }
+        )
+
+        return false
+      }
+
+      /*
        * 2. WalletConnect 세션 유효성 확인
        * customStoragePrefix('nexus-')가 적용된 키와 기본 키 모두 확인
        */
