@@ -25,3 +25,12 @@ CVE-2025-3194
 # This sits in caver-js's bundled IPFS tree, which the SDK does not exercise, and
 # the ReDoS is not on any wallet/transaction input path.
 CVE-2025-25283
+
+# vite server.fs.deny bypass on Windows alternate paths (CVE-2026-53571)
+# Source: vite@5.4.x (devDependency — build tool only, never deployed as a server)
+# Why accepted: fixed versions are 6.4.3 / 7.3.5 / 8.0.16. vite@5.x has no patch
+# release. The vulnerability requires vite dev server to be exposed to untrusted
+# clients on a Windows host; this repo uses vite solely as a bundler (vite build)
+# and does not run vite server in any deployed environment. Impact is zero.
+# Re-evaluate when vite@5 ships a patch or when the project upgrades to vite@6+.
+CVE-2026-53571

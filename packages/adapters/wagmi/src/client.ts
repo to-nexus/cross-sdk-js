@@ -181,6 +181,21 @@ export class WagmiAdapter extends AdapterBlueprint {
    * - 각 시도마다 2초 timeout 적용 (stuck 방지)
    * - 실패 시: 'reconnect_failed' 이벤트 emit
    */
+  /**
+   * RN Native Bridge 환경 여부 감지.
+   * BridgeMode(인앱브라우저)에서는 cross_wallet(WalletConnect) relay WebSocket
+   * 연결이 WebView 환경 제한으로 실패하므로, cross_wallet 커넥터를 reconnect
+   * 대상에서 제외해야 한다.
+   */
+  private isRNBridgeEnvironment(): boolean {
+    try {
+      return typeof window !== 'undefined' &&
+        (window as any).__crossxRNBridge?.isInstalled === true
+    } catch {
+      return false
+    }
+  }
+
   private async attemptAutoReconnectWithRetry() {
     const retryDelays = [300, 200, 300, 400] // 점진적 증가: 빠른 디바이스부터 느린 디바이스까지 커버
     const reconnectTimeout = 2000 // 각 reconnect() 호출마다 2초 timeout
@@ -188,6 +203,19 @@ export class WagmiAdapter extends AdapterBlueprint {
 
     // ✅ 자동 복원 진행 중임을 표시 (성급한 disconnect 방지)
     this.isAutoReconnecting = true
+
+    // RN Bridge(인앱브라우저) 환경에서는 cross_wallet(WalletConnect) reconnect를
+    // 스킵한다. WebView에서 relay WebSocket 연결이 실패하기 때문이며, BridgeMode는
+    // cross_embedded(RN Bridge handshake)로 연결되므로 cross_wallet이 불필요하다.
+    const isRNBridge = this.isRNBridgeEnvironment()
+    const reconnectConfig = isRNBridge
+      ? {
+          ...this.wagmiConfig,
+          connectors: this.wagmiConfig.connectors.filter(
+            (c) => c.id !== 'cross_wallet'
+          ),
+        }
+      : this.wagmiConfig
 
     // eslint-disable-next-line no-await-in-loop
     for (let attempt = 0; attempt < retryDelays.length; attempt++) {
@@ -199,7 +227,7 @@ export class WagmiAdapter extends AdapterBlueprint {
         // Reconnect()를 timeout과 함께 실행
         // eslint-disable-next-line no-await-in-loop
         const result = await Promise.race([
-          reconnect(this.wagmiConfig),
+          reconnect(reconnectConfig),
           new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error('RECONNECT_TIMEOUT')), reconnectTimeout)
           )
