@@ -283,8 +283,24 @@ export function walletConnect(
       return provider_ as Provider
     },
     async getChainId() {
-      // 먼저 provider session에서 체인 확인
       const provider = (await this.getProvider()) as any
+
+      // Prefer the provider's CURRENT default chain. `switchChain` (and the
+      // initial connect) call `provider.setDefaultChain(...)`, which updates
+      // the eip155 sub-provider's `chainId`. The static `session.chains[0]`
+      // only ever reflects the FIRST chain the wallet approved, so reading it
+      // here ignores in-session chain switches: wagmi's stored connection
+      // chainId would move on `switchChain` while `getChainId()` kept
+      // returning the original chain, surfacing as
+      // "The current chain of the connector does not match the connection's
+      // chain" and making switchChain appear to do nothing.
+      const activeChainId = provider?.rpcProviders?.[ConstantsUtil.CHAIN.EVM]?.chainId
+      if (typeof activeChainId === 'number' && activeChainId > 0) {
+        return activeChainId
+      }
+
+      // Fall back to the first session chain (pre-switch / very first connect,
+      // before setDefaultChain has run).
       const chain = provider.session?.namespaces[ConstantsUtil.CHAIN.EVM]?.chains?.[0]
 
       if (chain) {
