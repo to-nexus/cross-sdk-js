@@ -92,7 +92,7 @@
     "rollup-plugin-esbuild": "^6.2.1",
     "turbo": "2.0.6-canary.0",
     "typescript": "5.7.3",
-    "vite": "5.4.12",
+    "vite": "5.4.19",
     "vite-plugin-node-polyfills": "0.23.0",
     "vitest": "2.1.9"
   },
@@ -106,11 +106,15 @@
       "viem": "^2.38.0",
       "axios": "^1.16.0",
       "ws@7": "^7.5.10",
+      "ws@8": "^8.21.0",
       "protobufjs@6": "^7.5.6",
       "tar@6": "^7.5.15",
       "elliptic": "^6.6.1",
       "lodash": "^4.18.0",
-      "node-forge": "^1.4.0"
+      "node-forge": "^1.4.0",
+      "form-data": "^4.0.6",
+      "hono": "^4.12.25",
+      "vite": "^5.4.19"
     }
   },
   "resolutions": {

@@ -312,7 +312,10 @@ export class AppKit {
       const provider = ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace)
 
       if (provider) {
-        return await provider.request({ method: 'eth_chainId' })
+        const raw = await provider.request({ method: 'eth_chainId' })
+        // eth_chainId는 EIP-1193 스펙상 항상 hex string("0x...") 반환 — decimal로 변환
+        if (typeof raw === 'string') return parseInt(raw, 16)
+        return raw as number
       }
     } catch (error) {
       console.warn('Failed to get current wallet chain ID:', error)
