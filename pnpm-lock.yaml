@@ -2861,8 +2861,8 @@ packages:
     resolution: {integrity: sha512-1mcOQVGr9rSrVcbKPNVzbZ8eCl1K0FATsYH3WJ/MH4WcZDWGECWrXJPNMZoEAkLxWiMe8jOQBumg2pmcDa9zpQ==}
     deprecated: No longer maintained, superseded by https://docs.metamask.io/metamask-connect
 
-  '@metamask/superstruct@3.3.0':
-    resolution: {integrity: sha512-P/MwKoAIHGgMz7gnfIV9jP0wG8f/bCHooy5LPfYWzoyV9FrcHB/9Ai/spIOa6jRmoSr+R6etWvulTakDfwCbrA==}
+  '@metamask/superstruct@3.4.0':
+    resolution: {integrity: sha512-NTej8NQT5hRUrPmm3mfwAGy74KIwAfSFeaizUugXzoSMuw+C+svpJqZ+AEA71T2gn2Z8hdVnNsltHPMr84hevw==}
     engines: {node: '>=16.0.0'}
 
   '@metamask/utils@11.11.0':
@@ -12898,12 +12898,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@metamask/superstruct@3.3.0': {}
+  '@metamask/superstruct@3.4.0': {}
 
   '@metamask/utils@11.11.0':
     dependencies:
       '@ethereumjs/tx': 4.2.0
-      '@metamask/superstruct': 3.3.0
+      '@metamask/superstruct': 3.4.0
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
       '@types/debug': 4.1.13
@@ -12929,7 +12929,7 @@ snapshots:
   '@metamask/utils@8.5.0':
     dependencies:
       '@ethereumjs/tx': 4.2.0
-      '@metamask/superstruct': 3.3.0
+      '@metamask/superstruct': 3.4.0
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
       '@types/debug': 4.1.13
@@ -12943,7 +12943,7 @@ snapshots:
   '@metamask/utils@9.3.0':
     dependencies:
       '@ethereumjs/tx': 4.2.0
-      '@metamask/superstruct': 3.3.0
+      '@metamask/superstruct': 3.4.0
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
       '@types/debug': 4.1.13
