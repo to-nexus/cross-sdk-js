@@ -40,6 +40,11 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
     })
   }
 
+  // Browser view is the extension context, so refine the connecting label
+  protected override get connectingLabel() {
+    return `Continue in ${this.name} Extension`
+  }
+
   // -- Render -------------------------------------------- //
   public override render() {
     // CROSSx Wallet이 설치되어 있지 않으면 스토어 링크 표시
