@@ -39,7 +39,12 @@ export class W3mConnectingWidget extends LitElement {
   private imageSrc =
     AssetUtil.getWalletImage(this.wallet) ?? AssetUtil.getConnectorImage(this.connector)
 
-  private name = this.wallet?.name ?? this.connector?.name ?? 'Wallet'
+  protected name = this.wallet?.name ?? this.connector?.name ?? 'Wallet'
+
+  // Overridable so context-specific views (e.g. browser extension) can refine the label
+  protected get connectingLabel() {
+    return `Continue in ${this.name}`
+  }
 
   // -- State & Properties -------------------------------- //
   @state() protected isRetrying = false
@@ -113,7 +118,7 @@ export class W3mConnectingWidget extends LitElement {
       ? 'Connection can be declined if a previous request is still active'
       : this.secondaryLabel
 
-    let label = `Continue in ${this.name}`
+    let label = this.connectingLabel
 
     if (this.buffering) {
       label = 'Connecting...'
