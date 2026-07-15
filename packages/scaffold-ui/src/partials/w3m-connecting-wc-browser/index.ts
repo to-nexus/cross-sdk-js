@@ -107,9 +107,9 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
         </cross-wui-flex>
 
         <cross-wui-flex flexDirection="column" alignItems="center" gap="xs">
-          <cross-wui-text variant="paragraph-500" color="fg-100"> CROSSx Wallet not installed </cross-wui-text>
+          <cross-wui-text variant="paragraph-500" color="fg-100"> ONEwallet+ not installed</cross-wui-text>
           <cross-wui-text align="center" variant="small-500" color="fg-200">
-            Install CROSSx Wallet to continue with browser connection
+            Install ONEwallet+ to continue with browser connection
           </cross-wui-text>
         </cross-wui-flex>
 
@@ -127,7 +127,7 @@ export class W3mConnectingWcBrowser extends W3mConnectingWidget {
             `
         : html`
               <cross-wui-text align="center" variant="small-500" color="fg-200">
-                Please install CROSSx Wallet extension for your browser
+                Please install ONEwallet+ extension for your browser
               </cross-wui-text>
             `}
       </cross-wui-flex>

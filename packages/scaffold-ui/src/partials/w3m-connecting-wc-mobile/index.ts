@@ -33,7 +33,7 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
      */
     const shouldShowButton = isIos && isUniversalLink
 
-    this.secondaryBtnLabel = shouldShowButton ? 'Open CROSSx App' : undefined
+    this.secondaryBtnLabel = shouldShowButton ? 'Open ONEwallet+' : undefined
     this.secondaryBtnIcon = shouldShowButton ? 'externalLink' : 'refresh'
 
     // Show different text for mini window
@@ -94,7 +94,7 @@ export class W3mConnectingWcMobile extends W3mConnectingWidget {
          * - 따라서 iOS + Universal Link만 버튼을 보여주고 직접 클릭하게 함
          * - Android 및 Deep Link는 자동으로 앱 열림
          */
-        this.secondaryLabel = 'Tap to open CROSSx Wallet'
+        this.secondaryLabel = 'Tap to open ONEwallet+'
 
         /*
          * 버튼만 표시하고 자동 클릭하지 않음

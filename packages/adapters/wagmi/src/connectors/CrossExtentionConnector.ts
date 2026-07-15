@@ -90,7 +90,7 @@ export function crossExtensionConnector(): CreateConnectorFn {
         // Console.log('[Wagmi Cross Connector] ✅ CROSSx Extension provider detected and ready')
         return {
           id: 'nexus.to.crosswallet.desktop',
-          name: 'CROSSx Extension',
+          name: 'ONEwallet+ Extension',
           provider: crossProvider
         }
       }
@@ -101,7 +101,7 @@ export function crossExtensionConnector(): CreateConnectorFn {
 
       return {
         id: 'nexus.to.crosswallet.desktop',
-        name: 'CROSSx Extension',
+        name: 'ONEwallet+ Extension',
         provider: {
           request: async (args: any) => {
             // Console.log('[Wagmi Cross Connector] Connection attempt, retrying detection...')

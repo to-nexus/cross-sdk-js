@@ -1,3 +1,4 @@
+import { ConstantsUtil as CommonConstantsUtil } from '@to-nexus/appkit-common'
 import type { CaipNetwork, ChainNamespace } from '@to-nexus/appkit-common'
 
 import { ApiController } from '../controllers/ApiController.js'
@@ -60,7 +61,7 @@ export const AssetUtil = {
     }
 
     // return undefined
-    return "https://contents.crosstoken.io/wallet/token/images/CROSSx.svg"
+    return (CommonConstantsUtil as { ONE_WALLET_IMAGE?: string }).ONE_WALLET_IMAGE
   },
 
   getNetworkImage(network?: CaipNetwork) {
