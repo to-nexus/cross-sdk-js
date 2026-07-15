@@ -25,7 +25,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     EventsController.sendEvent({
       type: 'track',
       event: 'SELECT_WALLET',
-      properties: { name: this.wallet?.name ?? 'CROSSx Wallet', platform: 'qrcode' }
+      properties: { name: this.wallet?.name ?? 'ONEwallet+', platform: 'qrcode' }
     })
   }
 
@@ -102,7 +102,7 @@ export class W3mConnectingWcQrcode extends W3mConnectingWidget {
     }
 
     const size = this.getBoundingClientRect().width - 40
-    const alt = this.wallet ? this.wallet.name : 'CROSSx Wallet'
+    const alt = this.wallet ? this.wallet.name : 'ONEwallet+'
 
     // ✅ QR Code 연결에서도 deep link 정보 저장 (모바일 지갑 자동 열기용)
     if (this.wallet?.mobile_link && this.uri) {

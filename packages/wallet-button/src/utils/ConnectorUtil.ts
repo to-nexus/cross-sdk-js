@@ -310,24 +310,24 @@ export const ConnectorUtil = {
         const { customWallets } = OptionsController.state
         const crossWallet = customWallets?.find(w => w.id === 'cross_wallet')
         if (!crossWallet) {
-          throw new Error('CROSSx Wallet이 customWallets에 설정되지 않았습니다.')
+          throw new Error('ONEwallet+이 customWallets에 설정되지 않았습니다.')
         }
         if (!crossWallet.rdns) {
-          throw new Error('CROSSx Wallet RDNS가 설정되지 않았습니다.')
+          throw new Error('ONEwallet+ RDNS가 설정되지 않았습니다.')
         }
         const currentConnectors = ConnectorController.state.connectors
         const crossWalletExtensionConnectors = currentConnectors.filter(c => {
           return (c.type === 'ANNOUNCED' || c.type === 'INJECTED') && c.info?.rdns === crossWallet.rdns
         })
         if (!crossWalletExtensionConnectors || crossWalletExtensionConnectors.length === 0) {
-          throw new Error('CROSSx Wallet 익스텐션이 설치되지 않았습니다.')
+          throw new Error('ONEwallet+ 익스텐션이 설치되지 않았습니다.')
         }
         const browserConnector = crossWalletExtensionConnectors[0]
         if (browserConnector) {
           const result = await ConnectorUtil.connectExternal(browserConnector)
           resolve(result)
         } else {
-          throw new Error('CROSSx Wallet 커넥터를 찾을 수 없습니다.')
+          throw new Error('ONEwallet+ 커넥터를 찾을 수 없습니다.')
         }
       } catch (err) {
         reject(err)

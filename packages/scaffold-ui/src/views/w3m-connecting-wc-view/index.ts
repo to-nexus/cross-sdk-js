@@ -234,7 +234,7 @@ export class W3mConnectingWcView extends LitElement {
 
     // Special handling for CROSSx Wallet
     const isCrossWallet =
-      this.wallet.name?.includes('CROSSx Wallet') || rdns === 'nexus.to.crosswallet.desktop'
+      this.wallet.name?.includes('ONEwallet+') || rdns === 'nexus.to.crosswallet.desktop'
 
     if (isCrossWallet && rdns) {
       this.determinePlatformsForCross({ mobile_link, rdns, isBrowser: Boolean(isBrowser) })
