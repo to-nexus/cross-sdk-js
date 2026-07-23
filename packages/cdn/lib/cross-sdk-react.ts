@@ -14,6 +14,8 @@ import {
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  oneMainnet,
+  oneTestnet,
   etherMainnet,
   etherTestnet,
   getUniversalProvider,
@@ -52,6 +54,8 @@ export {
   AccountController,
   crossMainnet,
   crossTestnet,
+  oneMainnet,
+  oneTestnet,
   bscMainnet,
   bscTestnet,
   kaiaMainnet,
@@ -86,6 +90,8 @@ declare global {
       AccountController: typeof AccountController
       crossMainnet: typeof crossMainnet
       crossTestnet: typeof crossTestnet
+      oneMainnet: typeof oneMainnet
+      oneTestnet: typeof oneTestnet
       bscMainnet: typeof bscMainnet
       bscTestnet: typeof bscTestnet
       kaiaMainnet: typeof kaiaMainnet
@@ -119,6 +125,8 @@ if (typeof window !== 'undefined') {
     AccountController,
     crossMainnet,
     crossTestnet,
+    oneMainnet,
+    oneTestnet,
     bscMainnet,
     bscTestnet,
     kaiaMainnet,

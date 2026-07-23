@@ -18,6 +18,8 @@ import {
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  oneMainnet,
+  oneTestnet,
   createDefaultSIWXConfig,
   etherMainnet,
   etherTestnet,
@@ -46,6 +48,8 @@ export {
   OptionsController,
   crossMainnet,
   crossTestnet,
+  oneMainnet,
+  oneTestnet,
   bscMainnet,
   bscTestnet,
   kaiaMainnet,
@@ -78,6 +82,8 @@ declare global {
       OptionsController: typeof OptionsController
       crossMainnet: typeof crossMainnet
       crossTestnet: typeof crossTestnet
+      oneMainnet: typeof oneMainnet
+      oneTestnet: typeof oneTestnet
       bscMainnet: typeof bscMainnet
       bscTestnet: typeof bscTestnet
       kaiaMainnet: typeof kaiaMainnet
@@ -109,6 +115,8 @@ if (typeof window !== 'undefined') {
     OptionsController,
     crossMainnet,
     crossTestnet,
+    oneMainnet,
+    oneTestnet,
     bscMainnet,
     bscTestnet,
     kaiaMainnet,
