@@ -3,8 +3,8 @@ import { ConstantsUtil } from '@to-nexus/appkit-common'
 
 import { bscMainnet } from './bsc/bscMainnet.js'
 import { bscTestnet } from './bsc/bscTestnet.js'
-import { crossMainnet } from './cross/crossMainnet.js'
-import { crossTestnet } from './cross/crossTestnet.js'
+import { oneMainnet } from './one/oneMainnet.js'
+import { oneTestnet } from './one/oneTestnet.js'
 import { etherMainnet } from './ethereum/etherMainnet.js'
 import { etherTestnet } from './ethereum/etherTestnet.js'
 import { kaiaMainnet } from './kaia/kaiaMainnet.js'
@@ -15,8 +15,8 @@ import { roninTestnet } from './ronin/roninTestnet.js'
 import type { ChainApiResponse } from './types.js'
 
 const defaultNetworks: AppKitNetwork[] = [
-  crossTestnet,
-  crossMainnet,
+  oneTestnet,
+  oneMainnet,
   bscTestnet,
   bscMainnet,
   kaiaTestnet,

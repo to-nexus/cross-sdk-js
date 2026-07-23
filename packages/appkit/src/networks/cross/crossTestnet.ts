@@ -1,22 +1,8 @@
-import { defineChain } from '../utils.js'
+import { oneTestnet } from '../one/oneTestnet.js'
 
-export const crossTestnet = defineChain({
-  id: 612044,
-  name: 'CROSS Testnet',
-  network: 'cross-testnet',
-  nativeCurrency: { name: 'CROSS', symbol: 'CROSS', decimals: 18 },
-  rpcUrls: {
-    default: {
-      http: ['https://testnet.crosstoken.io:22001']
-    }
-  },
-  blockExplorers: {
-    default: {
-      name: 'Blockscout',
-      url: 'https://testnet.crossscan.io/'
-    }
-  },
-  testnet: true,
-  chainNamespace: 'eip155',
-  caipNetworkId: 'eip155:612044'
-})
+/**
+ * @deprecated Renamed to `oneTestnet` (CROSS → ONEchain rebrand).
+ * This alias points at the same network object and is kept only for
+ * backward compatibility. New code should import `oneTestnet` instead.
+ */
+export const crossTestnet = oneTestnet

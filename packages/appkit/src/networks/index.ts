@@ -7,6 +7,7 @@ import { networkController } from './controller.js'
  */
 export * from './solana/index.js'
 export * from './bitcoin.js'
+export * from './one/index.js'
 export * from './cross/index.js'
 export * from './bsc/index.js'
 export * from './kaia/index.js'
