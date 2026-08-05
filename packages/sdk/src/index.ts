@@ -177,7 +177,7 @@ const initCrossSdk = (
   // Custom wallet 설정 생성
   const crossWalletConfig: CustomWallet & { chrome_store?: string } = {
     id: 'cross_wallet',
-    name: 'ONEwallet+',
+    name: 'ONEpocket',
     image_url: (CommonConstantsUtil as any).ONE_WALLET_IMAGE,
     app_store: 'https://apps.apple.com/us/app/crossx-games/id6741250674',
     play_store: 'https://play.google.com/store/apps/details?id=com.nexus.crosswallet',

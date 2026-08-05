@@ -192,8 +192,14 @@ export class W3mConnectingWcMiniView extends LitElement {
     const isBrowserWc = isBrowser && isBrowserInstalled
     const isDesktopWc = desktop_link && !CoreHelperUtil.isMobile()
 
+    /*
+     * 이름 비교는 역대 표기를 모두 받는다(ONEwallet+ → ONEpocket). DApp이
+     * customWallets로 옛 이름을 그대로 넘길 수 있어, 새 표기만 보면 그 DApp에서
+     * 지갑 전용 플랫폼 분기가 통째로 빠진다. rdns가 1순위이고 이름은 보조다.
+     */
     const isCrossWallet =
-      this.wallet.name?.includes('ONEwallet+') || rdns === 'nexus.to.crosswallet.desktop'
+      /ONE\s?(?:wallet|pocket)/iu.test(this.wallet.name ?? '') ||
+      rdns === 'nexus.to.crosswallet.desktop'
 
     if (isCrossWallet && rdns) {
       this.determinePlatformsForCross({ mobile_link, rdns, isBrowser: Boolean(isBrowser) })
