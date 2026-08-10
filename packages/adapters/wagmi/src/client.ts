@@ -603,10 +603,19 @@ export class WagmiAdapter extends AdapterBlueprint {
           }
 
           if (accountData.chainId !== prevAccountData?.chainId) {
-            this.emit('switchNetwork', {
-              address: accountData.address,
-              chainId: accountData.chainId
-            })
+            /*
+             * Cross Extension can report chainId 0 right after login, before its
+             * own network state is ready. Emitting it flags the network as
+             * unsupported, so wait for the real chainId instead.
+             */
+            if (NetworkUtil.isValidChainId(accountData.chainId)) {
+              this.emit('switchNetwork', {
+                address: accountData.address,
+                chainId: accountData.chainId
+              })
+            } else {
+              console.warn('[WagmiAdapter] Ignoring invalid chainId', accountData.chainId)
+            }
           }
         }
       }

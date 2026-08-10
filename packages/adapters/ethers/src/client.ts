@@ -1,6 +1,10 @@
 import { type AppKitOptions, WcConstantsUtil } from '@to-nexus/appkit'
 import type { CaipNetwork } from '@to-nexus/appkit-common'
-import { ConstantsUtil as CommonConstantsUtil, ParseUtil } from '@to-nexus/appkit-common'
+import {
+  ConstantsUtil as CommonConstantsUtil,
+  NetworkUtil,
+  ParseUtil
+} from '@to-nexus/appkit-common'
 import {
   AccountController,
   ChainController,
@@ -795,6 +799,14 @@ export class EthersAdapter extends AdapterBlueprint {
     const chainChangedHandler = (chainId: string) => {
       const chainIdNumber =
         typeof chainId === 'string' ? EthersHelpersUtil.hexStringToNumber(chainId) : Number(chainId)
+
+      // Wallets may report 0 / NaN before their network state is initialized
+      if (!NetworkUtil.isValidChainId(chainIdNumber)) {
+        // eslint-disable-next-line no-console
+        console.warn('[EthersAdapter] Ignoring invalid chainId', chainId)
+
+        return
+      }
 
       this.emit('switchNetwork', { chainId: chainIdNumber })
     }

@@ -1060,6 +1060,19 @@ export class AppKit {
   private setUnsupportedNetwork(chainId: string | number) {
     const namespace = this.getActiveChainNamespace()
 
+    /*
+     * Wallets can report a placeholder chain id (0 / NaN / '') when they emit
+     * connect or chainChanged before their own network state is initialized.
+     * Persisting it as an unsupported network poisons storage and wipes the
+     * address cache, so keep the current network instead.
+     */
+    if (!NetworkUtil.isValidChainId(chainId)) {
+      // eslint-disable-next-line no-console
+      console.warn(`[AppKit] Ignoring invalid chainId reported by wallet: ${chainId}`)
+
+      return
+    }
+
     if (namespace) {
       const unsupportedNetwork = this.getUnsupportedNetwork(`${namespace}:${chainId}`)
       ChainController.setActiveCaipNetwork(unsupportedNetwork)
@@ -2641,6 +2654,19 @@ export class AppKit {
 
   private getDefaultNetwork() {
     const caipNetworkIdFromStorage = StorageUtil.getActiveCaipNetworkId()
+
+    /*
+     * Self-heal storage poisoned by an older build that persisted a
+     * placeholder network id (e.g. `eip155:0`) — otherwise it survives
+     * reloads and keeps the dApp stuck on an unsupported network.
+     */
+    if (caipNetworkIdFromStorage && !NetworkUtil.isValidCaipNetworkId(caipNetworkIdFromStorage)) {
+      // eslint-disable-next-line no-console
+      console.warn(`[AppKit] Discarding invalid stored network id: ${caipNetworkIdFromStorage}`)
+      StorageUtil.deleteActiveCaipNetworkId()
+
+      return this.defaultCaipNetwork ?? this.caipNetworks?.[0]
+    }
 
     if (caipNetworkIdFromStorage) {
       const caipNetwork = this.caipNetworks?.find(n => n.caipNetworkId === caipNetworkIdFromStorage)
