@@ -19,6 +19,7 @@ import type {
   SendTransactionArgs,
   SignEIP712Args,
   SignTypedDataV4Args,
+  SignTypedDataV4Options,
   WalletGetAssetsParams,
   WalletGetAssetsResponse,
   WcWallet,
@@ -50,7 +51,11 @@ export interface ConnectionControllerClient {
   signMessage: (params: { message: string; customData?: CustomData }) => Promise<string>
   etherSignMessage: (params: { message: string; address: `0x${string}` }) => Promise<string>
   signEIP712: (args: SignEIP712Args) => Promise<string>
-  signTypedDataV4: (paramsData: SignTypedDataV4Args, customData?: CustomData) => Promise<string>
+  signTypedDataV4: (
+    paramsData: SignTypedDataV4Args,
+    customData?: CustomData,
+    options?: SignTypedDataV4Options
+  ) => Promise<string>
   sendTransaction: (args: SendTransactionArgs) => Promise<{ hash: `0x${string}` } | null>
   estimateGas: (args: EstimateGasTransactionArgs) => Promise<bigint>
   parseUnits: (value: string, decimals: number) => bigint
@@ -269,8 +274,12 @@ export const ConnectionController = {
     return this._getClient()?.signEIP712(args)
   },
 
-  async signTypedDataV4(paramsData: SignTypedDataV4Args, customData?: CustomData) {
-    return this._getClient()?.signTypedDataV4(paramsData, customData)
+  async signTypedDataV4(
+    paramsData: SignTypedDataV4Args,
+    customData?: CustomData,
+    options?: SignTypedDataV4Options
+  ) {
+    return this._getClient()?.signTypedDataV4(paramsData, customData, options)
   },
 
   parseUnits(value: string, decimals: number) {

@@ -78,6 +78,18 @@ export { StorageUtil } from '../src/utils/StorageUtil.js'
 export { RouterUtil } from '../src/utils/RouterUtil.js'
 export { OptionsUtil } from '../src/utils/OptionsUtil.js'
 export { SIWXUtil } from '../src/utils/SIWXUtil.js'
+export { AppKitNotInitializedError } from '../src/utils/AppKitError.js'
+export {
+  ensureTypedDataChain,
+  isTypedDataChainError,
+  normalizeEvmChainId,
+  TypedDataChainError,
+  withTypedDataChainLock
+} from '../src/utils/TypedDataChainUtil.js'
+export type {
+  TypedDataChainErrorCode,
+  TypedDataChainErrorPhase
+} from '../src/utils/TypedDataChainUtil.js'
 export { createDefaultSIWXConfig } from '../src/utils/SIWXConfigHelper.js'
 export type { CreateSIWXConfigOptions } from '../src/utils/SIWXConfigHelper.js'
 

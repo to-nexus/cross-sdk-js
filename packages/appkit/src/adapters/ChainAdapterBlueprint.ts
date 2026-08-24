@@ -14,6 +14,7 @@ import {
   OptionsController,
   type ReadContractArgs,
   type SignTypedDataV4Args,
+  type SignTypedDataV4Options,
   type Tokens,
   type WriteContractArgs
 } from '@to-nexus/appkit-core'
@@ -545,6 +546,7 @@ export namespace AdapterBlueprint {
     paramsData: SignTypedDataV4Args // EIP-712 typed data object (no address needed - provider will determine from connected account)
     provider?: AppKitConnector['provider']
     customData?: CustomData
+    options?: SignTypedDataV4Options
   }
 
   export type SignTypedDataV4Result = {
