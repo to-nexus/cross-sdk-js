@@ -1247,7 +1247,7 @@ export type UseAppKitNetworkReturn = {
   caipNetwork: CaipNetwork | undefined
   chainId: number | string | undefined
   caipNetworkId: CaipNetworkId | undefined
-  switchNetwork: (network: AppKitNetwork) => void
+  switchNetwork: (network: AppKitNetwork) => Promise<void>
 }
 
 export type BadgeType = 'none' | 'certified'
@@ -1273,7 +1273,7 @@ export interface TypedDataDomain {
   /** Current version of the signing domain */
   version?: string
   /** EIP-155 chain id of the network */
-  chainId?: number
+  chainId?: number | bigint | string
   /** Address of the contract that will verify the signature */
   verifyingContract?: string
   /** Salt value for domain separation (rarely used) */
@@ -1315,4 +1315,16 @@ export interface SignTypedDataV4Args {
   primaryType: string
   /** Actual data values to be signed, matching the primaryType structure */
   message: Record<string, any>
+}
+
+export type TypedDataChainPolicy = 'none' | 'require-match' | 'switch-and-require-match'
+
+export interface SignTypedDataV4Options {
+  /**
+   * Controls how the SDK handles a mismatch between domain.chainId and the active provider.
+   * Defaults to `require-match`.
+   */
+  chainPolicy?: TypedDataChainPolicy
+  /** Throw when the EIP-712 domain does not include chainId. Defaults to false. */
+  requireDomainChainId?: boolean
 }

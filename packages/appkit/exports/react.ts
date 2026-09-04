@@ -2,9 +2,10 @@ import { useEffect } from 'react'
 
 import {
   AccountController,
+  AppKitNotInitializedError,
   CoreHelperUtil,
-  createDefaultSIWXConfig,
-  type UseAppKitNetworkReturn
+  type UseAppKitNetworkReturn,
+  createDefaultSIWXConfig
 } from '@to-nexus/appkit-core'
 import { useAppKitNetworkCore } from '@to-nexus/appkit-core/react'
 import type { AppKitNetwork } from '@to-nexus/appkit/networks'
@@ -56,13 +57,17 @@ export * from '../src/library/react/index.js'
 export function useAppKitNetwork(): UseAppKitNetworkReturn {
   const { caipNetwork, caipNetworkId, chainId } = useAppKitNetworkCore()
 
-  function switchNetwork(network: AppKitNetwork) {
-    modal?.switchNetwork(network)
+  async function switchNetwork(network: AppKitNetwork): Promise<void> {
+    if (!modal) {
+      throw new AppKitNotInitializedError()
+    }
+
+    await modal.switchNetwork(network)
   }
 
   useEffect(() => {
     if (AccountController.state.address && caipNetwork) {
-      switchNetwork(caipNetwork)
+      void switchNetwork(caipNetwork)
     }
   }, [AccountController.state.address, caipNetwork])
 

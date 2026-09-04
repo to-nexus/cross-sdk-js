@@ -1,7 +1,11 @@
-import { type Ref, onUnmounted, ref } from 'vue'
-
-import { ChainController, CoreHelperUtil, type UseAppKitNetworkReturn } from '@to-nexus/appkit-core'
+import {
+  AppKitNotInitializedError,
+  ChainController,
+  CoreHelperUtil,
+  type UseAppKitNetworkReturn
+} from '@to-nexus/appkit-core'
 import type { AppKitNetwork } from '@to-nexus/appkit/networks'
+import { type Ref, onUnmounted, ref } from 'vue'
 
 import { AppKit } from '../src/client.js'
 import { getAppKit } from '../src/library/vue/index.js'
@@ -45,8 +49,12 @@ export function useAppKitNetwork(): Ref<UseAppKitNetworkReturn> {
     caipNetwork: ChainController.state.activeCaipNetwork,
     chainId: ChainController.state.activeCaipNetwork?.id,
     caipNetworkId: ChainController.state.activeCaipNetwork?.caipNetworkId,
-    switchNetwork: (network: AppKitNetwork) => {
-      modal?.switchNetwork(network)
+    switchNetwork: async (network: AppKitNetwork): Promise<void> => {
+      if (!modal) {
+        throw new AppKitNotInitializedError()
+      }
+
+      await modal.switchNetwork(network)
     }
   })
 
