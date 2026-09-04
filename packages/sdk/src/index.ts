@@ -22,16 +22,20 @@ import {
   bscTestnet,
   crossMainnet,
   crossTestnet,
+  defineChain,
   oneMainnet,
   oneTestnet,
   etherMainnet,
   etherTestnet,
+  hyperliquidTestnet,
   kaiaMainnet,
   kaiaTestnet,
+  mapApiToNetwork,
   networkController,
   roninMainnet,
   roninTestnet
 } from '@to-nexus/appkit/networks'
+import type { AppKitNetwork } from '@to-nexus/appkit/networks'
 import UniversalProvider from '@to-nexus/universal-provider'
 
 import { SDK_VERSION } from './constants.js'
@@ -61,7 +65,14 @@ export type Metadata = {
   icons: string[]
 }
 
-type SupportedNetworks =
+/**
+ * Chains this SDK ships a preset for, re-exported from
+ * `@to-nexus/appkit/networks`. Presets carry curated RPC endpoints, explorer
+ * metadata and (where deployed) multicall3 addresses.
+ */
+export type PresetNetwork =
+  | typeof oneMainnet
+  | typeof oneTestnet
   | typeof crossMainnet
   | typeof crossTestnet
   | typeof bscMainnet
@@ -71,6 +82,28 @@ type SupportedNetworks =
   | typeof etherMainnet
   | typeof etherTestnet
   | typeof roninMainnet
+  | typeof roninTestnet
+  | typeof hyperliquidTestnet
+
+/**
+ * A network accepted by {@link initCrossSdk} / {@link initCrossSdkWithParams}.
+ *
+ * Not restricted to {@link PresetNetwork}: the chain catalog lives in the
+ * backend (`chain/info`), so a chain can be required there before this SDK
+ * ships a preset for it. Any `AppKitNetwork` — e.g. one built with
+ * `defineChain` from `@to-nexus/appkit/networks`, or `mapApiToNetwork(info)`
+ * straight off the catalog — may be registered.
+ *
+ * A custom network must carry a NUMBER `id` (AppKit compares network ids with
+ * `===`, so a string id reads as permanently unsupported), a `caipNetworkId`
+ * of `eip155:<id>`, and a non-empty `rpcUrls.default.http` (read unguarded
+ * when the viem transport is built). `defineChain` and `mapApiToNetwork`
+ * produce that shape.
+ *
+ * Registering a chain makes it switchable and readable. It does not make it
+ * signable — that additionally requires the wallet to accept `eip155:<id>`.
+ */
+export type SupportedNetworks = PresetNetwork | AppKitNetwork
 
 const defaultMetadata: Metadata = {
   name: 'Cross SDK',
@@ -265,7 +298,16 @@ export {
   etherTestnet,
   roninMainnet,
   roninTestnet,
+  hyperliquidTestnet,
+  /*
+   * Build a network for a chain with no preset yet — see `SupportedNetworks`.
+   * Re-exported so consumers need not depend on `@to-nexus/appkit` directly.
+   */
+  defineChain,
+  mapApiToNetwork,
   UniversalProvider,
   ConstantsUtil,
   ConnectorUtil
 }
+
+export type { AppKitNetwork }

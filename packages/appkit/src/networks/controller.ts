@@ -7,6 +7,7 @@ import { oneMainnet } from './one/oneMainnet.js'
 import { oneTestnet } from './one/oneTestnet.js'
 import { etherMainnet } from './ethereum/etherMainnet.js'
 import { etherTestnet } from './ethereum/etherTestnet.js'
+import { hyperliquidTestnet } from './hyperliquid/hyperliquidTestnet.js'
 import { kaiaMainnet } from './kaia/kaiaMainnet.js'
 import { kaiaTestnet } from './kaia/kaiaTestnet.js'
 import { mapApiToNetwork } from './mapper.js'
@@ -24,7 +25,8 @@ const defaultNetworks: AppKitNetwork[] = [
   etherTestnet,
   etherMainnet,
   roninMainnet,
-  roninTestnet
+  roninTestnet,
+  hyperliquidTestnet
 ]
 
 export class NetworkController {
