@@ -1883,9 +1883,18 @@ export class AppKit {
         return
       }
 
+      /*
+       * Compare ids as strings: adapters report `chainId` as either a number
+       * or a string depending on the connector, while registered networks
+       * carry numbers. A strict `===` sent a chain that IS registered down the
+       * `setUnsupportedNetwork` branch. (`chainChanged` above already used a
+       * loose compare — this makes the two paths agree.)
+       */
       if (
         chainId &&
-        this.caipNetworks?.find(n => n.id === chainId || n.caipNetworkId === chainId)
+        this.caipNetworks?.find(
+          n => String(n.id) === String(chainId) || n.caipNetworkId === chainId
+        )
       ) {
         if (ChainController.state.activeChain === chainNamespace && address) {
           this.syncAccount({ address, chainId, chainNamespace })
@@ -2640,11 +2649,22 @@ export class AppKit {
   }
 
   private getUnsupportedNetwork(caipNetworkId: CaipNetworkId) {
+    const [namespace, reference] = caipNetworkId.split(':')
+
     return {
-      id: caipNetworkId.split(':')[1],
+      /*
+       * Numeric references (every eip155 chain id) must stay NUMBERS.
+       * `ChainController.checkIfSupportedNetwork` compares this against the
+       * registered networks' ids with `===`, and registered ids are numbers —
+       * so a string '998' here would keep a chain that IS registered flagged
+       * as unsupported forever, re-opening the "app doesn't support your
+       * current network" modal on every action. Non-numeric references
+       * (solana, bip122) are left as-is.
+       */
+      id: reference && /^\d+$/u.test(reference) ? Number(reference) : reference,
       caipNetworkId,
       name: ConstantsUtil.UNSUPPORTED_NETWORK_NAME,
-      chainNamespace: caipNetworkId.split(':')[0],
+      chainNamespace: namespace,
       nativeCurrency: {
         name: '',
         decimals: 0,

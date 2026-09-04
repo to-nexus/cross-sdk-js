@@ -42,6 +42,26 @@ const networkState: AdapterNetworkState = {
   smartAccountEnabledNetworks: []
 }
 
+// -- Helpers ------------------------------------------- //
+
+/**
+ * Compare two network ids across the number/string divide.
+ *
+ * `CaipNetwork['id']` is `number | string`: registered eip155 networks carry
+ * numbers, while ids parsed out of a CAIP id (`'eip155:998'` → `'998'`) arrive
+ * as strings. A strict `===` between the two forms is always false, which used
+ * to flag a chain that IS registered as unsupported — the dApp then showed the
+ * "app doesn't support your current network" modal on every action with no way
+ * out. Non-numeric ids (solana, bip122) still compare exactly.
+ */
+function isSameNetworkId(a: number | string | undefined, b: number | string | undefined): boolean {
+  if (a === undefined || b === undefined) {
+    return false
+  }
+
+  return a === b || String(a) === String(b)
+}
+
 // -- Types --------------------------------------------- //
 export type ChainControllerClients = {
   networkControllerClient: NetworkControllerClient
@@ -506,7 +526,9 @@ export const ChainController = {
       return true
     }
 
-    return requestedCaipNetworks?.some(network => network.id === activeCaipNetwork?.id)
+    return requestedCaipNetworks?.some(network =>
+      isSameNetworkId(network.id, activeCaipNetwork?.id)
+    )
   },
 
   checkIfSupportedChainId(chainId: number | string) {
@@ -516,7 +538,7 @@ export const ChainController = {
 
     const requestedCaipNetworks = this.getRequestedCaipNetworks(state.activeChain)
 
-    return requestedCaipNetworks?.some(network => network.id === chainId)
+    return requestedCaipNetworks?.some(network => isSameNetworkId(network.id, chainId))
   },
 
   // Smart Account Network Handlers
