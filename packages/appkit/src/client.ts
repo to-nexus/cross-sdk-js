@@ -51,6 +51,7 @@ import {
   type SendTransactionArgs,
   type SignEIP712Args,
   type SignTypedDataV4Args,
+  type SignTypedDataV4Options,
   SnackController,
   type SocialProvider,
   StorageUtil,
@@ -1060,6 +1061,19 @@ export class AppKit {
   private setUnsupportedNetwork(chainId: string | number) {
     const namespace = this.getActiveChainNamespace()
 
+    /*
+     * Wallets can report a placeholder chain id (0 / NaN / '') when they emit
+     * connect or chainChanged before their own network state is initialized.
+     * Persisting it as an unsupported network poisons storage and wipes the
+     * address cache, so keep the current network instead.
+     */
+    if (!NetworkUtil.isValidChainId(chainId)) {
+      // eslint-disable-next-line no-console
+      console.warn(`[AppKit] Ignoring invalid chainId reported by wallet: ${chainId}`)
+
+      return
+    }
+
     if (namespace) {
       const unsupportedNetwork = this.getUnsupportedNetwork(`${namespace}:${chainId}`)
       ChainController.setActiveCaipNetwork(unsupportedNetwork)
@@ -1243,13 +1257,18 @@ export class AppKit {
 
         return result?.signature || ''
       },
-      signTypedDataV4: async (paramsData: SignTypedDataV4Args, customData?: CustomData) => {
+      signTypedDataV4: async (
+        paramsData: SignTypedDataV4Args,
+        customData?: CustomData,
+        options?: SignTypedDataV4Options
+      ) => {
         const adapter = this.getAdapter(ChainController.state.activeChain as ChainNamespace)
 
         const result = await adapter?.signTypedDataV4({
           paramsData,
           provider: ProviderUtil.getProvider(ChainController.state.activeChain as ChainNamespace),
-          customData
+          customData,
+          options
         })
 
         return result?.signature || ''
@@ -1864,9 +1883,18 @@ export class AppKit {
         return
       }
 
+      /*
+       * Compare ids as strings: adapters report `chainId` as either a number
+       * or a string depending on the connector, while registered networks
+       * carry numbers. A strict `===` sent a chain that IS registered down the
+       * `setUnsupportedNetwork` branch. (`chainChanged` above already used a
+       * loose compare — this makes the two paths agree.)
+       */
       if (
         chainId &&
-        this.caipNetworks?.find(n => n.id === chainId || n.caipNetworkId === chainId)
+        this.caipNetworks?.find(
+          n => String(n.id) === String(chainId) || n.caipNetworkId === chainId
+        )
       ) {
         if (ChainController.state.activeChain === chainNamespace && address) {
           this.syncAccount({ address, chainId, chainNamespace })
@@ -2621,11 +2649,22 @@ export class AppKit {
   }
 
   private getUnsupportedNetwork(caipNetworkId: CaipNetworkId) {
+    const [namespace, reference] = caipNetworkId.split(':')
+
     return {
-      id: caipNetworkId.split(':')[1],
+      /*
+       * Numeric references (every eip155 chain id) must stay NUMBERS.
+       * `ChainController.checkIfSupportedNetwork` compares this against the
+       * registered networks' ids with `===`, and registered ids are numbers —
+       * so a string '998' here would keep a chain that IS registered flagged
+       * as unsupported forever, re-opening the "app doesn't support your
+       * current network" modal on every action. Non-numeric references
+       * (solana, bip122) are left as-is.
+       */
+      id: reference && /^\d+$/u.test(reference) ? Number(reference) : reference,
       caipNetworkId,
       name: ConstantsUtil.UNSUPPORTED_NETWORK_NAME,
-      chainNamespace: caipNetworkId.split(':')[0],
+      chainNamespace: namespace,
       nativeCurrency: {
         name: '',
         decimals: 0,
@@ -2641,6 +2680,19 @@ export class AppKit {
 
   private getDefaultNetwork() {
     const caipNetworkIdFromStorage = StorageUtil.getActiveCaipNetworkId()
+
+    /*
+     * Self-heal storage poisoned by an older build that persisted a
+     * placeholder network id (e.g. `eip155:0`) — otherwise it survives
+     * reloads and keeps the dApp stuck on an unsupported network.
+     */
+    if (caipNetworkIdFromStorage && !NetworkUtil.isValidCaipNetworkId(caipNetworkIdFromStorage)) {
+      // eslint-disable-next-line no-console
+      console.warn(`[AppKit] Discarding invalid stored network id: ${caipNetworkIdFromStorage}`)
+      StorageUtil.deleteActiveCaipNetworkId()
+
+      return this.defaultCaipNetwork ?? this.caipNetworks?.[0]
+    }
 
     if (caipNetworkIdFromStorage) {
       const caipNetwork = this.caipNetworks?.find(n => n.caipNetworkId === caipNetworkIdFromStorage)

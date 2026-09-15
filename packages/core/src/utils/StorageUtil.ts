@@ -4,6 +4,7 @@ import {
   type CaipNetworkId,
   type ChainNamespace,
   ConstantsUtil as CommonConstantsUtil,
+  NetworkUtil,
   SafeLocalStorage,
   SafeLocalStorageKeys,
   getSafeConnectorIdKey
@@ -156,6 +157,17 @@ export const StorageUtil = {
   setActiveCaipNetworkId(caipNetworkId: CaipNetworkId) {
     try {
       console.log(`setActiveCaipNetworkId - caipNetworkId: ${caipNetworkId} now storing in storage`)
+
+      /*
+       * 지갑이 네트워크 초기화 전에 보고한 placeholder id(eip155:0 등)는 저장하지 않는다.
+       * 저장하면 스토리지가 오염될 뿐 아니라 아래 clearAddressCache까지 트리거되어
+       * 정상 네트워크의 잔고/identity 캐시가 통째로 날아간다.
+       */
+      if (!NetworkUtil.isValidCaipNetworkId(caipNetworkId)) {
+        console.warn(`Ignoring invalid caipNetworkId: ${caipNetworkId}`)
+
+        return
+      }
 
       // 이전 네트워크 ID 가져오기
       const previousNetworkId = SafeLocalStorage.getItem(

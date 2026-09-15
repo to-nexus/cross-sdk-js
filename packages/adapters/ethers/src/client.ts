@@ -1,6 +1,10 @@
 import { type AppKitOptions, WcConstantsUtil } from '@to-nexus/appkit'
 import type { CaipNetwork } from '@to-nexus/appkit-common'
-import { ConstantsUtil as CommonConstantsUtil, ParseUtil } from '@to-nexus/appkit-common'
+import {
+  ConstantsUtil as CommonConstantsUtil,
+  NetworkUtil,
+  ParseUtil
+} from '@to-nexus/appkit-common'
 import {
   AccountController,
   ChainController,
@@ -10,7 +14,10 @@ import {
   CoreHelperUtil,
   OptionsController,
   type Provider,
-  StorageUtil
+  StorageUtil,
+  ensureTypedDataChain,
+  isTypedDataChainError,
+  withTypedDataChainLock
 } from '@to-nexus/appkit-core'
 import { ConstantsUtil, PresetsUtil } from '@to-nexus/appkit-utils'
 import { EthersHelpersUtil, type ProviderType } from '@to-nexus/appkit-utils/ethers'
@@ -262,14 +269,30 @@ export class EthersAdapter extends AdapterBlueprint {
     params: AdapterBlueprint.SignTypedDataV4Params
   ): Promise<AdapterBlueprint.SignTypedDataV4Result> {
     try {
-      const signature = await EthersMethods.signTypedDataV4(
-        params.paramsData,
-        params.provider as Provider,
-        params.customData
-      )
+      const provider = params.provider as Provider
+
+      const signature = await withTypedDataChainLock(provider, async () => {
+        await ensureTypedDataChain({
+          provider,
+          typedData: params.paramsData,
+          options: params.options,
+          switchChain: async chainId => {
+            await provider.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: `0x${chainId.toString(16)}` }]
+            })
+          }
+        })
+
+        return EthersMethods.signTypedDataV4(params.paramsData, provider, params.customData)
+      })
 
       return { signature }
     } catch (error) {
+      if (isTypedDataChainError(error)) {
+        throw error
+      }
+
       const errorMessage = getErrorMessage(error)
       throw new Error(`EthersAdapter:signTypedDataV4 failed: ${errorMessage}`, { cause: error })
     }
@@ -795,6 +818,14 @@ export class EthersAdapter extends AdapterBlueprint {
     const chainChangedHandler = (chainId: string) => {
       const chainIdNumber =
         typeof chainId === 'string' ? EthersHelpersUtil.hexStringToNumber(chainId) : Number(chainId)
+
+      // Wallets may report 0 / NaN before their network state is initialized
+      if (!NetworkUtil.isValidChainId(chainIdNumber)) {
+        // eslint-disable-next-line no-console
+        console.warn('[EthersAdapter] Ignoring invalid chainId', chainId)
+
+        return
+      }
 
       this.emit('switchNetwork', { chainId: chainIdNumber })
     }

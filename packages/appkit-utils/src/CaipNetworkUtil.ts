@@ -19,6 +19,12 @@ export function getBlockchainApiRpcUrl(caipNetworkId: CaipNetworkId, projectId: 
   return url.toString()
 }
 
+/*
+ * Chains the WalletConnect Blockchain API can serve. Kept for the disabled
+ * `getDefaultRpcUrl` branch below; the transport is now selected by RPC host,
+ * not by chain ID.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const WC_HTTP_RPC_SUPPORTED_CHAINS = [
   'near:mainnet',
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
@@ -203,7 +209,19 @@ export const CaipNetworksUtil = {
   getViemTransport(caipNetwork: CaipNetwork) {
     const defaultRpcUrl = caipNetwork.rpcUrls.default.http?.[0]
 
-    if (!WC_HTTP_RPC_SUPPORTED_CHAINS.includes(caipNetwork.caipNetworkId)) {
+    let isBlockchainApiUrl = false
+    try {
+      isBlockchainApiUrl = new URL(defaultRpcUrl ?? '').host === RPC_URL_HOST
+    } catch (e) {
+      isBlockchainApiUrl = false
+    }
+
+    /*
+     * Regular RPC endpoints only accept "Content-Type: application/json".
+     * Sending text/plain to them makes the first request fail (HTTP 415 on
+     * Arbitrum Sepolia, for example), so use viem's default JSON transport.
+     */
+    if (!isBlockchainApiUrl) {
       return http(defaultRpcUrl)
     }
 

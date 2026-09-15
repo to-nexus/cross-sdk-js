@@ -14,7 +14,10 @@ import {
   OptionsController,
   type Provider,
   type SIWXSession,
-  StorageUtil
+  StorageUtil,
+  ensureTypedDataChain,
+  isTypedDataChainError,
+  withTypedDataChainLock
 } from '@to-nexus/appkit-core'
 import { CaipNetworksUtil, PresetsUtil } from '@to-nexus/appkit-utils'
 import type { W3mFrameProvider } from '@to-nexus/appkit-wallet'
@@ -603,10 +606,19 @@ export class WagmiAdapter extends AdapterBlueprint {
           }
 
           if (accountData.chainId !== prevAccountData?.chainId) {
-            this.emit('switchNetwork', {
-              address: accountData.address,
-              chainId: accountData.chainId
-            })
+            /*
+             * Cross Extension can report chainId 0 right after login, before its
+             * own network state is ready. Emitting it flags the network as
+             * unsupported, so wait for the real chainId instead.
+             */
+            if (NetworkUtil.isValidChainId(accountData.chainId)) {
+              this.emit('switchNetwork', {
+                address: accountData.address,
+                chainId: accountData.chainId
+              })
+            } else {
+              console.warn('[WagmiAdapter] Ignoring invalid chainId', accountData.chainId)
+            }
           }
         }
       }
@@ -792,17 +804,32 @@ export class WagmiAdapter extends AdapterBlueprint {
        */
       const serializedParamsData = this.serializeBigInt(params.paramsData)
 
-      /*
-       * Cross Wallet expects [typedData, metadata] (address is automatically extracted from connected account)
-       * Standard wallets expect [address, typedData]
-       */
-      const signature = await provider.request({
-        method: 'eth_signTypedData_v4',
-        params: [serializedParamsData, params.customData] as any
+      const signature = await withTypedDataChainLock(provider, async () => {
+        await ensureTypedDataChain({
+          provider,
+          typedData: params.paramsData,
+          options: params.options,
+          switchChain: async chainId => {
+            await switchChain(this.wagmiConfig, { chainId })
+          }
+        })
+
+        /*
+         * Cross Wallet expects [typedData, metadata] (address is automatically extracted from connected account)
+         * Standard wallets expect [address, typedData]
+         */
+        return provider.request({
+          method: 'eth_signTypedData_v4',
+          params: [serializedParamsData, params.customData] as any
+        })
       })
 
       return { signature }
     } catch (error) {
+      if (isTypedDataChainError(error)) {
+        throw error
+      }
+
       const errorMessage = getErrorMessage(error)
       throw new Error(`WagmiAdapter:signTypedDataV4 - Sign typed data failed: ${errorMessage}`, {
         cause: error
