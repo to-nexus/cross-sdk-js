@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/node:20 AS builder
+FROM public.ecr.aws/docker/library/node:22.23.4 AS builder
 
 ARG SERVICE_NAME
 ARG WORKDIR
@@ -83,6 +83,9 @@ RUN rm -f cross-sdk*.js cross-sdk*.js.map index-*.js index-*.js.map index.es-*.j
     cp ../../packages/cdn/dist/*.map .
 
 FROM public.ecr.aws/docker/library/nginx:alpine AS runner
+
+# CVE-2026-111497: 베이스 이미지 캐시와 무관하게 패치된 brotli-libs(>=1.2.1) 반영
+RUN apk upgrade --no-cache brotli-libs
 
 # nginx 사용자 설정
 RUN addgroup -S nexus && adduser -S -G nexus nexus
