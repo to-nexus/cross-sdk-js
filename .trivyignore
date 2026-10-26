@@ -34,3 +34,27 @@ CVE-2025-25283
 # and does not run vite server in any deployed environment. Impact is zero.
 # Re-evaluate when vite@5 ships a patch or when the project upgrades to vite@6+.
 CVE-2026-53571
+
+# node-forge RSA PKCS#1 v1.5 signature forgery (CVE-2026-85393)
+# Source: node-forge@1.4.0 (transitive; pinned via pnpm.overrides to ^1.4.0)
+# Why accepted: Trivy status is "affected" — no patched release exists yet, so
+# there is nothing to upgrade to. The SDK does not verify RSA PKCS#1 v1.5
+# signatures with node-forge. Re-evaluate when node-forge ships a fix.
+CVE-2026-85393
+
+# vite launch-editor command injection (CVE-2026-112942)
+# Source: vite@5.4.x (devDependency — build tool only, never deployed as a server)
+# Why accepted: fixed versions are 6.4.4 / 7.3.7 / 8.x. vite@5.x has no patch
+# release (same situation as CVE-2026-53571 above). The issue is in the vite dev
+# server's open-in-editor path; this repo uses vite solely as a bundler
+# (vite build) and never runs the dev server in a deployed environment.
+# Re-evaluate when the project upgrades to vite@6+.
+CVE-2026-112942
+
+# zod unbounded array validation DoS (CVE-2023-54404)
+# Source: zod@3.22.4 / zod@3.25.76 (packages/sdk, packages/wallet, packages/experimental
+#         and transitive deps). zod@4.x is already bumped to 4.6.6 via pnpm.overrides.
+# Why accepted: the only patched version is 4.6.6; the zod 3.x line has no patch
+# release, and moving the SDK's direct zod@3 dependency to v4 is a breaking API
+# change for consumers. Re-evaluate when the SDK migrates to zod@4.
+CVE-2023-54404
