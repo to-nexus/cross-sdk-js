@@ -17,7 +17,8 @@ overrides:
   tar@6: ^7.5.15
   elliptic: ^6.6.1
   lodash: ^4.18.0
-  node-forge: ^1.4.0
+  node-forge: ^1.4.3
+  bitcoinjs-lib@6: ^6.1.8
   form-data: ^4.0.6
   hono: ^4.12.25
   vite: ^5.4.19
@@ -295,8 +296,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       bitcoinjs-lib:
-        specifier: 6.1.7
-        version: 6.1.7
+        specifier: ^6.1.8
+        version: 6.1.10
       sats-connect:
         specifier: 3.0.1
         version: 3.0.1(typescript@5.7.3)
@@ -4950,8 +4951,8 @@ packages:
   bitcoin-address-validation@2.2.3:
     resolution: {integrity: sha512-1uGCGl26Ye8JG5qcExtFLQfuib6qEZWNDo1ZlLlwp/z7ygUFby3IxolgEfgMGaC+LG9csbVASLcH8fRLv7DIOg==}
 
-  bitcoinjs-lib@6.1.7:
-    resolution: {integrity: sha512-tlf/r2DGMbF7ky1MgUqXHzypYHakkEnm0SZP23CJKIqNY/5uNAnMbFhMJdhjrL/7anfb/U8+AlpdjPWjPnAalg==}
+  bitcoinjs-lib@6.1.10:
+    resolution: {integrity: sha512-9KpnS5JKVP0j0yfTsBNFIsNA6+JdBDb7VtL35F20I/pJYobosi3TmZFGtu6qxhJCfb0vubJixr5Zv61/lUYETw==}
     engines: {node: '>=8.0.0'}
 
   bitcoinjs-message@2.2.0:
@@ -7756,8 +7757,8 @@ packages:
       encoding:
         optional: true
 
-  node-forge@1.4.0:
-    resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
+  node-forge@1.4.3:
+    resolution: {integrity: sha512-P6wzfh6t70avmV8FrVEAd/36sOPJQ+hkaJVX1Laap9J/77m7M0eyozDvc8SwnDf4P7MP94gwbAAo0rg3YVXT+g==}
     engines: {node: '>= 6.13.0'}
 
   node-gyp-build@4.8.4:
@@ -19355,7 +19356,7 @@ snapshots:
   bip322-js@2.0.0:
     dependencies:
       '@bitcoinerlab/secp256k1': 1.2.0
-      bitcoinjs-lib: 6.1.7
+      bitcoinjs-lib: 6.1.10
       bitcoinjs-message: 2.2.0
       ecpair: 2.1.0
       elliptic: 6.6.1
@@ -19376,7 +19377,7 @@ snapshots:
       bech32: 2.0.0
       sha256-uint8array: 0.10.7
 
-  bitcoinjs-lib@6.1.7:
+  bitcoinjs-lib@6.1.10:
     dependencies:
       '@noble/hashes': 1.8.0
       bech32: 2.0.0
@@ -22537,7 +22538,7 @@ snapshots:
       iso-random-stream: 2.0.2
       keypair: 1.0.4
       multiformats: 9.9.0
-      node-forge: 1.4.0
+      node-forge: 1.4.3
       pem-jwk: 2.0.0
       protobufjs: 7.6.6
       secp256k1: 4.0.5
@@ -23017,7 +23018,7 @@ snapshots:
     optionalDependencies:
       encoding: 0.1.14
 
-  node-forge@1.4.0: {}
+  node-forge@1.4.3: {}
 
   node-gyp-build@4.8.4: {}
 

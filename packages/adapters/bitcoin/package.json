@@ -33,7 +33,7 @@
     "@to-nexus/universal-provider": "2.19.15",
     "@wallet-standard/app": "1.1.0",
     "@wallet-standard/base": "1.1.0",
-    "bitcoinjs-lib": "6.1.7",
+    "bitcoinjs-lib": "6.1.10",
     "sats-connect": "3.0.1"
   },
   "devDependencies": {
