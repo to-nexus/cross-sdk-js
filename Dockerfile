@@ -82,7 +82,9 @@ RUN rm -f cross-sdk*.js cross-sdk*.js.map index-*.js index-*.js.map index.es-*.j
     cp ../../packages/cdn/dist/*.js . && \
     cp ../../packages/cdn/dist/*.map .
 
-FROM public.ecr.aws/docker/library/nginx:alpine AS runner
+FROM public.ecr.aws/nginx/nginx-unprivileged:1.31.9-alpine AS runner
+# nginx-unprivileged 는 uid 101 로 시작한다 — 아래 빌드 단계(RUN)는 root 로 실행하고 마지막에 비root 로 돌린다
+USER root
 
 # CVE-2026-111497: 베이스 이미지 캐시와 무관하게 패치된 brotli-libs(>=1.2.1) 반영
 RUN apk upgrade --no-cache brotli-libs
@@ -114,3 +116,4 @@ RUN chown -R nexus:nexus /var/cache/nginx /var/run /var/log/nginx
 EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
+USER 101
