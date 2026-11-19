@@ -108,7 +108,8 @@ COPY --chown=nexus:nexus nginx.conf /etc/nginx/nginx.conf
 # 권한 설정
 RUN chmod -R 755 /usr/share/nginx/html
 RUN find /usr/share/nginx/html -type f -exec chmod 644 {} \;
-RUN chown -R nexus:nexus /var/cache/nginx /var/run /var/log/nginx
+# /var/cache/nginx 는 베이스 이미지 소유권(101:0)을 유지한다 — nexus 로 바꾸면 uid 101 이 쓰지 못한다
+RUN chown -R nexus:nexus /var/run /var/log/nginx
 
 # USER nexus
 
