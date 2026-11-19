@@ -8,10 +8,15 @@ export type BaseNetwork<
   custom extends Record<string, unknown> | undefined = Record<string, unknown> | undefined
 > = BaseChain<formatters, custom>
 
+/*
+ * `transactionReplacement` 는 viem 2.57 에서 추가된 필드로, 그 타입(ChainTransactionReplacement)이
+ * viem 루트에서 export 되지 않는다. 그대로 두면 defineChain 으로 만든 네트워크 상수의 선언 파일을
+ * 만들 수 없어(TS2742) 빌드가 깨진다. SDK 네트워크는 이 필드를 쓰지 않으므로 제외한다.
+ */
 export type CaipNetwork<
   formatters extends ChainFormatters | undefined = ChainFormatters | undefined,
   custom extends Record<string, unknown> | undefined = Record<string, unknown> | undefined
-> = Omit<BaseChain<formatters, custom>, 'id'> & {
+> = Omit<BaseChain<formatters, custom>, 'id' | 'transactionReplacement'> & {
   id: number | string
   chainNamespace: ChainNamespace
   caipNetworkId: CaipNetworkId
